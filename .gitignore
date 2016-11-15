@@ -1,9 +1,8 @@
 *~
 *.bak
 *.pyc
-*.msh
 
-workspace
+tests/workspace
 *.txt
 *.bfac.gz
 

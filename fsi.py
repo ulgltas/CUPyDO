@@ -321,8 +321,8 @@ class MtfSolver:
     def save(self):
         print 'No save() function for solid=MtfSolver!'
         
-    def meshUpdate(self):
-        print 'No meshUpdate() function for solid=MtfSolver!'
+    def remeshing(self):
+        print 'No remeshing() function for solid=MtfSolver!'
     
     def exitFsi(self):
         print 'No exitFsi() function for solid=MtfSolver!'
@@ -422,7 +422,7 @@ class PfemSolver:
             self.pfem.scheme.archive()
         self.pfem.scheme.vizu(self.u,self.v,self.p)
         
-    def meshUpdate(self):
+    def remeshing(self):
         self.pfem.scheme.remeshing(self.V,self.V0,self.p)
         self.pfem.scheme.updateData(self.V0,self.V)
     
@@ -524,9 +524,9 @@ class fsiAlgorithm:
         print '\nERROR: call to the generic class fsiAlgorithm run function!\n'
         exit(1)
         
-    def meshUpdate(self):
-        self.solid.meshUpdate()
-        self.fluid.meshUpdate()
+    def remeshing(self):
+        self.solid.remeshing()
+        self.fluid.remeshing()
 
 
 # Fixed-point algorithm with Aitken's relaxation
@@ -551,10 +551,6 @@ class fixedPointAitkenRelaxationAlgorithm(fsiAlgorithm):
         dn_2 = np.zeros(2*len(self.solid.fnods))
         d_relaxed = np.zeros(2*len(self.solid.fnods))
         d_guess = np.zeros(2*len(self.solid.fnods))
-        
-        # --------------------------
-        # fake FSI solver
-        # --------------------------
         
         t1 = 0.0  # initial time
         t2 = t1
@@ -669,7 +665,7 @@ class fixedPointAitkenRelaxationAlgorithm(fsiAlgorithm):
             self.solid.save()
             self.fluid.save(nt+1)
             
-            self.meshUpdate()
+            self.remeshing()
 
             t1=t2 # fsi loop has converged - time t2 is accepted'''
             nt+=1

@@ -141,191 +141,78 @@ class NLoad:
    
 # ------------------------------------------------------------------------------
 
-# --- Metafor interface --- 
+# ----------------------------------------------------------------------
+#  Generic solid solver class
+# ----------------------------------------------------------------------
 
-class MtfSolver:
-    def __init__(self, testname, bndno, t1):
-        self.testname = testname  # string (name of the module of the solid model)
-        self.bndno = bndno        # phygroup# of the f/s interface
-        self.neverrun=True
-        
-        # internal vars
-        self.fnods = {}           # dict of interface nodes / prescribed forces
-        self.t1      = t1         # last reference time        
-        self.t2      = t1         # last calculated time
-        self.metafor = None       # link to Metafor objet
-        self.nbFacs = 0           # number of existing Facs
-        self.saveAllFacs = True   # True: the Fac corresponding to the end of the time step is conserved, False: Facs are erased at the end of each time step
-        self.runOK = True
+class SolidSolver:
+    """
+    Des.
+    """
 
-        # init solid solver
+    def __init__(self):
 
-        # loads the python module
-        #load(self.testname)         # use toolbox.utilities
-        exec("import %s" % self.testname)
-        exec("module = %s" % self.testname)
+        self.haloNodeList = {}
 
-        # create an instance of Metafor
-        p = {}                       # parameters (todo)
-        #self.metafor = instance(p)  # use toolbox.utilities
-        self.metafor = module.getMetafor(p)
-        
-        # retrieve the f/s boundary and the related nodes
-        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
-        gr = groupset(self.bndno)
-        nbnods = gr.getNumberOfMeshPoints()
-        
-        # builds a list (dict) of interface nodes
-        # and creates the nodal prescribed loads
-        loadingset = self.metafor.getDomain().getLoadingSet()
-        for i in range(nbnods):
-            node = gr.getMeshPoint(i)
-            no = node.getNo()
-            fx = NLoad(self.t1, 0.0, self.t2, 0.0)
-            fy = NLoad(self.t1, 0.0, self.t2, 0.0)
-            self.fnods[no] = (node, fx, fy)
-            fctx = PythonOneParameterFunction(fx)
-            fcty = PythonOneParameterFunction(fy)
-            loadingset.define(node, Field1D(TX,GF1), 1.0, fctx) 
-            loadingset.define(node, Field1D(TY,GF1), 1.0, fcty)       
+        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step --- #
+        self.interfaceDisp_X = np.zeros(self.nInterfNodes)
+        self.interfaceDisp_Y = np.zeros(self.nInterfNodes)
+        self.interfaceDisp_Z = np.zeros(self.nInterfNodes)
+        self.interfaceVel_X = np.zeros(self.nInterfNodes)
+        self.interfaceVel_Y = np.zeros(self.nInterfNodes)
+        self.interfaceVel_Z = np.zeros(self.nInterfNodes)
+        self.interfaceVel_XNm1 = np.zeros(self.nInterfNodes)
+        self.interfaceVel_YNm1 = np.zeros(self.nInterfNodes)
+        self.interfaceVel_ZNm1 = np.zeros(self.nInterfNodes)
 
-    def run(self, t1, t2):
-        """
-        calculates one increment from t1 to t2.
-        """
-        if(self.neverrun):
-            self.__firstrun(t1, t2)
-            self.neverrun=False
-        else:
-            self.__nextrun(t1, t2)
-        self.t1 = t1
-        self.t2 = t2
+    def setInitialDisplacements(self):
 
-    def __firstrun(self, t1, t2):
-        """
-        performs a first run of metafor with all the required preprocessing.
-        """
-        # this is the first run - initialize the timestep manager of metafor
-        tsm = self.metafor.getTimeStepManager()
-        dt    = t2-t1  # time-step size
-        dt0   = dt     # initial time step
-        dtmax = dt     # maximum size of the time step
-        tsm.setInitialTime(t1, dt0)
-        tsm.setNextTime(t2, 1, dtmax)
-        # launches metafor from t1 to t2
-        #meta()                  # use toolbox.utilities
-        log = LogFile("resFile.txt")
-        self.runOK = self.metafor.getTimeIntegration().integration()
-        # at this stage, 2 archive files have been created in the workspace
+    def run(self):
 
-    def __nextrun(self, t1, t2):
-        """
-        performs one time increment (from t1 to t2) of the solid model.
-        this increment is a full metafor run and it may require more than 1 time step.
-        """
-        if self.t1==t1:
-            # rerun from t1
-            if self.t2!=t2:
-                raise Exception("bad t2 (%f!=%f)" % (t2, self.t2)) 
-            
-            loader = fac.FacManager(self.metafor)
-            nt = loader.lookForFile(self.nbFacs) #(0)
-            loader.eraseAllFrom(nt)
-            self.runOK = self.metafor.getTimeIntegration().restart(nt)
-        else:
-            # new time step
-            tsm = self.metafor.getTimeStepManager()
-            dt=t2-t1
-            dtmax=dt
-            tsm.setNextTime(t2, 1, dtmax/2)    # forces at least 2 time increments   
-            
-            loader = fac.FacManager(self.metafor)
-            print 'self.nbFacs = ', self.nbFacs
-            nt1 = loader.lookForFile(self.nbFacs) #(0)
-            nt2 = loader.lookForFile(self.nbFacs+1) #(1)
-            if not self.saveAllFacs:
-                loader.erase(nt1) # delete first fac
-            self.runOK = self.metafor.getTimeIntegration().restart(nt2)
-            if self.saveAllFacs:
-                self.nbFacs+=1 
+    def __setCurrentState(self):
 
-    def nextstep(self):
+    def getInterfaceNodalDisplacement(self):
         """
-        prepare the boundary nodes for the next fsi increment
+        Des.
         """
-        for no in self.fnods.iterkeys():
-            node,fx,fy = self.fnods[no]
-            fx.nextstep()        
-            fy.nextstep()        
 
-    def fakefluidsolver(self, time):
-        """
-        calculate some dummy loads as a function of timestep.
-        these loads should be replaced by the fluid solver in practice.
-        for each node, the fsi solver may call the "solid.applyload" function.
-        """
-        # calculate L (max length along x)
-        xmin=1e10
-        xmax=-1e10
-        for no in self.fnods.iterkeys():
-            node,fx,fy = self.fnods[no]
-            px = node.getPos0().get1()
-            if px<xmin: xmin=px
-            if px>xmax: xmax=px
-        #print "(xmin,xmax)=(%f,%f)" % (xmin,xmax)
-        L = xmax-xmin
-        #print "L=%f" % L
-    
-        # loop over node#
-        for no in self.fnods.iterkeys():
-            node,fx,fy = self.fnods[no]  # retreive data of node #no
-            px = node.getPos0().get1()     # x coordinate of the node       
-            valx = 0.0 
-            valy = -3e-4*time*math.sin(8*math.pi*px/L) # dummy fct
-            self.applyload(no, valx, valy, time)
-    
-    def applyload(self, no, valx, valy, time):
-        """
-        prescribes given nodal forces (valx,valy) to node #no
-        """
-        node,fx,fy = self.fnods[no]
-        fx.val2 = valx
-        fy.val2 = valy
-        fx.t2 = time
-        fy.t2 = time
+        return (self.interfaceDisp_X, self.interfaceDisp_Y, self.interfaceDisp_Z)
 
-    def getdefo(self):
+    def getInterfaceNodalInitialPositions(self):
+
+    def getInterfaceNodalVelocity(self):
         """
-        returns a dict containing all the updated positions of the interface nodes.
-        out[node_no] = (pos_x, pos_y)
+        des.
         """
-        out = {}
-        for no in self.fnods.iterkeys():
-            node,fx,fy = self.fnods[no]
-            px = node.getPos(Configuration().currentConf).get1() # current x          
-            py = node.getPos(Configuration().currentConf).get2() # current y
-            vx_ToExt = DbNodalValueExtractor(node, Field1D(TX,GV)) # current x velocity
-            vy_ToExt = DbNodalValueExtractor(node, Field1D(TY,GV)) # current y velocity
-            vx_ext = vx_ToExt.extract()
-            vy_ext = vy_ToExt.extract()
-            dx_ToExt = DbNodalValueExtractor(node, Field1D(TX,RE)) # current x displacement
-            dy_ToExt = DbNodalValueExtractor(node, Field1D(TY,RE)) # current y displacement
-            dx_ext = dx_ToExt.extract()
-            dy_ext = dy_ToExt.extract()
-            out[no] = (px, py, dx_ext[0], dy_ext[0], vx_ext[0], vy_ext[0])
-        return out
-    
+
+        return (self.interfaceVel_X, self.interfaceVel_Y, self.interfaceVel_Z)
+
+    def getInterfaceNodalVelocityNm1(self):
+        """
+        Des.
+        """
+
+        return (self.interfaceVel_XNm1, self.interfaceVel_YNm1, self.interfaceVel_ZNm1)
+
+    def getInterfaceNodeIndex(self, iVertex):
+
+    #def getHaloNodeList(self):
+
+    def fakeFluidSolver(self, time):
+
+    def applyLoad(self, load_X, load_Y, load_Z, time):
+
     def update(self):
-        self.nextstep()
-        
+
     def save(self):
-        print 'No save() function for solid=MtfSolver!'
-        
+
+    def initRealTimeData(self):
+
+    def saveRealTimeData(self, time, nFSIIter):
+
     def remeshing(self):
-        print 'No remeshing() function for solid=MtfSolver!'
-    
-    def exitFsi(self):
-        print 'No exitFsi() function for solid=MtfSolver!'
+
+    def exit(self):
 
 
 # --- Pfem interface --- 

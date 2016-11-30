@@ -331,7 +331,7 @@ class MtfSolver:
 # --- Pfem interface --- 
 
 class PfemSolver:
-    def __init__(self, testname, bndno):
+    def __init__(self, testname, bndno, dt):
         self.testname = testname  # string (name of the module of the fluid model)
         self.bndno = bndno        # phygroup# of the f/s interface
         
@@ -364,6 +364,8 @@ class PfemSolver:
         self.v = self.pfem.w.DoubleVector()
         self.p = self.pfem.w.DoubleVector()
         self.velocity = self.pfem.w.DoubleVector()
+        
+        self.pfem.scheme.dt = dt
         self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         
         self.runOK = True
@@ -372,6 +374,7 @@ class PfemSolver:
         """
         calculates one increment from t1 to t2.
         """
+        self.pfem.scheme.setNextStep()
         self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         
     def fakesolidsolver(self, time):
@@ -428,6 +431,7 @@ class PfemSolver:
     
     def exitFsi(self):
         self.pfem.gui.save2vtk()
+        self.pfem.scheme.exit()
 
 
 # --- Data managing tools for FSI ---
@@ -510,7 +514,7 @@ class DispResidualBasedCriterion(FsiCriterion):
 
 # --- FSI partitioned coupling algorithms ---
 
-class fsiAlgorithm:
+class FsiAlgorithm:
     def __init__(self, _solid, _fluid, _dt, _tTot, _criterion):
         self.solid = _solid
         self.fluid = _fluid
@@ -531,9 +535,9 @@ class fsiAlgorithm:
 
 # Fixed-point algorithm with Aitken's relaxation
 
-class fixedPointAitkenRelaxationAlgorithm(fsiAlgorithm):
+class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
     def __init__(self, _solid, _fluid, _dt, _tTot, _criterion, omega_m):
-        fsiAlgorithm.__init__(self, _solid, _fluid, _dt, _tTot, _criterion)
+        FsiAlgorithm.__init__(self, _solid, _fluid, _dt, _tTot, _criterion)
         self.omega_max = omega_m
         
     def run(self):
@@ -677,7 +681,7 @@ class fixedPointAitkenRelaxationAlgorithm(fsiAlgorithm):
         self.solid.exitFsi()
         self.fluid.exitFsi()
         
-class fsiSolidTestAlgorithm:
+class FsiSolidTestAlgorithm:
     def __init__(self, _solid):
         self.solid = _solid
         

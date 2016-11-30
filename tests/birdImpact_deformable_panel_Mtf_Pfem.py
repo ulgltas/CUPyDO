@@ -28,7 +28,7 @@ def main():
     
     omega_max = 0.5
     
-    fsi_algo = fsi.fixedPointAitkenRelaxationAlgorithm(solid, fluid, dt, tTot, fsi_criterion, omega_max)
+    fsi_algo = fsi.FixedPointAitkenRelaxationAlgorithm(solid, fluid, dt, tTot, fsi_criterion, omega_max)
     fsi_algo.run()
     
 if __name__ == "__main__":

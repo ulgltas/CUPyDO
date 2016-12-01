@@ -91,7 +91,13 @@ def getMetafor(p={}):
 
     return metafor
 
+def getRealTimeExtractorsList(Mtf):
 
+    extractorsList = list()
 
+    # --- Extractors list starts --- #
+    extractor1 = Mtf.DbNodalValueExtractor(groupset(104), Field1D(TY,RE))
+    extractorsList.append(extractor1)
+    # --- Extractors list ends --- #
 
-
+    return extractorsList

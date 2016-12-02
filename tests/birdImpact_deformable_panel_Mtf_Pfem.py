@@ -7,6 +7,7 @@ sys.path.append(fsiPath)
 
 import fsi
 import MtfInterface
+import PfemInterface
 
 def main():
     
@@ -22,7 +23,7 @@ def main():
     tTot = 40*((4*R)/U0 + d/U0)
     
     solid = MtfInterface.MtfSolver('birdImpact_deformable_panel_panel_steel_Mtf')
-    fluid = fsi.PfemSolver('birdImpact_deformable_panel_bird_Pfem', 13, dt)
+    fluid = PfemInterface.PfemSolver('birdImpact_deformable_panel_bird_Pfem', 13, dt)
     
     toll = 1.0e-6
     fsi_criterion = fsi.DispResidualBasedCriterion(toll)

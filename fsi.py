@@ -6,59 +6,46 @@ import math
 import numpy as np
 import os, os.path, sys, time, string
 
-# Defining all the necessary paths for the fluid and solid solvers to run
-pfemPath = 'D:/PFEM/pfemB/bin/Release'
-pfemToolsPath = 'D:/PFEM/pfem/tools' 
-
-sys.path.append(pfemPath)
-sys.path.append(pfemToolsPath)
-
-# Importing the necessary packages
-# from wrap import *
-# import toolbox.fac as fac
-
 import socket, fnmatch
 import pyutils
 
 # global vars (underscore prevent them to be imported with "from module import *")
-_thePfem = None
 _theModule  = None
-_theWDir    = None
-_theBaseDir = os.getcwd()  # base directory
+_theWDir    = None # workspace directory
 _theWDirRoot = os.getcwd()  # base directory du workspace
 
 # ------------------------------------------------------------------------------
 
-def load(pfemTxt):
+def load(fsiTxt):
     """ load a module and make it the current one
     """
     global _theModule
     
-    if not isinstance(pfemTxt, str): raise Exception("argument must be a string!")
+    if not isinstance(fsiTxt, str): raise Exception("argument must be a string!")
     if _theModule: raise Exception("no more than one module may be loaded!")
 
-    if pfemTxt=="__main__": # on est dans un script => getpfem est/sera dans __main__
+    if fsiTxt=="__main__": # on est dans un script => getpfem est/sera dans __main__
         _theModule = sys.modules['__main__']
     else: 
-        if os.path.isfile(pfemTxt): # c'est une nom de fichier => on convertit en nom de module
-            module = pyutils.fileToModule(pfemTxt, verb=False)
-            if not module: raise Exception('file "%s" is not a reachable python module!' % pfemTxt)
-            pfemTxt = module
+        if os.path.isfile(fsiTxt): # c'est une nom de fichier => on convertit en nom de module
+            module = pyutils.fileToModule(fsiTxt, verb=False)
+            if not module: raise Exception('file "%s" is not a reachable python module!' % fsiTxt)
+            fsiTxt = module
         # ici, on a un nom de module...
-        exec("import %s" % pfemTxt) # peut on le faire plus tard?
-        exec("globals()['_theModule'] = %s" % pfemTxt)
-        print "module '%s' loaded!" % pfemTxt
+        exec("import %s" % fsiTxt) # peut on le faire plus tard?
+        exec("globals()['_theModule'] = %s" % fsiTxt)
+        print "module '%s' loaded!" % fsiTxt
         #print '_theModule', _theModule
         
-    setTheWDir(pfemTxt)
+    setTheWDir(fsiTxt)
     setDir(_theWDir)
     _chkWorkspace()
     
     return _theModule
     
-def setTheWDir(pfemTxt): 
+def setTheWDir(fsiTxt): 
     global _theWDir
-    _theWDir = defaultWDir(pfemTxt)
+    _theWDir = defaultWDir(fsiTxt)
     # on fait un chdir si ce rep existe!
     if os.path.isdir(_theWDir):
         setDir(_theWDir)
@@ -180,9 +167,6 @@ class SolidSolver:
     def getInterfaceNodeIndex(self, iVertex):
         return
     
-    #def getHaloNodeList(self):
-        
-    
     def fakeFluidSolver(self, time):
         return
     
@@ -206,152 +190,55 @@ class SolidSolver:
 
     def exit(self):
         return
-    
 
-# --- Pfem interface --- 
+# ----------------------------------------------------------------------
+#  Generic fluid solver class
+# ----------------------------------------------------------------------
 
-class PfemSolver:
-    def __init__(self, testname, bndno, dt):
-        self.testname = testname  # string (name of the module of the fluid model)
-        self.bndno = bndno        # phygroup# of the f/s interface
-        
-        # internal vars
-        self.vnods = {}           # dict of interface nodes / prescribed velocities
-        self.t1      = 0.0        # last reference time        
-        self.t2      = 0.0        # last calculated time
-                 
-        # loads the python module
-        #load(self.testname)         # use toolbox.utilities
-        exec("import %s" % self.testname)
-        exec("module = %s" % self.testname) # link to Pfem object
+class FluidSolver:
+    """
+    Des.
+    """
 
-        # create an instance of Pfem
-        self.pfem = module.getPfem()
-        
-        # retrieve the f/s boundary and the related nodes
-        gr = self.pfem.w.Group(self.pfem.msh, bndno)
-        
-        # builds a list (dict) of interface nodes
-        for e in gr.tag.elems:
-            for n in e.nodes:
-                no = n.no
-                self.vnods[no] = (n)
-        
-        # Pfem scheme initialization
-        self.V = self.pfem.w.DoubleVector()
-        self.V0 = self.pfem.w.DoubleVector()
-        self.u = self.pfem.w.DoubleVector()
-        self.v = self.pfem.w.DoubleVector()
-        self.p = self.pfem.w.DoubleVector()
-        self.velocity = self.pfem.w.DoubleVector()
-        
-        self.pfem.scheme.dt = dt
-        self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity)
-        
-        self.runOK = True
-        
-    def run(self, t1, t2):
-        """
-        calculates one increment from t1 to t2.
-        """
-        self.pfem.scheme.setNextStep()
-        self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
-        
-    def fakesolidsolver(self, time):
-        """
-        calculate some dummy positions and velocities as a function of timestep.
-        it should be replaced by the solid solver in practice.
-        for each node, the fsi solver may call the "fluid.applyposition" function.
-        """
-        out = {}
-        for no in self.vnods.iterkeys():
-            node = self.vnods[no]                 
-            vx = -0.5 # current vx          
-            vy = 0. # current vy
-            px = node.pos0.x[0] + vx*self.pfem.scheme.dt # current x         
-            py = node.pos0.x[1] + vy*self.pfem.scheme.dt# current y              
-            out[no] = (px,py,vx,vy)
-            
-        self.applydefo(out)
+    def __init__(self):
+        return
     
-    def applydefo(self, vx, vy, vz, t2):
-        """
-        prescribes given nodal positions and velocities coming from solid solver to node #no
-        """
-        if self.pfem.scheme.t < t2:
-            self.pfem.scheme.resetNodalPositions()
-        
-        i = 0
-        for no in self.vnods.iterkeys():
-            node = self.vnods[no]                 
-            node.imposedU = vx[i]
-            node.imposedV = vy[i]
-            i+=1
-            
-    def getload(self):
-        """
-        returns the updated loads of the interface nodes.
-        """
-        fx = np.zeros(len(self.vnods))
-        fy = np.zeros(len(self.vnods))
-        fz = np.zeros(len(self.vnods))
-        
-        i = 0
-        for no in self.vnods.iterkeys():
-            node = self.vnods[no]                 
-            fx[i] = -node.Fint.x[0]
-            fy[i] = -node.Fint.x[1]
-            fz[i] = 0.
-            i+=1
-        
-        return (fx, fy, fz)
+    def run(self):
+        return
     
-    def update(self, dt):
-        self.pfem.scheme.t+=dt
-        self.pfem.scheme.nt+=1
-        self.pfem.scheme.updateSolutionVectors(self.V,self.u,self.v,self.p,self.velocity)
-        
-    def save(self, nt):
-        if nt%self.pfem.scheme.savefreq==0:
-            self.pfem.scheme.archive()
-        self.pfem.scheme.vizu(self.u,self.v,self.p)
-        
+    def getInterfaceNodeIndex(self, iVertex):
+        return
+    
+    def fakeSolidSolver(self, time):
+        return
+    
+    def getLoad(self):
+        return
+    
+    def applyDefo(self, vx, vy, vz, time):
+        return
+
+    def update(self):
+        return
+    
+    def save(self):
+        return
+    
+    def initRealTimeData(self):
+        return
+    
+    def saveRealTimeData(self, time, nFSIIter):
+        return
+    
     def remeshing(self):
-        self.pfem.scheme.remeshing(self.V,self.V0,self.p)
-        self.pfem.scheme.updateData(self.V0,self.V)
-    
+        return
+
     def exit(self):
-        self.pfem.gui.save2vtk()
-        self.pfem.scheme.exit()
+        return
 
-
-# --- Data managing tools for FSI ---
-
-'''def fillDispArrayFromSolidDefo(fromsolid):
-    nbNodes = len(fromsolid)
-    i = 0
-    dlist = []
-    for no in fromsolid.iterkeys():
-        dlist.insert(i, fromsolid[no][2])
-        dlist.insert(i+nbNodes, fromsolid[no][3])
-        i+=1
-    d = np.asarray(dlist)
-    return d
-
-def getDefoFromDisplacement(nods, d, d0, dt):
-    v = (1.0/dt)*(d - d0)
-    out = {}
-    i = 0
-    nbNods = len(nods)
-    for no in nods.iterkeys():
-        vx = v[i]
-        vy = v[i+nbNods]
-        out[no] = (0., 0., 0., 0., vx, vy)
-        i+=1
-    return out'''
-
-
-# --- Implicit FSI coupling convergence criteria ---
+# ----------------------------------------------------------------------
+# Convergence criteria for implicit FSI coupling 
+# ----------------------------------------------------------------------
 
 class FsiCriterion:
     def __init__(self, toll):
@@ -402,8 +289,11 @@ class DispResidualBasedCriterion(FsiCriterion):
         neq = len(res)
         self.error = (1.0/(math.sqrt(neq)))*(np.linalg.norm(res))
 
+# ----------------------------------------------------------------------
+# Partitioned FSI coupling algorithms
+# ----------------------------------------------------------------------
 
-# --- FSI partitioned coupling algorithms ---
+# --- Generic FSI algorithm ---
 
 class FsiAlgorithm:
     def __init__(self, _solid, _fluid, _dt, _tTot, _criterion):
@@ -424,7 +314,7 @@ class FsiAlgorithm:
         self.fluid.remeshing()
 
 
-# Fixed-point algorithm with Aitken's relaxation
+# --- Fixed-point algorithm with Aitken's relaxation ---
 
 class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
     def __init__(self, _solid, _fluid, _dt, _tTot, _criterion, omega_m):
@@ -470,7 +360,7 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
             # Fluid solver step
             vx, vy, vz = self.solid.getInterfaceNodalVelocity()
             
-            self.fluid.applydefo(vx, vy, vz, t2)
+            self.fluid.applyDefo(vx, vy, vz, t2)
             
             t2=t1+self.dt  # time to be calculated
             nFsiIt = 0 
@@ -481,7 +371,7 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
                 exit(1)
                     
             # Solid solver step
-            fx, fy, fz = self.fluid.getload()
+            fx, fy, fz = self.fluid.getLoad()
             self.solid.applyLoad(fx,fy,fz,t2)
             self.solid.run(t1,t2)
             if not self.solid.runOK:
@@ -518,14 +408,14 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
                 # Fluid solver step
                 relaxedVelocity = np.split(((d_relaxed - dn)/self.dt),3) # defo = getDefoFromDisplacement(self.solid.fnods, d_relaxed, dn, self.dt)
                 
-                self.fluid.applydefo(relaxedVelocity[0], relaxedVelocity[1], relaxedVelocity[2], t2) #TODO
+                self.fluid.applyDefo(relaxedVelocity[0], relaxedVelocity[1], relaxedVelocity[2], t2) #TODO
                 self.fluid.run(t1,t2)
                 if not self.fluid.runOK:
                     print '\nERROR: fluid solver did not converge!\n'
                     exit(1)
                 
                 # Solid solver step
-                fx, fy, fz = self.fluid.getload()
+                fx, fy, fz = self.fluid.getLoad()
                 self.solid.applyLoad(fx,fy,fz,t2)
                 self.solid.run(t1,t2)
                 if not self.solid.runOK:
@@ -573,7 +463,10 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
         
         self.solid.exit()
         self.fluid.exit()
-        
+
+
+# --- Solid test algorithm ---
+
 class FsiSolidTestAlgorithm:
     def __init__(self, _solid):
         self.solid = _solid

@@ -155,21 +155,31 @@ class SolidSolver:
         self.haloNodeList = {}
 
         # --- Create the array for external communication (displacement, velocity and velocity at the previous time step --- #
-        self.interfaceDisp_X = np.zeros(self.nInterfNodes)
-        self.interfaceDisp_Y = np.zeros(self.nInterfNodes)
-        self.interfaceDisp_Z = np.zeros(self.nInterfNodes)
-        self.interfaceVel_X = np.zeros(self.nInterfNodes)
-        self.interfaceVel_Y = np.zeros(self.nInterfNodes)
-        self.interfaceVel_Z = np.zeros(self.nInterfNodes)
-        self.interfaceVel_XNm1 = np.zeros(self.nInterfNodes)
-        self.interfaceVel_YNm1 = np.zeros(self.nInterfNodes)
-        self.interfaceVel_ZNm1 = np.zeros(self.nInterfNodes)
+        self.interfaceDisp_X = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceDisp_Y = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceDisp_Z = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceVel_X = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceVel_Y = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceVel_Z = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceVel_XNm1 = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceVel_YNm1 = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.interfaceVel_ZNm1 = np.zeros(self.nLocalInterfacePhysicalNodes)
 
     def setInitialDisplacements(self):
 
+        return 0
+
+    def preprocessTimeIter(self, timeIter):
+
+        return 0
+
     def run(self):
 
+        return 0
+
     def __setCurrentState(self):
+
+        return 0
 
     def getInterfaceNodalDisplacement(self):
         """
@@ -179,6 +189,8 @@ class SolidSolver:
         return (self.interfaceDisp_X, self.interfaceDisp_Y, self.interfaceDisp_Z)
 
     def getInterfaceNodalInitialPositions(self):
+
+        return 0
 
     def getInterfaceNodalVelocity(self):
         """
@@ -196,23 +208,41 @@ class SolidSolver:
 
     def getInterfaceNodeIndex(self, iVertex):
 
-    #def getHaloNodeList(self):
+        return 0
 
     def fakeFluidSolver(self, time):
 
+        return 0
+
     def applyLoad(self, load_X, load_Y, load_Z, time):
+
+        return 0
 
     def update(self):
 
+        self.interfaceVel_XNm1 = self.interfaceVel_X.copy()
+        self.interfaceVel_YNm1 = self.interfaceVel_Y.copy()
+        self.interfaceVel_ZNm1 = self.interfaceVel_Z.copy()
+
     def save(self):
+
+        return 0
 
     def initRealTimeData(self):
 
+        return 0
+
     def saveRealTimeData(self, time, nFSIIter):
+
+        return 0
 
     def remeshing(self):
 
+        return 0
+
     def exit(self):
+
+        return 0
 
 
 # --- Pfem interface --- 

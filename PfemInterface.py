@@ -13,12 +13,13 @@ sys.path.append(pfemToolsPath)
 
 import math
 import numpy as np
+from fsi import FluidSolver
 
 # ----------------------------------------------------------------------
 #  PfemSolver class
 # ----------------------------------------------------------------------
 
-class PfemSolver:
+class PfemSolver(FluidSolver):
     def __init__(self, testname, bndno, dt):
         self.testname = testname  # string (name of the module of the fluid model)
         self.bndno = bndno        # phygroup# of the f/s interface
@@ -58,12 +59,36 @@ class PfemSolver:
         
         self.runOK = True
         
+        self.nPhysicalNodes = len(self.vnods)
+        
+        FluidSolver.__init__(self)
+        
     def run(self, t1, t2):
         """
         calculates one increment from t1 to t2.
         """
         self.pfem.scheme.setNextStep()
         self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
+        
+        self.__setCurrentState()
+        
+    def __setCurrentState(self):
+        
+        fx = np.zeros(len(self.vnods))
+        fy = np.zeros(len(self.vnods))
+        fz = np.zeros(len(self.vnods))
+        
+        i = 0
+        for no in self.vnods.iterkeys():
+            node = self.vnods[no]                 
+            fx[i] = -node.Fint.x[0]
+            fy[i] = -node.Fint.x[1]
+            fz[i] = 0.
+            i+=1
+        
+        self.nodalLoad_X = fx
+        self.nodalLoad_Y = fy
+        self.nodalLoad_Z = fz
         
     def fakeSolidSolver(self, time):
         """
@@ -82,7 +107,7 @@ class PfemSolver:
             
         self.applydefo(out)
     
-    def applyDefo(self, vx, vy, vz, t2):
+    '''def applyDefo(self, vx, vy, vz, t2):
         """
         prescribes given nodal positions and velocities coming from solid solver to node #no
         """
@@ -94,9 +119,23 @@ class PfemSolver:
             node = self.vnods[no]                 
             node.imposedU = vx[i]
             node.imposedV = vy[i]
+            i+=1'''
+    
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+        """
+        prescribes given nodal positions and velocities coming from solid solver to node #no
+        """
+        if self.pfem.scheme.t < time:
+            self.pfem.scheme.resetNodalPositions()
+        
+        i = 0
+        for no in self.vnods.iterkeys():
+            node = self.vnods[no]                 
+            node.imposedU = (dx[i] - dx_nM1[i])/self.pfem.scheme.dt
+            node.imposedV = (dy[i] - dy_nM1[i])/self.pfem.scheme.dt
             i+=1
-            
-    def getLoad(self):
+    
+    '''def getLoad(self):
         """
         returns the updated loads of the interface nodes.
         """
@@ -112,7 +151,7 @@ class PfemSolver:
             fz[i] = 0.
             i+=1
         
-        return (fx, fy, fz)
+        return (fx, fy, fz)'''
     
     def update(self, dt):
         self.pfem.scheme.t+=dt

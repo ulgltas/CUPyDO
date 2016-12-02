@@ -380,9 +380,10 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
                 d_guess = (5.0/2.0)*dn - 2.0*dn_1 + 0.5*dn_2 # Order 2 prediction
                 
             # Fluid solver step
-            vx, vy, vz = self.solid.getInterfaceNodalVelocity()
-            
-            self.fluid.applyDefo(vx, vy, vz, t2)
+            dx, dy, dz = self.solid.getNodalDisplacements()
+            dNm1 = np.split(dn, 3)
+
+            self.fluid.applyNodalDisplacements(dx, dy, dz, dNm1[0], dNm1[1], dNm1[2], [] , t2)
             
             t2=t1+self.dt  # time to be calculated
             nFsiIt = 0 
@@ -393,13 +394,13 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
                 exit(1)
                     
             # Solid solver step
-            fx, fy, fz = self.fluid.getLoad()
-            self.solid.applyLoad(fx,fy,fz,t2)
+            fx, fy, fz = self.fluid.getNodalLoads()
+            self.solid.applyNodalLoads(fx,fy,fz,t2)
             self.solid.run(t1,t2)
             if not self.solid.runOK:
                 print '\nERROR: solid solver did not converge!\n'
                 exit(1)
-            dx, dy, dz = self.solid.getInterfaceNodalDisplacement()
+            dx, dy, dz = self.solid.getNodalDisplacements()
             d = np.concatenate([dx,dy,dz])
             
             # Compute residual
@@ -428,22 +429,23 @@ class FixedPointAitkenRelaxationAlgorithm(FsiAlgorithm):
                 logFile.write('\t-\trelaxation parameter = %e' % omega)
                 
                 # Fluid solver step
-                relaxedVelocity = np.split(((d_relaxed - dn)/self.dt),3) # defo = getDefoFromDisplacement(self.solid.fnods, d_relaxed, dn, self.dt)
                 
-                self.fluid.applyDefo(relaxedVelocity[0], relaxedVelocity[1], relaxedVelocity[2], t2) #TODO
+                d_r = np.split(d_relaxed, 3)
+                
+                self.fluid.applyNodalDisplacements(d_r[0], d_r[1], d_r[2], dNm1[0], dNm1[1], dNm1[2], [] , t2)
                 self.fluid.run(t1,t2)
                 if not self.fluid.runOK:
                     print '\nERROR: fluid solver did not converge!\n'
                     exit(1)
                 
                 # Solid solver step
-                fx, fy, fz = self.fluid.getLoad()
-                self.solid.applyLoad(fx,fy,fz,t2)
+                fx, fy, fz = self.fluid.getNodalLoads()
+                self.solid.applyNodalLoads(fx,fy,fz,t2)
                 self.solid.run(t1,t2)
                 if not self.solid.runOK:
                     print '\nERROR: solid solver did not converge!\n'
                     exit(1)
-                dx, dy, dz = self.solid.getInterfaceNodalDisplacement()
+                dx, dy, dz = self.solid.getNodalDisplacements()
                 d = np.concatenate([dx,dy,dz])
                 
                 # Compute residual

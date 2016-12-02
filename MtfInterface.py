@@ -73,15 +73,15 @@ class MtfSolver(SolidSolver):
         #self.extractNode = p['extractNode']                                     # physical group of the node to be extracted (output)
         self.groupset = self.metafor.getDomain().getGeometry().getGroupSet()
         self.gr = self.groupset(self.bndno)
-        self.nLocalInterfaceNodes = self.gr.getNumberOfMeshPoints()
-        self.nLocalInterfaceHaloNode = 0
-        self.nLocalInterfacePhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
+        self.nNodes = self.gr.getNumberOfMeshPoints()
+        self.nHaloNode = 0
+        self.nPhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
 
         SolidSolver.__init__(self)
 
         # --- Builds a list (dict) of interface nodes and creates the nodal prescribed loads --- #
         loadingset = self.metafor.getDomain().getLoadingSet()
-        for i in range(self.nLocalInterfacePhysicalNodes):
+        for i in range(self.nPhysicalNodes):
             node = self.gr.getMeshPoint(i)
             no = node.getNo()  
             fx = NLoad(self.t1, 0.0, self.t2, 0.0)
@@ -100,9 +100,9 @@ class MtfSolver(SolidSolver):
         SolidSolver.__init__(self)
         
         self.__setCurrentState()
-        self.interfaceVel_XNm1 = self.interfaceVel_X.copy()
-        self.interfaceVel_YNm1 = self.interfaceVel_Y.copy()
-        self.interfaceVel_ZNm1 = self.interfaceVel_Z.copy()
+        self.nodalVel_XNm1 = self.nodalVel_X.copy()
+        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
+        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
         
         self.initRealTimeData()
         
@@ -173,7 +173,7 @@ class MtfSolver(SolidSolver):
         Des.
         """
 
-        for ii in range(self.nLocalInterfacePhysicalNodes):
+        for ii in range(self.nPhysicalNodes):
             node = self.gr.getMeshPoint(ii)
             posX = node.getPos(Configuration().currentConf).get1()    # current x coord
             posY = node.getPos(Configuration().currentConf).get2()    # current y coord
@@ -181,31 +181,31 @@ class MtfSolver(SolidSolver):
             velX = node.getValue(Field1D(TX,GV))                      # current vel x
 	    velY = node.getValue(Field1D(TY,GV))                      # current vel y
 	    velZ = node.getValue(Field1D(TZ,GV))                      # current vel z
-            self.interfaceDisp_X[ii] = node.getValue(Field1D(TX,RE))  # current x displacement
-            self.interfaceDisp_Y[ii] = node.getValue(Field1D(TY,RE))  # current y displacement
-	    self.interfaceDisp_Z[ii] = node.getValue(Field1D(TZ,RE))  # current z displacement
-            self.interfaceVel_X[ii] = velX
-            self.interfaceVel_Y[ii] = velY
-            self.interfaceVel_Z[ii] = velZ
+            self.nodalDisp_X[ii] = node.getValue(Field1D(TX,RE))  # current x displacement
+            self.nodalDisp_Y[ii] = node.getValue(Field1D(TY,RE))  # current y displacement
+	    self.nodalDisp_Z[ii] = node.getValue(Field1D(TZ,RE))  # current z displacement
+            self.nodalVel_X[ii] = velX
+            self.nodalVel_Y[ii] = velY
+            self.nodalVel_Z[ii] = velZ
 
-    def getInterfaceNodalInitialPositions(self):
+    def getNodalInitialPositions(self):
         """
         Description.
         """
 
-        interfaceInitialPos_X = np.zeros(self.nLocalInterfacePhysicalNodes)
-        interfaceInitialPos_Y = np.zeros(self.nLocalInterfacePhysicalNodes)
-        interfaceInitialPos_Z = np.zeros(self.nLocalInterfacePhysicalNodes)
+        nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
+        nodalInitialPos_Y = np.zeros(self.nPhysicalNodes)
+        nodalInitialPos_Z = np.zeros(self.nPhysicalNodes)
 
-        for ii in range(self.nLocalInterfacePhysicalNodes):
+        for ii in range(self.nPhysicalNodes):
             node = self.gr.getMeshPoint(ii)
-            interfaceInitialPos_X[ii] = node.getPos0().get1()   
-            interfaceInitialPos_Y[ii] = node.getPos0().get2()
-            interfaceInitialPos_Z[ii] = node.getPos0().get3() 
+            nodalInitialPos_X[ii] = node.getPos0().get1()   
+            nodalInitialPos_Y[ii] = node.getPos0().get2()
+            nodalInitialPos_Z[ii] = node.getPos0().get3() 
 
-        return (interfaceInitialPos_X, interfaceInitialPos_Y, interfaceInitialPos_Z)
+        return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
 
-    def getInterfaceNodeIndex(self, iVertex):
+    def getNodalIndex(self, iVertex):
         """
         Returns the index (identifier) of the iVertex^th interface node.
         """
@@ -240,12 +240,12 @@ class MtfSolver(SolidSolver):
             valy = -3e-4*time*math.sin(8*math.pi*px/L) # dummy fct
             self.applyload(no, valx, valy, time)
 
-    def applyLoad(self, load_X, load_Y, load_Z, time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, time):
         """
         Des.
         """
 
-        for ii in range(self.nLocalInterfacePhysicalNodes):
+        for ii in range(self.nPhysicalNodes):
             node = self.gr.getMeshPoint(ii)
             no = node.getNo()
             node,fx,fy,fz = self.fnods[no]

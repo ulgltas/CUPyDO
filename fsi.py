@@ -121,15 +121,15 @@ class SolidSolver:
         self.haloNodeList = {}
 
         # --- Create the array for external communication (displacement, velocity and velocity at the previous time step --- #
-        self.interfaceDisp_X = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceDisp_Y = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceDisp_Z = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceVel_X = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceVel_Y = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceVel_Z = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceVel_XNm1 = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceVel_YNm1 = np.zeros(self.nLocalInterfacePhysicalNodes)
-        self.interfaceVel_ZNm1 = np.zeros(self.nLocalInterfacePhysicalNodes)
+        self.nodalDisp_X = np.zeros(self.nPhysicalNodes)
+        self.nodalDisp_Y = np.zeros(self.nPhysicalNodes)
+        self.nodalDisp_Z = np.zeros(self.nPhysicalNodes)
+        self.nodalVel_X = np.zeros(self.nPhysicalNodes)
+        self.nodalVel_Y = np.zeros(self.nPhysicalNodes)
+        self.nodalVel_Z = np.zeros(self.nPhysicalNodes)
+        self.nodalVel_XNm1 = np.zeros(self.nPhysicalNodes)
+        self.nodalVel_YNm1 = np.zeros(self.nPhysicalNodes)
+        self.nodalVel_ZNm1 = np.zeros(self.nPhysicalNodes)
 
     def setInitialDisplacements(self):
         return
@@ -143,45 +143,45 @@ class SolidSolver:
     def __setCurrentState(self):
         return
 
-    def getInterfaceNodalDisplacement(self):
+    def getNodalDisplacements(self):
         """
         Des.
         """
         
-        return (self.interfaceDisp_X, self.interfaceDisp_Y, self.interfaceDisp_Z)
+        return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def getInterfaceNodalInitialPositions(self):
+    def getNodalInitialPositions(self):
         return
 
 
-    def getInterfaceNodalVelocity(self):
+    def getNodalVelocity(self):
         """
         des.
         """
         
-        return (self.interfaceVel_X, self.interfaceVel_Y, self.interfaceVel_Z)
+        return (self.nodalVel_X, self.nodalVel_Y, self.nodalVel_Z)
     
-    def getInterfaceNodalVelocityNm1(self):
+    def getNodalVelocityNm1(self):
         """
         Des.
         """
         
-        return (self.interfaceVel_XNm1, self.interfaceVel_YNm1, self.interfaceVel_ZNm1)
+        return (self.nodalVel_XNm1, self.nodalVel_YNm1, self.nodalVel_ZNm1)
     
-    def getInterfaceNodeIndex(self, iVertex):
+    def getNodalIndex(self, iVertex):
         return
     
     def fakeFluidSolver(self, time):
         return
     
-    def applyLoad(self, load_X, load_Y, load_Z, time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, time):
         return
     
     def update(self):
 
-        self.interfaceVel_XNm1 = self.interfaceVel_X.copy()
-        self.interfaceVel_YNm1 = self.interfaceVel_Y.copy()
-        self.interfaceVel_ZNm1 = self.interfaceVel_Z.copy()
+        self.nodalVel_XNm1 = self.nodalVel_X.copy()
+        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
+        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
     
     def save(self):
         return
@@ -208,27 +208,39 @@ class FluidSolver:
     """
 
     def __init__(self):
+
+        self.haloNodeList = {}
+
+        self.nodalLoad_X = np.zeros((self.nPhysicalNodes))
+        self.nodalLoad_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalLoad_Z = np.zeros((self.nPhysicalNodes))
+
+    def setInitialMeshDeformation(self):
+        return
+
+    def preprocessTimeIter(self, timeIter):
         return
     
     def run(self):
         return
     
-    def getInterfaceNodeIndex(self, iVertex):
+    def getNodalIndex(self, iVertex):
         return
     
     def fakeSolidSolver(self, time):
         return
     
-    def getLoad(self):
-        return
+    def getNodalLoads(self):
+
+        return (self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z)
     
-    def applyDefo(self, vx, vy, vz, time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
         return
 
-    def update(self):
+    def update(self, dt):
         return
     
-    def save(self):
+    def save(self, nt):
         return
     
     def initRealTimeData(self):
@@ -238,6 +250,9 @@ class FluidSolver:
         return
     
     def remeshing(self):
+        return
+
+    def meshUpdate(self, nt):
         return
 
     def exit(self):

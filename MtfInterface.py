@@ -4,6 +4,10 @@
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
+import os, os.path, sys, time, string
+
+mtfPath = 'D:/Dev/Officiel/Metafor'
+sys.path.append(mtfPath)
 
 import math
 from toolbox.utilities import *
@@ -43,20 +47,20 @@ class MtfSolver(SolidSolver):
 
         # --- Load the Python module --- #
         self.testname = testname            # string (name of the module of the solid model)
-	#load(self.testname)                # loads the python module and creates mtf/workspace
-	exec("import %s" % self.testname)
+        #load(self.testname)                # loads the python module and creates mtf/workspace
+        exec("import %s" % self.testname)
         exec("module = %s" % self.testname)
 
         # --- Create an instance of Metafor --- #
         self.metafor = None                   # link to Metafor objet
         p = {}                                # parameters (todo)
         #self.metafor = instance(p)           # creates an instance of the metafor model
-	self.metafor = module.getMetafor(p)
+        self.metafor = module.getMetafor(p)
         self.realTimeExtractorsList = module.getRealTimeExtractorsList(self.metafor)
-	p = module.params(p)
+        p = module.params(p)
 
         # --- Internal variables --- #
-	self.neverRun = True            # bool True until the first Metafor run is completed then False
+        self.neverRun = True            # bool True until the first Metafor run is completed then False
         self.fnods = {}                 # dict of interface nodes / prescribed forces
         self.t1      = 0.0              # last reference time        
         self.t2      = 0.0              # last calculated time
@@ -65,7 +69,7 @@ class MtfSolver(SolidSolver):
         self.runOK = True
 
         # --- Retrieves the f/s boundary and the related nodes --- #
-	self.bndno = p['bndno']                                                 # physical group of the f/s interface
+        self.bndno = p['bndno']                                                 # physical group of the f/s interface
         #self.extractNode = p['extractNode']                                     # physical group of the node to be extracted (output)
         self.groupset = self.metafor.getDomain().getGeometry().getGroupSet()
         self.gr = self.groupset(self.bndno)
@@ -82,21 +86,26 @@ class MtfSolver(SolidSolver):
             no = node.getNo()  
             fx = NLoad(self.t1, 0.0, self.t2, 0.0)
             fy = NLoad(self.t1, 0.0, self.t2, 0.0)
-	    fz = NLoad(self.t1, 0.0, self.t2, 0.0)
+            fz = NLoad(self.t1, 0.0, self.t2, 0.0)
             self.fnods[no] = (node, fx, fy, fz)
             fctx = PythonOneParameterFunction(fx)
             fcty = PythonOneParameterFunction(fy)
-	    fctz = PythonOneParameterFunction(fz)
+            fctz = PythonOneParameterFunction(fz)
             loadingset.define(node, Field1D(TX,GF1), 1.0, fctx) 
             loadingset.define(node, Field1D(TY,GF1), 1.0, fcty)
-	    loadingset.define(node, Field1D(TZ,GF1), 1.0, fctz)
-
+            loadingset.define(node, Field1D(TZ,GF1), 1.0, fctz)
+        
         # --- Create the array for external communication (displacement, velocity and velocity at the previous time step --- #
+        
+        SolidSolver.__init__(self)
+        
         self.__setCurrentState()
         self.interfaceVel_XNm1 = self.interfaceVel_X.copy()
         self.interfaceVel_YNm1 = self.interfaceVel_Y.copy()
         self.interfaceVel_ZNm1 = self.interfaceVel_Z.copy()
-
+        
+        self.initRealTimeData()
+        
     def run(self, t1, t2):
         """
         calculates one increment from t1 to t2.
@@ -166,15 +175,15 @@ class MtfSolver(SolidSolver):
 
         for ii in range(self.nLocalInterfacePhysicalNodes):
             node = self.gr.getMeshPoint(ii)
-            posX = node.getPos(Configuration().currentConf).get1() # current x coord
-            posY = node.getPos(Configuration().currentConf).get2() # current y coord
-            posZ = node.getPos(Configuration().currentConf).get3() # current z coord
-            velX = node.getValue(Field1D(TX,GV))			#current vel x
-	    velY = node.getValue(Field1D(TY,GV))			#current vel y
-	    velZ = node.getValue(Field1D(TZ,GV))                  #current vel z
-            self.interfaceDisp_X[ii] = node.getValue(Field1D(TX,RE))
-            self.interfaceDisp_Y[ii] = node.getValue(Field1D(TY,RE))
-	    self.interfaceDisp_Z[ii] = node.getValue(Field1D(TZ,RE))
+            posX = node.getPos(Configuration().currentConf).get1()    # current x coord
+            posY = node.getPos(Configuration().currentConf).get2()    # current y coord
+            posZ = node.getPos(Configuration().currentConf).get3()    # current z coord
+            velX = node.getValue(Field1D(TX,GV))                      # current vel x
+	    velY = node.getValue(Field1D(TY,GV))                      # current vel y
+	    velZ = node.getValue(Field1D(TZ,GV))                      # current vel z
+            self.interfaceDisp_X[ii] = node.getValue(Field1D(TX,RE))  # current x displacement
+            self.interfaceDisp_Y[ii] = node.getValue(Field1D(TY,RE))  # current y displacement
+	    self.interfaceDisp_Z[ii] = node.getValue(Field1D(TZ,RE))  # current z displacement
             self.interfaceVel_X[ii] = velX
             self.interfaceVel_Y[ii] = velY
             self.interfaceVel_Z[ii] = velZ
@@ -197,13 +206,13 @@ class MtfSolver(SolidSolver):
         return (interfaceInitialPos_X, interfaceInitialPos_Y, interfaceInitialPos_Z)
 
     def getInterfaceNodeIndex(self, iVertex):
-	"""
-	Returns the index (identifier) of the iVertex^th interface node.
-	"""
-	node = self.gr.getMeshPoint(iVertex)
+        """
+        Returns the index (identifier) of the iVertex^th interface node.
+        """
+        node = self.gr.getMeshPoint(iVertex)
         no = node.getNo()
-
-	return no
+    
+        return no
 
     def fakeFluidSolver(self, time):
         """
@@ -251,7 +260,7 @@ class MtfSolver(SolidSolver):
         """
         Des.
         """
-
+        
         for no in self.fnods.iterkeys():
             node, fx, fy, fz = self.fnods[no]
             fx.nextstep()
@@ -264,39 +273,37 @@ class MtfSolver(SolidSolver):
 	"""
 
         SolidSolver.update(self)
-        
+
         self.__nextStep()
 
     def initRealTimeData(self):
         """
         Des.
         """
-
+        
         for extractor in self.realTimeExtractorsList:
-            #extractorName = extractor.name()
-            extractorName = 'TestExtractor'
+            extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "w")
-            solFile.write("Time\tIteration no.\tValue\n")
-            solFile.close()
+            solFile.write("Time\tnIter\tValue\n")
+            solFile.close() #Should we keep it open?
 
     def saveRealTimeData(self, time, nFSIIter):
         """
         Des.
         """
-
+        
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
-            #extractorName = extractor.name()
-            extractorName = 'TestExtractor'
+            extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "a")
             buff = str()
             for ii in range(data.size()):
-              buff = buff + '\t' + str(data[ii])
+                buff = buff + '\t' + str(data[ii])
             solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
             solFile.close()
 
     def exit(self):
-	"""
-	Exits the Metafor solver.
-	"""
-	print("***************************** Exit Metafor *****************************")
+        """
+        Exits the Metafor solver.
+        """
+        print("***************************** Exit Metafor *****************************")

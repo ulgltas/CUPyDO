@@ -6,6 +6,7 @@ fsiPath = '..'
 sys.path.append(fsiPath)
 
 import fsi
+import MtfInterface
 
 def main():
     
@@ -20,15 +21,15 @@ def main():
     dt = 2e-6
     tTot = 40*((4*R)/U0 + d/U0)
     
-    solid = fsi.MtfSolver('birdImpact_deformable_panel_panel_steel_Mtf', 13, t1)
-    fluid = fsi.PfemSolver('birdImpact_deformable_panel_bird_Pfem', 13)
+    solid = MtfInterface.MtfSolver('birdImpact_deformable_panel_panel_steel_Mtf')
+    fluid = fsi.PfemSolver('birdImpact_deformable_panel_bird_Pfem', 13, dt)
     
     toll = 1.0e-6
     fsi_criterion = fsi.DispResidualBasedCriterion(toll)
     
     omega_max = 0.5
     
-    fsi_algo = fsi.fixedPointAitkenRelaxationAlgorithm(solid, fluid, dt, tTot, fsi_criterion, omega_max)
+    fsi_algo = fsi.FixedPointAitkenRelaxationAlgorithm(solid, fluid, dt, tTot, fsi_criterion, omega_max)
     fsi_algo.run()
     
 if __name__ == "__main__":

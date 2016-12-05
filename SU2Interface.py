@@ -77,6 +77,8 @@ class SU2Solver(FluidSolver):
                 self.nodalLoad_Z[PhysicalIndex] = Fz
                 PhysicalIndex += 1
 
+        self.initRealTimeData()
+
     def run(self, t1, t2):
         """
         Run one computation of SU2.
@@ -194,14 +196,20 @@ class SU2Solver(FluidSolver):
         Description.
         """
 
-        return
+        solFile = open('AerodynamicCoeff.ascii', "w")
+        solFile.write("Time\tnIter\tCl\tCd\n")
+        solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
         """
         Description.
         """
 
-        return
+        CLift = self.SU2.Get_LiftCoeff()
+        CDrag = self.SU2.Get_DragCoeff()
+
+        solFile = open('AerodynamicCoeff.ascii', "a")
+        solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(CLift)  + '\t' + str(CDrag) + '\n')
 
     def meshUpdate(self, nt):
         """

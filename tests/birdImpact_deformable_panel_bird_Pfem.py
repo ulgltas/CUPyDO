@@ -93,6 +93,6 @@ def getPfem():
     extManager.add(8,wt.PressureWorkExtractor(msh,pbl,scheme,16))
     extManager.add(9,w.MassExtractor(msh,16))
     
-    gui = v.MeshViewer(msh, scheme) 
+    gui = v.MeshViewer(msh, scheme, True) 
     
     return Module(w, msh, pbl, scheme, extManager, gui)

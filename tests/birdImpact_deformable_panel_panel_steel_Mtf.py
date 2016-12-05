@@ -11,7 +11,8 @@ def params(q={}):
     p={}
     p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
     p['tend']       = 2.            # final time
-    p['dtmax']      = 0.005          # max time step
+    p['dtmax']      = 0.005         # max time step
+    p['bndno']      = 13            # interface boundary number
     
     # BC type
     #p['bctype']     = 'pressure'     # uniform pressure
@@ -112,6 +113,18 @@ def getMetafor(p={}):
     
     return metafor
 
+def getRealTimeExtractorsList(mtf):
+
+    extractorsList = []
+
+    # --- Extractors list starts --- #
+    groupset = mtf.getDomain().getGeometry().getGroupSet()
+    extractor1 = TdFieldValueExtractor(mtf, groupset(17), THERMODYN_TRAV_FINT)
+    #extractor1 = Mtf.DbNodalValueExtractor(groupset(17), Field1D(TY,RE))
+    extractorsList.append(extractor1)
+    # --- Extractors list ends --- #
+
+    return extractorsList
 
 
 

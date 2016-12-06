@@ -63,6 +63,13 @@ class PfemSolver(FluidSolver):
         
         FluidSolver.__init__(self)
         
+        self.displ_x = np.zeros((self.nPhysicalNodes))
+        self.displ_y = np.zeros((self.nPhysicalNodes))
+        self.displ_z = np.zeros((self.nPhysicalNodes))
+        self.displ_x_Nm1 = self.displ_x
+        self.displ_y_Nm1 = self.displ_y
+        self.displ_z_Nm1 = self.displ_z
+        
     def run(self, t1, t2):
         """
         calculates one increment from t1 to t2.
@@ -107,20 +114,6 @@ class PfemSolver(FluidSolver):
             
         self.applydefo(out)
     
-    '''def applyDefo(self, vx, vy, vz, t2):
-        """
-        prescribes given nodal positions and velocities coming from solid solver to node #no
-        """
-        if self.pfem.scheme.t < t2:
-            self.pfem.scheme.resetNodalPositions()
-        
-        i = 0
-        for no in self.vnods.iterkeys():
-            node = self.vnods[no]                 
-            node.imposedU = vx[i]
-            node.imposedV = vy[i]
-            i+=1'''
-    
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
         """
         prescribes given nodal positions and velocities coming from solid solver to node #no
@@ -131,32 +124,21 @@ class PfemSolver(FluidSolver):
         i = 0
         for no in self.vnods.iterkeys():
             node = self.vnods[no]                 
-            node.imposedU = (dx[i] - dx_nM1[i])/self.pfem.scheme.dt
-            node.imposedV = (dy[i] - dy_nM1[i])/self.pfem.scheme.dt
+            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/self.pfem.scheme.dt
+            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/self.pfem.scheme.dt
             i+=1
-    
-    '''def getLoad(self):
-        """
-        returns the updated loads of the interface nodes.
-        """
-        fx = np.zeros(len(self.vnods))
-        fy = np.zeros(len(self.vnods))
-        fz = np.zeros(len(self.vnods))
-        
-        i = 0
-        for no in self.vnods.iterkeys():
-            node = self.vnods[no]                 
-            fx[i] = -node.Fint.x[0]
-            fy[i] = -node.Fint.x[1]
-            fz[i] = 0.
-            i+=1
-        
-        return (fx, fy, fz)'''
     
     def update(self, dt):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
         self.pfem.scheme.updateSolutionVectors(self.V,self.u,self.v,self.p,self.velocity)
+        
+        #---
+        self.self.displ_x = self.displ_x_Nm1 + self.u*dt
+        self.self.displ_y = self.displ_y_Nm1 + self.v*dt
+        self.displ_x_Nm1 = self.self.displ_x
+        self.displ_y_Nm1 = self.self.displ_y
+        # ---
         
     def save(self, nt):
         if nt%self.pfem.scheme.savefreq==0:

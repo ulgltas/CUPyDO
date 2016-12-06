@@ -1359,11 +1359,11 @@ class AlgortihmBGSAitkenRelax(Algortihm):
 
     # --- Set the Aitken coefficient for the relaxation --- #
     #if no relax
-    self.omega = 1.0
+    #self.omega = 1.0
     #if static relax
     #self.omega = self.omegaMax
     #if Aiken relax
-    #self.setAitkenOmega()
+    self.setAitkenOmega()
 
     MPIPrint('Aitken under-relaxation step with parameter {}'.format(self.omega), self.MPIComm)
 

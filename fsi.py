@@ -282,10 +282,6 @@ class SolidPosErrorCriterion(FsiCriterion):
             px = node.pos.x[0]
             py = node.pos.x[1]
             self.pos[no] = (px, py)
-            '''node,fx,fy = solidNodes[no]
-            px = node.getPos(Configuration().currentConf).get1() # current x          
-            py = node.getPos(Configuration().currentConf).get2() # current y
-            self.pos[no] = (px, py)'''
             
     def update(self, solidNodes):
         err2 = 0.

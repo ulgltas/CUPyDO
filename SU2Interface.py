@@ -31,7 +31,7 @@ class SU2Solver(FluidSolver):
 
         # --- Instantiate the single zone driver of SU2 --- #
         try:
-          self.SU2 = WrapSU2.CSingleZoneDriver(confFile, 1, nDim, MPIComm)
+          self.SU2 = WrapSU2.CFluidDriver(confFile, 1, nDim, MPIComm)
         except TypeError as exception:
           print('A TypeError occured in WrapSU2.CSingleZoneDriver : ',exception)
           if have_MPI == True:

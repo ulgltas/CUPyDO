@@ -70,14 +70,11 @@ class MtfSolver(SolidSolver):
 
         # --- Retrieves the f/s boundary and the related nodes --- #
         self.bndno = p['bndno']                                                 # physical group of the f/s interface
-        #self.extractNode = p['extractNode']                                     # physical group of the node to be extracted (output)
         self.groupset = self.metafor.getDomain().getGeometry().getGroupSet()
         self.gr = self.groupset(self.bndno)
         self.nNodes = self.gr.getNumberOfMeshPoints()
         self.nHaloNode = 0
         self.nPhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
-
-        SolidSolver.__init__(self)
 
         # --- Builds a list (dict) of interface nodes and creates the nodal prescribed loads --- #
         loadingset = self.metafor.getDomain().getLoadingSet()
@@ -95,7 +92,7 @@ class MtfSolver(SolidSolver):
             loadingset.define(node, Field1D(TY,GF1), 1.0, fcty)
             loadingset.define(node, Field1D(TZ,GF1), 1.0, fctz)
         
-        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step --- #
+        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step) --- #
         
         SolidSolver.__init__(self)
         

@@ -9,9 +9,9 @@
 #  Imports
 # ----------------------------------------------------------------------
 
-#from mpi4py import MPI
 import numpy as np
 import scipy as sp
+from scipy import spatial
 from math import *
 
 # ----------------------------------------------------------------------
@@ -943,26 +943,35 @@ class InterfaceInterpolator:
     self.solidInterfaceLoads = InterfaceData(self.ns, self.MPIComm)
     self.fluidInterfaceLoads = InterfaceData(self.nf, self.MPIComm)
 
-  def createRTree(self, posX_array, posY_array, posZ_array):
+  #def createRTree(self, posX_array, posY_array, posZ_array):
+    #"""
+    #Description.
+    #"""
+    
+    #from rtree import index
+    #prop_index = index.Property()
+    #prop_index.dimension = self.nDim
+    #SpatialTree = index.Index(properties=prop_index)
+
+    #for jVertex in range(self.ns):
+    #  posX = posX_array[jVertex]
+    #  posY = posY_array[jVertex]
+    #  posZ = posZ_array[jVertex]
+    #  if self.nDim == 2:
+    #    SpatialTree.add(jVertex, (posX, posY))
+    #  else:
+    #    SpatialTree.add(jVertex, (posX, posY, posZ))
+
+    #return SpatialTree
+
+  def createKDTree(self, posX_array, posY_array, posZ_array):
     """
     Description.
     """
-    
-    from rtree import index
-    prop_index = index.Property()
-    prop_index.dimension = self.nDim
-    SpatialTree = index.Index(properties=prop_index)
 
-    for jVertex in range(self.ns):
-      posX = posX_array[jVertex]
-      posY = posY_array[jVertex]
-      posZ = posZ_array[jVertex]
-      if self.nDim == 2:
-        SpatialTree.add(jVertex, (posX, posY))
-      else:
-        SpatialTree.add(jVertex, (posX, posY, posZ))
+    KDTree = spatial.KDTree(zip(posX_array, posY_array, posZ_array))
 
-    return SpatialTree
+    return KDTree
 
   def distance(self, NodeA, NodeB):
     """
@@ -1187,20 +1196,23 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
     Des.
     """
       
-    SolidSpatialTree = self.createRTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
+    KDTree = self.createKDTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
+    #SolidSpatialTree = self.createRTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
     localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
     for iVertex in range(self.nf_loc):
       posX = localFluidInterface_array_X_init[iVertex]
       posY = localFluidInterface_array_Y_init[iVertex]
       posZ = localFluidInterface_array_Z_init[iVertex]
-      if self.nDim == 2:
-        neighboors = list(SolidSpatialTree.nearest((posX, posY),1))
-      elif self.nDim == 3:
-        neighboors = list(SolidSpatialTree.nearest((posX, posY, posZ),1))
-      jVertex = neighboors[0]
-      NodeA = np.array([posX, posY, posZ])
-      NodeB = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
-      distance = self.distance(NodeA, NodeB)
+      fluidPoint = np.array([posX, posY, posZ])
+      #if self.nDim == 2:
+      #  neighboors = list(SolidSpatialTree.nearest((posX, posY),1))
+      #elif self.nDim == 3:
+      #  neighboors = list(SolidSpatialTree.nearest((posX, posY, posZ),1))
+      #jVertex = neighboors[0]
+      distance, jVertex = KDTree.query(fluidPoint, 1)
+      #NodeA = np.array([posX, posY, posZ])
+      #NodeB = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
+      #distance = self.distance(NodeA, NodeB)
       iGlobalVertexFluid = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
       jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
       if distance > 1e-6:

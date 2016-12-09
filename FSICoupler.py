@@ -9,9 +9,9 @@
 #  Imports
 # ----------------------------------------------------------------------
 
-#from mpi4py import MPI
 import numpy as np
 import scipy as sp
+from scipy import spatial
 from math import *
 
 # ----------------------------------------------------------------------
@@ -943,26 +943,35 @@ class InterfaceInterpolator:
     self.solidInterfaceLoads = InterfaceData(self.ns, self.MPIComm)
     self.fluidInterfaceLoads = InterfaceData(self.nf, self.MPIComm)
 
-  def createRTree(self, posX_array, posY_array, posZ_array):
+  #def createRTree(self, posX_array, posY_array, posZ_array):
+    #"""
+    #Description.
+    #"""
+    
+    #from rtree import index
+    #prop_index = index.Property()
+    #prop_index.dimension = self.nDim
+    #SpatialTree = index.Index(properties=prop_index)
+
+    #for jVertex in range(self.ns):
+    #  posX = posX_array[jVertex]
+    #  posY = posY_array[jVertex]
+    #  posZ = posZ_array[jVertex]
+    #  if self.nDim == 2:
+    #    SpatialTree.add(jVertex, (posX, posY))
+    #  else:
+    #    SpatialTree.add(jVertex, (posX, posY, posZ))
+
+    #return SpatialTree
+
+  def createKDTree(self, posX_array, posY_array, posZ_array):
     """
     Description.
     """
-    
-    from rtree import index
-    prop_index = index.Property()
-    prop_index.dimension = self.nDim
-    SpatialTree = index.Index(properties=prop_index)
 
-    for jVertex in range(self.ns):
-      posX = posX_array[jVertex]
-      posY = posY_array[jVertex]
-      posZ = posZ_array[jVertex]
-      if self.nDim == 2:
-        SpatialTree.add(jVertex, (posX, posY))
-      else:
-        SpatialTree.add(jVertex, (posX, posY, posZ))
+    KDTree = spatial.KDTree(zip(posX_array, posY_array, posZ_array))
 
-    return SpatialTree
+    return KDTree
 
   def distance(self, NodeA, NodeB):
     """
@@ -1187,20 +1196,23 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
     Des.
     """
       
-    SolidSpatialTree = self.createRTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
+    KDTree = self.createKDTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
+    #SolidSpatialTree = self.createRTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
     localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
     for iVertex in range(self.nf_loc):
       posX = localFluidInterface_array_X_init[iVertex]
       posY = localFluidInterface_array_Y_init[iVertex]
       posZ = localFluidInterface_array_Z_init[iVertex]
-      if self.nDim == 2:
-        neighboors = list(SolidSpatialTree.nearest((posX, posY),1))
-      elif self.nDim == 3:
-        neighboors = list(SolidSpatialTree.nearest((posX, posY, posZ),1))
-      jVertex = neighboors[0]
-      NodeA = np.array([posX, posY, posZ])
-      NodeB = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
-      distance = self.distance(NodeA, NodeB)
+      fluidPoint = np.array([posX, posY, posZ])
+      #if self.nDim == 2:
+      #  neighboors = list(SolidSpatialTree.nearest((posX, posY),1))
+      #elif self.nDim == 3:
+      #  neighboors = list(SolidSpatialTree.nearest((posX, posY, posZ),1))
+      #jVertex = neighboors[0]
+      distance, jVertex = KDTree.query(fluidPoint, 1)
+      #NodeA = np.array([posX, posY, posZ])
+      #NodeB = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
+      #distance = self.distance(NodeA, NodeB)
       iGlobalVertexFluid = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
       jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
       if distance > 1e-6:
@@ -1240,7 +1252,7 @@ class Algortihm:
   Des.
   """
 
-  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, MPIComm=None):
+  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, MPIComm=None):
     """
     Des.
     """
@@ -1253,7 +1265,13 @@ class Algortihm:
     self.criterion = Criterion
     self.nbFSIIterMax = nbFSIIterMax
 
+    self.deltaT = deltaT
+    self.totTime = totTime
+    self.timeIterTreshold = timeIterTreshold
+
     self.FSIIter = 0
+    self.errValue = 0.0
+    self.FSIConv = False
 
     if self.MPIComm != None:
       self.myid = self.MPIComm.Get_rank()
@@ -1269,46 +1287,22 @@ class Algortihm:
 
     self.solidInterfaceVelocity = InterfaceData(ns, self.MPIComm)
     self.solidInterfaceVelocitynM1 = InterfaceData(ns, self.MPIComm)
+    self.solidInterfaceResidual = InterfaceData(ns, self.MPIComm)
 
-  def solidDisplacementPredictor(self):
-    """
-    Des
-    """
-
-    # --- Get the velocity (current and previous time step) of the solid interface from the solid solver --- #
-    if self.myid in self.manager.getSolidInterfaceProcessors():
-      localSolidInterfaceVel_X, localSolidInterfaceVel_Y, localSolidInterfaceVel_Z = self.SolidSolver.getNodalVelocity()
-      localSolidInterfaceVelNm1_X, localSolidInterfaceVelNm1_Y, localSolidInterfaceVelNm1_Z = self.SolidSolver.getNodalVelocityNm1()
-      for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
-        iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-        self.solidInterfaceVelocity[iGlobalVertex] = (localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex])
-        self.solidInterfaceVelocitynM1[iGlobalVertex] = (localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex])
-
-    self.solidInterfaceVelocity.assemble()
-    self.solidInterfaceVelocitynM1.assemble()
-
-    # --- Predict the solid position for the next time step --- #
-    self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.deltaT*self.solidInterfaceVelocity + self.alpha_1*self.deltaT*(self.solidInterfaceVelocity-self.solidInterfaceVelocitynM1))
-
-class AlgortihmBGSAitkenRelax(Algortihm):
-  """
-  Des.
-  """
-
-  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, omegaMax, MPIComm=None):
+  def setFSIInitialConditions(self, time):
     """
     Des.
     """
 
-    Algortihm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, MPIComm)
-
-    self.omegaMax = omegaMax
-    self.omega = omegaMax
-
-    ns = self.interfaceInterpolator.getNs()
-
-    self.solidInterfaceResidual = InterfaceData(ns, self.MPIComm)
-    self.solidInterfaceResidualnM1 = InterfaceData(ns, self.MPIComm)
+    if self.manager.computationType == 'unsteady':
+      if self.myid in self.manager.getSolidSolverProcessors():
+        self.SolidSolver.setInitialDisplacements()
+      self.interfaceInterpolator.getDisplacementFromSolidSolver()
+      self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+      self.interfaceInterpolator.setDisplacementToFluidSolver(time)
+      self.FluidSolver.setInitialMeshDeformation()
+    else:
+      self.interfaceInterpolator.getDisplacementFromSolidSolver()
 
   def computeSolidInterfaceResidual(self):
     """
@@ -1331,101 +1325,180 @@ class AlgortihmBGSAitkenRelax(Algortihm):
     # --- Calculate the residual (vector and norm) --- #
     self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
 
-    #normInterfaceResidual_X, normInterfaceResidual_Y, normInterfaceResidual_Z = self.solidInterfaceResidual.norm()
-
-    #normInterfaceResidualSquare = normInterfaceResidual_X**2 + normInterfaceResidual_Y**2 + normInterfaceResidual_Z**2
-
     return self.solidInterfaceResidual
 
-  def setAitkenOmega(self):
+  def solidDisplacementPredictor(self):
+    """
+    Des
+    """
+
+    # --- Get the velocity (current and previous time step) of the solid interface from the solid solver --- #
+    if self.myid in self.manager.getSolidInterfaceProcessors():
+      localSolidInterfaceVel_X, localSolidInterfaceVel_Y, localSolidInterfaceVel_Z = self.SolidSolver.getNodalVelocity()
+      localSolidInterfaceVelNm1_X, localSolidInterfaceVelNm1_Y, localSolidInterfaceVelNm1_Z = self.SolidSolver.getNodalVelocityNm1()
+      for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+        iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+        self.solidInterfaceVelocity[iGlobalVertex] = (localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex])
+        self.solidInterfaceVelocitynM1[iGlobalVertex] = (localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex])
+
+    self.solidInterfaceVelocity.assemble()
+    self.solidInterfaceVelocitynM1.assemble()
+
+    # --- Predict the solid position for the next time step --- #
+    self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.deltaT*self.solidInterfaceVelocity + self.alpha_1*self.deltaT*(self.solidInterfaceVelocity-self.solidInterfaceVelocitynM1))
+
+  def iniRealTimeData(self):
+    """
+    Des
+    """
+
+    if self.myid in self.manager.getSolidSolverProcessors():
+      self.SolidSolver.initRealTimeData()
+    histFile = open('FSIhistory.ascii', "w")
+    histFile.write("TimeIter\tTime\tFSIError\tFSINbIter\n")
+    histFile.close()
+
+  def writeRealTimeData(self, timeIter, time, error):
+    """
+    Des
+    """
+
+    if self.myid == 0:
+      self.FluidSolver.saveRealTimeData(time, self.FSIIter)
+      if timeIter >= self.timeIterTreshold:
+        self.SolidSolver.saveRealTimeData(time, self.FSIIter)
+      histFile = open('FSIhistory.ascii', "a")
+      histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n')
+      histFile.close()
+
+class AlgortihmBGSStaticRelax(Algortihm):
+  """
+  Des.
+  """
+
+  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaMax=1.0, MPIComm=None):
     """
     Des.
     """
 
-    ns = self.interfaceInterpolator.getNs()
+    Algortihm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, MPIComm)
 
-    # --- Compute the dynamic Aitken coefficient --- #
-    deltaInterfaceResidual = self.solidInterfaceResidual - self.solidInterfaceResidualnM1
+    self.omegaMax = omegaMax
+    self.omega = omegaMax
 
-    prodScalRes_X, prodScalRes_Y, prodScalRes_Z = deltaInterfaceResidual.dot(self.solidInterfaceResidualnM1)
-    prodScalRes = prodScalRes_X + prodScalRes_Y + prodScalRes_Z
+  def BGSCoupling(self, timeIter, time, writeIn=False):
+    """
+    Des
+    """
 
-    deltaInterfaceResidual_NormX, deltaInterfaceResidual_NormY, deltaInterfaceResidual_NormZ = deltaInterfaceResidual.norm()
-    deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
+    if timeIter > self.timeIterTreshold:
+      nbFSIIter = self.nbFSIIterMax
+      MPIPrint('\n*************** Enter Block Gauss Seidel (BGS) method for strong coupling FSI ***************', self.MPIComm)
+    else:
+       nbFSIIter = 1
 
-    self.omega *= -prodScalRes/deltaResNormSquare
-    self.omega = min(self.omega, 1.0)
-    self.omega = max(self.omega, 0.0)
+    self.FSIIter = 0
+    self.FSIConv = False
+    self.errValue = 1.0
 
-    # --- Update the value of the residual for the next FSI iteration --- #
-    self.solidInterfaceResidualnM1 = self.solidInterfaceResidual.copy()
+    while ((self.FSIIter < nbFSIIter) and (not self.criterion.checkVerified(self.errValue))):
+      MPIPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.MPIComm)
+
+      # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #
+      self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+      self.interfaceInterpolator.setDisplacementToFluidSolver(time)
+      MPIPrint('\nPerforming mesh deformation...\n', self.MPIComm)
+      self.FluidSolver.meshUpdate(timeIter)
+
+      # --- Fluid solver call for FSI subiteration --- #
+      MPIPrint('\nLaunching fluid solver...', self.MPIComm)
+      self.FluidSolver.run(time-self.deltaT, time)
+      MPIBarrier(self.MPIComm)
+
+      # --- Surface fluid loads interpolation and communication --- #
+      MPIPrint('\nProcessing interface fluid loads...\n', self.MPIComm)
+      self.interfaceInterpolator.getLoadsFromFluidSolver()
+      MPIBarrier(self.MPIComm)
+      if timeIter > self.timeIterTreshold:
+        self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
+        self.interfaceInterpolator.setLoadsToSolidSolver(time)
+
+        # --- Solid solver call for FSI subiteration --- #
+        MPIPrint('\nLaunching solid solver...\n', self.MPIComm)
+        if self.myid in self.manager.getSolidSolverProcessors():
+          self.SolidSolver.run(time-self.deltaT, time)
+
+        # --- Compute and monitor the FSI residual --- #
+        res = self.computeSolidInterfaceResidual()
+        self.errValue = self.criterion.update(res)
+        MPIPrint('\nFSI error value : {}\n'.format(self.errValue), self.MPIComm)
+        self.FSIConv =  self.criterion.checkVerified(self.errValue)
+
+        # --- Relaxe the solid position --- #
+        MPIPrint('\nProcessing interface displacements...\n', self.MPIComm)
+        self.relaxSolidPosition()
+
+      if writeIn == True:
+        self.writeRealTimeData(timeIter, time, self.errValue)
+
+      self.FSIIter += 1
+
+    # --- Update the FSI history file --- #
+    if timeIter > self.timeIterTreshold:
+      MPIPrint('\n*************** BGS is converged ***************', self.MPIComm)
+
+  def setOmega(self):
+    """
+    Des.
+    """
+
+    MPIPrint('Static under-relaxation step with parameter {}'.format(self.omega), self.MPIComm)
+
+    return self.omegaMax
 
   def relaxSolidPosition(self):
     """
     Des.
     """
 
-    # --- Set the Aitken coefficient for the relaxation --- #
-    #if no relax
-    #self.omega = 1.0
-    #if static relax
-    #self.omega = self.omegaMax
-    #if Aiken relax
-    self.setAitkenOmega()
-
-    MPIPrint('Aitken under-relaxation step with parameter {}'.format(self.omega), self.MPIComm)
+    # --- Set the relaxation parameter --- #
+    self.omega = self.setOmega()
 
     # --- Relax the solid interface position --- #
     self.interfaceInterpolator.solidInterfaceDisplacement += (self.omega*self.solidInterfaceResidual)
 
-class UnsteadyAlgortihmBGSAitkenRelax(AlgortihmBGSAitkenRelax):
-  """
-  Des.
-  """
-
-  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, omegaMax, timeIterTreshold=0, MPIComm=None):
+  def run(self):
     """
     Des.
     """
 
-    AlgortihmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, omegaMax, MPIComm)
-    self.deltaT = deltaT
-    self.totTime = totTime
-    self.timeIterTreshold = timeIterTreshold
+    # --- Initialize output manager --- #
+    self.iniRealTimeData()
 
-  def setFSIInitialConditions(self, time):
-    """
-    Des.
-    """
+    MPIPrint('\n**********************************', self.MPIComm)
+    MPIPrint('*     Begin FSI computation      *', self.MPIComm)
+    MPIPrint('**********************************\n', self.MPIComm)
+
+    #If no restart
+    MPIPrint('Setting FSI initial conditions...', self.MPIComm)
+    self.setFSIInitialConditions(0.0)
+    MPIPrint('\nFSI initial conditions are set', self.MPIComm)
 
     if self.manager.computationType == 'unsteady':
-      if self.myid in self.manager.getSolidSolverProcessors():
-        self.SolidSolver.setInitialDisplacements()
-      self.interfaceInterpolator.getDisplacementFromSolidSolver()
-      self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-      self.interfaceInterpolator.setDisplacementToFluidSolver(time)
-      self.FluidSolver.setInitialMeshDeformation()
+      self.__unsteadyRun()
     else:
-      self.interfaceInterpolator.getDisplacementFromSolidSolver()
+      time = self.totTime
+      timeIter = 0
+      self.deltaT = self.totTime
+      self.BGSCoupling(timeIter, time, True)
 
-  def writeFSIHistory(self, timeIter, time, errValue, FSIConv):
-    """
-    des.
-    """
+    MPIBarrier(self.MPIComm)
 
-    if self.myid == 0:
-      if timeIter == 0:
-        histFile = open('FSIhistory.dat', "w")
-        histFile.write("TimeIter\tTime\tFSIError\tFSINbIter\n")
-      else:
-        histFile = open('FSIhistory.dat', "a")
-      if FSIConv:
-        histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(errValue) + '\t' + str(self.FSIIter) + '\n')
-      else:
-        histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(errValue) + '\t' + str(self.FSIIter) + '\n')
-      histFile.close()
+    MPIPrint('\n*************************', self.MPIComm)
+    MPIPrint('*  End FSI computation  *', self.MPIComm)
+    MPIPrint('*************************\n', self.MPIComm)
 
-  def run(self):
+  def __unsteadyRun(self):
     """
     Des.
     """
@@ -1435,32 +1508,12 @@ class UnsteadyAlgortihmBGSAitkenRelax(AlgortihmBGSAitkenRelax):
     time = 0.0
     timeIter = 0
 
-    # --- Initialize output manager --- #
-    if self.myid in self.manager.getSolidSolverProcessors():
-        self.SolidSolver.initRealTimeData()
-
-    MPIPrint('\n**********************************', self.MPIComm)
-    MPIPrint('*     Begin FSI computation      *', self.MPIComm)
-    MPIPrint('**********************************\n', self.MPIComm)
-
-    #If no restart
-    MPIPrint('Setting FSI initial conditions...', self.MPIComm)
-    self.setFSIInitialConditions(time)
-    MPIPrint('\nFSI initial conditions are set', self.MPIComm)
-
     MPIPrint('Begin time integration\n', self.MPIComm)
 
     # --- External temporal loop --- #
     while timeIter <= nbTimeIter:
-      if timeIter > self.timeIterTreshold:
-        nbFSIIter = self.nbFSIIterMax
-        MPIPrint('\n*************** Enter Block Gauss Seidel (BGS) method for strong coupling FSI ***************'.format(timeIter), self.MPIComm)
-      else:
-         nbFSIIter = 1
 
-      self.FSIIter = 0
-      FSIConv = False
-      errValue = 1
+      MPIPrint("\n>>>> Time iteration {} <<<<".format(timeIter), self.MPIComm)
 
       # --- Preprocess the temporal iteration --- #
       self.FluidSolver.preprocessTimeIter(timeIter)
@@ -1468,62 +1521,16 @@ class UnsteadyAlgortihmBGSAitkenRelax(AlgortihmBGSAitkenRelax):
         self.SolidSolver.preprocessTimeIter(timeIter)
 
       # --- Internal FSI loop --- #
-      while ((self.FSIIter < nbFSIIter) and (not self.criterion.checkVerified(errValue))):
-        MPIPrint("\n>>>> Time iteration {} / FSI iteration {} <<<<".format(timeIter,self.FSIIter), self.MPIComm)
-
-        # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #
-        self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-        self.interfaceInterpolator.setDisplacementToFluidSolver(time)
-        MPIPrint('\nPerforming mesh deformation...\n', self.MPIComm)
-        self.FluidSolver.meshUpdate(timeIter)
-
-        # --- Fluid solver call for FSI subiteration --- #
-        MPIPrint('\nLaunching fluid solver...', self.MPIComm)
-        self.FluidSolver.run(time-self.deltaT, time)
-        MPIBarrier(self.MPIComm)
-
-        # --- Surface fluid loads interpolation and communication --- #
-        MPIPrint('\nProcessing interface fluid loads...\n', self.MPIComm)
-        self.interfaceInterpolator.getLoadsFromFluidSolver()
-        MPIBarrier(self.MPIComm)
-        if timeIter > self.timeIterTreshold:
-          self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
-          self.interfaceInterpolator.setLoadsToSolidSolver(time)
-
-          # --- Solid solver call for FSI subiteration --- #
-          MPIPrint('\nLaunching solid solver...\n', self.MPIComm)
-          if self.myid in self.manager.getSolidSolverProcessors():
-            self.SolidSolver.run(time-self.deltaT, time)
-
-          # --- Compute and monitor the FSI residual --- #
-          res = self.computeSolidInterfaceResidual()
-          errValue = self.criterion.update(res)
-          MPIPrint('\nFSI error value : {}\n'.format(errValue), self.MPIComm)
-          FSIConv =  self.criterion.checkVerified(errValue)
-
-          # --- Relaxe the solid position --- #
-          MPIPrint('\nProcessing interface displacements...\n', self.MPIComm)
-          self.relaxSolidPosition()
-
-        self.FSIIter += 1
+      self.BGSCoupling(timeIter, time, False)
       # --- End of FSI loop --- #
 
       MPIBarrier(self.MPIComm)
-
-      # --- Update the FSI history file --- #
-      if timeIter > self.timeIterTreshold:
-        MPIPrint('\nBGS is converged (strong coupling)', self.MPIComm)
-
 
       # --- Write fluid and solid solution, update FSI history  ---#
       self.FluidSolver.save(timeIter)
       if self.myid in self.manager.getSolidSolverProcessors():
         self.SolidSolver.save()
-      if self.myid == 0:
-        self.FluidSolver.saveRealTimeData(time, self.FSIIter)
-        if timeIter >= self.timeIterTreshold:
-          self.SolidSolver.saveRealTimeData(time, self.FSIIter)
-      self.writeFSIHistory(timeIter, time, errValue, FSIConv)
+      self.writeRealTimeData(timeIter, time, self.errValue)
 
       if timeIter >= self.timeIterTreshold:
         # --- Displacement predictor for the next time step and update of the solid solution --- #
@@ -1539,109 +1546,41 @@ class UnsteadyAlgortihmBGSAitkenRelax(AlgortihmBGSAitkenRelax):
       time += self.deltaT
     # --- End of the temporal loop --- #
 
-    MPIBarrier(self.MPIComm)
+class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
 
-    MPIPrint('\n*************************', self.MPIComm)
-    MPIPrint('*  End FSI computation  *', self.MPIComm)
-    MPIPrint('*************************\n', self.MPIComm)
-
-class SteadyAlgortihmBGSAitkenRelax(AlgortihmBGSAitkenRelax):
-  """
-  Des.
-  """
-
-  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, omegaMax, MPIComm=None):
+  def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaMax=1.0, MPIComm=None):
     """
     Des.
     """
 
-    AlgortihmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, omegaMax, MPIComm)
+    AlgortihmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaMax, MPIComm)
 
-  def writeFSIHistory(self, errValue):
+    ns = self.interfaceInterpolator.getNs()
+    self.solidInterfaceResidualnM1 = InterfaceData(ns, self.MPIComm)
+
+  def setOmega(self):
     """
     Des.
     """
 
-    if self.myid == 0:
-      if self.FSIIter == 0:
-        histFile = open('FSIhistory.dat', "w")
-        histFile.write("FSI Iter\tFSIError\n")
-      else:
-        histFile = open('FSIhistory.dat', "a")
-      histFile.write(str(self.FSIIter) + '\t' + str(errValue) + '\n')
-      histFile.close()
+    if self.FSIIter != 0:
+      # --- Compute the dynamic Aitken coefficient --- #
+      deltaInterfaceResidual = self.solidInterfaceResidual - self.solidInterfaceResidualnM1
 
-  def run(self):
-    """
-    Des.
-    """
+      prodScalRes_X, prodScalRes_Y, prodScalRes_Z = deltaInterfaceResidual.dot(self.solidInterfaceResidualnM1)
+      prodScalRes = prodScalRes_X + prodScalRes_Y + prodScalRes_Z
 
-    FSIConv = False
+      deltaInterfaceResidual_NormX, deltaInterfaceResidual_NormY, deltaInterfaceResidual_NormZ = deltaInterfaceResidual.norm()
+      deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
 
-    # --- Initialize output manager --- #
-    if self.myid in self.manager.getSolidSolverProcessors():
-        self.SolidSolver.initRealTimeData()
+      self.omega *= -prodScalRes/deltaResNormSquare
+    else:
+      self.omega = max(self.omegaMax, self.omega)
 
-    MPIPrint('\n********************************', self.MPIComm)
-    MPIPrint('* Begin steady FSI computation *', self.MPIComm)
-    MPIPrint('********************************\n', self.MPIComm)
-    MPIPrint('\n*************** Enter Block Gauss Seidel (BGS) method for strong coupling FSI ***************', self.MPIComm)
+    self.omega = min(self.omega, 1.0)
+    self.omega = max(self.omega, 0.0)
 
-    self.interfaceInterpolator.getDisplacementFromSolidSolver()
-    errValue = 1
+    MPIPrint('Aitken under-relaxation step with parameter {}'.format(self.omega), self.MPIComm)
 
-    # --- External FSI loop --- #
-    while ((self.FSIIter < self.nbFSIIterMax) and (not self.criterion.checkVerified(errValue))):
-      MPIPrint("\n>>>> FSI iteration {} <<<<".format(self.FSIIter), self.MPIComm)
-
-      # --- Mesh morphing step (displacement interpolation, displacements communication, and mesh morpher call) --- #
-      self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-      self.interfaceInterpolator.setDisplacementToFluidSolver(0.05)
-      MPIPrint('\nPerforming static mesh deformation...\n', self.MPIComm)
-      self.FluidSolver.meshUpdate(0)
-      
-      # --- Fluid solver call for FSI subiteration --- #
-      MPIPrint('\nLaunching fluid solver for a steady computation...', self.MPIComm)
-      self.FluidSolver.run(0.0, 0.0)
-      if self.myid == 0:
-        self.FluidSolver.saveRealTimeData(0.0, self.FSIIter)
-
-      # --- Surface fluid loads interpolation and communication --- #
-      MPIPrint('\nProcessing interface fluid loads...\n', self.MPIComm)
-      MPIBarrier(self.MPIComm)
-      self.interfaceInterpolator.getLoadsFromFluidSolver()
-      MPIBarrier(self.MPIComm)
-      self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
-      self.interfaceInterpolator.setLoadsToSolidSolver(0.05)
-
-      # --- Solid solver call for FSI subiteration --- #
-      MPIPrint('\nLaunching solid solver for a static computation...\n', self.MPIComm)
-      if self.myid in self.manager.getSolidSolverProcessors():
-        self.SolidSolver.run(0.0, 0.05)
-        self.SolidSolver.saveRealTimeData(0.0, self.FSIIter)
-      MPIBarrier(self.MPIComm)
-
-      # --- Compute and monitor the FSI residual --- #
-      res = self.computeSolidInterfaceResidual()
-      errValue = self.criterion.update(res)
-      MPIPrint('\nFSI error value : {}\n'.format(errValue), self.MPIComm)
-      FSIConv =  self.criterion.checkVerified(errValue)
-      self.writeFSIHistory(errValue)
-
-      # --- Relaxe the solid displacement and update the solid solution --- #
-      MPIPrint('\nProcessing interface displacements...\n', self.MPIComm)
-      self.relaxSolidPosition()
-
-      self.FSIIter += 1
-
-    MPIBarrier(self.MPIComm)
-
-    MPIPrint('\nBGS is converged (strong coupling)', self.MPIComm)
-    MPIPrint(' ', self.MPIComm)
-    MPIPrint('*************************', self.MPIComm)
-    MPIPrint('*  End FSI computation  *', self.MPIComm)
-    MPIPrint('*************************', self.MPIComm)
-    MPIPrint(' ', self.MPIComm)
-    
-
-    
+    # --- Update the value of the residual for the next FSI iteration --- #
+    self.solidInterfaceResidualnM1 = self.solidInterfaceResidual.copy()

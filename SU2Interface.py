@@ -24,14 +24,14 @@ class SU2Solver(FluidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, bndno, nDim, computationType, have_MPI, MPIComm):
+    def __init__(self, confFile, bndno, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
 
         # --- Instantiate the single zone driver of SU2 --- #
         try:
-          self.SU2 = WrapSU2.CSingleZoneDriver(confFile, 1, nDim, MPIComm)
+          self.SU2 = WrapSU2.CFluidDriver(confFile, 1, nDim, MPIComm)
         except TypeError as exception:
           print('A TypeError occured in WrapSU2.CSingleZoneDriver : ',exception)
           if have_MPI == True:
@@ -41,6 +41,7 @@ class SU2Solver(FluidSolver):
 
         self.fluidInterfaceID = self.SU2.GetMovingMarker()                        # identification of the f/s boundary
         self.computationType = computationType                                    # computation type : steady (default) or unsteady
+        self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = self.SU2.GetNumberVertices(self.fluidInterfaceID)           # numbers of nodes at the f/s interface (halo+physical)
@@ -126,9 +127,14 @@ class SU2Solver(FluidSolver):
             # identify the halo nodes and ignore their nodal loads
             halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
             if halo == False:
-                Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
-                Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
-                Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                if self.nodalLoadsType == 'pressure':
+                    Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID, iVertex)
+                    Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID, iVertex)
+                    Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID, iVertex)
+                else:
+                    Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
+                    Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
+                    Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
                 self.nodalLoad_X[PhysicalIndex] = Fx
                 self.nodalLoad_Y[PhysicalIndex] = Fy
                 self.nodalLoad_Z[PhysicalIndex] = Fz

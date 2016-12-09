@@ -1452,9 +1452,9 @@ class AlgortihmBGSStaticRelax(Algortihm):
     Des.
     """
 
-    MPIPrint('Static under-relaxation step with parameter {}'.format(self.omega), self.MPIComm)
+    self.omega = self.omegaMax
 
-    return self.omegaMax
+    MPIPrint('Static under-relaxation step with parameter {}'.format(self.omega), self.MPIComm)
 
   def relaxSolidPosition(self):
     """
@@ -1462,7 +1462,7 @@ class AlgortihmBGSStaticRelax(Algortihm):
     """
 
     # --- Set the relaxation parameter --- #
-    self.omega = self.setOmega()
+    self.setOmega()
 
     # --- Relax the solid interface position --- #
     self.interfaceInterpolator.solidInterfaceDisplacement += (self.omega*self.solidInterfaceResidual)

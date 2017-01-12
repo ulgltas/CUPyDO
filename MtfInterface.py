@@ -6,8 +6,12 @@
 # ----------------------------------------------------------------------
 import os, os.path, sys, time, string
 
-mtfPath = 'D:/Dev/Officiel/Metafor'
+mtfPath = 'D:/Dev/Officiel/metabin/bin/Release'
+toolboxPath = 'D:/Dev/Officiel/oo_meta'
+linuxPath = 'D:/Dev/Officiel/linuxbin'
 sys.path.append(mtfPath)
+sys.path.append(toolboxPath)
+sys.path.append(linuxPath)
 
 import math
 from toolbox.utilities import *
@@ -156,7 +160,6 @@ class MtfSolver(SolidSolver):
             tsm.setNextTime(t2, 1, dtmax/2)    # forces at least 2 time increments   
             
             loader = fac.FacManager(self.metafor)
-            print 'self.nbFacs = ', self.nbFacs
             nt1 = loader.lookForFile(self.nbFacs) #(0)
             nt2 = loader.lookForFile(self.nbFacs+1) #(1)
             if not self.saveAllFacs:
@@ -217,6 +220,7 @@ class MtfSolver(SolidSolver):
         these loads should be replaced by the fluid solver in practice.
         for each node, the fsi solver may call the "solid.applyload" function.
         """
+        
         # calculate L (max length along x)
         xmin=1e10
         xmax=-1e10

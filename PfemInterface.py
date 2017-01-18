@@ -13,7 +13,7 @@ sys.path.append(pfemToolsPath)
 
 import math
 import numpy as np
-from fsi import FluidSolver
+from FSICoupler import FluidSolver
 
 # ----------------------------------------------------------------------
 #  PfemSolver class
@@ -21,6 +21,9 @@ from fsi import FluidSolver
 
 class PfemSolver(FluidSolver):
     def __init__(self, testname, bndno, dt):
+        
+        print '\n***************************** Initializing Pfem *****************************'
+        
         self.testname = testname  # string (name of the module of the fluid model)
         self.bndno = bndno        # phygroup# of the f/s interface
         
@@ -78,6 +81,7 @@ class PfemSolver(FluidSolver):
         """
         calculates one increment from t1 to t2.
         """
+        
         self.pfem.scheme.setNextStep()
         self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         

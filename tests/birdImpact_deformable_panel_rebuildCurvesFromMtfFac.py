@@ -1,3 +1,5 @@
+# Reconstruct desired curves a posteriori from Metafor Fac files
+
 from wrap import *
 import math
 import os, os.path, sys, time, string

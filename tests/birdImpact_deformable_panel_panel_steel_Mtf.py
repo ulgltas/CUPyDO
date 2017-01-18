@@ -114,14 +114,17 @@ def getMetafor(p={}):
     return metafor
 
 def getRealTimeExtractorsList(mtf):
-
+    
+    print 'BirdImpact::getRealTimeExtractorsList()'
+    
     extractorsList = []
 
     # --- Extractors list starts --- #
     groupset = mtf.getDomain().getGeometry().getGroupSet()
     extractor1 = TdFieldValueExtractor(mtf, groupset(17), THERMODYN_TRAV_FINT)
-    #extractor1 = DbNodalValueExtractor(groupset(17), Field1D(TY,RE))
+    extractor2 = DbNodalValueExtractor(groupset(17), Field1D(TY,RE))
     extractorsList.append(extractor1)
+    extractorsList.append(extractor2)
     # --- Extractors list ends --- #
 
     return extractorsList

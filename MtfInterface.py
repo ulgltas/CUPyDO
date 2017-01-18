@@ -18,7 +18,7 @@ from toolbox.utilities import *
 import toolbox.fac as fac
 from wrap import *
 import numpy as np
-from fsi import SolidSolver
+from FSICoupler import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Nodal Load class
@@ -48,7 +48,9 @@ class MtfSolver(SolidSolver):
         """
         des.
         """
-
+        
+        print '\n***************************** Initializing Metafor *****************************'
+        
         # --- Load the Python module --- #
         self.testname = testname            # string (name of the module of the solid model)
         #load(self.testname)                # loads the python module and creates mtf/workspace
@@ -179,11 +181,11 @@ class MtfSolver(SolidSolver):
             posY = node.getPos(Configuration().currentConf).get2()    # current y coord
             posZ = node.getPos(Configuration().currentConf).get3()    # current z coord
             velX = node.getValue(Field1D(TX,GV))                      # current vel x
-	    velY = node.getValue(Field1D(TY,GV))                      # current vel y
-	    velZ = node.getValue(Field1D(TZ,GV))                      # current vel z
+            velY = node.getValue(Field1D(TY,GV))                      # current vel y
+            velZ = node.getValue(Field1D(TZ,GV))                      # current vel z
             self.nodalDisp_X[ii] = node.getValue(Field1D(TX,RE))  # current x displacement
             self.nodalDisp_Y[ii] = node.getValue(Field1D(TY,RE))  # current y displacement
-	    self.nodalDisp_Z[ii] = node.getValue(Field1D(TZ,RE))  # current z displacement
+            self.nodalDisp_Z[ii] = node.getValue(Field1D(TZ,RE))  # current z displacement
             self.nodalVel_X[ii] = velX
             self.nodalVel_Y[ii] = velY
             self.nodalVel_Z[ii] = velZ
@@ -221,25 +223,34 @@ class MtfSolver(SolidSolver):
         for each node, the fsi solver may call the "solid.applyload" function.
         """
         
+        valx = []
+        valy = []
+        valz = []
+        
         # calculate L (max length along x)
         xmin=1e10
         xmax=-1e10
-        for no in self.fnods.iterkeys():
-            node,fx,fy = self.fnods[no]
+        
+        for ii in range(self.nPhysicalNodes):
+            node = self.gr.getMeshPoint(ii)
+            no = node.getNo()
+            node,fx,fy,fz = self.fnods[no]
             px = node.getPos0().get1()
             if px<xmin: xmin=px
             if px>xmax: xmax=px
-        #print "(xmin,xmax)=(%f,%f)" % (xmin,xmax)
         L = xmax-xmin
-        #print "L=%f" % L
     
         # loop over node#
-        for no in self.fnods.iterkeys():
-            node,fx,fy = self.fnods[no]  # retreive data of node #no
-            px = node.getPos0().get1()     # x coordinate of the node       
-            valx = 0.0 
-            valy = -3e-4*time*math.sin(8*math.pi*px/L) # dummy fct
-            self.applyload(no, valx, valy, time)
+        for ii in range(self.nPhysicalNodes):
+            node = self.gr.getMeshPoint(ii)
+            no = node.getNo()
+            node,fx,fy,fz = self.fnods[no]
+            px = node.getPos0().get1()
+            valx.append(0.)
+            valy.append(-3e-4*time*math.sin(8*math.pi*px/L)) # dummy fct
+            valz.append(0.)
+        
+        self.applyNodalLoads(valx, valy, valz, time)
 
     def applyNodalLoads(self, load_X, load_Y, load_Z, time):
         """

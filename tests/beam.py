@@ -12,6 +12,7 @@ def params(q={}):
     p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
     p['tend']       = 2.            # final time
     p['dtmax']      = 0.005          # max time step
+    p['bndno']      = 103            # interface boundary number
     
     # BC type
     #p['bctype']     = 'pressure'     # uniform pressure
@@ -85,19 +86,17 @@ def getMetafor(p={}):
         tsm.setNextTime(1.0, 1, 1.0)
 
     # results
-    #vmgr = metafor.getValuesManager()
-    #vmgr.add(1, MiscValueExtractor(metafor, EXT_T), 'time')
-    #vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
+    vmgr = metafor.getValuesManager()
+    vmgr.add(1, MiscValueExtractor(metafor, EXT_T), 'time')
+    vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
 
     return metafor
 
-def getRealTimeExtractorsList(Mtf):
+def getRealTimeExtractorsList(mtf):
 
     extractorsList = list()
-
+    
     # --- Extractors list starts --- #
-    extractor1 = Mtf.DbNodalValueExtractor(groupset(104), Field1D(TY,RE))
-    extractorsList.append(extractor1)
     # --- Extractors list ends --- #
 
     return extractorsList

@@ -47,7 +47,7 @@ def getMetafor(p={}):
     interactionset = domain.getInteractionSet()
 
     app1 = FieldApplicator(1)
-    app1.push( groupset(17) )  # physical group 100: beam
+    app1.push( groupset(17) )  # physical group 17: panneau
     interactionset.add( app1 )
 
     materset = domain.getMaterialSet()
@@ -109,19 +109,22 @@ def getMetafor(p={}):
     vmgr.add(4, TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FEXT), 'panel_work_ext_F')'''
     
     metafor.getDbTdFieldsValueManager().setComputeEXW(True)
-    metafor.getDbTdFieldsValueManager().setComputeINW(True) 
+    metafor.getDbTdFieldsValueManager().setComputeINW(True)
     
     return metafor
 
 def getRealTimeExtractorsList(mtf):
-
+    
+    print 'BirdImpact::getRealTimeExtractorsList()'
+    
     extractorsList = []
 
     # --- Extractors list starts --- #
     groupset = mtf.getDomain().getGeometry().getGroupSet()
     extractor1 = TdFieldValueExtractor(mtf, groupset(17), THERMODYN_TRAV_FINT)
-    #extractor1 = Mtf.DbNodalValueExtractor(groupset(17), Field1D(TY,RE))
+    extractor2 = DbNodalValueExtractor(groupset(17), Field1D(TY,RE))
     extractorsList.append(extractor1)
+    extractorsList.append(extractor2)
     # --- Extractors list ends --- #
 
     return extractorsList

@@ -13,7 +13,7 @@
 import pysu2
 import math
 import numpy as np
-from fsi import FluidSolver
+from FSICoupler import FluidSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver class

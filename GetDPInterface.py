@@ -13,7 +13,7 @@
 import math
 import os
 import numpy as np
-from fsi import SolidSolver
+from FSICoupler import SolidSolver
 
 # ----------------------------------------------------------------------
 #  GetDPSolver class

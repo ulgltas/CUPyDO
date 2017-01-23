@@ -173,7 +173,8 @@ class PfemSolver(FluidSolver):
     def save(self, nt):
         if nt%self.pfem.scheme.savefreq==0:
             self.pfem.scheme.archive()
-        self.pfem.scheme.vizu(self.u,self.v,self.p)
+        if not self.pfem.gui==None:
+            self.pfem.scheme.vizu(self.u,self.v,self.p)
         
     def remeshing(self):
         self.pfem.scheme.remeshing(self.V,self.V0,self.p)
@@ -183,8 +184,8 @@ class PfemSolver(FluidSolver):
         """
         Exits the Pfem solver.
         """
-        
-        self.pfem.gui.save2vtk()
+        if not self.pfem.gui==None:
+            self.pfem.gui.save2vtk()
         self.pfem.scheme.exit()
         
         print("***************************** Exit Pfem *****************************")

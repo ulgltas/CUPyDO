@@ -1635,7 +1635,7 @@ class Algortihm:
         
         if self.myid == 0:
             self.FluidSolver.saveRealTimeData(time, self.FSIIter)
-            if timeIter > self.timeIterTreshold:
+            if timeIter >= self.timeIterTreshold:
                 self.SolidSolver.saveRealTimeData(time, self.FSIIter)
             histFile = open('FSIhistory.ascii', "a")
             histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n')

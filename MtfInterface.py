@@ -6,12 +6,8 @@
 # ----------------------------------------------------------------------
 import os, os.path, sys, time, string
 
-mtfPath = 'D:/Dev/Officiel/metabin/bin/Release'
-toolboxPath = 'D:/Dev/Officiel/oo_meta'
-linuxPath = 'D:/Dev/Officiel/linuxbin'
+mtfPath = 'D:/Dev/Officiel/Metafor'
 sys.path.append(mtfPath)
-sys.path.append(toolboxPath)
-sys.path.append(linuxPath)
 
 import math
 from toolbox.utilities import *
@@ -108,6 +104,9 @@ class MtfSolver(SolidSolver):
         self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
         
         self.initRealTimeData()
+        
+        # Last build operation
+        self.metafor.getDomain().build() # NB: necessary to complete Metafor initialization!
         
     def run(self, t1, t2):
         """

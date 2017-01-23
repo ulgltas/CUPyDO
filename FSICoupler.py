@@ -1533,11 +1533,12 @@ class Algortihm:
         self.SolidSolver = SolidSolver
         self.interfaceInterpolator = InterfaceInterpolator
         self.criterion = Criterion
-        self.nbFSIIterMax = nbFSIIterMax
-        
+
+        self.nbFSIIterMax = nbFSIIterMax        
         self.deltaT = deltaT
         self.totTime = totTime
         self.timeIterTreshold = timeIterTreshold
+        self.writeInBGS = False
         
         self.FSIIter = 0
         self.errValue = 0.0
@@ -1656,7 +1657,7 @@ class AlgortihmBGSStaticRelax(Algortihm):
         self.omegaMax = omegaMax
         self.omega = omegaMax
     
-    def bgsCoupling(self, timeIter, time, writeIn=False):
+    def bgsCoupling(self, timeIter, time):
         """
         Des
         """
@@ -1708,7 +1709,7 @@ class AlgortihmBGSStaticRelax(Algortihm):
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidPosition()
             
-            if writeIn == True:
+            if self.writeInBGS == True:
                 self.writeRealTimeData(timeIter, time, self.errValue)
             
             self.FSIIter += 1
@@ -1760,7 +1761,8 @@ class AlgortihmBGSStaticRelax(Algortihm):
             time = self.totTime
             timeIter = 0
             self.deltaT = self.totTime
-            self.bgsCoupling(timeIter, time, True)
+            self.writeInBGS = True
+            self.bgsCoupling(timeIter, time)
         
         mpiBarrier(self.mpiComm)
         
@@ -1791,7 +1793,7 @@ class AlgortihmBGSStaticRelax(Algortihm):
                 self.SolidSolver.preprocessTimeIter(timeIter)
             
             # --- Internal FSI loop --- #
-            self.bgsCoupling(timeIter, time, False)
+            self.bgsCoupling(timeIter, time)
             # --- End of FSI loop --- #
             
             mpiBarrier(self.mpiComm)
@@ -1810,7 +1812,8 @@ class AlgortihmBGSStaticRelax(Algortihm):
             self.writeRealTimeData(timeIter, time, self.errValue)
             
             # --- Perform some remeshing if necessary
-            self.SolidSolver.remeshing()
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.remeshing()
             self.FluidSolver.remeshing()
             # ---
             

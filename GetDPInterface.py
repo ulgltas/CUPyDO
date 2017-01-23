@@ -13,7 +13,7 @@
 import math
 import os
 import numpy as np
-from fsi import SolidSolver
+from FSICoupler import SolidSolver
 
 # ----------------------------------------------------------------------
 #  GetDPSolver class
@@ -214,7 +214,7 @@ class GetDPSolver(SolidSolver):
         extractNode = 7
         self.iVertexExtract = self.nodalInterfIndex.keys()[self.nodalInterfIndex.values().index(extractNode)]
         solFile = open('extractPhysicalNode' + str(7) + '.ascii', "w")
-        solFile.write("Time\tnIter\tDx\tDy\tDz\n")
+        solFile.write("Time\tnIter\tDx\tDy\tDz\tVx\tVy\tVz\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
@@ -228,8 +228,11 @@ class GetDPSolver(SolidSolver):
         Dx = self.nodalDisp_X[self.iVertexExtract]
         Dy = self.nodalDisp_Y[self.iVertexExtract]
         Dz = self.nodalDisp_Z[self.iVertexExtract]
+        Vx = self.nodalVel_X[self.iVertexExtract]
+        Vy = self.nodalVel_Y[self.iVertexExtract]
+        Vz = self.nodalVel_Z[self.iVertexExtract]
 
-        solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(Dx) + '\t' + str(Dy) + '\t' + str(Dz) + '\n')
+        solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(Dx) + '\t' + str(Dy) + '\t' + str(Dz) + '\t' + str(Vx) + '\t' + str(Vy) + '\t' + str(Vz) + '\n')
 
         solFile.close()
 

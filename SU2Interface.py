@@ -10,10 +10,10 @@
 #  Imports
 # ----------------------------------------------------------------------
 
-import WrapSU2
+import pysu2
 import math
 import numpy as np
-from fsi import FluidSolver
+from FSICoupler import FluidSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver class
@@ -31,9 +31,9 @@ class SU2Solver(FluidSolver):
 
         # --- Instantiate the single zone driver of SU2 --- #
         try:
-          self.SU2 = WrapSU2.CFluidDriver(confFile, 1, nDim, MPIComm)
+          self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, MPIComm)
         except TypeError as exception:
-          print('A TypeError occured in WrapSU2.CSingleZoneDriver : ',exception)
+          print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
           if have_MPI == True:
             print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
           else:

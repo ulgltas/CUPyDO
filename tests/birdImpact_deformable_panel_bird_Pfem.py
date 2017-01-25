@@ -24,6 +24,8 @@ class Module:
        self.extManager = extManager
        self.gui = gui
 
+ext6 = None
+
 def getPfem():
     global w
     if w: return w
@@ -74,7 +76,7 @@ def getPfem():
     scheme.ttot = 40*((4*R)/U0 + d/U0)
     scheme.dt = dt
     scheme.savefreq=1
-    scheme.nthreads=4
+    scheme.nthreads=1
     scheme.gamma = 0.5
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True
@@ -82,7 +84,7 @@ def getPfem():
     
     #Results
     extManager = w.ExtractorsManager(msh)
-    extManager.add(1,w.PositionExtractor(msh,315))
+    # extManager.add(1,w.PositionExtractor(msh,315))
     '''extManager.add(1,w.IntForceExtractor(msh,"Wall"))
     extManager.add(2,w.ExtForceExtractor(msh,"Wall"))
     extManager.add(3,w.IneForceExtractor(msh,"Wall"))

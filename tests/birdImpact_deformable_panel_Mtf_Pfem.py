@@ -2,36 +2,88 @@ import os, sys
 
 filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
-fsiPath = '..'
+fsiPath = os.path.abspath('..')
+
 sys.path.append(fsiPath)
 
-import fsi
-import MtfInterface
-import PfemInterface
+from math import *
+from optparse import OptionParser
+import FSICoupler
 
 def main():
     
-    fsi.load(fileName)
+    # --- Workspace set up --- #
+    
+    withMPI = False
+    comm = None
+    myid = 0
+    numberPart = 0
+    rootProcess = 0
+    
+    FSICoupler.load(fileName, withMPI, comm, myid, numberPart)
+        
+    # --- Input parameters --- #
     
     U0 = 100
     N = 10
     R = 0.01
     d = 2.5*(R/N)
     
-    t1 = 0.0
+    cfd_file = 'birdImpact_deformable_panel_bird_Pfem'
+    csd_file = 'birdImpact_deformable_panel_panel_steel_Mtf'
+    nDim = 2
+    tollFSI = 1e-6
     dt = 2e-6
     tTot = 40*((4*R)/U0 + d/U0)
+    nFSIIterMax = 20
+    omegaMax = 0.5
+    computationType = 'unsteady'
     
-    solid = MtfInterface.MtfSolver('birdImpact_deformable_panel_panel_steel_Mtf')
-    fluid = PfemInterface.PfemSolver('birdImpact_deformable_panel_bird_Pfem', 13, dt)
+    # --- Initialize the fluid solver --- #
+    import PfemInterface
+    fluidSolver = PfemInterface.PfemSolver(cfd_file, 13, dt)
+    FSICoupler.mpiBarrier(comm)
     
-    toll = 1.0e-6
-    fsi_criterion = fsi.DispResidualBasedCriterion(toll)
+    # --- Initialize the solid solver --- #
+    solidSolver = None
+    if myid == rootProcess:
+        import MtfInterface
+        solidSolver = MtfInterface.MtfSolver(csd_file)
+    FSICoupler.mpiBarrier(comm)
+        
+    # --- Initialize the FSI manager --- #
+    manager = FSICoupler.Manager(fluidSolver, solidSolver, nDim, computationType, comm)
+    FSICoupler.mpiBarrier()
+
+    # --- Initialize the interpolator --- #
+    interpolator = FSICoupler.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
     
-    omega_max = 0.5
+    # --- Initialize the FSI criterion --- #
+    criterion = FSICoupler.DispNormCriterion(tollFSI)
+    FSICoupler.mpiBarrier()
     
-    fsi_algo = fsi.FixedPointAitkenRelaxationAlgorithm(solid, fluid, dt, tTot, fsi_criterion, omega_max)
-    fsi_algo.run()
+    # --- Initialize the FSI algorithm --- #
+    algorithm = FSICoupler.AlgortihmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, nFSIIterMax, dt, tTot, 0, omegaMax, comm)
     
-if __name__ == "__main__":
+    # --- Launch the FSI computation --- #
+    algorithm.run()
+
+    # --- Exit the fluid solver --- #
+    fluidSolver.exit()
+
+    # --- Exit the solid solver --- #
+    if myid == rootProcess:
+        solidSolver.exit()
+    
+    # --- Exit computation --- #
+    FSICoupler.mpiBarrier(comm)
+    return 0
+
+
+# -------------------------------------------------------------------
+#    Run Main Program
+# -------------------------------------------------------------------
+
+# --- This is only accessed if running from command prompt --- #
+if __name__ == '__main__':
     main()

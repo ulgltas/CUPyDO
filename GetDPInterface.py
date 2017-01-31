@@ -119,11 +119,11 @@ class GetDPSolver(SolidSolver):
 
         iVertex = 0
         for iter in range(1, len(strings)):
-          no = int(strings[iter].split()[0])
-          vec_x[iVertex] = float(strings[iter].split()[1])
-          vec_y[iVertex] = float(strings[iter].split()[2])
-          vec_z[iVertex] = float(strings[iter].split()[3])
-          iVertex += 1
+            no = int(strings[iter].split()[0])
+            vec_x[iVertex] = float(strings[iter].split()[1])
+            vec_y[iVertex] = float(strings[iter].split()[2])
+            vec_z[iVertex] = float(strings[iter].split()[3])
+            iVertex += 1
 
         return (vec_x, vec_y, vec_z)
 

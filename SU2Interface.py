@@ -31,13 +31,13 @@ class SU2Solver(FluidSolver):
 
         # --- Instantiate the single zone driver of SU2 --- #
         try:
-          self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, MPIComm)
+            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, MPIComm)
         except TypeError as exception:
-          print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
-          if have_MPI == True:
-            print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
-          else:
-            print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+            print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
 
         self.fluidInterfaceID = self.SU2.GetMovingMarker()                        # identification of the f/s boundary
         self.computationType = computationType                                    # computation type : steady (default) or unsteady

@@ -82,7 +82,7 @@ class PfemSolver(FluidSolver):
         calculates one increment from t1 to t2.
         """
         
-        self.pfem.scheme.setNextStep()
+        self.pfem.scheme.setNextStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         
         self.__setCurrentState()
@@ -159,7 +159,7 @@ class PfemSolver(FluidSolver):
     def update(self, dt):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
-        self.pfem.scheme.updateSolutionVectors(self.V,self.u,self.v,self.p,self.velocity)
+        self.pfem.scheme.updateSolutionVectors(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         
         
         #---
@@ -178,7 +178,7 @@ class PfemSolver(FluidSolver):
         
     def remeshing(self):
         self.pfem.scheme.remeshing(self.V,self.V0,self.p)
-        self.pfem.scheme.updateData(self.V0,self.V)
+        self.pfem.scheme.updateData()
     
     def exit(self):
         """

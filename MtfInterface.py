@@ -30,7 +30,8 @@ class NLoad:
         self.val2 = val2
         self.t2 = t2
     def __call__(self, time):
-        return self.val1 + (time-self.t1)/(self.t2-self.t1)*(self.val2-self.val1)
+        theValue = self.val1 + (time-self.t1)/(self.t2-self.t1)*(self.val2-self.val1)
+        return theValue
     def nextstep(self):
         self.t1 = self.t2
         self.val1 = self.val2
@@ -40,7 +41,7 @@ class NLoad:
 # ----------------------------------------------------------------------
                
 class MtfSolver(SolidSolver):
-    def __init__(self, testname):
+    def __init__(self, testname, computationType):
         """
         des.
         """
@@ -67,8 +68,9 @@ class MtfSolver(SolidSolver):
         self.t1      = 0.0              # last reference time        
         self.t2      = 0.0              # last calculated time
         self.nbFacs = 0                 # number of existing Facs
-        self.saveAllFacs = True         # True: the Fac corresponding to the end of the time step is conserved, False: Facs are erased at the end of each time step
+        self.saveAllFacs = False         # True: the Fac corresponding to the end of the time step is conserved, False: Facs are erased at the end of each time step
         self.runOK = True
+        self.computationType = computationType  # computation type : steady (default) or unsteady
 
         # --- Retrieves the f/s boundary and the related nodes --- #
         self.bndno = p['bndno']                                                 # physical group of the f/s interface
@@ -78,11 +80,12 @@ class MtfSolver(SolidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
 
+
         # --- Builds a list (dict) of interface nodes and creates the nodal prescribed loads --- #
         loadingset = self.metafor.getDomain().getLoadingSet()
         for i in range(self.nPhysicalNodes):
             node = self.gr.getMeshPoint(i)
-            no = node.getNo()  
+            no = node.getNo()
             fx = NLoad(self.t1, 0.0, self.t2, 0.0)
             fy = NLoad(self.t1, 0.0, self.t2, 0.0)
             fz = NLoad(self.t1, 0.0, self.t2, 0.0)
@@ -158,7 +161,7 @@ class MtfSolver(SolidSolver):
             tsm = self.metafor.getTimeStepManager()
             dt=t2-t1
             dtmax=dt
-            tsm.setNextTime(t2, 1, dtmax/2)    # forces at least 2 time increments   
+            tsm.setNextTime(t2, 1, dtmax)  
             
             loader = fac.FacManager(self.metafor)
             nt1 = loader.lookForFile(self.nbFacs) #(0)
@@ -251,7 +254,7 @@ class MtfSolver(SolidSolver):
         
         self.applyNodalLoads(valx, valy, valz, time)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
         """
         Des.
         """
@@ -263,9 +266,9 @@ class MtfSolver(SolidSolver):
             fx.val2 = load_X[ii]
             fy.val2 = load_Y[ii]
             fz.val2 = load_Z[ii]
-            fx.t2 = time
-            fy.t2 = time
-            fz.t2 = time
+            fx.t2 = val_time
+            fy.t2 = val_time
+            fz.t2 = val_time
 
     def __nextStep(self):
         """
@@ -279,13 +282,21 @@ class MtfSolver(SolidSolver):
             fz.nextstep()
 
     def update(self):
-	"""
-	Pushes back the current state in the past (previous state) before going to the next time step.
-	"""
+        """
+        Pushes back the current state in the past (previous state) before going to the next time step.
+        """
 
         SolidSolver.update(self)
 
         self.__nextStep()
+
+    def bgsUpdate(self):
+        """
+        Des.
+        """
+
+        if self.computationType == 'steady':
+            self.__nextStep()
 
     def initRealTimeData(self):
         """

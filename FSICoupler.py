@@ -13,6 +13,7 @@ from math import *
 import numpy as np
 import scipy as sp
 from scipy import spatial
+import scipy.sparse.linalg as splinalg
 import os, os.path, sys, time, string
 
 import socket, fnmatch
@@ -238,6 +239,9 @@ class InterfaceData:
             self.data_X.setSizes(nPoint)
             self.data_Y.setSizes(nPoint)
             self.data_Z.setSizes(nPoint)
+            self.data_X.set(0.0)
+            self.data_Y.set(0.0)
+            self.data_Z.set(0.0)
             self.myid = self.mpiComm.Get_rank()
             self.mpiSize = self.mpiComm.Get_size()
             startIndex , stopIndex = self.data_X.getOwnershipRange()
@@ -629,9 +633,55 @@ class InterfaceMatrix:
             self.H.mult(Vec, VecOut)
         else:
             np.dot(self.H, Vec, VecOut)
+
+    def getMat(self):
+        """
+        Des.
+        """
+
+        return self.H
                  
 #class InterfaceDisplacement(InterfaceData)
 #class InterfaceLoad(InterfaceData)
+
+# ----------------------------------------------------------------------
+#  Linear solver class
+# ----------------------------------------------------------------------
+
+class LinearSolver:
+    """
+    Description.
+    Designed to be used with InterfaceData and InterfaceMatrix classes.
+    """
+
+    def __init__(self, MatrixOperator, mpiComm=None):
+        """
+        Description.
+        MatrixOperator is of type InterfaceMatrix
+        """
+        self.mpiComm = mpiComm
+
+        if mpiComm != None:
+            from petsc4py import PETSc
+            self.KSP_solver = PETSc.KSP().create(mpiComm)
+            self.KSP_solver.setType('fgmres')
+            self.KSP_solver.getPC().setType('jacobi')
+            self.KSP_solver.setOperators(MatrixOperator.getMat())
+            self.KSP_solver.setFromOptions()
+            self.KSP_solver.setInitialGuessNonzero(True)
+        else:
+            self.LinOperator = MatrixOperator.getMat()
+        
+
+    def solve(self, VecX, VecB):
+        """
+        Des.
+        """
+
+        if self.mpiComm != None:
+            self.KSP_solver.solve(VecX, VecB)
+        else:
+            VecB = splinalg.spsolve(self.LinOperator, VecX)
 
 # ----------------------------------------------------------------------
 #  Generic solid solver class
@@ -708,6 +758,9 @@ class SolidSolver:
         self.nodalVel_XNm1 = self.nodalVel_X.copy()
         self.nodalVel_YNm1 = self.nodalVel_Y.copy()
         self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
+
+    def bgsUpdate(self):
+        return
     
     def save(self):
         return
@@ -764,6 +817,9 @@ class FluidSolver:
         return
     
     def update(self, dt):
+        return
+
+    def bgsUpdate(self):
         return
     
     def save(self, nt):
@@ -845,7 +901,7 @@ class Manager:
     Description.
     """
 
-    def __init__(self, FluidSolver, SolidSolver, nDim, computationType, mpiComm=None):
+    def __init__(self, FluidSolver, SolidSolver, nDim, computationType='steady', mpiComm=None):
         """
         Description.
         """
@@ -1192,6 +1248,8 @@ class InterfaceInterpolator:
         self.ns_loc = 0
         self.nDim = 0
 
+        self.d = 0
+
         self.mpiComm = mpiComm
         
         if self.mpiComm != None:
@@ -1206,31 +1264,10 @@ class InterfaceInterpolator:
         Description.
         """
 
-        self.solidInterfaceDisplacement = InterfaceData(self.ns, self.mpiComm)
+        self.solidInterfaceDisplacement = InterfaceData(self.ns + self.d, self.mpiComm)
         self.fluidInterfaceDisplacement = InterfaceData(self.nf, self.mpiComm)
-        self.solidInterfaceLoads = InterfaceData(self.ns, self.mpiComm)
+        self.solidInterfaceLoads = InterfaceData(self.ns + self.d, self.mpiComm)
         self.fluidInterfaceLoads = InterfaceData(self.nf, self.mpiComm)
-
-    #def createRTree(self, posX_array, posY_array, posZ_array):
-        #"""
-        #Description.
-        #"""
-        
-        #from rtree import index
-        #prop_index = index.Property()
-        #prop_index.dimension = self.nDim
-        #SpatialTree = index.Index(properties=prop_index)
-
-        #for jVertex in range(self.ns):
-        #    posX = posX_array[jVertex]
-        #    posY = posY_array[jVertex]
-        #    posZ = posZ_array[jVertex]
-        #    if self.nDim == 2:
-        #        SpatialTree.add(jVertex, (posX, posY))
-        #    else:
-        #        SpatialTree.add(jVertex, (posX, posY, posZ))
-
-        #return SpatialTree
 
     def createKDTree(self, posX_array, posY_array, posZ_array):
         """
@@ -1305,15 +1342,20 @@ class InterfaceInterpolator:
         Des.
         """
 
-        self.checkTotalLoad()
+        #self.checkTotalLoad()
+
+        FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
+        FX = 0.0
+        FY = 0.0
+        FZ = 0.0
 
         # --- Redistribute the interpolated solid loads according to the partitions that own the solid interface --- #
 
         if self.mpiComm != None:
             localSize = self.solidInterfaceLoads.getXArray().shape[0]
-            solidLoads_array_X_recon = mpiGatherv(self.solidInterfaceLoads.getXArray(), localSize, self.ns, self.mpiComm, 0)
-            solidLoads_array_Y_recon = mpiGatherv(self.solidInterfaceLoads.getYArray(), localSize, self.ns, self.mpiComm, 0)
-            solidLoads_array_Z_recon = mpiGatherv(self.solidInterfaceLoads.getZArray(), localSize, self.ns, self.mpiComm, 0)
+            solidLoads_array_X_recon = mpiGatherv(self.solidInterfaceLoads.getXArray(), localSize, self.ns+self.d, self.mpiComm, 0)
+            solidLoads_array_Y_recon = mpiGatherv(self.solidInterfaceLoads.getYArray(), localSize, self.ns+self.d, self.mpiComm, 0)
+            solidLoads_array_Z_recon = mpiGatherv(self.solidInterfaceLoads.getZArray(), localSize, self.ns+self.d, self.mpiComm, 0)
 
             if self.myid == 0:
                 for iProc in self.manager.getSolidInterfaceProcessors():
@@ -1339,8 +1381,19 @@ class InterfaceInterpolator:
                 self.mpiComm.Recv(localSolidLoads_array_Y, source=0, tag = 2)
                 self.mpiComm.Recv(localSolidLoads_array_Z, source=0, tag = 3)
                 self.SolidSolver.applyNodalLoads(localSolidLoads_array_X, localSolidLoads_array_Y, localSolidLoads_array_Z, time)
+                for iVertex in range(self.ns_loc):
+                    FX += localSolidLoads_array_X[iVertex]
+                    FY += localSolidLoads_array_Y[iVertex]
+                    FZ += localSolidLoads_array_Z[iVertex]
+            FXT = mpiAllReduce(self.mpiComm, FX)
+            FYT = mpiAllReduce(self.mpiComm, FY)
+            FZT = mpiAllReduce(self.mpiComm, FZ)
         else:
             self.SolidSolver.applyNodalLoads(self.solidInterfaceLoads.getXArray(), self.solidInterfaceLoads.getYArray(), self.solidInterfaceLoads.getZArray(), time)
+
+        mpiPrint("Checking f/s interface total force...", self.mpiComm)
+        mpiPrint('Solid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FXT, FYT, FZT), self.mpiComm)                
+        mpiPrint('Fluid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FFX, FFY, FFZ), self.mpiComm)
 
     def setDisplacementToFluidSolver(self, time):
         """
@@ -1404,6 +1457,13 @@ class InterfaceInterpolator:
 
         return self.nf
 
+    def getd(self):
+        """
+        Des.
+        """
+
+        return self.d
+
 class MatchingMeshesInterpolator(InterfaceInterpolator):
     """
     Description.
@@ -1413,8 +1473,10 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         """
         Description
         """
-        
+
         InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm)
+
+        mpiPrint('\nSetting matching meshes interpolator...', mpiComm)
 
         self.nf = self.manager.getNumberOfFluidInterfaceNodes()
         self.ns = self.manager.getNumberOfSolidInterfaceNodes()
@@ -1434,6 +1496,8 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
         fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
         solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
+
+        mpiPrint('\nBuilding interpolation matrix...', mpiComm)
 
         if self.mpiComm != None:
             for iProc in solidInterfaceProcessors:
@@ -1459,28 +1523,21 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         self.H.assemble()
         self.H_T.assemble()
 
+        mpiPrint('\nInterpolation matrix is built.', mpiComm)
+
     def fillMatrix(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
         """
         Des.
         """
             
         KDTree = self.createKDTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
-        #SolidSpatialTree = self.createRTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
         for iVertex in range(self.nf_loc):
             posX = localFluidInterface_array_X_init[iVertex]
             posY = localFluidInterface_array_Y_init[iVertex]
             posZ = localFluidInterface_array_Z_init[iVertex]
             fluidPoint = np.array([posX, posY, posZ])
-            #if self.nDim == 2:
-            #    neighboors = list(SolidSpatialTree.nearest((posX, posY),1))
-            #elif self.nDim == 3:
-            #    neighboors = list(SolidSpatialTree.nearest((posX, posY, posZ),1))
-            #jVertex = neighboors[0]
             distance, jVertex = KDTree.query(fluidPoint, 1)
-            #NodeA = np.array([posX, posY, posZ])
-            #NodeB = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
-            #distance = self.distance(NodeA, NodeB)
             iGlobalVertexFluid = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
             jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
             if distance > 1e-6:
@@ -1506,10 +1563,364 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         self.H.mult(self.solidInterfaceDisplacement.getDataY(), self.fluidInterfaceDisplacement.getDataY())
         self.H.mult(self.solidInterfaceDisplacement.getDataZ(), self.fluidInterfaceDisplacement.getDataZ())
     
-#class NNInterpolator(InterfaceInterpolator):
-    #"""
-    #Description
-    #"""
+
+class RBFInterpolator(InterfaceInterpolator):
+    """
+    Description.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius=0.1, mpiComm = None):
+        """"
+        Description.
+        """
+
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm)
+
+        mpiPrint('\nSetting non matching meshes interpolator with Radial Basis Functions...', mpiComm)
+
+        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
+        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
+        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
+        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
+        self.nDim = self.manager.getnDim()
+
+        self.d = self.nDim+1
+        self.radius = RBFradius
+
+        self.generateInterfaceData()
+
+        self.A = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
+        self.A_T = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
+        self.B = InterfaceMatrix((self.nf,self.ns+self.d), self.mpiComm)
+        self.B_T = InterfaceMatrix((self.ns+self.d,self.nf), self.mpiComm)
+
+        solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
+        fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
+        solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
+
+        mpiPrint('\nBuilding interpolation matrices...', mpiComm)
+
+        # Fill the matrix A
+        if self.mpiComm != None:
+            for iProc in solidInterfaceProcessors:
+                if self.myid == iProc:
+                    localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
+                    for jProc in solidInterfaceProcessors:
+                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in solidInterfaceProcessors:
+                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
+                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixA(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+        else:
+            localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
+            self.fillMatrixA(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+
+        self.A.assemble()
+        self.A_T.assemble()
+
+        mpiPrint('\nMatrix A is built.', mpiComm)
+
+        # Fill the matrix B
+        if self.mpiComm != None:
+            for iProc in solidInterfaceProcessors:
+                if self.myid == iProc:
+                    for jProc in fluidInterfaceProcessors:
+                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in fluidInterfaceProcessors:
+                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
+                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixB(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+        else:
+            self.fillMatrixB(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+
+        self.B.assemble()
+        self.B_T.assemble()
+
+        mpiPrint('\nMatrix B is built.', mpiComm)
+
+    def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        Description.
+        """
+
+        KDTree = self.createKDTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
+        localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
+        for iVertex in range(self.ns_loc):
+            posX = localSolidInterface_array_X_init[iVertex]
+            posY = localSolidInterface_array_Y_init[iVertex]
+            posZ = localSolidInterface_array_Z_init[iVertex]
+            solidPoint = np.array([posX, posY, posZ])
+            solidVertices = KDTree.query_ball_point(solidPoint, 1.01*self.radius)
+            iGlobalVertexSolid = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+            for jVertex in solidVertices:
+                jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
+                solidQuery = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
+                distance = self.distance(solidPoint, solidQuery)
+                phi = self.__PHI(distance)
+                self.A.setValue((iGlobalVertexSolid, jGlobalVertexSolid), phi)
+                self.A_T.setValue((jGlobalVertexSolid, iGlobalVertexSolid), phi)
+            self.A.setValue((iGlobalVertexSolid, self.ns), 1.0)
+            self.A.setValue((iGlobalVertexSolid, self.ns+1), posX)
+            self.A.setValue((iGlobalVertexSolid, self.ns+2), posY)
+            self.A_T.setValue((self.ns, iGlobalVertexSolid), 1.0)
+            self.A_T.setValue((self.ns+1, iGlobalVertexSolid), posX)
+            self.A_T.setValue((self.ns+2, iGlobalVertexSolid), posY)
+            if self.nDim == 3:
+                self.A.setValue((iGlobalVertexSolid, self.ns+3), posZ)
+                self.A_T.setValue((self.ns+3, iGlobalVertexSolid), posZ)
+
+    def fillMatrixB(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        Description.
+        """
+
+        KDTree = self.createKDTree(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z)
+        localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
+        for iVertex in range(self.nf_loc):
+            posX = localFluidInterface_array_X_init[iVertex]
+            posY = localFluidInterface_array_Y_init[iVertex]
+            posZ = localFluidInterface_array_Z_init[iVertex]
+            fluidPoint = np.array([posX, posY, posZ])
+            solidVertices = KDTree.query_ball_point(fluidPoint, 1.01*self.radius)
+            iGlobalVertexFluid = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+            for jVertex in solidVertices:
+                jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
+                solidQuery = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
+                distance = self.distance(fluidPoint, solidQuery)
+                phi = self.__PHI(distance)
+                self.B.setValue((iGlobalVertexFluid, jGlobalVertexSolid), phi)
+                self.B_T.setValue((jGlobalVertexSolid, iGlobalVertexFluid), phi)
+            self.B.setValue((iGlobalVertexFluid, self.ns), 1.0)
+            self.B.setValue((iGlobalVertexFluid, self.ns+1), posX)
+            self.B.setValue((iGlobalVertexFluid, self.ns+2), posY)
+            self.B_T.setValue((self.ns, iGlobalVertexFluid), 1.0)
+            self.B_T.setValue((self.ns+1, iGlobalVertexFluid), posX)
+            self.B_T.setValue((self.ns+2, iGlobalVertexFluid), posY)
+            if self.nDim == 3:
+                self.B.setValue((iGlobalVertexFluid, self.ns+3), posZ)
+                self.B_T.setValue((self.ns+3, iGlobalVertexFluid), posZ)
+
+    def __PHI(self, distance):
+        """
+        Description.
+        """
+
+        phi = 0.0
+        eps = distance/self.radius
+
+        if eps < 1:
+            phi = ((1.0-eps)**4)*(4.0*eps+1.0)  #BW - CPC4
+            #phi = ((1.0-eps)**2)*(0.5*eps+1.0)   #EU - CPC2
+        else:
+            phi = 0.0
+
+        return phi
+
+    def interpolateFluidLoadsOnSolidMesh(self):
+        """
+        Description
+        """
+
+        gamma_array = InterfaceData(self.ns + self.d, self.mpiComm)
+        Solver = LinearSolver(self.A_T, self.mpiComm)
+
+        self.B_T.mult(self.fluidInterfaceLoads.getDataX(), gamma_array.getDataX())
+        self.B_T.mult(self.fluidInterfaceLoads.getDataY(), gamma_array.getDataY())
+        self.B_T.mult(self.fluidInterfaceLoads.getDataZ(), gamma_array.getDataZ())
+
+        Solver.solve(gamma_array.getDataX(), self.solidInterfaceLoads.getDataX())
+        Solver.solve(gamma_array.getDataY(), self.solidInterfaceLoads.getDataY())
+        Solver.solve(gamma_array.getDataZ(), self.solidInterfaceLoads.getDataZ())
+
+    def interpolateSolidDisplacementOnFluidMesh(self):
+        """
+        Description.
+        """
+
+        gamma_array = InterfaceData(self.ns + self.d , self.mpiComm)
+        Solver = LinearSolver(self.A, self.mpiComm)
+
+        Solver.solve(self.solidInterfaceDisplacement.getDataX(), gamma_array.getDataX())
+        Solver.solve(self.solidInterfaceDisplacement.getDataY(), gamma_array.getDataY())
+        Solver.solve(self.solidInterfaceDisplacement.getDataZ(), gamma_array.getDataZ())
+
+        self.B.mult(gamma_array.getDataX(), self.fluidInterfaceDisplacement.getDataX())
+        self.B.mult(gamma_array.getDataY(), self.fluidInterfaceDisplacement.getDataY())
+        self.B.mult(gamma_array.getDataZ(), self.fluidInterfaceDisplacement.getDataZ())
+
+class TPSInterpolator(RBFInterpolator):
+    """
+    Des.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm=None):
+        """
+        des.
+        """
+
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm)
+
+        mpiPrint('\nSetting non matching meshes interpolator with Thin Plate Spline...', mpiComm)
+
+        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
+        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
+        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
+        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
+        self.nDim = self.manager.getnDim()
+
+        self.d = self.nDim+1
+
+        self.generateInterfaceData()
+
+        self.A = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
+        self.A_T = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
+        self.B = InterfaceMatrix((self.nf,self.ns+self.d), self.mpiComm)
+        self.B_T = InterfaceMatrix((self.ns+self.d,self.nf), self.mpiComm)
+
+        solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
+        fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
+        solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
+
+        mpiPrint('\nBuilding interpolation matrices...', mpiComm)
+
+        # Fill the matrix A
+        if self.mpiComm != None:
+            for iProc in solidInterfaceProcessors:
+                if self.myid == iProc:
+                    localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
+                    for jProc in solidInterfaceProcessors:
+                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in solidInterfaceProcessors:
+                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
+                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixA(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+        else:
+            localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
+            self.fillMatrixA(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+
+        self.A.assemble()
+        self.A_T.assemble()
+
+        mpiPrint('\nMatrix A is built.', mpiComm)
+
+        # Fill the matrix B
+        if self.mpiComm != None:
+            for iProc in solidInterfaceProcessors:
+                if self.myid == iProc:
+                    for jProc in fluidInterfaceProcessors:
+                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in fluidInterfaceProcessors:
+                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
+                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixB(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+        else:
+            self.fillMatrixB(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+
+        self.B.assemble()
+        self.B_T.assemble()
+
+        mpiPrint('\nMatrix B is built.', mpiComm)
+
+    def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        Description.
+        """
+
+        localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
+        for iVertex in range(self.ns_loc):
+            posX = localSolidInterface_array_X_init[iVertex]
+            posY = localSolidInterface_array_Y_init[iVertex]
+            posZ = localSolidInterface_array_Z_init[iVertex]
+            solidPoint = np.array([posX, posY, posZ])
+            iGlobalVertexSolid = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+            for jVertex in range(solidInterfaceBuffRcv_X.shape[0]):
+                jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
+                solidQuery = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
+                distance = self.distance(solidPoint, solidQuery)
+                phi = self.__PHI(distance)
+                self.A.setValue((iGlobalVertexSolid, jGlobalVertexSolid), phi)
+                #print("Set : {}<-->{} = {}".format(iGlobalVertexSolid, jGlobalVertexSolid,phi))
+                self.A_T.setValue((jGlobalVertexSolid, iGlobalVertexSolid), phi)
+            self.A.setValue((iGlobalVertexSolid, self.ns), 1.0)
+            self.A.setValue((iGlobalVertexSolid, self.ns+1), posX)
+            self.A.setValue((iGlobalVertexSolid, self.ns+2), posY)
+            self.A_T.setValue((self.ns, iGlobalVertexSolid), 1.0)
+            self.A_T.setValue((self.ns+1, iGlobalVertexSolid), posX)
+            self.A_T.setValue((self.ns+2, iGlobalVertexSolid), posY)
+            if self.nDim == 3:
+                self.A.setValue((iGlobalVertexSolid, self.ns+3), posZ)
+                self.A_T.setValue((self.ns+3, iGlobalVertexSolid), posZ)
+
+    def fillMatrixB(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        Description.
+        """
+
+        localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
+        for iVertex in range(self.nf_loc):
+            posX = localFluidInterface_array_X_init[iVertex]
+            posY = localFluidInterface_array_Y_init[iVertex]
+            posZ = localFluidInterface_array_Z_init[iVertex]
+            fluidPoint = np.array([posX, posY, posZ])
+            iGlobalVertexFluid = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+            for jVertex in range(solidInterfaceBuffRcv_X.shape[0]):
+                jGlobalVertexSolid = self.manager.getGlobalIndex('solid', iProc, jVertex)
+                solidQuery = np.array([solidInterfaceBuffRcv_X[jVertex], solidInterfaceBuffRcv_Y[jVertex], solidInterfaceBuffRcv_Z[jVertex]])
+                distance = self.distance(fluidPoint, solidQuery)
+                phi = self.__PHI(distance)
+                self.B.setValue((iGlobalVertexFluid, jGlobalVertexSolid), phi)
+                self.B_T.setValue((jGlobalVertexSolid, iGlobalVertexFluid), phi)
+            self.B.setValue((iGlobalVertexFluid, self.ns), 1.0)
+            self.B.setValue((iGlobalVertexFluid, self.ns+1), posX)
+            self.B.setValue((iGlobalVertexFluid, self.ns+2), posY)
+            self.B_T.setValue((self.ns, iGlobalVertexFluid), 1.0)
+            self.B_T.setValue((self.ns+1, iGlobalVertexFluid), posX)
+            self.B_T.setValue((self.ns+2, iGlobalVertexFluid), posY)
+            if self.nDim == 3:
+                self.B.setValue((iGlobalVertexFluid, self.ns+3), posZ)
+                self.B_T.setValue((self.ns+3, iGlobalVertexFluid), posZ)
+
+    def __PHI(self, distance):
+        """
+        Description.
+        """
+
+        phi = 0.0
+
+        if distance > 0.0:
+            phi = (distance**2)*np.log10(distance)
+        else:
+            phi = 0.0
+
+        return phi
 
 # ----------------------------------------------------------------------
 #    Algorithm class
@@ -1555,10 +1966,11 @@ class Algortihm:
         self.alpha_1 = 0.5
         
         ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
         
-        self.solidInterfaceVelocity = InterfaceData(ns, self.mpiComm)
-        self.solidInterfaceVelocitynM1 = InterfaceData(ns, self.mpiComm)
-        self.solidInterfaceResidual = InterfaceData(ns, self.mpiComm)
+        self.solidInterfaceVelocity = InterfaceData(ns+d, self.mpiComm)
+        self.solidInterfaceVelocitynM1 = InterfaceData(ns+d, self.mpiComm)
+        self.solidInterfaceResidual = InterfaceData(ns+d, self.mpiComm)
     
     def setFSIInitialConditions(self, time):
         """
@@ -1581,9 +1993,10 @@ class Algortihm:
         """
         
         ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
         
         # --- Get the predicted (computed) solid interface displacement from the solid solver --- #
-        predictedDisplacement = InterfaceData(ns, self.mpiComm)
+        predictedDisplacement = InterfaceData(ns+d, self.mpiComm)
         
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
@@ -1698,23 +2111,30 @@ class AlgortihmBGSStaticRelax(Algortihm):
                 mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.run(time-self.deltaT, time)
-                
+
                 # --- Compute and monitor the FSI residual --- #
                 res = self.computeSolidInterfaceResidual()
                 self.errValue = self.criterion.update(res)
                 mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-                self.FSIConv =    self.criterion.isVerified(self.errValue)
+                self.FSIConv = self.criterion.isVerified(self.errValue)
                 
                 # --- Relaxe the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidPosition()
-            
+
+            # --- Update the history files --- #
             if self.writeInBGS == True:
                 self.writeRealTimeData(timeIter, time, self.errValue)
             
             self.FSIIter += 1
+            if self.manager.computationType != 'unsteady':
+                time += self.deltaT
+
+            # --- Update the solvers for the next BGS iteration --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.bgsUpdate()
+            self.FluidSolver.bgsUpdate()
         
-        # --- Update the FSI history file --- #
         if timeIter > self.timeIterTreshold:
             mpiPrint('\n*************** BGS is converged ***************', self.mpiComm)
     

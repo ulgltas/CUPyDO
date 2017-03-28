@@ -24,8 +24,6 @@ class Module:
        self.extManager = extManager
        self.gui = gui
 
-ext6 = None
-
 def getPfem():
     global w
     if w: return w
@@ -34,10 +32,6 @@ def getPfem():
     mshFile = runPath+os.sep+'birdImpact_deformable_panel_Mtf_Pfem.msh'
     
     print 'mshFile: ', mshFile
-    
-    msh = w.MshData()
-    msh.load(mshFile)
-    print msh
     
     rho0 = 1000.
     mu = 0.001
@@ -53,6 +47,10 @@ def getPfem():
     pbl.beta = 0.
     pbl.gravity = 0.
     pbl.scalingU = U0
+    
+    msh = w.MshData(pbl)
+    msh.load(mshFile)
+    print msh
     
     scheme = w.BackwardEuler(msh, pbl)
 
@@ -93,7 +91,7 @@ def getPfem():
     extManager.add(6,wt.KineticEnergyExtractor(msh,pbl,16))
     extManager.add(7,wt.ViscousEnergyExtractor(msh,pbl,scheme,16))
     extManager.add(8,wt.PressureWorkExtractor(msh,pbl,scheme,16))
-    extManager.add(9,w.MassExtractor(msh,16))
+    extManager.add(9,w.MassExtractor(msh,pbl,16))
     
     gui = v.MeshViewer(msh, scheme, True) 
     

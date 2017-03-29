@@ -1369,7 +1369,11 @@ class InterfaceInterpolator:
         FX = 0.0
         FY = 0.0
         FZ = 0.0
-
+        
+        FXT = 0.
+        FYT = 0.
+        FZT = 0.
+        
         # --- Redistribute the interpolated solid loads according to the partitions that own the solid interface --- #
 
         if self.mpiComm != None:

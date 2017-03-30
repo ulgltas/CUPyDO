@@ -231,6 +231,20 @@ def mpiGatherv(sendBuff, localSize, globalSize, mpiComm = None, rootProcess=0):
     else:
         return sendBuff
 
+def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess = 0):
+    """
+    Des.
+    """
+
+    if mpiComm != None :
+        localSize = interfData.getXArray().shape[0]
+        interfData_X_Gat = mpiGatherv(interfData.getXArray(), localSize, globalSize, mpiComm, 0)
+        interfData_Y_Gat = mpiGatherv(interfData.getYArray(), localSize, globalSize, mpiComm, 0)
+        interfData_Z_Gat = mpiGatherv(interfData.getZArray(), localSize, globalSize, mpiComm, 0)
+        return (interfData_X_Gat, interfData_Y_Gat, interfData_Y_Gat)
+    else:
+        return (interfData.getDataX(), interfData.getDataY(), interfData.getDataZ())
+
 
 # ----------------------------------------------------------------------
 #    InterfaceData class
@@ -2354,9 +2368,15 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         
         solidInterfaceDisplacement_tilde = InterfaceData(ns, self.mpiComm)
         solidInterfaceDisplacement_tilde1 = InterfaceData(ns, self.mpiComm)
+
+        delta_ds = InterfaceData(ns, self.mpiComm)
         
         Vk_mat = np.zeros((3*ns,1))
         Wk_mat = np.zeros((3*ns,1))
+
+        delta_ds_loc_X = np.zeros(0)
+        delta_ds_loc_Y = np.zeros(0)
+        delta_ds_loc_Z = np.zeros(0)
         
         if self.nbTimeToKeep!=0 and timeIter > self.nbTimeToKeep and not len(self.V) < self.nbTimeToKeep: # If information from previous time steps is re-used then Vk = V, Wk = W
             Vk = copy.deepcopy(self.V)
@@ -2419,35 +2439,49 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
                     mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
                     
-                    # --- Debut du gather
+                    # --- Start gathering on root process --- #
+                    (res_X_Gat, res_Y_Gat, res_Z_Gat) = mpiGatherInterfaceData(res, ns, self.mpiComm, 0)
+                    (solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat) = mpiGatherInterfaceData(solidInterfaceResidual0, ns, self.mpiComm, 0)
+                    (solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat) = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
+                    (solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat) = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
                     
-                    if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
-                        delta_res = np.concatenate([res.getDataX() - solidInterfaceResidual0.getDataX(), res.getDataY() - solidInterfaceResidual0.getDataY(), res.getDataZ() - solidInterfaceResidual0.getDataZ()], axis=0)
+                    if self.myid == 0:
+                        if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
+                            delta_res = np.concatenate([res_X_Gat - solidInterfaceResidual0_X_Gat, res_Y_Gat - solidInterfaceResidual0_Y_Gat, res_Z_Gat - solidInterfaceResidual0_Z_Gat], axis=0)
+                            delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
                         
-                        delta_d = np.concatenate([solidInterfaceDisplacement_tilde.getDataX() - solidInterfaceDisplacement_tilde1.getDataX(), solidInterfaceDisplacement_tilde.getDataY() - solidInterfaceDisplacement_tilde1.getDataY(), solidInterfaceDisplacement_tilde.getDataZ() - solidInterfaceDisplacement_tilde1.getDataZ()], axis = 0)
+                            Vk.insert(0, delta_res)
+                            Wk.insert(0, delta_d)
                         
-                        Vk.insert(0, delta_res)
-                        Wk.insert(0, delta_d)
-                        
-                        nIt+=1
+                            nIt+=1
                     
-                    Vk_mat = np.vstack(Vk).T
-                    Wk_mat = np.vstack(Wk).T
+                        Vk_mat = np.vstack(Vk).T
+                        Wk_mat = np.vstack(Wk).T
                     
-                    Q, R = np.linalg.qr(Vk_mat, 'full')
+                        Q, R = np.linalg.qr(Vk_mat, 'full')
                     
-                    s = np.dot(np.transpose(Q), -np.concatenate([res.getDataX(), res.getDataY(), res.getDataZ()], axis=0))
+                        s = np.dot(np.transpose(Q), -np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0))
                     
-                    toll = 1e-10*np.linalg.norm(np.concatenate([res.getDataX(),res.getDataY(),res.getDataZ()]))
-                    c = solve_upper_triangular_mod(R, s, toll)
+                        toll = 1e-10*np.linalg.norm(np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat]))
+                        c = solve_upper_triangular_mod(R, s, toll)
                     
-                    delta_ds = np.split((np.dot(Wk_mat,c).T + np.concatenate([res.getDataX(), res.getDataY(), res.getDataZ()], axis=0)),3,axis=1)
+                        delta_ds_loc = np.split((np.dot(Wk_mat,c).T + np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)),3,axis=1)
+
+                        delta_ds_loc_X = np.concatenate(delta_ds_loc[0])
+                        delta_ds_loc_Y = np.concatenate(delta_ds_loc[1])
+                        delta_ds_loc_Z = np.concatenate(delta_ds_loc[2])
+
+                        for iVertex in range(delta_ds_loc_X.shape[0]):
+                            iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                            delta_ds[iGlobalVertex] = (delta_ds_loc_X[iVertex], delta_ds_loc_Y[iVertex], delta_ds_loc_Z[iVertex])
                     
-                    # --- Fin du gather
-                    
-                    self.interfaceInterpolator.solidInterfaceDisplacement.data_X += np.concatenate(delta_ds[0])
-                    self.interfaceInterpolator.solidInterfaceDisplacement.data_Y += np.concatenate(delta_ds[1])
-                    self.interfaceInterpolator.solidInterfaceDisplacement.data_Z += np.concatenate(delta_ds[2])
+                    # --- Go back to parallel run --- #
+                    mpiBarrier(self.mpiComm)
+                    delta_ds.assemble()
+                    #self.interfaceInterpolator.solidInterfaceDisplacement.data_X += np.concatenate(delta_ds_loc_X[0])
+                    #self.interfaceInterpolator.solidInterfaceDisplacement.data_Y += np.concatenate(delta_ds_loc_Y[1])
+                    #self.interfaceInterpolator.solidInterfaceDisplacement.data_Z += np.concatenate(delta_ds_loc_Z[2])
+                    self.interfaceInterpolator.solidInterfaceDisplacement += delta_ds
                     
                 if self.computeTangentMatrixBasedOnFirstIt:
                     if self.FSIiter == 0:

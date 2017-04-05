@@ -48,7 +48,7 @@ def main():
     solidSolver = None
     if myid == rootProcess:
         import MtfInterface
-        solidSolver = MtfInterface.MtfSolver(csd_file)
+        solidSolver = MtfInterface.MtfSolver(csd_file, computationType)
     FSICoupler.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #

@@ -241,7 +241,7 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
         interfData_X_Gat = mpiGatherv(interfData.getXArray(), localSize, globalSize, mpiComm, 0)
         interfData_Y_Gat = mpiGatherv(interfData.getYArray(), localSize, globalSize, mpiComm, 0)
         interfData_Z_Gat = mpiGatherv(interfData.getZArray(), localSize, globalSize, mpiComm, 0)
-        return (interfData_X_Gat, interfData_Y_Gat, interfData_Y_Gat)
+        return (interfData_X_Gat, interfData_Y_Gat, interfData_Z_Gat)
     else:
         return (interfData.getDataX(), interfData.getDataY(), interfData.getDataZ())
 

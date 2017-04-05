@@ -10,5 +10,5 @@ For the moment, interfaces for the following solvers are implemented:
 
 Examples of simulations available in /tests.
 
-![Screenshot](/tests/beam.png)
+![Screenshot](/tests/fsi_examples.png)
 

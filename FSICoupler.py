@@ -2478,9 +2478,6 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     # --- Go back to parallel run --- #
                     mpiBarrier(self.mpiComm)
                     delta_ds.assemble()
-                    #self.interfaceInterpolator.solidInterfaceDisplacement.data_X += np.concatenate(delta_ds_loc_X[0])
-                    #self.interfaceInterpolator.solidInterfaceDisplacement.data_Y += np.concatenate(delta_ds_loc_Y[1])
-                    #self.interfaceInterpolator.solidInterfaceDisplacement.data_Z += np.concatenate(delta_ds_loc_Z[2])
                     self.interfaceInterpolator.solidInterfaceDisplacement += delta_ds
                     
                 if self.computeTangentMatrixBasedOnFirstIt:

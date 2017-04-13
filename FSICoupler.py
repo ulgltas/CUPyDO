@@ -2457,9 +2457,9 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     
                         Vk_mat = np.vstack(Vk).T
                         Wk_mat = np.vstack(Wk).T
-                    
-                        Q, R = np.linalg.qr(Vk_mat, 'full')
-                    
+                        
+                        Q, R = sp.linalg.qr(Vk_mat, mode='economic')
+                        
                         s = np.dot(np.transpose(Q), -np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0))
                     
                         toll = 1e-10*np.linalg.norm(np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat]))
@@ -2484,7 +2484,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     self.interfaceInterpolator.solidInterfaceDisplacement += delta_ds
                     
                 if self.computeTangentMatrixBasedOnFirstIt:
-                    if self.FSIiter == 0:
+                    if self.FSIIter == 0:
                         solidInterfaceResidual0 = res.copy()
                         solidInterfaceDisplacement_tilde1 = solidInterfaceDisplacement_tilde.copy()
                 else:

@@ -63,7 +63,7 @@ def main():
     FSICoupler.mpiBarrier()
     
     # --- Initialize the FSI algorithm --- #
-    algorithm = FSICoupler.AlgortihmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, nFSIIterMax, dt, tTot, 0, omegaMax, comm)
+    algorithm = FSICoupler.AlgortihmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, nFSIIterMax, dt, tTot, 0, omegaMax, 4, False, comm)
     
     # --- Launch the FSI computation --- #
     algorithm.run()

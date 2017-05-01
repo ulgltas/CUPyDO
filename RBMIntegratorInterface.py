@@ -60,7 +60,7 @@ class RBMIntegrator(SolidSolver):
         """
 
         if self.computationType == 'unsteady':
-            self.NativeSolid.timeIteration(t2)
+            self.NativeSolid.timeIteration(t1, t2)
         else:
             self.NativeSolid.staticComputation()
 

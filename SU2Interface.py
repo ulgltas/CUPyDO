@@ -205,7 +205,6 @@ class SU2Solver(FluidSolver):
         Set the heat fluxes on the f/s boundary and update the multi-grid structure (if any).
         """
 
-        print "NORMAL HEAT FLUX TO FLUID"
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             WallHF = 0.0
@@ -213,7 +212,6 @@ class SU2Solver(FluidSolver):
                 N = self.SU2.GetVertexUnitNormal(self.fluidInterfaceID, iVertex)
                 #In SU2, the surface normal is pointing inwards the fluid domain (meaning outwards the solid domain).
                 WallHF = HF_X[PhysicalIndex]*N[0] + HF_Y[PhysicalIndex]*N[1] + HF_Z[PhysicalIndex]*N[2]
-                print WallHF
                 self.SU2.SetVertexWallNormalHeatFlux(self.fluidInterfaceID, iVertex, WallHF)
                 PhysicalIndex += 1
 

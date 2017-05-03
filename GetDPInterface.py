@@ -80,6 +80,12 @@ class GetDPSolver(SolidSolver):
             self.__nodalDomainDispNm2_Z = np.zeros(self.__nDomainNodes)
             self.__nodalDomainDispNm1_X, self.__nodalDomainDispNm1_Y, self.__nodalDomainDispNm1_Z = self.__readFileToVec("nodalDisplacementNm1.txt", self.__nDomainNodes)
             self.__nodalDomainDispNm2_X, self.__nodalDomainDispNm2_Y, self.__nodalDomainDispNm2_Z = self.__readFileToVec("nodalDisplacementNm2.txt", self.__nDomainNodes)
+            self.__nodalDomainTemp = np.zeros(self.__nDomainNodes)
+            self.__nodalDomainTempNm1 = np.zeros(self.__nDomainNodes)
+            self.__nodalDomainTempNm2 = np.zeros(self.__nDomainNodes)
+            self.__nodalDomainTemp = self.__readFileToScal("nodalTemperatureNm0.txt", self.__nDomainNodes)
+            self.__nodalDomainTempNm1 = self.__readFileToScal("nodalTemperatureNm1.txt", self.__nDomainNodes)
+            self.__nodalDomainTempNm2 = self.__readFileToScal("nodalTemperatureNm2.txt", self.__nDomainNodes)
             self.nodalLoads_X = np.zeros(self.nPhysicalNodes)
             self.nodalLoads_Y = np.zeros(self.nPhysicalNodes)
             self.nodalLoads_Z = np.zeros(self.nPhysicalNodes)
@@ -187,6 +193,8 @@ class GetDPSolver(SolidSolver):
         else:
             self.__writeVecToFile("nodalDisplacementNm1.txt", self.__nodalDomainDispNm1_X, self.__nodalDomainDispNm1_Y, self.__nodalDomainDispNm1_Z, self.nodalDomainIndex)
             self.__writeVecToFile("nodalDisplacementNm2.txt", self.__nodalDomainDispNm2_X, self.__nodalDomainDispNm2_Y, self.__nodalDomainDispNm2_Z, self.nodalDomainIndex)
+            self.__writeScalToFile("nodalTemperatureNm1.txt", self.__nodalDomainTempNm1, self.nodalDomainIndex)
+            self.__writeScalToFile("nodalTemperatureNm2.txt", self.__nodalDomainTempNm2, self.nodalDomainIndex)
             if self.computationType == 'unsteady':
                 os.system(self.pathToGetDP +" {} -setnumber Initialize 0 -setnumber OutputFiles 1 -setnumber T1 {} -setnumber T2 {} -solve {}".format(self.testname, t1, t2, self.resolution))
             else:
@@ -208,6 +216,8 @@ class GetDPSolver(SolidSolver):
         self.nodalVel_X, self.nodalVel_Y, self.nodalVel_Z = self.__readFileToVec("nodalVelocity.txt", self.nPhysicalNodes)
 
         self.__nodalDomainDisp_X, self.__nodalDomainDisp_Y, self.__nodalDomainDisp_Z = self.__readFileToVec("nodalDisplacement.txt", self.__nDomainNodes)
+
+        self.__nodalDomainTemp = self.__readFileToScal("nodalTemperatureNm0.txt", self.__nDomainNodes)
 
         self.nodalHeatFlux_X , self.nodalHeatFlux_Y , self.nodalHeatFlux_Z = self.__readFileToVec("nodalHeatFlux.txt", self.nPhysicalNodes)
 
@@ -269,6 +279,9 @@ class GetDPSolver(SolidSolver):
         self.__nodalDomainDispNm1_X = self.__nodalDomainDisp_X.copy()
         self.__nodalDomainDispNm1_Y = self.__nodalDomainDisp_Y.copy()
         self.__nodalDomainDispNm1_Z = self.__nodalDomainDisp_Z.copy()
+
+        self.__nodalDomainTempNm2 = self.__nodalDomainTempNm1.copy()
+        self.__nodalDomainTempNm1 = self.__nodalDomainTemp.copy()
 
     def initRealTimeData(self):
         """

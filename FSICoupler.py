@@ -311,6 +311,16 @@ class FlexInterfaceData:
         else:
             self.dataContainer[iDim][indices_list] = values_array
 
+    def setAllValues(self, iDim,value):
+        """
+        Des.
+        """
+
+        if self.mpiComm != None:
+            self.dataContainer[iDim].set(value)
+        else:
+            self.dataContainer[iDim].fill(value)
+
     def getDataContainer(self):
         """
         Des.
@@ -739,8 +749,7 @@ class SolidSolver:
     
     def getNodalInitialPositions(self):
         return
-    
-    
+
     def getNodalVelocity(self):
         """
         des.
@@ -765,6 +774,12 @@ class SolidSolver:
         return
 
     def applyNodalTemperatures(self, Temperature, time):
+        return
+
+    def applyNodalNormalHeatFluxes(self, NormalHeatFlux, val_time):
+        return
+
+    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, time):
         return
     
     def update(self):
@@ -844,6 +859,9 @@ class FluidSolver:
         
         return (self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z)
 
+    def getNodalInitialPositions(self):
+        return
+
     def getNodalTemperatures(self):
         return self.nodalTemperature
 
@@ -857,6 +875,9 @@ class FluidSolver:
         return
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
+        return
+
+    def applyNodalTemperatures(self, Temperature, time):
         return
     
     def update(self, dt):
@@ -1698,7 +1719,6 @@ class InterfaceInterpolator:
         if self.mpiComm != None:
             (localSolidInterfaceTemperature, haloNodesTemperature) = self.redistributeDataToSolidSolver(self.solidInterfaceTemperature)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                #print localSolidInterfaceTemperature
                 self.SolidSolver.applyNodalTemperatures(localSolidInterfaceTemperature[0], time)
         else:
             self.SolidSolver.applyNodalTemperatures(self.solidInterfaceTemperature.getDataArray(0), time)
@@ -1726,7 +1746,6 @@ class InterfaceInterpolator:
 
         if self.mpiComm != None:
             (localSolidInterfaceNormalHeatFlux, haloNodesNormalHeatFlux) =  self.redistributeDataToSolidSolver(self.solidInterfaceNormalHeatFlux)
-            #print localSolidInterfaceNormalHeatFlux[0]
             if self.myid in self.manager.getSolidInterfaceProcessors():
                 self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceNormalHeatFlux[0], time)
         else:
@@ -2354,6 +2373,7 @@ class Algortihm:
         predictedDisplacement.assemble()
         
         # --- Calculate the residual (vector and norm) --- #
+        mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
         self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
         
         return self.solidInterfaceResidual
@@ -2386,8 +2406,10 @@ class Algortihm:
         #return self.solidHeatFluxResidual
 
         if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+            mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
             return self.solidHeatFluxResidual
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+            mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
             return self.solidTemperatureResidual
         else:
             return None

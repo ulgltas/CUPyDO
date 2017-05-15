@@ -2341,6 +2341,10 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
         self.computeTangentMatrixBasedOnFirstIt = computeTangentMatrixBasedOnFirstIt
         
+        # --- Option which determines the way the c coefficients are computes either using Degroote's QR decompoistion or simply using np.linalg.lstsq
+        self.useQR = False
+        self.tollQR = 1.0e-6 # tolerance used to get the tolerance for backward substitution after QR decomposition, toll, as toll = self.tollQR*norm(R)
+        
         # --- Global V and W matrices for IQN-ILS algorithm, including information from previous time steps --- #
         self.V = []
         self.W = []
@@ -2458,19 +2462,28 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                         Vk_mat = np.vstack(Vk).T
                         Wk_mat = np.vstack(Wk).T
                         
-                        Q, R = sp.linalg.qr(Vk_mat, mode='economic')
+                        if self.useQR: # Technique described by Degroote et al.
+                            Q, R = sp.linalg.qr(Vk_mat, mode='economic')
+                            
+                            s = np.dot(np.transpose(Q), -np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0))
+                            
+                            toll = self.tollQR*sp.linalg.norm(R, 2)
+                            c = solve_upper_triangular_mod(R, s, toll)
+                            
+                            delta_ds_loc = np.split((np.dot(Wk_mat,c).T + np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)),3,axis=1)
+
+                            delta_ds_loc_X = np.concatenate(delta_ds_loc[0])
+                            delta_ds_loc_Y = np.concatenate(delta_ds_loc[1])
+                            delta_ds_loc_Z = np.concatenate(delta_ds_loc[2])
+                        else:
+                            c = np.linalg.lstsq(Vk_mat, -np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0))[0]
+                            
+                            delta_ds_loc = np.split((np.dot(Wk_mat,c).T + np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)),3,axis=0)
+                            
+                            delta_ds_loc_X = delta_ds_loc[0]
+                            delta_ds_loc_Y = delta_ds_loc[1]
+                            delta_ds_loc_Z = delta_ds_loc[2]
                         
-                        s = np.dot(np.transpose(Q), -np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0))
-                    
-                        toll = 1e-10*np.linalg.norm(np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat]))
-                        c = solve_upper_triangular_mod(R, s, toll)
-                    
-                        delta_ds_loc = np.split((np.dot(Wk_mat,c).T + np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)),3,axis=1)
-
-                        delta_ds_loc_X = np.concatenate(delta_ds_loc[0])
-                        delta_ds_loc_Y = np.concatenate(delta_ds_loc[1])
-                        delta_ds_loc_Z = np.concatenate(delta_ds_loc[2])
-
                         for iVertex in range(delta_ds_loc_X.shape[0]):
                             iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
                             delta_ds[iGlobalVertex] = (delta_ds_loc_X[iVertex], delta_ds_loc_Y[iVertex], delta_ds_loc_Z[iVertex])
@@ -2497,14 +2510,21 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         # update of the matrices V and W at the end of the while
         if self.nbTimeToKeep != 0 and timeIter > self.timeIterTreshold and self.FSIIter > 1:
             
-            mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
-            
-            self.V.insert(0, Vk_mat[:,0:nIt].T)
-            self.W.insert(0, Wk_mat[:,0:nIt].T)
-            
-            if timeIter > self.nbTimeToKeep and not len(self.V) <= self.nbTimeToKeep:
-                del self.V[-1]
-                del self.W[-1]
+            if (self.FSIIter >= nbFSIIter):
+                mpiPrint('WARNING: IQN-ILS using information from {} previous time steps reached max number of iterations. Next time step is run without using any information from previous time steps!'.format(self.nbTimeToKeep), self.mpiComm)
+                
+                self.V = []
+                self.W = []
+                
+            else:
+                mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
+                
+                self.V.insert(0, Vk_mat[:,0:nIt].T)
+                self.W.insert(0, Wk_mat[:,0:nIt].T)
+                
+                if timeIter > self.nbTimeToKeep and not len(self.V) <= self.nbTimeToKeep:
+                    del self.V[-1]
+                    del self.W[-1]
             
         # --- Update the FSI history file --- #
         if timeIter > self.timeIterTreshold:

@@ -14,7 +14,8 @@ import numpy as np
 import scipy as sp
 from scipy import spatial
 import scipy.sparse.linalg as splinalg
-import os, os.path, sys, time, string
+import os, os.path, sys, string
+import time as tm
 
 import socket, fnmatch
 import fsi_pyutils
@@ -1977,6 +1978,9 @@ class Algortihm:
         
         mpiPrint('\n***************************** Initializing FSI algorithm *****************************', mpiComm)
         
+        self.run_t0 = 0. # timer to estimate run time: initial time
+        self.run_tf = 0. # timer to estimate run time: final time
+        
         self.mpiComm = mpiComm
         self.manager = Manager
         self.FluidSolver = FluidSolver
@@ -1993,6 +1997,7 @@ class Algortihm:
         self.FSIIter = 0
         self.errValue = 0.0
         self.FSIConv = False
+        self.totNbOfFSIIt = 0
         
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
@@ -2094,6 +2099,31 @@ class Algortihm:
             histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n')
             histFile.close()
     
+    def getMeanNbOfFSIIt(self, timeIter):
+        """
+        Des
+        """
+        
+        return float(self.totNbOfFSIIt)/timeIter
+    
+    def printExitInfo(self, timeIter, time, error):
+        """
+        Des
+        """
+        
+        if self.myid == 0:
+            
+            print '[cpu FSI]: ' + str(self.run_tf - self.run_t0) + 's'
+            print '[Time steps FSI]: ' + str(timeIter)
+            print '[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT)
+            print '[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter))
+            
+            self.FluidSolver.printRealTimeData(time, self.FSIIter)
+            if timeIter >= self.timeIterTreshold:
+                self.SolidSolver.printRealTimeData(time, self.FSIIter)
+            
+            print 'RES-FSI-FSIhistory: ' + str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n'
+    
     def run(self):
         """
         Des.
@@ -2105,6 +2135,8 @@ class Algortihm:
         mpiPrint('\n**********************************', self.mpiComm)
         mpiPrint('*         Begin FSI computation            *', self.mpiComm)
         mpiPrint('**********************************\n', self.mpiComm)
+        
+        self.run_t0 = tm.time()
         
         #If no restart
         mpiPrint('Setting FSI initial conditions...', self.mpiComm)
@@ -2120,6 +2152,9 @@ class Algortihm:
             self.writeInFSIloop = True
             self.fsiCoupling(timeIter, time)
         
+            self.run_tf = tm.time()
+            self.printExitInfo(timeIter, time, self.errValue)
+            
         mpiBarrier(self.mpiComm)
         
         mpiPrint('\n*************************', self.mpiComm)
@@ -2154,6 +2189,8 @@ class Algortihm:
             
             mpiBarrier(self.mpiComm)
             
+            self.totNbOfFSIIt += self.FSIIter
+            
             # --- Update the fluid and solid solver for the next time step --- #
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.update()
@@ -2182,6 +2219,9 @@ class Algortihm:
             time += self.deltaT
         # --- End of the temporal loop --- #
         
+        self.run_tf = tm.time()
+        self.printExitInfo(timeIter, time, self.errValue)
+    
 class AlgortihmBGSStaticRelax(Algortihm):
     """
     Des.

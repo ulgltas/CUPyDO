@@ -1,0 +1,7 @@
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [cpu FSI]: 64.6869997978s
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Time steps FSI]: 50
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Successful Run FSI]: True
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 2.14
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	7.28784834911
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.00153908004784
+\tests\PFEM-Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-FSIhistory: 50	0.0001	3.51666532542e-08	2

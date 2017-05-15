@@ -1,9 +1,13 @@
 *~
 *.bak
 *.pyc
+*.log
+*.res
 
+exe/workspace/
+apps/workspace/
 tests/workspace
+
 *.txt
 *.bfac.gz
-
 

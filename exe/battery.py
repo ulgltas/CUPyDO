@@ -156,7 +156,7 @@ def verif(args):
     files={}
     fext = ['failed', 'results']
     for ext in fext:
-        fname = ( verifPth + os.sep + "%s-%s.ascii" % (ext, machineid())).replace('/',os.sep)               
+        fname = ( verifPth + os.sep + "%s-%s.txt" % (ext, machineid())).replace('/',os.sep)               
         files[ext] = open(fname,'w')
 
     ntest=0

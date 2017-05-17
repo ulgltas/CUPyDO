@@ -2111,18 +2111,15 @@ class Algortihm:
         Des
         """
         
-        if self.myid == 0:
-            
-            print '[cpu FSI]: ' + str(self.run_tf - self.run_t0) + 's'
-            print '[Time steps FSI]: ' + str(timeIter)
-            print '[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT)
-            print '[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter))
-            
-            self.FluidSolver.printRealTimeData(time, self.FSIIter)
-            if timeIter >= self.timeIterTreshold:
-                self.SolidSolver.printRealTimeData(time, self.FSIIter)
-            
-            print 'RES-FSI-FSIhistory: ' + str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n'
+        mpiPrint('[cpu FSI]: ' + str(self.run_tf - self.run_t0) + 's', self.mpiComm)
+        mpiPrint('[Time steps FSI]: ' + str(timeIter), self.mpiComm)
+        mpiPrint('[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT), self.mpiComm)
+        mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter)), self.mpiComm)
+        
+        self.FluidSolver.printRealTimeData(time, self.FSIIter)
+        self.SolidSolver.printRealTimeData(time, self.FSIIter)
+        
+        mpiPrint('RES-FSI-FSIhistory: ' + str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
     
     def run(self):
         """
@@ -2351,7 +2348,11 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
             deltaInterfaceResidual_NormX, deltaInterfaceResidual_NormY, deltaInterfaceResidual_NormZ = deltaInterfaceResidual.norm()
             deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
             
-            self.omega *= -prodScalRes/deltaResNormSquare
+            if deltaResNormSquare != 0.:
+                self.omega *= -prodScalRes/deltaResNormSquare
+            else:
+                self.omega = 0.
+        
         else:
             self.omega = max(self.omegaMax, self.omega)
         

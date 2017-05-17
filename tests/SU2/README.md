@@ -1,0 +1,1 @@
+In this folder, add tests to independently asses SU2 coupling basic capabilities

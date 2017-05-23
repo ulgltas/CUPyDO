@@ -1,9 +1,23 @@
 *~
 *.bak
 *.pyc
+*.log
+*.res
 
-tests/workspace
+exe/workspace/
+
+apps/PFEM_Metafor/workspace/
+apps/SU2_Metafor/workspace/
+apps/SU2_GetDP/workspace/
+
+tests/FSICoupler/workspace/
+tests/Metafor/workspace/
+tests/PFEM/workspace/
+tests/SU2/workspace/
+tests/PFEM_Metafor/workspace/
+tests/SU2_Metafor/workspace/
+tests/SU2_GetDP/workspace/
+
 *.txt
 *.bfac.gz
-
 

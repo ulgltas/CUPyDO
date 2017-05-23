@@ -361,6 +361,20 @@ class MtfSolver(SolidSolver):
             solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
             solFile.close()
 
+    def printRealTimeData(self, time, nFSIIter):
+        """
+        Des.
+        """
+        
+        for extractor in self.realTimeExtractorsList:
+            data = extractor.extract()
+            extractorName = extractor.buildName()
+            buff = str()
+            for ii in range(data.size()):
+                buff = buff + '\t' + str(data[ii])
+            toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
+            print toPrint
+    
     def exit(self):
         """
         Exits the Metafor solver.

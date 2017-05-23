@@ -39,6 +39,7 @@ class PfemSolver(FluidSolver):
 
         # create an instance of Pfem
         self.pfem = module.getPfem()
+        self.realTimeExtractorsList = module.getRealTimeExtractorsList(self.pfem)
         
         # retrieve the f/s boundary and the related nodes
         gr = self.pfem.w.Group(self.pfem.msh, bndno)
@@ -176,6 +177,46 @@ class PfemSolver(FluidSolver):
         if not self.pfem.gui==None:
             self.pfem.scheme.vizu(self.u,self.v,self.p)
         
+    def initRealTimeData(self):
+        """
+        Des.
+        """
+        
+        for extractor in self.realTimeExtractorsList:
+            extractorName = extractor.dofName
+            solFile = open(extractorName + '.ascii', "w")
+            solFile.write("Time\tnIter\tValue\n")
+            solFile.close() #Should we keep it open?
+    
+    def saveRealTimeData(self, time, nFSIIter):
+        """
+        Des.
+        """
+        
+        for extractor in self.realTimeExtractorsList:
+            data = extractor.extract()
+            extractorName = extractor.dofName
+            solFile = open(extractorName + '.ascii', "a")
+            buff = str()
+            for ii in range(data.size()):
+                buff = buff + '\t' + str(data[ii])
+            solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
+            solFile.close()
+    
+    def printRealTimeData(self, time, nFSIIter):
+        """
+        Des.
+        """
+        
+        for extractor in self.realTimeExtractorsList:
+            data = extractor.extract()
+            extractorName = extractor.dofName
+            buff = str()
+            for ii in range(data.size()):
+                buff = buff + '\t' + str(data[ii])
+            toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
+            print toPrint
+    
     def remeshing(self):
         self.pfem.scheme.remeshing(self.V,self.V0,self.p)
         self.pfem.scheme.updateData()

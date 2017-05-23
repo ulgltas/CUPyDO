@@ -1,0 +1,1 @@
+Add tests to asses the coupler basic capabilities in this folder

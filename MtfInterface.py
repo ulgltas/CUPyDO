@@ -65,6 +65,7 @@ class MtfSolver(SolidSolver):
         # --- Internal variables --- #
         self.neverRun = True            # bool True until the first Metafor run is completed then False
         self.fnods = {}                 # dict of interface nodes / prescribed forces
+        self.Tnods = {}
         self.t1      = 0.0              # last reference time        
         self.t2      = 0.0              # last calculated time
         self.nbFacs = 0                 # number of existing Facs
@@ -89,19 +90,24 @@ class MtfSolver(SolidSolver):
             fx = NLoad(self.t1, 0.0, self.t2, 0.0)
             fy = NLoad(self.t1, 0.0, self.t2, 0.0)
             fz = NLoad(self.t1, 0.0, self.t2, 0.0)
+            Temp = NLoad(self.t1, 0.0, self.t2, 0.0)
             self.fnods[no] = (node, fx, fy, fz)
+            self.Tnods[no] = (node, Temp)
             fctx = PythonOneParameterFunction(fx)
             fcty = PythonOneParameterFunction(fy)
             fctz = PythonOneParameterFunction(fz)
+            fctTemp = PythonOneParameterFunction(Temp)
             loadingset.define(node, Field1D(TX,GF1), 1.0, fctx) 
             loadingset.define(node, Field1D(TY,GF1), 1.0, fcty)
             loadingset.define(node, Field1D(TZ,GF1), 1.0, fctz)
+            #loadingset.define(node, Field1D(TO, RE), 1.0, fctTemp, 0)
+            #loadingset.define(node, Field1D(TO, AB), 1.0, fctTemp)
         
         # --- Create the array for external communication (displacement, velocity and velocity at the previous time step) --- #
         
         SolidSolver.__init__(self)
         
-        self.__setCurrentState()
+        self.__setCurrentState(True)
         self.nodalVel_XNm1 = self.nodalVel_X.copy()
         self.nodalVel_YNm1 = self.nodalVel_Y.copy()
         self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
@@ -123,7 +129,7 @@ class MtfSolver(SolidSolver):
         self.t1 = t1
         self.t2 = t2
 
-        self.__setCurrentState()
+        self.__setCurrentState(False)
 
     def __firstRun(self, t1, t2):
         """
@@ -172,7 +178,7 @@ class MtfSolver(SolidSolver):
             if self.saveAllFacs:
                 self.nbFacs+=1
 
-    def __setCurrentState(self):
+    def __setCurrentState(self, val_init):
         """
         Des.
         """
@@ -191,6 +197,21 @@ class MtfSolver(SolidSolver):
             self.nodalVel_X[ii] = velX
             self.nodalVel_Y[ii] = velY
             self.nodalVel_Z[ii] = velZ
+            #self.nodalTemperature[ii] = node.getValue(Field1D(TO,RE))
+            #self.nodalTemperature[ii] = node.getValue(Field1D(TO,AB))
+            if not val_init:
+                HF_X_extractor = IFNodalValueExtractor(node, IF_FLUX_X)
+                HF_Y_extractor = IFNodalValueExtractor(node, IF_FLUX_Y)
+                HF_Z_extractor = IFNodalValueExtractor(node, IF_FLUX_Z)
+                HF_X_data = HF_X_extractor.extract()
+                HF_Y_data = HF_Y_extractor.extract()
+                HF_Z_data = HF_Z_extractor.extract()
+                self.nodalHeatFlux_X[ii] = HF_X_data[0]
+                self.nodalHeatFlux_Y[ii] = HF_Y_data[0]
+                self.nodalHeatFlux_Z[ii] = HF_Z_data[0]
+                pos0X = node.getPos0().get1()
+                pos0Y = node.getPos0().get2()
+                pos0Z = node.getPos0().get3()
 
     def getNodalInitialPositions(self):
         """
@@ -270,6 +291,18 @@ class MtfSolver(SolidSolver):
             fy.t2 = val_time
             fz.t2 = val_time
 
+    def applyNodalTemperatures(self, Temperature, val_time):
+        """
+        Des.
+        """
+
+        for ii in range(self.nPhysicalNodes):
+            node = self.gr.getMeshPoint(ii)
+            no = node.getNo()
+            node, Temp = self.Tnods[no]
+            Temp.val2 = Temperature[ii]
+            Temp.t2 = val_time
+
     def __nextStep(self):
         """
         Des.
@@ -280,6 +313,10 @@ class MtfSolver(SolidSolver):
             fx.nextstep()
             fy.nextstep()
             fz.nextstep()
+
+        for no in self.Tnods.iterkeys():
+            node, Temp = self.Tnods[no]
+            Temp.nextstep()
 
     def update(self):
         """

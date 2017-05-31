@@ -297,6 +297,17 @@ class SU2Solver(FluidSolver):
         solFile = open('AerodynamicCoeff.ascii', "a")
         solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(CLift)  + '\t' + str(CDrag) + '\n')
 
+    def printRealTimeData(self, time, nFSIIter):
+        """
+        Des.
+        """
+
+        CLift = self.SU2.Get_LiftCoeff()
+        CDrag = self.SU2.Get_DragCoeff()
+
+        print('RES-FSI-Lift coeff : '+ str(CLift))
+        print('RES-FSI-Drag coeff : '+ str(CDrag))
+
     def meshUpdate(self, nt):
         """
         Perform the mesh morphing.

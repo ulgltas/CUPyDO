@@ -2486,7 +2486,7 @@ class Algortihm:
         mpiPrint('[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT), self.mpiComm)
         mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter)), self.mpiComm)
         
-        if self.myid = 0 :
+        if self.myid == 0 :
             self.FluidSolver.printRealTimeData(time, self.FSIIter)
             self.SolidSolver.printRealTimeData(time, self.FSIIter)
         

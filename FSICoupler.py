@@ -800,6 +800,9 @@ class SolidSolver:
     
     def saveRealTimeData(self, time, nFSIIter):
         return
+
+    def printRealTimeData(self, time, nFSIIter):
+        return
     
     def remeshing(self):
         return
@@ -894,6 +897,9 @@ class FluidSolver:
         return
     
     def saveRealTimeData(self, time, nFSIIter):
+        return
+
+    def printRealTimeData(self, time, nFSIIter):
         return
     
     def remeshing(self):
@@ -2480,8 +2486,9 @@ class Algortihm:
         mpiPrint('[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT), self.mpiComm)
         mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter)), self.mpiComm)
         
-        self.FluidSolver.printRealTimeData(time, self.FSIIter)
-        self.SolidSolver.printRealTimeData(time, self.FSIIter)
+        if self.myid = 0 :
+            self.FluidSolver.printRealTimeData(time, self.FSIIter)
+            self.SolidSolver.printRealTimeData(time, self.FSIIter)
         
         mpiPrint('RES-FSI-FSIhistory: ' + str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
     

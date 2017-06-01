@@ -1023,6 +1023,7 @@ class Manager:
         # --- Initialize all the parameters --- #
         self.nDim = nDim
         self.computationType = computationType
+        self.withFsi = True
         self.withCht = False
 
         self.haveFluidSolver = False
@@ -1349,7 +1350,7 @@ class InterfaceInterpolator:
     Description.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
         """
         Description.
         """
@@ -1368,12 +1369,18 @@ class InterfaceInterpolator:
 
         self.d = 0
 
-        self.chtTransferMethod = None
-        #FFTB = Flux Forward Temperature Back
-        #TFFB = Temperature Forward Flux Back
-        #hFTB = Heat Transfer Coefficient Forward Temperature Back
-        #hFFB = Heat Transfer Coefficient Forward Flux Back
-        self.heatTransferCoeff = None
+        if self.manager.withCht:
+            self.chtTransferMethod = chtTransferMethod
+            if self.chtTransferMethod not in ['TFFB','FFTB','hFTB','hFFB']:
+                mpiPrint('CHT transfer method not specified or not recognized, using default TFFB',mpiComm)
+                self.chtTransferMethod = 'TFFB'
+        else:
+            self.chtTransferMethod = None
+
+        if self.chtTransferMethod in ['hFTB','hFFB']:
+            self.heatTransferCoeff = heatTransferCoeff
+        else:
+            self.heatTransferCoeff = None
 
         self.mpiComm = mpiComm
         
@@ -1389,10 +1396,15 @@ class InterfaceInterpolator:
         Description.
         """
 
-        self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-        self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-        self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-        self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+        self.solidInterfaceDisplacement = None
+        self.fluidInterfaceDisplacement = None
+        self.solidInterfaceLoads = None
+        self.fluidInterfaceLoads = None
+        if self.manager.withFsi:
+            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
 
         self.solidInterfaceHeatFlux = None
         self.fluidInterfaceHeatFlux = None
@@ -1403,15 +1415,28 @@ class InterfaceInterpolator:
         self.fluidInterfaceRobinTemperature = None
         self.solidInterfaceRobinTemperature = None
         if self.manager.withCht :
-            self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-            self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
-            self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-            self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf, 1, self.mpiComm)
-            self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
-            #if self.chtTransferMethod == 'hFFB' or self.chtTransferMethod == 'hFTB':
-            self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-            self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+            if self.chtTransferMethod == 'TFFB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            elif self.chtTransferMethod == 'FFTB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFTB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFFB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
 
 
     def createKDTree(self, posX_array, posY_array, posZ_array):
@@ -1784,12 +1809,12 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
     Description.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
         """
         Description
         """
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm)
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
 
         mpiPrint('\nSetting matching meshes interpolator...', mpiComm)
 
@@ -2445,6 +2470,53 @@ class Algortihm:
         # --- Predict the solid position for the next time step --- #
         self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.deltaT*self.solidInterfaceVelocity + self.alpha_1*self.deltaT*(self.solidInterfaceVelocity-self.solidInterfaceVelocitynM1))
 
+    def fluidToSolidMechaTransfer(self, time):
+        """
+        Des.
+        """
+
+        self.interfaceInterpolator.getLoadsFromFluidSolver()
+        self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
+        self.interfaceInterpolator.setLoadsToSolidSolver(time)
+
+    def solidToFluidMechaTransfer(self, time):
+        """
+        Des.
+        """
+
+        self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+        self.interfaceInterpolator.setDisplacementToFluidSolver(time)
+
+    def solidToFluidThermalTransfer(self, time):
+        """
+        Des.
+        """
+
+        if self.interfaceInterpolator.chtTransferMethod == 'TFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFFB':
+            self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
+            self.interfaceInterpolator.setHeatFluxToFluidSolver(time)
+        elif self.interfaceInterpolator.chtTransferMethod == 'FFTB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
+            self.interfaceInterpolator.interpolateSolidTemperatureOnFluidMesh()
+            self.interfaceInterpolator.setTemperatureToFluidSolver(time)
+
+    def fluidToSolidThermalTransfer(self, time):
+        """
+        Des.
+        """
+
+        if self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+            self.interfaceInterpolator.getTemperatureFromFluidSolver()
+            self.interfaceInterpolator.interpolateFluidTemperatureOnSolidMesh()
+            self.interfaceInterpolator.setTemperatureToSolidSolver(time)
+        elif self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+            self.interfaceInterpolator.getHeatFluxFromFluidSolver()
+            self.interfaceInterpolator.interpolateFluidHeatFluxOnSolidMesh()
+            self.interfaceInterpolator.setHeatFluxToSolidSolver(time)
+        elif self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
+            self.interfaceInterpolator.getRobinTemperatureFromFluidSolver()
+            self.interfaceInterpolator.interpolateFluidRobinTemperatureOnSolidMesh()
+            self.interfaceInterpolator.setRobinHeatFluxToSolidSolver(time)
+
     def iniRealTimeData(self):
         """
         Des
@@ -2473,8 +2545,10 @@ class Algortihm:
         """
         Des
         """
-        
-        return float(self.totNbOfFSIIt)/timeIter
+        if self.manager.computationType == 'unsteady':
+            return float(self.totNbOfFSIIt)/timeIter
+        else:
+            return self.FSIIter
     
     def printExitInfo(self, timeIter, time, error):
         """
@@ -2486,7 +2560,7 @@ class Algortihm:
         mpiPrint('[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT), self.mpiComm)
         mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter)), self.mpiComm)
         
-        if self.myid = 0 :
+        if self.myid == 0 :
             self.FluidSolver.printRealTimeData(time, self.FSIIter)
             self.SolidSolver.printRealTimeData(time, self.FSIIter)
         
@@ -2618,55 +2692,36 @@ class AlgortihmBGSStaticRelax(Algortihm):
         
         self.FSIIter = 0
         self.FSIConv = False
-        self.errValue = 1.0
-        self.errValue_CHT = 1.0
+        self.errValue = 1e12
+        self.errValue_CHT = 1e6
 
         solidHasRun = False
         
         while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
             
-            # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #
-            self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-            self.interfaceInterpolator.setDisplacementToFluidSolver(time)
+            # --- Solid to fluid mechanical transfer --- #
+            self.solidToFluidMechaTransfer(time)
+            # --- Fluid mesh morphing --- #
             mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
             self.FluidSolver.meshUpdate(timeIter)
-            # --- CHT data transfer (heat flux or temperature) --- 
-            if solidHasRun:
-                if self.interfaceInterpolator.chtTransferMethod == 'TFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFFB':
-                    self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
-                    self.interfaceInterpolator.setHeatFluxToFluidSolver(time)
-                elif self.interfaceInterpolator.chtTransferMethod == 'FFTB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
-                    self.interfaceInterpolator.interpolateSolidTemperatureOnFluidMesh()
-                    self.interfaceInterpolator.setTemperatureToFluidSolver(time)
+            # --- Solid to fluid thermal transfer --- #
+            if self.manager.withCht and solidHasRun:
+                self.solidToFluidThermalTransfer(time)
             
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching fluid solver...', self.mpiComm)
             self.FluidSolver.run(time-self.deltaT, time)
             mpiBarrier(self.mpiComm)
             
-            # --- Surface fluid loads interpolation and communication --- #
-            mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
-            self.interfaceInterpolator.getLoadsFromFluidSolver()
-            if self.interfaceInterpolator.chtTransferMethod == 'TFFB':
-                self.interfaceInterpolator.getTemperatureFromFluidSolver()
-            elif self.interfaceInterpolator.chtTransferMethod == 'FFTB':
-                self.interfaceInterpolator.getHeatFluxFromFluidSolver()
-            elif self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
-                self.interfaceInterpolator.getRobinTemperatureFromFluidSolver()
-            mpiBarrier(self.mpiComm)
             if timeIter > self.timeIterTreshold:
-                self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
-                self.interfaceInterpolator.setLoadsToSolidSolver(time)
-                if self.interfaceInterpolator.chtTransferMethod == 'TFFB':
-                    self.interfaceInterpolator.interpolateFluidTemperatureOnSolidMesh()
-                    self.interfaceInterpolator.setTemperatureToSolidSolver(time)
-                elif self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
-                    self.interfaceInterpolator.interpolateFluidRobinTemperatureOnSolidMesh()
-                    self.interfaceInterpolator.setRobinHeatFluxToSolidSolver(time)
-                elif self.interfaceInterpolator.chtTransferMethod == 'FFTB':
-                    self.interfaceInterpolator.interpolateFluidHeatFluxOnSolidMesh()
-                    self.interfaceInterpolator.setHeatFluxToSolidSolver(time)
+                # --- Fluid to solid mechanical transfer --- #
+                mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
+                self.fluidToSolidMechaTransfer(time)
+                if self.manager.withCht:
+                    # --- Fluid to solid thermal transfer --- #
+                    self.fluidToSolidThermalTransfer(time)
+                mpiBarrier(self.mpiComm)
                 
                 # --- Solid solver call for FSI subiteration --- #
                 mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
@@ -2674,19 +2729,24 @@ class AlgortihmBGSStaticRelax(Algortihm):
                     self.SolidSolver.run(time-self.deltaT, time)
                 solidHasRun = True
 
-                # --- Compute and monitor the FSI residual --- #
+                # --- Compute the mechanical residual --- #
                 res = self.computeSolidInterfaceResidual()
-                res_CHT = self.computeSolidInterfaceResidual_CHT()
                 self.errValue = self.criterion.update(res)
-                self.errValue_CHT = self.criterion.updateHeatFlux(res_CHT)
                 mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-                mpiPrint('\nCHT error value : {}\n'.format(self.errValue_CHT), self.mpiComm)
+                if self.manager.withCht:
+                    # --- Compute the thermal residual --- #
+                    res_CHT = self.computeSolidInterfaceResidual_CHT()
+                    self.errValue_CHT = self.criterion.updateHeatFlux(res_CHT)
+                    mpiPrint('\nCHT error value : {}\n'.format(self.errValue_CHT), self.mpiComm)
+                # --- Monitor the coupling convergence --- #
                 self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
                 
                 # --- Relaxe the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidPosition()
-                self.relaxCHT()
+                # --- Relaxe thermal data --- #
+                if self.manager.withCht:
+                    self.relaxCHT()
             
             if self.writeInFSIloop == True:
                 self.writeRealTimeData(timeIter, time, self.errValue, self.errValue_CHT)
@@ -2848,24 +2908,22 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue))):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
             
-            # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #
-            self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-            self.interfaceInterpolator.setDisplacementToFluidSolver(time)
+            # --- Solid to fluid mechanical transfer --- #
+            self.solidToFluidMechaTransfer(time)
+            # --- Fluid mesh morphing --- #
             mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
             self.FluidSolver.meshUpdate(timeIter)
-            
+
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching fluid solver...', self.mpiComm)
             self.FluidSolver.run(time-self.deltaT, time)
             mpiBarrier(self.mpiComm)
-            
-            # --- Surface fluid loads interpolation and communication --- #
-            mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
-            self.interfaceInterpolator.getLoadsFromFluidSolver()
-            mpiBarrier(self.mpiComm)
+
             if timeIter > self.timeIterTreshold:
-                self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
-                self.interfaceInterpolator.setLoadsToSolidSolver(time)
+                # --- Fluid to solid mechanical transfer --- #
+                mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
+                self.fluidToSolidMechaTransfer(time)
+                mpiBarrier(self.mpiComm)
                 
                 # --- Solid solver call for FSI subiteration --- #
                 mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
@@ -2982,6 +3040,97 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         # --- Update the FSI history file --- #
         if timeIter > self.timeIterTreshold:
             mpiPrint('\n*************** IQN-ILS is converged ***************', self.mpiComm)
+
+class ThermalAlgortihmBGS(AlgortihmBGSStaticRelax):
+    """
+    Des.
+    """
+
+    def __init__(self,Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+        """
+        Des.
+        """
+
+        AlgortihmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, 1.0, mpiComm)
+
+    def setFSIInitialConditions(self, time):
+        """
+        Des.
+        """
+
+        if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+            #self.interfaceInterpolator.getHeatFluxFromSolidSolver()
+            #self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
+            #self.interfaceInterpolator.setHeatFluxToFluidSolver(time)
+            self.FluidSolver.setInitialInterfaceHeatFlux()
+        elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+            self.FluidSolver.setInitialInterfaceTemperature()
+
+    def fsiCoupling(self, timeIter, time):
+        """
+        Block Gauss Seidel (BGS) method for strong coupling FSI
+        """
+
+        if timeIter > self.timeIterTreshold:
+            nbFSIIter = self.nbFSIIterMax
+            mpiPrint('\n*************** Enter Block Gauss Seidel (BGS) method for strong coupling CHT ***************', self.mpiComm)
+        else:
+             nbFSIIter = 1
+
+        self.FSIIter = 0
+        self.FSIConv = False
+        self.errValue = 0.0
+        self.errValue_CHT = 1e12
+
+        solidHasRun = False
+
+        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
+            mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
+
+            # --- Solid to fluid thermal transfer --- #
+            if solidHasRun:
+                self.solidToFluidThermalTransfer(time)
+
+            # --- Fluid solver call for FSI subiteration --- #
+            mpiPrint('\nLaunching fluid solver...', self.mpiComm)
+            self.FluidSolver.run(time-self.deltaT, time)
+            mpiBarrier(self.mpiComm)
+
+            if timeIter > self.timeIterTreshold:
+                # --- Fluid to solid thermal transfer --- #
+                self.fluidToSolidThermalTransfer(time)
+                mpiBarrier(self.mpiComm)
+
+                # --- Solid solver call for FSI subiteration --- #
+                mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.run(time-self.deltaT, time)
+                solidHasRun = True
+
+                # --- Compute the thermal residual --- #
+                res_CHT = self.computeSolidInterfaceResidual_CHT()
+                self.errValue_CHT = self.criterion.updateHeatFlux(res_CHT)
+                mpiPrint('\nCHT error value : {}\n'.format(self.errValue_CHT), self.mpiComm)
+                # --- Monitor the coupling convergence --- #
+                self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
+
+                # --- Relaxe the solid thermal data --- #
+                self.relaxCHT()
+
+            if self.writeInFSIloop == True:
+                self.writeRealTimeData(timeIter, time, self.errValue, self.errValue_CHT)
+
+            self.FSIIter += 1
+            if self.manager.computationType != 'unsteady':
+                time += self.deltaT
+
+            # --- Update the solvers for the next BGS iteration --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.bgsUpdate()
+            self.FluidSolver.bgsUpdate()
+
+        if timeIter > self.timeIterTreshold:
+            mpiPrint('\n*************** BGS is converged ***************', self.mpiComm)
 
 # --- Solid test algorithm ---
 class FsiSolidTestAlgorithm:

@@ -1555,6 +1555,7 @@ class InterfaceInterpolator:
                 array_recon = mpiGatherv(fluidInterfaceData.getDataArray(iDim), localSize, self.nf, self.mpiComm, 0)
                 fluidInterfaceData_array_recon.append(array_recon)
             haloNodesData = {}
+            haloNodesData_bis = {}
             if self.myid == 0:
                 for iProc in self.manager.getFluidInterfaceProcessors():
                     fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
@@ -1580,7 +1581,14 @@ class InterfaceInterpolator:
                     for iDim in range(fluidInterfaceData.nDim):
                         self.mpiComm.Send(sendBuff[iDim], dest=iProc, tag = iTagSend)
                         iTagSend += 1
-                    self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
+                    #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
+                    sendBuffHalo_key = np.array(sendBuffHalo.keys())
+                    sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                    for ii in range(sendBuffHalo_key.size):
+                        sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
+                    self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                    self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
+                    self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
             if self.myid in self.manager.getFluidInterfaceProcessors():
                 localFluidInterfaceData_array = []
                 iTagRec = 1
@@ -1589,7 +1597,17 @@ class InterfaceInterpolator:
                     self.mpiComm.Recv(local_array, source=0, tag=iTagRec)
                     localFluidInterfaceData_array.append(local_array)
                     iTagRec += 1
-                haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
+                #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
+                nHaloNodesRcv = np.empty(1, dtype=int)
+                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
+                rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
+                self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
+                for ii in range(len(rcvBuffHalo_keyBuff)):
+                    haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
+                haloNodesData = haloNodesData_bis
+                
 
         return (localFluidInterfaceData_array, haloNodesData)
 
@@ -1600,6 +1618,7 @@ class InterfaceInterpolator:
 
         localSolidInterfaceData_array = None
         haloNodesData = {}
+        haloNodesData_bis = {}
 
         if self.mpiComm != None:
             localSize = solidInterfaceData.getDataArray(0).shape[0]
@@ -1633,7 +1652,14 @@ class InterfaceInterpolator:
                     for iDim in range(solidInterfaceData.nDim):
                         self.mpiComm.Send(sendBuff[iDim], dest=iProc, tag = iTagSend)
                         iTagSend += 1
-                    self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
+                    #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
+                    sendBuffHalo_key = np.array(sendBuffHalo.keys())
+                    sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                    for ii in range(sendBuffHalo_key.size):
+                        sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
+                    self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                    self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
+                    self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
             if self.myid in self.manager.getSolidInterfaceProcessors():
                 localSolidInterfaceData_array = []
                 iTagRec = 1
@@ -1642,7 +1668,16 @@ class InterfaceInterpolator:
                     self.mpiComm.Recv(local_array, source=0, tag = iTagRec)
                     localSolidInterfaceData_array.append(local_array)
                     iTagRec += 1
-                haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
+                #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
+                nHaloNodesRcv = np.empty(1, dtype=int)
+                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
+                rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
+                self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
+                for ii in range(len(rcvBuffHalo_keyBuff)):
+                    haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
+                haloNodesData = haloNodesData_bis
 
         return (localSolidInterfaceData_array, haloNodesData)
 
@@ -2515,11 +2550,11 @@ class Algortihm:
             self.__unsteadyRun()
         else:
             time = self.totTime
-            timeIter = 0
+            timeIter = 1
             self.deltaT = self.totTime
             self.writeInFSIloop = True
             self.fsiCoupling(timeIter, time)
-        
+            self.totNbOfFSIIt = self.FSIIter
             self.run_tf = tm.time()
             self.printExitInfo(timeIter, time, self.errValue)
             

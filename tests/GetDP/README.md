@@ -1,0 +1,1 @@
+In this folder, add tests to independently asses GetDP coupling basic capabilities

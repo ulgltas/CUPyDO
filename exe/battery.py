@@ -31,8 +31,9 @@ def runOne(donfile, nbProcs):
             cmd += [donfile]
         else:
             cmd = [r"mpirun"]
-            cmd += [" --np "]
+            cmd += ["--np"]
             cmd += [nbProcs]
+            cmd += ["python"]
             cmd += [donfile]
         
         print '\t[%s] %s => %s %s' % (exe, os.path.basename(donfile), os.path.basename(logfile), precise)
@@ -201,7 +202,7 @@ def main():
     parser = argparse.ArgumentParser(usage=usage(os.path.basename(sys.argv[0])))
     parser.add_argument('cmd', type=str, choices=['run','rerun','clean','verif'],
                         help='instruction to be executed by battery')
-    parser.add_argument('--np', dest='nbProcs', type=int, default=0,
+    parser.add_argument('--np', dest='nbProcs', type=str, default='0',
                         help='number of processors for MPI computations')
     parser.add_argument('tests', type=str, nargs='+',
                         help='test files name')

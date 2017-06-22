@@ -395,7 +395,7 @@ class FlexInterfaceData:
             if self.mpiComm != None:
                 self.dataContainer[iDim].copy(newData.dataContainer[iDim])
             else:
-                newData.dataContainer[iDim].copy(self.dataContainer[iDim])
+                np.copyto(newData.dataContainer[iDim], self.dataContainer[iDim])
 
         return newData
 
@@ -2851,6 +2851,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         self.FSIIter = 0
         self.FSIConv = False
         self.errValue = 1.0
+        self.errValue_CHT = 1.0 # Just for compatibility. CHT not yet implemented for the IQN-ILS algorithm.
         
         ns = self.interfaceInterpolator.getNs()
         
@@ -2880,7 +2881,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         
         nIt = 0
         
-        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue))):
+        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue,self.errValue_CHT))):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
             
             # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #

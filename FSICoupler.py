@@ -2779,6 +2779,7 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
         
         ns = self.interfaceInterpolator.getNs()
         self.solidInterfaceResidualkM1 = FlexInterfaceData(ns, 3, self.mpiComm)
+        self.aitkenCrit = 'min'
     
     def setOmega(self):
         """
@@ -2801,7 +2802,10 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
                 self.omega = 0.
         
         else:
-            self.omega = max(self.omegaMax, self.omega)
+            if self.aitkenCrit = 'max':
+                self.omega = max(self.omegaMax, self.omega)
+            else:
+                self.omega = min(self.omegaMax, self.omega)
         
         self.omega = min(self.omega, 1.0)
         self.omega = max(self.omega, 0.0)

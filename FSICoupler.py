@@ -2802,7 +2802,7 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
                 self.omega = 0.
         
         else:
-            if self.aitkenCrit = 'max':
+            if self.aitkenCrit == 'max':
                 self.omega = max(self.omegaMax, self.omega)
             else:
                 self.omega = min(self.omegaMax, self.omega)

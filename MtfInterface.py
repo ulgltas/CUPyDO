@@ -6,9 +6,6 @@
 # ----------------------------------------------------------------------
 import os, os.path, sys, time, string
 
-mtfPath = 'D:/Dev/Officiel/Metafor'
-sys.path.append(mtfPath)
-
 import math
 from toolbox.utilities import *
 import toolbox.fac as fac

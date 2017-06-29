@@ -236,201 +236,166 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
     """
     Des.
     """
+    interfData_Gat = []
 
     if mpiComm != None :
-        localSize = interfData.getXArray().shape[0]
-        interfData_X_Gat = mpiGatherv(interfData.getXArray(), localSize, globalSize, mpiComm, 0)
-        interfData_Y_Gat = mpiGatherv(interfData.getYArray(), localSize, globalSize, mpiComm, 0)
-        interfData_Z_Gat = mpiGatherv(interfData.getZArray(), localSize, globalSize, mpiComm, 0)
-        return (interfData_X_Gat, interfData_Y_Gat, interfData_Z_Gat)
+        localSize = interfData.getDataArray(0).shape[0]
+        for iDim in range(interfData.nDim):
+            array_Gat = mpiGatherv(interfData.getDataArray(iDim), localSize, globalSize, mpiComm, 0)
+            interfData_Gat.append(array_Gat)
     else:
-        return (interfData.getDataX(), interfData.getDataY(), interfData.getDataZ())
+        for iDim in range(interfData.nDim):
+            interfData_Gat.append(interfData.getData(iDim))
 
+    return interfData_Gat
 
 # ----------------------------------------------------------------------
-#    InterfaceData class
+#   FlexInterfaceData class
 # ----------------------------------------------------------------------
 
-class InterfaceData:
+class FlexInterfaceData:
     """
-    Des.
+    Description
     """
 
-    def __init__(self, nPoint, mpiComm=None):
+    def __init__(self, val_nPoint, val_nDim, mpiComm=None):
         """
         Des.
         """
 
         self.mpiComm = mpiComm
-        self.nPoint = nPoint
+        self.nPoint = val_nPoint
+        self.nDim = val_nDim
+
+        self.dataContainer = []
 
         if mpiComm != None:
-            from petsc4py import PETSc
-            self.data_X = PETSc.Vec().create(self.mpiComm)
-            self.data_Y = PETSc.Vec().create(self.mpiComm)
-            self.data_Z = PETSc.Vec().create(self.mpiComm)
-            self.data_X.setType('mpi')
-            self.data_Y.setType('mpi')
-            self.data_Z.setType('mpi')
-            self.data_X.setSizes(nPoint)
-            self.data_Y.setSizes(nPoint)
-            self.data_Z.setSizes(nPoint)
-            self.data_X.set(0.0)
-            self.data_Y.set(0.0)
-            self.data_Z.set(0.0)
+            for iDim in range(self.nDim):
+                from petsc4py import PETSc
+                data = PETSc.Vec().create(self.mpiComm)
+                data.setType('mpi')
+                data.setSizes(self.nPoint)
+                data.set(0.0)
+                self.dataContainer.append(data)
             self.myid = self.mpiComm.Get_rank()
             self.mpiSize = self.mpiComm.Get_size()
-            startIndex , stopIndex = self.data_X.getOwnershipRange()
+            startIndex , stopIndex = self.dataContainer[0].getOwnershipRange()
             self.indexing = self.mpiComm.allgather((startIndex , stopIndex))
         else:
-            self.data_X = np.zeros(nPoint, dtype=float)
-            self.data_Y = np.zeros(nPoint, dtype=float)
-            self.data_Z = np.zeros(nPoint, dtype=float)
+            for iDim in range(self.nDim):
+                data = np.zeros(self.nPoint, dtype=float)
+                self.dataContainer.append(data)
             self.myid = 0
             self.mpiSize = 1
 
-    def setXValues(self, indices_list, values_array):
+    def getnPoint(self):
         """
         Des.
         """
-        
-        if self.mpiComm != None:
-            self.data_X.setValues(indices_list, values_array)
-        else:
-            self.data_X[indices_list] = values_array
 
-    def setYValues(self, indices_list, values_array):
+        return self.nPoint
+
+    def getDim(self):
         """
         Des.
         """
-        
-        if self.mpiComm != None:
-            self.data_Y.setValues(indices_list, values_array)
-        else:
-            self.data_Y[indices_list] = values_array
 
-    def setZValues(self, indices_list, values_array):
-        """
-        Des.
-        """
-        
-        if self.mpiComm != None:
-            self.data_Z.setValues(indices_list, values_array)
-        else:
-            self.data_Z[indices_list] = values_array
+        return self.nDim
 
-    def getDataX(self):
-        """
-        des.
-        """
-
-        return self.data_X
-
-    def getDataY(self):
-        """
-        des.
-        """
-
-        return self.data_Y
-
-    def getDataZ(self):
-        """
-        des.
-        """
-
-        return self.data_Z
-
-    def getXArray(self):
+    def setValues(self, iDim, indices_list, values_array):
         """
         Des.
         """
 
         if self.mpiComm != None:
-            return self.data_X.getArray()
+            self.dataContainer[iDim].setValues(indices_list, values_array)
         else:
-            return self.data_X
+            self.dataContainer[iDim][indices_list] = values_array
 
-    def getYArray(self):
+    def setAllValues(self, iDim,value):
         """
         Des.
         """
 
         if self.mpiComm != None:
-            return self.data_Y.getArray()
+            self.dataContainer[iDim].set(value)
         else:
-            return self.data_Y
+            self.dataContainer[iDim].fill(value)
 
-    def getZArray(self):
+    def getDataContainer(self):
+        """
+        Des.
+        """
+
+        return self.dataContainer
+
+    def getData(self, iDim):
+        """
+        Des.
+        """
+
+        return self.dataContainer[iDim]
+
+    def getDataArray(self, iDim):
         """
         Des.
         """
 
         if self.mpiComm != None:
-            return self.data_Z.getArray()
+            return self.dataContainer[iDim].getArray()
         else:
-            return self.data_Z
+            return self.dataContainer[iDim]
 
     def assemble(self):
         """
-        des.
+        Des.
         """
 
         if self.mpiComm != None:
-            self.data_X.assemblyBegin()
-            self.data_X.assemblyEnd()
-            self.data_Y.assemblyBegin()
-            self.data_Y.assemblyEnd()
-            self.data_Z.assemblyBegin()
-            self.data_Z.assemblyEnd()
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim].assemblyBegin()
+                self.dataContainer[iDim].assemblyEnd()
 
-    def view(self):
+    def norm(self):
         """
         Des.
         """
 
-        self.data_X.view()
+        normList = []
 
-    def norm(self):
-        """
-        Des
-        """
+        for iDim in range(self.nDim):
+            if self.mpiComm != None:
+                val_norm = self.dataContainer[iDim].norm()
+            else:
+                val_norm = np.linalg.norm(self.dataContainer[iDim])
+            normList.append(val_norm)
 
-        if self.mpiComm != None:
-            norm_X = self.data_X.norm()
-            norm_Y = self.data_Y.norm()
-            norm_Z = self.data_Z.norm()
-        else:
-            norm_X = np.linalg.norm(self.data_X)
-            norm_Y = np.linalg.norm(self.data_Y)
-            norm_Z = np.linalg.norm(self.data_Z)
-
-        return (norm_X, norm_Y, norm_Z)
+        return normList
 
     def sum(self):
         """
-        des.
+        Des.
         """
 
-        sum_X = self.data_X.sum()
-        sum_Y = self.data_Y.sum()
-        sum_Z = self.data_Z.sum()
+        sumList = []
 
-        return (sum_X, sum_Y, sum_Z)
+        for iDim in range(self.nDim):
+            val_sum = self.dataContainer[iDim].sum()
+            sumList.append(val_sum)
+
+        return sumList
 
     def copy(self):
         """
         Des.
         """
 
-        newData = InterfaceData(self.nPoint, self.mpiComm)
-        if self.mpiComm != None:
-            self.data_X.copy(newData.data_X)
-            self.data_Y.copy(newData.data_Y)
-            self.data_Z.copy(newData.data_Z)
-        else:
-            newData.data_X = self.data_X.copy()
-            newData.data_Y = self.data_Y.copy()
-            newData.data_Z = self.data_Z.copy()
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
+        for iDim in range(self.nDim):
+            if self.mpiComm != None:
+                self.dataContainer[iDim].copy(newData.dataContainer[iDim])
+            else:
+                np.copyto(newData.dataContainer[iDim], self.dataContainer[iDim])
 
         return newData
 
@@ -439,75 +404,79 @@ class InterfaceData:
         Des.
         """
 
-        if type(data) != type(self):
-            #raise type error
-            print "WRONG TYPE"
-        else:
-            dotX = self.data_X.dot(data.data_X)
-            dotY = self.data_Y.dot(data.data_Y)
-            dotZ = self.data_Z.dot(data.data_Z)
+        dotList = []
 
-        return (dotX, dotY, dotZ)
+        if type(data) != type(self):
+            raise TypeError("argument is not of type  FlexInterfaceData !")
+
+        if self.nDim != data.nDim:
+            raise IndexError("argument has not the same dimension !")
+        else:
+            for iDim in range(self.nDim):
+                val_dot = self.dataContainer[iDim].dot(data.dataContainer[iDim])
+                dotList.append(val_dot)
+
+        return dotList
 
     def __setitem__(self, index, values):
         """
-        des.
+        Des.
         """
 
-        if type(values) != tuple:
-            #raise TypeError
-            print "NEED TUPLE"
+        if type(values) != list:
+            raise TypeError("FlexInterfaceData.__setitem__ needs list as argument !")
+
+        if len(values) != self.nDim:
+            raise IndexError("Length of values does not match nDim !")
         else:
-            val_x, val_y, val_z = values
-            self.data_X[index] = val_x
-            self.data_Y[index] = val_y
-            self.data_Z[index] = val_z
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim][index] = values[iDim]
 
-    def __getitem__(self, index):
-        """
-        des.
-        """
+    #def __getitem__(self, index):
+    #    """
+    #    This is the implementation of the old InterfaceData class. Not reimplemented here because
+    #    it is not really useful.
+    #    """
 
-        if self.mpiComm != None:
-            send = None
-            rcv = None
-            for iProc in range(self.mpiSize):
-                start, stop = self.indexing[iProc]
-                if index in range(start, stop):
-                    sender = iProc
-                    break
-            mpiBarrier(self.mpiComm)
-            if self.myid == sender:
-                send = (float(self.data_X[index]), float(self.data_Y[index]), float(self.data_Z[index]))
-            rcv = self.mpiComm.bcast(send, sender)
-            return rcv
-        else:
-            return (float(self.data_X[index]), float(self.data_Y[index]), float(self.data_Z[index]))
+    #    if self.mpiComm != None:
+    #        send = None
+    #        rcv = None
+    #        for iProc in range(self.mpiSize):
+    #            start, stop = self.indexing[iProc]
+    #            if index in range(start, stop):
+    #                sender = iProc
+    #                break
+    #        mpiBarrier(self.mpiComm)
+    #        if self.myid == sender:
+    #            send = (float(self.data_X[index]), float(self.data_Y[index]), float(self.data_Z[index]))
+    #        rcv = self.mpiComm.bcast(send, sender)
+    #        return rcv
+    #    else:
+    #        return (float(self.data_X[index]), float(self.data_Y[index]), float(self.data_Z[index]))
 
     def __add__(self, dataToAdd):
         """
         Des.
         """
 
-        newData = InterfaceData(self.nPoint, self.mpiComm)
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
         if type(dataToAdd) == type(self):
-            newData.data_X = self.data_X + dataToAdd.data_X
-            newData.data_Y = self.data_Y + dataToAdd.data_Y
-            newData.data_Z = self.data_Z + dataToAdd.data_Z
+            if self.nDim != dataToAdd.nDim:
+                raise IndexError("Dimensions do not match for + operator !")
+            for iDim in range(self.nDim):
+                newData.dataContainer[iDim] = self.dataContainer[iDim] + dataToAdd.dataContainer[iDim]
         elif type(dataToAdd) == float:
-            newData.data_X = self.data_X + dataToAdd
-            newData.data_Y = self.data_Y + dataToAdd
-            newData.data_Z = self.data_Z + dataToAdd
+            for iDim in range(self.nDim):
+                newData.dataContainer[iDim] = self.dataContainer[iDim] + dataToAdd
         elif type(dataToAdd) == int:
-            newData.data_X = self.data_X + float(dataToAdd)
-            newData.data_Y = self.data_Y + float(dataToAdd)
-            newData.data_Z = self.data_Z + float(dataToAdd)
+            for iDim in range(self.nDim):
+                newData.dataContainer[iDim] = self.dataContainer[iDim] + float(dataToAdd)
 
         return newData
 
     def __radd__(self, dataToAdd):
         """
-        des.
+        Des.
         """
 
         newData = self + dataToAdd
@@ -520,17 +489,16 @@ class InterfaceData:
         """
 
         if type(dataToAdd) == type(self):
-            self.data_X += dataToAdd.data_X
-            self.data_Y += dataToAdd.data_Y
-            self.data_Z += dataToAdd.data_Z
+            if self.nDim != dataToAdd.nDim:
+                raise IndexError("Dimensions do not match for += operator !")
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim] += dataToAdd.dataContainer[iDim]
         elif type(dataToAdd) == float:
-            self.data_X += dataToAdd
-            self.data_Y += dataToAdd
-            self.data_Z += dataToAdd
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim] += dataToAdd
         elif type(dataToAdd) == int:
-            self.data_X += float(dataToAdd)
-            self.data_Y += float(dataToAdd)
-            self.data_Z += float(dataToAdd)
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim] += float(dataToAdd)
 
         return self
 
@@ -539,67 +507,65 @@ class InterfaceData:
         Des.
         """
 
-        newData = InterfaceData(self.nPoint, self.mpiComm)
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
         if type(dataToSub) == type(self):
-            newData.data_X = self.data_X - dataToSub.data_X
-            newData.data_Y = self.data_Y - dataToSub.data_Y
-            newData.data_Z = self.data_Z - dataToSub.data_Z
+            if self.nDim != dataToSub.nDim:
+                raise IndexError("Dimensions do not match for - operator !")
+            for iDim in range(self.nDim):
+                newData.dataContainer[iDim] = self.dataContainer[iDim] - dataToSub.dataContainer[iDim]
         elif type(dataToSub) == float:
-            newData.data_X = self.data_X - dataToSub
-            newData.data_Y = self.data_Y - dataToSub
-            newData.data_Z = self.data_Z - dataToSub
+            for iDim in range(self.nDim):
+                newData.dataContainer[iDim] = self.dataContainer[iDim] - dataToSub
         elif type(dataToSub) == int:
-            newData.data_X = self.data_X - float(dataToSub)
-            newData.data_Y = self.data_Y - float(dataToSub)
-            newData.data_Z = self.data_Z - float(dataToSub)
+            for iDim in range(self.nDim):
+                newData.dataContainer[iDim] = self.dataContainer[iDim] - float(dataToSub)
 
         return newData
 
     def __rsub__(self, data):
         """
-        des.
+        Des.
         """
 
         newData = -1*self + data
 
         return newData
 
-    def __isub__(self, dataToSub):
+    def __isub__(self,dataToSub):
         """
         Des.
         """
+
         if type(dataToSub) == type(self):
-            self.data_X -= dataToSub.data_X
-            self.data_Y -= dataToSub.data_Y
-            self.data_Z -= dataToSub.data_Z
+            if self.nDim != dataToAdd.nDim:
+                raise IndexError("Dimensions do not match for -= operator !")
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim] -= dataToSub.dataContainer[iDim]
         elif type(dataToSub) == float:
-            self.data_X -= dataToSub
-            self.data_Y -= dataToSub
-            self.data_Z -= dataToSub
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim] -= dataToSub
         elif type(dataToSub) == int:
-            self.data_X -= float(dataToSub)
-            self.data_Y -= float(dataToSub)
-            self.data_Z -= float(dataToSub)
+            for iDim in range(self.nDim):
+                self.dataContainer[iDim] -= float(dataToSub)
 
         return self
 
     def __mul__(self, mulVal):
         """
-        des.
+        Des
         """
 
-        newData = InterfaceData(self.nPoint, self.mpiComm)
-        newData.data_X = self.data_X*mulVal
-        newData.data_Y = self.data_Y*mulVal
-        newData.data_Z = self.data_Z*mulVal
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
+        for iDim in range(newData.nDim):
+            newData.dataContainer[iDim] = self.dataContainer[iDim]*mulVal
 
         return newData
 
     def __rmul__(self, mulVal):
         """
-        des.
+        Des.
         """
-        
+
         newData = self*mulVal
 
         return newData
@@ -609,11 +575,11 @@ class InterfaceData:
         Des.
         """
 
-        self.data_X *= mulVal
-        self.data_Y *= mulVal
-        self.data_Z *= mulVal
+        for iDim in range(self.nDim):
+            self.dataContainer[iDim] *= mulVal
 
         return self
+           
 
 # ----------------------------------------------------------------------
 #    InterfaceMatrix class
@@ -732,7 +698,7 @@ class SolidSolver:
         
         self.haloNodeList = {}
         
-        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step --- #
+        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step) --- #
         self.nodalDisp_X = np.zeros(self.nPhysicalNodes)
         self.nodalDisp_Y = np.zeros(self.nPhysicalNodes)
         self.nodalDisp_Z = np.zeros(self.nPhysicalNodes)
@@ -742,6 +708,12 @@ class SolidSolver:
         self.nodalVel_XNm1 = np.zeros(self.nPhysicalNodes)
         self.nodalVel_YNm1 = np.zeros(self.nPhysicalNodes)
         self.nodalVel_ZNm1 = np.zeros(self.nPhysicalNodes)
+
+        # --- Same for thermal coupling (heat fluxes and temperature) ---
+        self.nodalHeatFlux_X = np.zeros(self.nPhysicalNodes)
+        self.nodalHeatFlux_Y = np.zeros(self.nPhysicalNodes)
+        self.nodalHeatFlux_Z = np.zeros(self.nPhysicalNodes)
+        self.nodalTemperature = np.zeros(self.nPhysicalNodes)
     
     def setInitialDisplacements(self):
         return
@@ -761,11 +733,24 @@ class SolidSolver:
         """
         
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
+
+    def getNodalHeatFluxes(self):
+        """
+        Des.
+        """
+
+        return (self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z)
+
+    def getNodalTemperatures(self):
+        """
+        Des.
+        """
+
+        return self.nodalTemperature
     
     def getNodalInitialPositions(self):
         return
-    
-    
+
     def getNodalVelocity(self):
         """
         des.
@@ -788,6 +773,15 @@ class SolidSolver:
     
     def applyNodalLoads(self, load_X, load_Y, load_Z, time):
         return
+
+    def applyNodalTemperatures(self, Temperature, time):
+        return
+
+    def applyNodalNormalHeatFluxes(self, NormalHeatFlux, val_time):
+        return
+
+    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, time):
+        return
     
     def update(self):
         
@@ -805,6 +799,9 @@ class SolidSolver:
         return
     
     def saveRealTimeData(self, time, nFSIIter):
+        return
+
+    def printRealTimeData(self, time, nFSIIter):
         return
     
     def remeshing(self):
@@ -829,8 +826,25 @@ class FluidSolver:
         self.nodalLoad_X = np.zeros((self.nPhysicalNodes))
         self.nodalLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalLoad_Z = np.zeros((self.nPhysicalNodes))
+
+        self.nodalTemperature = np.zeros((self.nPhysicalNodes))
+
+        self.nodalNormalHeatFlux = np.zeros(self.nPhysicalNodes)
+
+        self.nodalHeatFlux_X = np.zeros((self.nPhysicalNodes))
+        self.nodalHeatFlux_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes))
+
+        self.QWallInit = 0
+        self.TWallInit = 288.0
     
     def setInitialMeshDeformation(self):
+        return
+
+    def setInitialInterfaceHeatFlux(self):
+        return
+
+    def setInitialInterfaceTemperature(self):
         return
     
     def preprocessTimeIter(self, timeIter):
@@ -848,8 +862,26 @@ class FluidSolver:
     def getNodalLoads(self):
         
         return (self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z)
+
+    def getNodalInitialPositions(self):
+        return
+
+    def getNodalTemperatures(self):
+        return self.nodalTemperature
+
+    def getNodalNormalHeatFlux(self):
+        return self.nodalNormalHeatFlux
+
+    def getNodalHeatFluxes(self):
+        return (self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z)
     
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+        return
+
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
+        return
+
+    def applyNodalTemperatures(self, Temperature, time):
         return
     
     def update(self, dt):
@@ -865,6 +897,9 @@ class FluidSolver:
         return
     
     def saveRealTimeData(self, time, nFSIIter):
+        return
+
+    def printRealTimeData(self, time, nFSIIter):
         return
     
     def remeshing(self):
@@ -885,36 +920,47 @@ class Criterion:
     Description
     """
     
-    def __init__(self, tolerance):
+    def __init__(self, tolerance, heatFluxTolerance = 1e12):
         """
         Description.
         """
         
         self.tol = tolerance
         self.epsilon = 0
+
+        self.tolHeatFlux = heatFluxTolerance
+        self.epsilonHeatFlux = 0
     
-    def isVerified(self, epsilon):
+    def isVerified(self, epsilon, epsilonHeatFlux=0):
         """
         Description.
         """
-        
+
+        verifList = [False, False]
+
         if epsilon < self.tol:
-            return True
-        else:
+            verifList[0] = True
+
+        if epsilonHeatFlux < self.tolHeatFlux:
+            verifList[1] = True
+
+        if False in verifList:
             return False
+        else:
+            return True
 
 class DispNormCriterion(Criterion):
     """
     Description.
     """
-    
-    def __init__(self, tolerance):
+
+    def __init__(self, tolerance, heatFluxTolerance = 1e12):
         """
         Description.
         """
-        
-        self.tol = tolerance
-    
+
+        Criterion.__init__(self, tolerance, heatFluxTolerance)
+
     def update(self, res):
         """
         Des.
@@ -927,6 +973,27 @@ class DispNormCriterion(Criterion):
         self.epsilon = norm
         
         return self.epsilon
+
+    def updateHeatFlux(self, resHeatFlux):
+        """
+        Des.
+        """
+
+        if resHeatFlux != None:
+            #normX, normY, normZ = resHeatFlux.norm()
+            normList = resHeatFlux.norm()
+            normSquare = 0.0
+            for ii in range(len(normList)):
+                normSquare += normList[ii]**2
+
+            #norm = sqrt(normX**2 + normY**2 + normZ**2)
+            norm = sqrt(normSquare)
+        else:
+            norm = 1.0
+
+        self.epsilonHeatFlux = norm
+
+        return self.epsilonHeatFlux
 
 # ----------------------------------------------------------------------
 #    Manager class
@@ -956,6 +1023,7 @@ class Manager:
         # --- Initialize all the parameters --- #
         self.nDim = nDim
         self.computationType = computationType
+        self.withCht = False
 
         self.haveFluidSolver = False
         self.nLocalFluidInterfaceNodes = 0
@@ -1230,12 +1298,26 @@ class Manager:
 
         return self.fluidHaloNodesList
 
+    def getSolidHaloNodesList(self):
+        """
+        Des.
+        """
+
+        return self.solidHaloNodesList
+
     def getFluidIndexing(self):
         """
         Des.
         """
 
         return self.fluidIndexing
+
+    def getSolidIndexing(self):
+        """
+        Des.
+        """
+
+        return self.solidIndexing
 
     def getnDim(self):
         """
@@ -1286,6 +1368,13 @@ class InterfaceInterpolator:
 
         self.d = 0
 
+        self.chtTransferMethod = None
+        #FFTB = Flux Forward Temperature Back
+        #TFFB = Temperature Forward Flux Back
+        #hFTB = Heat Transfer Coefficient Forward Temperature Back
+        #hFFB = Heat Transfer Coefficient Forward Flux Back
+        self.heatTransferCoeff = None
+
         self.mpiComm = mpiComm
         
         if self.mpiComm != None:
@@ -1300,10 +1389,30 @@ class InterfaceInterpolator:
         Description.
         """
 
-        self.solidInterfaceDisplacement = InterfaceData(self.ns + self.d, self.mpiComm)
-        self.fluidInterfaceDisplacement = InterfaceData(self.nf, self.mpiComm)
-        self.solidInterfaceLoads = InterfaceData(self.ns + self.d, self.mpiComm)
-        self.fluidInterfaceLoads = InterfaceData(self.nf, self.mpiComm)
+        self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+        self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+        self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+        self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+
+        self.solidInterfaceHeatFlux = None
+        self.fluidInterfaceHeatFlux = None
+        self.solidInterfaceTemperature = None
+        self.fluidInterfaceTemperature = None
+        self.fluidInterfaceNormalHeatFlux = None
+        self.solidInterfaceNormalHeatFlux = None
+        self.fluidInterfaceRobinTemperature = None
+        self.solidInterfaceRobinTemperature = None
+        if self.manager.withCht :
+            self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+            self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+            self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
+            #if self.chtTransferMethod == 'hFFB' or self.chtTransferMethod == 'hFTB':
+            self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+
 
     def createKDTree(self, posX_array, posY_array, posZ_array):
         """
@@ -1356,9 +1465,22 @@ class InterfaceInterpolator:
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
             for iVertex in range(self.ns_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceDisplacement[iGlobalVertex] = (localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex])
+                self.solidInterfaceDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
 
         self.solidInterfaceDisplacement.assemble()
+
+    def getHeatFluxFromSolidSolver(self):
+        """
+        Des.
+        """
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceHeatFlux_X, localSolidInterfaceHeatFlux_Y, localSolidInterfaceHeatFlux_Z = self.SolidSolver.getNodalHeatFluxes()
+            for iVertex in range(self.ns_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                self.solidInterfaceHeatFlux[iGlobalVertex] = [localSolidInterfaceHeatFlux_X[iVertex], localSolidInterfaceHeatFlux_Y[iVertex], localSolidInterfaceHeatFlux_Z[iVertex]]
+
+        self.solidInterfaceHeatFlux.assemble()
 
     def getLoadsFromFluidSolver(self):
         """
@@ -1369,67 +1491,225 @@ class InterfaceInterpolator:
             localFluidInterfaceLoad_X, localFluidInterfaceLoad_Y, localFluidInterfaceLoad_Z = self.FluidSolver.getNodalLoads()
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
-                self.fluidInterfaceLoads[iGlobalVertex] = (localFluidInterfaceLoad_X[iVertex], localFluidInterfaceLoad_Y[iVertex], localFluidInterfaceLoad_Z[iVertex])
+                self.fluidInterfaceLoads[iGlobalVertex] = [localFluidInterfaceLoad_X[iVertex], localFluidInterfaceLoad_Y[iVertex], localFluidInterfaceLoad_Z[iVertex]]
 
         self.fluidInterfaceLoads.assemble()
 
-    def setLoadsToSolidSolver(self, time):
+    def getTemperatureFromFluidSolver(self):
         """
         Des.
         """
 
-        #self.checkTotalLoad()
+        if self.myid in self.manager.getFluidInterfaceProcessors():
+            localFluidInterfaceTemperature = self.FluidSolver.getNodalTemperatures()
+            for iVertex in range(self.nf_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+                self.fluidInterfaceTemperature[iGlobalVertex] = [localFluidInterfaceTemperature[iVertex]]
 
-        FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
-        FX = 0.0
-        FY = 0.0
-        FZ = 0.0
-        
-        FXT = 0.
-        FYT = 0.
-        FZT = 0.
-        
-        # --- Redistribute the interpolated solid loads according to the partitions that own the solid interface --- #
+        self.fluidInterfaceTemperature.assemble()
+
+    def getRobinTemperatureFromFluidSolver(self):
+        """
+        Des.
+        """
+
+        if self.myid in self.manager.getFluidInterfaceProcessors():
+            localFluidInterfaceNormalHeatFlux = self.FluidSolver.getNodalNormalHeatFlux()
+            localFluidInterfaceTemperature = self.FluidSolver.getNodalTemperatures()
+            localFluidInterfaceRobinTemperature = localFluidInterfaceTemperature - (localFluidInterfaceNormalHeatFlux/self.heatTransferCoeff)
+            for iVertex in range(self.nf_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+                self.fluidInterfaceRobinTemperature[iGlobalVertex] = [localFluidInterfaceRobinTemperature[iVertex]]
+
+        self.fluidInterfaceRobinTemperature.assemble()
+
+    def getHeatFluxFromFluidSolver(self):
+        """
+        Des.
+        """
+
+        if self.myid in self.manager.getFluidInterfaceProcessors():
+            localFluidInterfaceHeatFlux_X, localFluidInterfaceHeatFlux_Y, localFluidInterfaceHeatFlux_Z = self.FluidSolver.getNodalHeatFluxes()
+            localFluidInterfaceNormalHeatFlux = self.FluidSolver.getNodalNormalHeatFlux()
+            print localFluidInterfaceNormalHeatFlux
+            for iVertex in range(self.nf_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+                self.fluidInterfaceHeatFlux[iGlobalVertex] = [localFluidInterfaceHeatFlux_X[iVertex], localFluidInterfaceHeatFlux_Y[iVertex], localFluidInterfaceHeatFlux_Z[iVertex]]
+                self.fluidInterfaceNormalHeatFlux[iGlobalVertex] = [localFluidInterfaceNormalHeatFlux[iVertex]]
+
+        self.fluidInterfaceHeatFlux.assemble()
+        self.fluidInterfaceNormalHeatFlux.assemble()
+
+    def redistributeDataToFluidSolver(self, fluidInterfaceData):
+        """
+        Description
+        """
+
+        localFluidInterfaceData_array = None
+        haloNodesData = {}
 
         if self.mpiComm != None:
-            localSize = self.solidInterfaceLoads.getXArray().shape[0]
-            solidLoads_array_X_recon = mpiGatherv(self.solidInterfaceLoads.getXArray(), localSize, self.ns+self.d, self.mpiComm, 0)
-            solidLoads_array_Y_recon = mpiGatherv(self.solidInterfaceLoads.getYArray(), localSize, self.ns+self.d, self.mpiComm, 0)
-            solidLoads_array_Z_recon = mpiGatherv(self.solidInterfaceLoads.getZArray(), localSize, self.ns+self.d, self.mpiComm, 0)
+            localSize = fluidInterfaceData.getDataArray(0).shape[0]
+            fluidInterfaceData_array_recon = []
+            for iDim in range(fluidInterfaceData.nDim):
+                array_recon = mpiGatherv(fluidInterfaceData.getDataArray(iDim), localSize, self.nf, self.mpiComm, 0)
+                fluidInterfaceData_array_recon.append(array_recon)
+            haloNodesData = {}
+            haloNodesData_bis = {}
+            if self.myid == 0:
+                for iProc in self.manager.getFluidInterfaceProcessors():
+                    fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
+                    fluidGlobalIndexRange = self.manager.getFluidGlobalIndexRange()
+                    sendBuff = []
+                    for iDim in range(fluidInterfaceData.nDim):
+                        sendBuff_i = np.zeros(fluidPhysicalInterfaceNodesDistribution[iProc])
+                        sendBuff.append(sendBuff_i)
+                    globalIndex = fluidGlobalIndexRange[iProc][iProc][0]
+                    sendBuffHalo = {}
+                    for iVertex in range(fluidPhysicalInterfaceNodesDistribution[iProc]):
+                        for iDim in range(fluidInterfaceData.nDim):
+                            sendBuff[iDim][iVertex] = fluidInterfaceData_array_recon[iDim][globalIndex]
+                        globalIndex += 1
+                    fluidHaloNodesList = self.manager.getFluidHaloNodesList()
+                    fluidIndexing = self.manager.getFluidIndexing()
+                    for key in fluidHaloNodesList[iProc].keys():
+                        globalIndex = fluidIndexing[key]
+                        sendBuffHalo[key] = []
+                        for iDim in range(fluidInterfaceData.nDim):
+                            sendBuffHalo[key].append(fluidInterfaceData_array_recon[iDim][globalIndex])
+                    iTagSend = 1
+                    for iDim in range(fluidInterfaceData.nDim):
+                        self.mpiComm.Send(sendBuff[iDim], dest=iProc, tag = iTagSend)
+                        iTagSend += 1
+                    #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
+                    sendBuffHalo_key = np.array(sendBuffHalo.keys())
+                    sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                    for ii in range(sendBuffHalo_key.size):
+                        sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
+                    self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                    self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
+                    self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
+            if self.myid in self.manager.getFluidInterfaceProcessors():
+                localFluidInterfaceData_array = []
+                iTagRec = 1
+                for iDim in range(fluidInterfaceData.nDim):
+                    local_array = np.zeros(self.nf_loc)
+                    self.mpiComm.Recv(local_array, source=0, tag=iTagRec)
+                    localFluidInterfaceData_array.append(local_array)
+                    iTagRec += 1
+                #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
+                nHaloNodesRcv = np.empty(1, dtype=int)
+                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
+                rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
+                self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
+                for ii in range(len(rcvBuffHalo_keyBuff)):
+                    haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
+                haloNodesData = haloNodesData_bis
+                
 
+        return (localFluidInterfaceData_array, haloNodesData)
+
+    def redistributeDataToSolidSolver(self, solidInterfaceData):
+        """
+        Des.
+        """
+
+        localSolidInterfaceData_array = None
+        haloNodesData = {}
+        haloNodesData_bis = {}
+
+        if self.mpiComm != None:
+            localSize = solidInterfaceData.getDataArray(0).shape[0]
+            solidInterfaceData_array_recon = []
+            for iDim in range(solidInterfaceData.nDim):
+                array_recon = mpiGatherv(solidInterfaceData.getDataArray(iDim), localSize, self.ns+self.d, self.mpiComm, 0)
+                solidInterfaceData_array_recon.append(array_recon)
+            haloNodesData = {}
             if self.myid == 0:
                 for iProc in self.manager.getSolidInterfaceProcessors():
                     solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
                     solidGlobalIndexRange = self.manager.getSolidGlobalIndexRange()
-                    sendBuff_X = np.zeros(solidPhysicalInterfaceNodesDistribution[iProc])
-                    sendBuff_Y = np.zeros(solidPhysicalInterfaceNodesDistribution[iProc])
-                    sendBuff_Z = np.zeros(solidPhysicalInterfaceNodesDistribution[iProc])
+                    sendBuff = []
+                    for iDim in range(solidInterfaceData.nDim):
+                        sendBuff_i = np.zeros(solidPhysicalInterfaceNodesDistribution[iProc])
+                        sendBuff.append(sendBuff_i)
                     globalIndex = solidGlobalIndexRange[iProc][iProc][0]
+                    sendBuffHalo = {}
                     for iVertex in range(solidPhysicalInterfaceNodesDistribution[iProc]):
-                        sendBuff_X[iVertex] = solidLoads_array_X_recon[globalIndex]
-                        sendBuff_Y[iVertex] = solidLoads_array_Y_recon[globalIndex]
-                        sendBuff_Z[iVertex] = solidLoads_array_Z_recon[globalIndex]
+                        for iDim in range(solidInterfaceData.nDim):
+                            sendBuff[iDim][iVertex] = solidInterfaceData_array_recon[iDim][globalIndex]
                         globalIndex += 1
-                    self.mpiComm.Send(sendBuff_X, dest=iProc, tag = 1)
-                    self.mpiComm.Send(sendBuff_Y, dest=iProc, tag = 2)
-                    self.mpiComm.Send(sendBuff_Z, dest=iProc, tag = 3)
+                    solidHaloNodesList = self.manager.getSolidHaloNodesList()
+                    solidIndexing = self.manager.getSolidIndexing()
+                    for key in solidHaloNodesList[iProc].keys():
+                        globalIndex = solidIndexing[key]
+                        sendBuffHalo[key] = []
+                        for iDim in range(solidInterfaceData.nDim):
+                            sendBuffHalo[key].append(solidInterfaceData_array_recon[iDim][globalIndex])
+                    iTagSend = 1
+                    for iDim in range(solidInterfaceData.nDim):
+                        self.mpiComm.Send(sendBuff[iDim], dest=iProc, tag = iTagSend)
+                        iTagSend += 1
+                    #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
+                    sendBuffHalo_key = np.array(sendBuffHalo.keys())
+                    sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                    for ii in range(sendBuffHalo_key.size):
+                        sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
+                    self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                    self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
+                    self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                localSolidLoads_array_X = np.zeros(self.ns_loc)
-                localSolidLoads_array_Y = np.zeros(self.ns_loc)
-                localSolidLoads_array_Z = np.zeros(self.ns_loc)
-                self.mpiComm.Recv(localSolidLoads_array_X, source=0, tag = 1)
-                self.mpiComm.Recv(localSolidLoads_array_Y, source=0, tag = 2)
-                self.mpiComm.Recv(localSolidLoads_array_Z, source=0, tag = 3)
-                self.SolidSolver.applyNodalLoads(localSolidLoads_array_X, localSolidLoads_array_Y, localSolidLoads_array_Z, time)
-                for iVertex in range(self.ns_loc):
-                    FX += localSolidLoads_array_X[iVertex]
-                    FY += localSolidLoads_array_Y[iVertex]
-                    FZ += localSolidLoads_array_Z[iVertex]
+                localSolidInterfaceData_array = []
+                iTagRec = 1
+                for iDim in range(solidInterfaceData.nDim):
+                    local_array = np.zeros(self.ns_loc)
+                    self.mpiComm.Recv(local_array, source=0, tag = iTagRec)
+                    localSolidInterfaceData_array.append(local_array)
+                    iTagRec += 1
+                #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
+                nHaloNodesRcv = np.empty(1, dtype=int)
+                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
+                rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
+                self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
+                for ii in range(len(rcvBuffHalo_keyBuff)):
+                    haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
+                haloNodesData = haloNodesData_bis
+
+        return (localSolidInterfaceData_array, haloNodesData)
+
+    def setLoadsToSolidSolver(self, time):
+        """
+        des.
+        """
+
+        FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
+
+        
+        FX = 0.
+        FY = 0.
+        FZ = 0.
+
+        FXT = 0.
+        FYT = 0.
+        FZT = 0.
+
+        if self.mpiComm != None:
+            (localSolidLoads_array, haloNodesSolidLoads) = self.redistributeDataToSolidSolver(self.solidInterfaceLoads)
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                self.SolidSolver.applyNodalLoads(localSolidLoads_array[0], localSolidLoads_array[1], localSolidLoads_array[2], time)
+                FX = localSolidLoads_array[0].sum()
+                FY = localSolidLoads_array[1].sum()
+                FZ = localSolidLoads_array[2].sum()
             FXT = mpiAllReduce(self.mpiComm, FX)
             FYT = mpiAllReduce(self.mpiComm, FY)
             FZT = mpiAllReduce(self.mpiComm, FZ)
         else:
-            self.SolidSolver.applyNodalLoads(self.solidInterfaceLoads.getXArray(), self.solidInterfaceLoads.getYArray(), self.solidInterfaceLoads.getZArray(), time)
+            self.SolidSolver.applyNodalLoads(self.solidInterfaceLoads.getDataArray(0), self.solidInterfaceLoads.getDataArray(1), self.solidInterfaceLoads.getDataArray(2), time)
+            FXT, FYT, FZT = self.solidInterfaceLoads.sum()
 
         mpiPrint("Checking f/s interface total force...", self.mpiComm)
         mpiPrint('Solid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FXT, FYT, FZT), self.mpiComm)                
@@ -1443,45 +1723,75 @@ class InterfaceInterpolator:
         self.checkConservation()
 
         if self.mpiComm != None:
-            localSize = self.fluidInterfaceDisplacement.getXArray().shape[0]
-            fluidInterface_array_DispX_recon = mpiGatherv(self.fluidInterfaceDisplacement.getXArray(), localSize, self.nf, self.mpiComm, 0)
-            fluidInterface_array_DispY_recon = mpiGatherv(self.fluidInterfaceDisplacement.getYArray(), localSize, self.nf, self.mpiComm, 0)
-            fluidInterface_array_DispZ_recon = mpiGatherv(self.fluidInterfaceDisplacement.getZArray(), localSize, self.nf, self.mpiComm, 0)
-            haloNodesDisplacements = {}
-            if self.myid == 0:
-                for iProc in self.manager.getFluidInterfaceProcessors():
-                    fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
-                    fluidGlobalIndexRange = self.manager.getFluidGlobalIndexRange()
-                    sendBuff_X = np.zeros(fluidPhysicalInterfaceNodesDistribution[iProc])
-                    sendBuff_Y = np.zeros(fluidPhysicalInterfaceNodesDistribution[iProc])
-                    sendBuff_Z = np.zeros(fluidPhysicalInterfaceNodesDistribution[iProc])
-                    globalIndex = fluidGlobalIndexRange[iProc][iProc][0]
-                    sendBuffHalo = {}
-                    for iVertex in range(fluidPhysicalInterfaceNodesDistribution[iProc]):
-                        sendBuff_X[iVertex] = fluidInterface_array_DispX_recon[globalIndex]
-                        sendBuff_Y[iVertex] = fluidInterface_array_DispY_recon[globalIndex]
-                        sendBuff_Z[iVertex] = fluidInterface_array_DispZ_recon[globalIndex]
-                        globalIndex += 1
-                    fluidHaloNodesList = self.manager.getFluidHaloNodesList()
-                    fluidIndexing = self.manager.getFluidIndexing()
-                    for key in fluidHaloNodesList[iProc].keys():
-                        globalIndex = fluidIndexing[key]
-                        sendBuffHalo[key] = (fluidInterface_array_DispX_recon[globalIndex], fluidInterface_array_DispY_recon[globalIndex], fluidInterface_array_DispZ_recon[globalIndex])
-                    self.mpiComm.Send(sendBuff_X, dest=iProc, tag = 1)
-                    self.mpiComm.Send(sendBuff_Y, dest=iProc, tag = 2)
-                    self.mpiComm.Send(sendBuff_Z, dest=iProc, tag = 3)
-                    self.mpiComm.send(sendBuffHalo, dest = iProc, tag=4)
+            (localFluidInterfaceDisplacement, haloNodesDisplacements) = self.redistributeDataToFluidSolver(self.fluidInterfaceDisplacement)
             if self.myid in self.manager.getFluidInterfaceProcessors():
-                localFluidInterface_array_DispX = np.zeros(self.nf_loc)
-                localFluidInterface_array_DispY = np.zeros(self.nf_loc)
-                localFluidInterface_array_DispZ = np.zeros(self.nf_loc)
-                self.mpiComm.Recv(localFluidInterface_array_DispX, source=0, tag=1)
-                self.mpiComm.Recv(localFluidInterface_array_DispY, source=0, tag=2)
-                self.mpiComm.Recv(localFluidInterface_array_DispZ, source=0, tag=3)
-                haloNodesDisplacements = self.mpiComm.recv(source=0, tag=4)
-                self.FluidSolver.applyNodalDisplacements(localFluidInterface_array_DispX, localFluidInterface_array_DispY, localFluidInterface_array_DispZ, localFluidInterface_array_DispX, localFluidInterface_array_DispY, localFluidInterface_array_DispZ, haloNodesDisplacements, time)
+                self.FluidSolver.applyNodalDisplacements(localFluidInterfaceDisplacement[0], localFluidInterfaceDisplacement[1], localFluidInterfaceDisplacement[2], localFluidInterfaceDisplacement[0], localFluidInterfaceDisplacement[1], localFluidInterfaceDisplacement[2], haloNodesDisplacements, time)
         else:
-            self.FluidSolver.applyNodalDisplacements(self.fluidInterfaceDisplacement.getXArray(), self.fluidInterfaceDisplacement.getYArray(), self.fluidInterfaceDisplacement.getZArray(), self.fluidInterfaceDisplacement.getXArray(), self.fluidInterfaceDisplacement.getYArray(), self.fluidInterfaceDisplacement.getZArray(), {}, time)
+            self.FluidSolver.applyNodalDisplacements(self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), {}, time)
+
+    def setHeatFluxToFluidSolver(self, time):
+        """
+        Description.
+        """
+
+        if self.mpiComm != None:
+            (localFluidInterfaceHeatFlux, haloNodesHeatFlux) = self.redistributeDataToFluidSolver(self.fluidInterfaceHeatFlux)
+            if self.myid in self.manager.getFluidInterfaceProcessors():
+                self.FluidSolver.applyNodalHeatFluxes(localFluidInterfaceHeatFlux[0], localFluidInterfaceHeatFlux[1], localFluidInterfaceHeatFlux[2], time)
+        else:
+            self.FluidSolver.applyNodalHeatFluxes(self.fluidInterfaceHeatFlux.getDataArray(0), self.fluidInterfaceHeatFlux.getDataArray(1), self.fluidInterfaceHeatFlux.getDataArray(2), time)
+
+    def setTemperatureToFluidSolver(self, time):
+        """
+        Des.
+        """
+
+        if self.mpiComm != None:
+            (localFluidInterfaceTemperature, haloNodesTemperature) = self.redistributeDataToFluidSolver(self.fluidInterfaceTemperature)
+            if self.myid in self.manager.getFluidInterfaceProcessors():
+                self.FluidSolver.applyNodalTemperatures(localFluidInterfaceTemperature[0], time)
+        else:
+            self.FluidSolver.applyNodalTemperatures(self.fluidInterfaceTemperature.getDataArray(0), time)
+
+    def setTemperatureToSolidSolver(self, time):
+        """
+        Description
+        """
+
+        if self.mpiComm != None:
+            (localSolidInterfaceTemperature, haloNodesTemperature) = self.redistributeDataToSolidSolver(self.solidInterfaceTemperature)
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                self.SolidSolver.applyNodalTemperatures(localSolidInterfaceTemperature[0], time)
+        else:
+            self.SolidSolver.applyNodalTemperatures(self.solidInterfaceTemperature.getDataArray(0), time)
+
+    def setRobinHeatFluxToSolidSolver(self, time):
+        """
+        Def
+        """
+
+        if self.mpiComm != None:
+            (localSolidInterfaceRobinTemperature, haloNodesRobinTemperature) = self.redistributeDataToSolidSolver(self.solidInterfaceRobinTemperature)
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
+                localSolidInterfaceRobinHeatFlux = self.heatTransferCoeff*(localSolidInterfaceTemperature-localSolidInterfaceRobinTemperature[0])
+                self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceRobinHeatFlux, time)
+        else:
+            localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
+            localSolidInterfaceRobinHeatFlux = self.heatTransferCoeff*(localSolidInterfaceTemperature-self.solidInterfaceRobinTemperature.getDataArray(0), time)
+            self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceRobinHeatFlux, time)
+
+    def setHeatFluxToSolidSolver(self, time):
+        """
+        Des.
+        """
+
+        if self.mpiComm != None:
+            (localSolidInterfaceNormalHeatFlux, haloNodesNormalHeatFlux) =  self.redistributeDataToSolidSolver(self.solidInterfaceNormalHeatFlux)
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceNormalHeatFlux[0], time)
+        else:
+            self.SolidSolver.applyNodalNormalHeatFluxes(self.solidInterfaceNormalHeatFlux.getDataArray(0), time)
 
     def getNs(self):
         """
@@ -1590,18 +1900,57 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         Description
         """
 
-        self.H_T.mult(self.fluidInterfaceLoads.getDataX(), self.solidInterfaceLoads.getDataX())
-        self.H_T.mult(self.fluidInterfaceLoads.getDataY(), self.solidInterfaceLoads.getDataY())
-        self.H_T.mult(self.fluidInterfaceLoads.getDataZ(), self.solidInterfaceLoads.getDataZ())
+        for iDim in range(3):
+            self.H_T.mult(self.fluidInterfaceLoads.getData(iDim), self.solidInterfaceLoads.getData(iDim))
 
     def interpolateSolidDisplacementOnFluidMesh(self):
         """
         Description.
         """
 
-        self.H.mult(self.solidInterfaceDisplacement.getDataX(), self.fluidInterfaceDisplacement.getDataX())
-        self.H.mult(self.solidInterfaceDisplacement.getDataY(), self.fluidInterfaceDisplacement.getDataY())
-        self.H.mult(self.solidInterfaceDisplacement.getDataZ(), self.fluidInterfaceDisplacement.getDataZ())
+        for iDim in range(3):
+            self.H.mult(self.solidInterfaceDisplacement.getData(iDim), self.fluidInterfaceDisplacement.getData(iDim))
+
+    def interpolateSolidHeatFluxOnFluidMesh(self):
+        """
+        Description.
+        """
+
+        for iDim in range(3):
+            self.H.mult(self.solidInterfaceHeatFlux.getData(iDim), self.fluidInterfaceHeatFlux.getData(iDim))
+
+    def interpolateSolidTemperatureOnFluidMesh(self):
+        """
+        Description
+        """
+
+        for iDim in range(1):
+            self.H.mult(self.solidInterfaceTemperature.getData(iDim), self.fluidInterfaceTemperature.getData(iDim))
+
+    def interpolateFluidHeatFluxOnSolidMesh(self):
+        """
+        Description.
+        """
+
+        for iDim in range(3):
+            self.H_T.mult(self.fluidInterfaceHeatFlux.getData(iDim), self.solidInterfaceHeatFlux.getData(iDim))
+        self.H_T.mult(self.fluidInterfaceNormalHeatFlux.getData(0), self.solidInterfaceNormalHeatFlux.getData(0))
+
+    def interpolateFluidTemperatureOnSolidMesh(self):
+        """
+        Description.
+        """
+
+        for iDim in range(1):
+            self.H_T.mult(self.fluidInterfaceTemperature.getData(iDim), self.solidInterfaceTemperature.getData(iDim))
+
+    def interpolateFluidRobinTemperatureOnSolidMesh(self):
+        """
+        Des.
+        """
+
+        for iDim in range(1):
+            self.H_T.mult(self.fluidInterfaceRobinTemperature.getData(iDim), self.solidInterfaceRobinTemperature.getData(iDim))
     
 
 class RBFInterpolator(InterfaceInterpolator):
@@ -1775,32 +2124,28 @@ class RBFInterpolator(InterfaceInterpolator):
         Description
         """
 
-        gamma_array = InterfaceData(self.ns + self.d, self.mpiComm)
+        gamma_array = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
         Solver = LinearSolver(self.A_T, self.mpiComm)
 
-        self.B_T.mult(self.fluidInterfaceLoads.getDataX(), gamma_array.getDataX())
-        self.B_T.mult(self.fluidInterfaceLoads.getDataY(), gamma_array.getDataY())
-        self.B_T.mult(self.fluidInterfaceLoads.getDataZ(), gamma_array.getDataZ())
+        for iDim in range(3):
+            self.B_T.mult(self.fluidInterfaceLoads.getData(iDim), gamma_array.getData(iDim))
 
-        Solver.solve(gamma_array.getDataX(), self.solidInterfaceLoads.getDataX())
-        Solver.solve(gamma_array.getDataY(), self.solidInterfaceLoads.getDataY())
-        Solver.solve(gamma_array.getDataZ(), self.solidInterfaceLoads.getDataZ())
+        for iDim in range(3):
+            Solver.solve(gamma_array.getData(iDim), self.solidInterfaceLoads.getData(iDim))
 
     def interpolateSolidDisplacementOnFluidMesh(self):
         """
         Description.
         """
 
-        gamma_array = InterfaceData(self.ns + self.d , self.mpiComm)
+        gamma_array = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
         Solver = LinearSolver(self.A, self.mpiComm)
 
-        Solver.solve(self.solidInterfaceDisplacement.getDataX(), gamma_array.getDataX())
-        Solver.solve(self.solidInterfaceDisplacement.getDataY(), gamma_array.getDataY())
-        Solver.solve(self.solidInterfaceDisplacement.getDataZ(), gamma_array.getDataZ())
+        for iDim in range(3):
+            Solver.solve(self.solidInterfaceDisplacement.getData(iDim), gamma_array.getData(iDim))
 
-        self.B.mult(gamma_array.getDataX(), self.fluidInterfaceDisplacement.getDataX())
-        self.B.mult(gamma_array.getDataY(), self.fluidInterfaceDisplacement.getDataY())
-        self.B.mult(gamma_array.getDataZ(), self.fluidInterfaceDisplacement.getDataZ())
+        for iDim in range(3):
+            self.B.mult(gamma_array.getData(iDim), self.fluidInterfaceDisplacement.getData(iDim))
 
 class TPSInterpolator(RBFInterpolator):
     """
@@ -2012,9 +2357,16 @@ class Algortihm:
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
         
-        self.solidInterfaceVelocity = InterfaceData(ns+d, self.mpiComm)
-        self.solidInterfaceVelocitynM1 = InterfaceData(ns+d, self.mpiComm)
-        self.solidInterfaceResidual = InterfaceData(ns+d, self.mpiComm)
+        self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        self.solidInterfaceVelocitynM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        self.solidHeatFluxResidual = None
+        self.solidTemperatureResidual = None
+        if self.manager.withCht:
+            self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+            self.solidTemperatureResidual = FlexInterfaceData(ns+d, 1, self.mpiComm)
     
     def setFSIInitialConditions(self, time):
         """
@@ -2028,8 +2380,24 @@ class Algortihm:
             self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
             self.interfaceInterpolator.setDisplacementToFluidSolver(time)
             self.FluidSolver.setInitialMeshDeformation()
+            if self.manager.withCht:
+                if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+                    #self.interfaceInterpolator.getHeatFluxFromSolidSolver()
+                    #self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
+                    #self.interfaceInterpolator.setHeatFluxToFluidSolver(time)
+                    self.FluidSolver.setInitialInterfaceHeatFlux()
+                elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+                    self.FluidSolver.setInitialInterfaceTemperature()
         else:
             self.interfaceInterpolator.getDisplacementFromSolidSolver()
+            if self.manager.withCht:
+                if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+                    #self.interfaceInterpolator.getHeatFluxFromSolidSolver()
+                    #self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
+                    #self.interfaceInterpolator.setHeatFluxToFluidSolver(time)
+                    self.FluidSolver.setInitialInterfaceHeatFlux()
+                elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+                    self.FluidSolver.setInitialInterfaceTemperature()
     
     def computeSolidInterfaceResidual(self):
         """
@@ -2040,20 +2408,57 @@ class Algortihm:
         d = self.interfaceInterpolator.getd()
         
         # --- Get the predicted (computed) solid interface displacement from the solid solver --- #
-        predictedDisplacement = InterfaceData(ns+d, self.mpiComm)
+        predictedDisplacement = FlexInterfaceData(ns+d, 3, self.mpiComm)
         
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
             for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedDisplacement[iGlobalVertex] = (localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex])
+                predictedDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
         
         predictedDisplacement.assemble()
         
         # --- Calculate the residual (vector and norm) --- #
+        mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
         self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
         
         return self.solidInterfaceResidual
+
+    def computeSolidInterfaceResidual_CHT(self):
+        """
+        Des.
+        """
+
+        ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
+
+        predictedHF = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        predictedTemp = FlexInterfaceData(ns+d, 1, self.mpiComm)
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceHeatFlux_X, localSolidInterfaceHeatFlux_Y, localSolidInterfaceHeatFlux_Z = self.SolidSolver.getNodalHeatFluxes()
+            localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
+            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                predictedHF[iGlobalVertex] = [localSolidInterfaceHeatFlux_X[iVertex], localSolidInterfaceHeatFlux_Y[iVertex], localSolidInterfaceHeatFlux_Z[iVertex]]
+                predictedTemp[iGlobalVertex] = [localSolidInterfaceTemperature[iVertex]]
+
+        predictedHF.assemble()
+        predictedTemp.assemble()
+
+        self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
+        self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
+
+        #return self.solidHeatFluxResidual
+
+        if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+            mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
+            return self.solidHeatFluxResidual
+        elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+            mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
+            return self.solidTemperatureResidual
+        else:
+            return None
     
     def solidDisplacementPredictor(self):
         """
@@ -2066,8 +2471,8 @@ class Algortihm:
             localSolidInterfaceVelNm1_X, localSolidInterfaceVelNm1_Y, localSolidInterfaceVelNm1_Z = self.SolidSolver.getNodalVelocityNm1()
             for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceVelocity[iGlobalVertex] = (localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex])
-                self.solidInterfaceVelocitynM1[iGlobalVertex] = (localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex])
+                self.solidInterfaceVelocity[iGlobalVertex] = [localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex]]
+                self.solidInterfaceVelocitynM1[iGlobalVertex] = [localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex]]
         
         self.solidInterfaceVelocity.assemble()
         self.solidInterfaceVelocitynM1.assemble()
@@ -2083,10 +2488,10 @@ class Algortihm:
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
         histFile = open('FSIhistory.ascii', "w")
-        histFile.write("TimeIter\tTime\tFSIError\tFSINbIter\n")
+        histFile.write("TimeIter\tTime\tFSIError\tCHTError\tFSINbIter\n")
         histFile.close()
     
-    def writeRealTimeData(self, timeIter, time, error):
+    def writeRealTimeData(self, timeIter, time, error, chtError=0.0):
         """
         Des
         """
@@ -2096,7 +2501,7 @@ class Algortihm:
             if timeIter >= self.timeIterTreshold:
                 self.SolidSolver.saveRealTimeData(time, self.FSIIter)
             histFile = open('FSIhistory.ascii', "a")
-            histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n')
+            histFile.write(str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(chtError) + '\t' + str(self.FSIIter) + '\n')
             histFile.close()
     
     def getMeanNbOfFSIIt(self, timeIter):
@@ -2116,8 +2521,9 @@ class Algortihm:
         mpiPrint('[Successful Run FSI]: ' + str(time >= self.totTime - self.deltaT), self.mpiComm)
         mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt(timeIter)), self.mpiComm)
         
-        self.FluidSolver.printRealTimeData(time, self.FSIIter)
-        self.SolidSolver.printRealTimeData(time, self.FSIIter)
+        if self.myid == 0 :
+            self.FluidSolver.printRealTimeData(time, self.FSIIter)
+            self.SolidSolver.printRealTimeData(time, self.FSIIter)
         
         mpiPrint('RES-FSI-FSIhistory: ' + str(timeIter) + '\t' + str(time) + '\t' + str(error) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
     
@@ -2144,11 +2550,11 @@ class Algortihm:
             self.__unsteadyRun()
         else:
             time = self.totTime
-            timeIter = 0
+            timeIter = 1
             self.deltaT = self.totTime
             self.writeInFSIloop = True
             self.fsiCoupling(timeIter, time)
-        
+            self.totNbOfFSIIt = self.FSIIter
             self.run_tf = tm.time()
             self.printExitInfo(timeIter, time, self.errValue)
             
@@ -2199,7 +2605,7 @@ class Algortihm:
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.save()
             
-            self.writeRealTimeData(timeIter, time, self.errValue)
+            self.writeRealTimeData(timeIter, time, self.errValue, self.errValue_CHT)
             
             # --- Perform some remeshing if necessary
             if self.myid in self.manager.getSolidSolverProcessors():
@@ -2248,8 +2654,11 @@ class AlgortihmBGSStaticRelax(Algortihm):
         self.FSIIter = 0
         self.FSIConv = False
         self.errValue = 1.0
+        self.errValue_CHT = 1.0
+
+        solidHasRun = False
         
-        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue))):
+        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
             
             # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #
@@ -2257,6 +2666,14 @@ class AlgortihmBGSStaticRelax(Algortihm):
             self.interfaceInterpolator.setDisplacementToFluidSolver(time)
             mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
             self.FluidSolver.meshUpdate(timeIter)
+            # --- CHT data transfer (heat flux or temperature) --- 
+            if solidHasRun:
+                if self.interfaceInterpolator.chtTransferMethod == 'TFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFFB':
+                    self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
+                    self.interfaceInterpolator.setHeatFluxToFluidSolver(time)
+                elif self.interfaceInterpolator.chtTransferMethod == 'FFTB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
+                    self.interfaceInterpolator.interpolateSolidTemperatureOnFluidMesh()
+                    self.interfaceInterpolator.setTemperatureToFluidSolver(time)
             
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching fluid solver...', self.mpiComm)
@@ -2266,28 +2683,48 @@ class AlgortihmBGSStaticRelax(Algortihm):
             # --- Surface fluid loads interpolation and communication --- #
             mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
             self.interfaceInterpolator.getLoadsFromFluidSolver()
+            if self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+                self.interfaceInterpolator.getTemperatureFromFluidSolver()
+            elif self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+                self.interfaceInterpolator.getHeatFluxFromFluidSolver()
+            elif self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
+                self.interfaceInterpolator.getRobinTemperatureFromFluidSolver()
             mpiBarrier(self.mpiComm)
             if timeIter > self.timeIterTreshold:
                 self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
                 self.interfaceInterpolator.setLoadsToSolidSolver(time)
+                if self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+                    self.interfaceInterpolator.interpolateFluidTemperatureOnSolidMesh()
+                    self.interfaceInterpolator.setTemperatureToSolidSolver(time)
+                elif self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
+                    self.interfaceInterpolator.interpolateFluidRobinTemperatureOnSolidMesh()
+                    self.interfaceInterpolator.setRobinHeatFluxToSolidSolver(time)
+                elif self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+                    self.interfaceInterpolator.interpolateFluidHeatFluxOnSolidMesh()
+                    self.interfaceInterpolator.setHeatFluxToSolidSolver(time)
                 
                 # --- Solid solver call for FSI subiteration --- #
                 mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.run(time-self.deltaT, time)
+                solidHasRun = True
 
                 # --- Compute and monitor the FSI residual --- #
                 res = self.computeSolidInterfaceResidual()
+                res_CHT = self.computeSolidInterfaceResidual_CHT()
                 self.errValue = self.criterion.update(res)
+                self.errValue_CHT = self.criterion.updateHeatFlux(res_CHT)
                 mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-                self.FSIConv = self.criterion.isVerified(self.errValue)
+                mpiPrint('\nCHT error value : {}\n'.format(self.errValue_CHT), self.mpiComm)
+                self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
                 
                 # --- Relaxe the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidPosition()
+                self.relaxCHT()
             
             if self.writeInFSIloop == True:
-                self.writeRealTimeData(timeIter, time, self.errValue)
+                self.writeRealTimeData(timeIter, time, self.errValue, self.errValue_CHT)
             
             self.FSIIter += 1
             if self.manager.computationType != 'unsteady':
@@ -2321,6 +2758,16 @@ class AlgortihmBGSStaticRelax(Algortihm):
         # --- Relax the solid interface position --- #
         self.interfaceInterpolator.solidInterfaceDisplacement += (self.omega*self.solidInterfaceResidual)
 
+    def relaxCHT(self):
+        """
+        Des.
+        """
+
+        if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+            self.interfaceInterpolator.solidInterfaceHeatFlux += self.solidHeatFluxResidual
+        elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+            self.interfaceInterpolator.solidInterfaceTemperature += self.solidTemperatureResidual
+
 class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
     
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaMax=1.0, mpiComm=None):
@@ -2331,7 +2778,8 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
         AlgortihmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaMax, mpiComm)
         
         ns = self.interfaceInterpolator.getNs()
-        self.solidInterfaceResidualkM1 = InterfaceData(ns, self.mpiComm)
+        self.solidInterfaceResidualkM1 = FlexInterfaceData(ns, 3, self.mpiComm)
+        self.aitkenCrit = 'min'
     
     def setOmega(self):
         """
@@ -2354,7 +2802,10 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
                 self.omega = 0.
         
         else:
-            self.omega = max(self.omegaMax, self.omega)
+            if self.aitkenCrit == 'max':
+                self.omega = max(self.omegaMax, self.omega)
+            else:
+                self.omega = min(self.omegaMax, self.omega)
         
         self.omega = min(self.omega, 1.0)
         self.omega = max(self.omega, 0.0)
@@ -2404,17 +2855,18 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         self.FSIIter = 0
         self.FSIConv = False
         self.errValue = 1.0
+        self.errValue_CHT = 1.0 # Just for compatibility. CHT not yet implemented for the IQN-ILS algorithm.
         
         ns = self.interfaceInterpolator.getNs()
         
         # --- Initialize all the quantities used in the IQN-ILS method --- #
-        res = InterfaceData(ns, self.mpiComm)
-        solidInterfaceResidual0 = InterfaceData(ns, self.mpiComm)
+        res = FlexInterfaceData(ns, 3, self.mpiComm)
+        solidInterfaceResidual0 = FlexInterfaceData(ns, 3, self.mpiComm)
         
-        solidInterfaceDisplacement_tilde = InterfaceData(ns, self.mpiComm)
-        solidInterfaceDisplacement_tilde1 = InterfaceData(ns, self.mpiComm)
+        solidInterfaceDisplacement_tilde = FlexInterfaceData(ns, 3, self.mpiComm)
+        solidInterfaceDisplacement_tilde1 = FlexInterfaceData(ns, 3, self.mpiComm)
 
-        delta_ds = InterfaceData(ns, self.mpiComm)
+        delta_ds = FlexInterfaceData(ns, 3, self.mpiComm)
         
         Vk_mat = np.zeros((3*ns,1))
         Wk_mat = np.zeros((3*ns,1))
@@ -2433,7 +2885,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         
         nIt = 0
         
-        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue))):
+        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue,self.errValue_CHT))):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
             
             # --- Mesh morphing step (displacements interpolation, displacements communication, and mesh morpher call) --- #
@@ -2471,7 +2923,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
                     for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                         iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                        solidInterfaceDisplacement_tilde[iGlobalVertex] = (localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex])
+                        solidInterfaceDisplacement_tilde[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
                 
                 solidInterfaceDisplacement_tilde.assemble()
                 
@@ -2485,10 +2937,10 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
                     
                     # --- Start gathering on root process --- #
-                    (res_X_Gat, res_Y_Gat, res_Z_Gat) = mpiGatherInterfaceData(res, ns, self.mpiComm, 0)
-                    (solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat) = mpiGatherInterfaceData(solidInterfaceResidual0, ns, self.mpiComm, 0)
-                    (solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat) = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
-                    (solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat) = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
+                    res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns, self.mpiComm, 0)
+                    solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns, self.mpiComm, 0)
+                    solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
+                    solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
                     
                     if self.myid == 0:
                         if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
@@ -2527,7 +2979,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                         
                         for iVertex in range(delta_ds_loc_X.shape[0]):
                             iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                            delta_ds[iGlobalVertex] = (delta_ds_loc_X[iVertex], delta_ds_loc_Y[iVertex], delta_ds_loc_Z[iVertex])
+                            delta_ds[iGlobalVertex] = [delta_ds_loc_X[iVertex], delta_ds_loc_Y[iVertex], delta_ds_loc_Z[iVertex]]
                     
                     # --- Go back to parallel run --- #
                     mpiBarrier(self.mpiComm)
@@ -2543,7 +2995,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
                     solidInterfaceDisplacement_tilde1 = solidInterfaceDisplacement_tilde.copy()
             
             if self.writeInFSIloop == True:
-                self.writeRealTimeData(timeIter, time, self.errValue)
+                self.writeRealTimeData(timeIter, time, self.errValue, 0.0)
             
             self.FSIIter += 1
         

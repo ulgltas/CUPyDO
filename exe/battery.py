@@ -26,7 +26,7 @@ def runOne(donfile, nbProcs):
         printDir(donfile)
         exe='FSI'
         precise=''
-        if nbProcs == 0:
+        if int(nbProcs) == 0:
             cmd = [r"python"]
             cmd += [donfile]
         else:

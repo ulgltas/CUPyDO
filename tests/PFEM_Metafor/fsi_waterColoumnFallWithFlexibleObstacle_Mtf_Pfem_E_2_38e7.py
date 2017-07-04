@@ -18,6 +18,7 @@ def main(nogui): # NB, the argument 'nogui' is specific to PFEM only!
     p['tTot'] = 0.35
     p['mtfSaveAllFacs'] = False
     p['saveFreqPFEM'] = 1000
+    p['omegaMax'] = 1.0
     
     from PFEM_Metafor.fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7 import main
     main(p, nogui)

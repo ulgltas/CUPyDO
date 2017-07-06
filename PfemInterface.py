@@ -6,11 +6,6 @@
 # ----------------------------------------------------------------------
 import os, os.path, sys, time, string
 
-pfemPath = 'D:/PFEM/pfemB/bin/Release'
-pfemToolsPath = 'D:/PFEM/pfem/tools' 
-sys.path.append(pfemPath)
-sys.path.append(pfemToolsPath)
-
 import math
 import numpy as np
 from FSICoupler import FluidSolver

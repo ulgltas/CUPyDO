@@ -9,7 +9,7 @@ def params(q={}):
     """ default model parameters
     """
     p={}
-    p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
+    p['tolNR']      = 1.0e-4        # Newton-Raphson tolerance
     p['tend']       = 2.            # final time
     p['dtmax']      = 0.005          # max time step
     p['bndno']      = 13            # interface boundary number

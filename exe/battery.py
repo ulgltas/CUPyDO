@@ -5,9 +5,9 @@
 # Originally written for "Metalub" by Romain Boman
 # Modified for "Metalub" by Yves CARRETTA 
 
-import sys, glob, os, subprocess, platform
+import sys, glob, os, subprocess, platform, argparse
 
-defArgs = [ r"apps".replace('/',os.sep)]
+defArgs = [ r"tests".replace('/',os.sep)]
 lastDir = None
 
 def printDir(donfile):
@@ -15,7 +15,7 @@ def printDir(donfile):
     if lastDir!=os.path.dirname(donfile):
         lastDir=os.path.dirname(donfile)
 
-def runOne(donfile, usegui):
+def runOne(donfile, nbProcs):
     global exeFile   
     logfile = donfile.replace('.py','.log')
     resfile=donfile.replace('.py','.res')
@@ -26,10 +26,16 @@ def runOne(donfile, usegui):
         printDir(donfile)
         exe='FSI'
         precise=''
-        cmd = [r"python"]
-        cmd += [donfile]
-        cmd += [' True ']
-        cmd += [usegui]
+        if int(nbProcs) == 0:
+            cmd = [r"python"]
+            cmd += [donfile]
+        else:
+            cmd = [r"mpirun"]
+            cmd += ["--np"]
+            cmd += [nbProcs]
+            cmd += ["python"]
+            cmd += [donfile]
+        
         print '\t[%s] %s => %s %s' % (exe, os.path.basename(donfile), os.path.basename(logfile), precise)
         flog = open(logfile,'w')
         
@@ -110,17 +116,17 @@ def loopOn(files):
             for f in loopOnOne(file):
                 yield f
 
-def process(args, cmd, usegui):
+def process(args, cmd, nbProcs):
     global defArgs
     if not args: args=defArgs
     for donfile in loopOn(args):
         if cmd=='run':
-            runOne(donfile, usegui)
+            runOne(donfile, nbProcs)
         elif cmd=='clean':
             cleanOne(donfile)
         elif cmd=='rerun':
             cleanOne(donfile)
-            runOne(donfile, usegui)
+            runOne(donfile, nbProcs)
 
 
 def machineid():
@@ -156,7 +162,7 @@ def verif(args):
     files={}
     fext = ['failed', 'results']
     for ext in fext:
-        fname = ( verifPth + os.sep + "%s-%s.txt" % (ext, machineid())).replace('/',os.sep)               
+        fname = ( verifPth + os.sep + "%s-%s.ascii" % (ext, machineid())).replace('/',os.sep)               
         files[ext] = open(fname,'w')
 
     ntest=0
@@ -178,7 +184,7 @@ def usage(exe):
     txt="""
 %s : Battery script for FSI
 
-usage: %s [run|rerun|verif|clean] files
+usage: %s [run|rerun|verif|clean] tests
 
 examples:
   %s run: start/continue the battery
@@ -187,32 +193,32 @@ examples:
   %s clean: clean all results
 
 """ % (exe, exe, exe, exe, exe, exe)
-    print txt
+    return txt
 
 
 def main():
-    global fsiExe
-    #execfile('.pythonrc.py')
-    i=1
-    while i<len(sys.argv):
-        # "Initialisation" 
-        # On définit l'extension des fichiers qui seront lus et l'executable à utiliser
-        cmd=sys.argv[i]
-        usegui = sys.argv[i+1]
-        fsiExe = r"Python"         
-        # Execution de la batterie                
-        if cmd in ['run', 'clean', 'rerun']:
-                process(sys.argv[i+1:], cmd, usegui)
-                break
-        elif cmd=='verif':
-            verif(sys.argv[i+1:])
-            break
-        else:
-            usage(os.path.basename(sys.argv[0]))
-            break
-        i+=1
+    
+    # Analyzing command line options
+    parser = argparse.ArgumentParser(usage=usage(os.path.basename(sys.argv[0])))
+    parser.add_argument('cmd', type=str, choices=['run','rerun','clean','verif'],
+                        help='instruction to be executed by battery')
+    parser.add_argument('--np', dest='nbProcs', type=str, default='0',
+                        help='number of processors for MPI computations')
+    parser.add_argument('tests', type=str, nargs='+',
+                        help='test files name')
+    args = parser.parse_args()
+    
+    cmd = args.cmd
+    nbProcs = args.nbProcs
+    tests = args.tests
+    
+    # Execution of the battery                
+    if cmd in ['run', 'clean', 'rerun']:
+        process(tests, cmd, nbProcs)
+    elif cmd=='verif':
+        verif(tests)
     else:
-        usage(os.path.basename(sys.argv[0]))
+        parser.print_help()
 
 if __name__=="__main__":
     main()

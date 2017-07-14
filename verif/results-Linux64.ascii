@@ -1,0 +1,15 @@
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [cpu FSI]: 159.348927975s
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Time steps FSI]: 4
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Successful Run FSI]: True
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Mean n. of FSI Iterations]: 1.75
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Lift coeff : 0.000976538547599
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Drag coeff : 2.63914187934
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.3792948403e-08
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-FSIhistory: 4	0.01	1.71465482856e-25	2
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [cpu FSI]: 935.518097878s
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Time steps FSI]: 5
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Successful Run FSI]: True
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Mean n. of FSI Iterations]: 3.4
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Lift coeff : 0.248389526173
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Drag coeff : 0.00142509051662
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-FSIhistory: 5	0.005	7.35868189675e-09	4

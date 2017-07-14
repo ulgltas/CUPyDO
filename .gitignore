@@ -6,9 +6,7 @@
 
 exe/workspace/
 
-apps/PFEM_Metafor/workspace/
-apps/SU2_Metafor/workspace/
-apps/SU2_GetDP/workspace/
+apps/
 
 tests/FSICoupler/workspace/
 tests/Metafor/workspace/

@@ -40,10 +40,24 @@ class SU2Solver(FluidSolver):
                 print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
 
         allMovingMarkersTags = self.SU2.GetAllMovingMarkersTag()                    # list containing the tags of all moving markers
+        allCHTMarkersTags = self.SU2.GetAllCHTMarkersTag()
         allMarkersID = self.SU2.GetAllBoundaryMarkers()                             # dic : allMarkersID['marker_tag'] = marker_ID
-        self.fluidInterfaceID = None
-        if allMovingMarkersTags[0] in allMarkersID.keys():
-            self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]         # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
+        self.fluidInterfaceID = None                                                # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
+        if not allMovingMarkersTags and not allCHTMarkersTags:
+            raise Exception('No interface for FSI was defined.')
+        elif allMovingMarkersTags and not allCHTMarkersTags:
+            if allMovingMarkersTags[0] in allMarkersID.keys():
+                self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
+        elif not allMovingMarkersTags and allCHTMarkersTags:
+            if allCHTMarkersTags[0] in allMarkersID.keys():
+                self.fluidInterfaceID = allMarkersID[allCHTMarkersTags[0]]
+        elif allMovingMarkersTags and allCHTMarkersTags:
+            if allMovingMarkersTags[0] == allCHTMarkersTags[0]:
+                if allMovingMarkersTags[0] in allMarkersID.keys():
+                    self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
+            else:
+                raise Exception("Moving and CHT markes have to be the same.")
+
         self.computationType = computationType                                    # computation type : steady (default) or unsteady
         self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 

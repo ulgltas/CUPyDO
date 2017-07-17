@@ -143,14 +143,6 @@ def machineid():
     else:
         return uname[0]
 
-def getFSIPath():
-    batteryPath = os.path.abspath(os.path.dirname(sys.argv[0]))
-    import fsi_pyutils
-    fsi_pyutils.findbins()
-    import FSICoupler 
-    pth = os.path.dirname(fsi.__file__)  
-    return pth
-
 def verif(args):
     print "gathering the results in fsi/verif"
     global defArgs

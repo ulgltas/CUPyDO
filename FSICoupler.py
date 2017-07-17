@@ -2638,6 +2638,7 @@ class AlgortihmBGSStaticRelax(Algortihm):
         Algortihm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, mpiComm)
         
         self.omegaMax = omegaMax
+        self.omegaMin = 1e-12
         self.omega = omegaMax
     
     def fsiCoupling(self, timeIter, time):
@@ -2799,7 +2800,7 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
             if deltaResNormSquare != 0.:
                 self.omega *= -prodScalRes/deltaResNormSquare
             else:
-                self.omega = 0.1
+                self.omega = self.omegaMin
         
         else:
             if self.aitkenCrit == 'max':
@@ -2808,7 +2809,7 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
                 self.omega = min(self.omegaMax, self.omega)
         
         self.omega = min(self.omega, 1.0)
-        self.omega = max(self.omega, 0.1)
+        self.omega = max(self.omega, self.omegaMin)
         
         mpiPrint('Aitken under-relaxation step with parameter {}'.format(self.omega), self.mpiComm)
         

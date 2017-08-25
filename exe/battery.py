@@ -61,7 +61,7 @@ def runOne(donfile, nbProcs):
         try:
             if os.path.isfile(logfile):
                 for line in open(logfile,'r'):
-                    for exp in [ 'RES-FSI-', '[Successful Run FSI]', '[cpu FSI]', '[Time steps FSI]', '[Mean n. of FSI Iterations]']:
+                    for exp in [ 'RES-FSI-', '[Successful Run FSI]', '[cpu FSI total]', '[Time steps FSI]', '[Mean n. of FSI Iterations]']:
                         if line.find(exp)!=-1:
                             fres.write("%s" % (line))        
         except: # ctrl-c
@@ -88,7 +88,7 @@ def verifOne(donfile):
     resfile=donfile.replace('.py','.res')
     if os.path.isfile(resfile):
         for line in open(resfile,'r'):
-            for exp in [ 'RES-FSI-', '[Successful Run FSI]', '[cpu FSI]', '[Time steps FSI]', '[Mean n. of FSI Iterations]']:
+            for exp in [ 'RES-FSI-', '[Successful Run FSI]', '[cpu FSI total]', '[Time steps FSI]', '[Mean n. of FSI Iterations]']:
                 if line.find(exp)!=-1:
                     tsc.append(line)
     return tsc

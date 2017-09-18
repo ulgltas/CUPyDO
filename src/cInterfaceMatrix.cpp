@@ -1,0 +1,98 @@
+/*!
+ * Source for CInterfaceMatrix.
+ * Authors : D. THOMAS.
+ *
+ * COPYRIHGHT (C) University of Liège, 2017.
+ */
+
+#include <iostream>
+#include <vector>
+
+#ifdef HAVE_MPI
+#include "petscmat.h"
+#endif
+
+#include "../include/cMpi.h"
+#include "../include/cInterfaceMatrix.h"
+
+using namespace std;
+
+CInterfaceMatrix::CInterfaceMatrix(int const& val_M, int const& val_N):M(val_M), N(val_N){ }
+
+CInterfaceMatrix::~CInterfaceMatrix(){
+
+#ifdef HAVE_MPI
+  if(H){
+    MatDestroy(&H);
+  }
+  else{  }
+#endif
+
+}
+
+void CInterfaceMatrix::createDense(){
+
+#ifdef HAVE_MPI
+  //MatCreateDense(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, NULL, &H);
+  MatCreateAIJ(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, N, NULL, N, NULL, &H);
+  //MatCreate(MPI_COMM_WORLD, &H);
+  //MatSetType(H, MATMPIAIJ);
+  //MatSetSizes(H, PETSC_DECIDE, PETSC_DECIDE, M, N);
+  //MatSetUp(H);
+#else
+  H.resize(M*N);
+#endif
+
+}
+
+void CInterfaceMatrix::createSparse(int val_dnz, int val_onz){
+
+#ifdef HAVE_MPI
+  MatCreateAIJ(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, val_dnz, NULL, val_onz, NULL, &H);
+#else
+  H.resize(M*N);
+#endif
+
+}
+
+void CInterfaceMatrix::createSparseFullAlloc(){
+
+#ifdef HAVE_MPI
+  MatCreateAIJ(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, N, NULL, N, NULL, &H);
+#else
+  H.resize(M*N);
+#endif
+
+}
+
+void CInterfaceMatrix::setValue(const int &iGlobalIndex, const int &jGlobalIndex, double const &value){
+
+#ifdef HAVE_MPI
+  MatSetValue(H, iGlobalIndex, jGlobalIndex, value, INSERT_VALUES);
+#else
+  H[iGlobalIndex*N+jGlobalIndex] = value;
+#endif
+}
+
+void CInterfaceMatrix::assemble(){
+
+#ifdef HAVE_MPI
+  MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
+#endif
+}
+
+#ifdef HAVE_MPI
+Mat CInterfaceMatrix::getMat(){
+
+  return H;
+}
+#else //HAVE_MPI
+void CInterfaceMatrix::getMat(int* size1, int* size2, double** mat_array){
+
+  *size1 = M;
+  *size2 = N;
+  *mat_array = &(H.front());;
+}
+
+#endif

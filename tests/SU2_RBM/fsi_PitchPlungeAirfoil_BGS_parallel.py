@@ -82,7 +82,7 @@ def main(_p, nogui):
     FSICoupler.mpiBarrier()
 
     # --- Initialize the FSI algorithm --- #
-    algorithm = FSICoupler.AlgortihmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    algorithm = FSICoupler.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
 
     # --- Launch the FSI computation --- #
     algorithm.run()

@@ -21,6 +21,10 @@ threads="1"
 #include "cLinearSolver.h"
 %}
 
+// petite bidouille pour pouvoir compiler avec "threads=1" et iterer sur des std_vector
+// (sinon ca explose à la destruction de l'iterateur)
+%nothread swig::SwigPyIterator::~SwigPyIterator();
+
 // ----------- MODULES UTILISES ------------
 %import "cMpi.h"
 %include "std_string.i"
@@ -87,18 +91,23 @@ namespace std {
 //%apply double& OUTPUT {double &distance};
 
 %feature("director") CInterpolator;
+%pythonappend CInterpolator "self.__disown__()"    // for directors
 %include "cInterpolator.h"
 
 %feature("director") CManager;
+%pythonappend CManager "self.__disown__()"    // for directors
 %include "cManager.h"
 
 %feature("director") CFlexInterfaceData;
+%pythonappend CFlexInterfaceData "self.__disown__()"    // for directors
 %include "cFlexInterfaceData.h"
 
 %feature("director") CInterfaceMatrix;
+%pythonappend CInterfaceMatrix "self.__disown__()"    // for directors
 %include "cInterfaceMatrix.h"
 
 %feature("director") CLinearSolver;
+%pythonappend CLinearSolver "self.__disown__()"    // for directors
 %include "cLinearSolver.h"
 
 %feature("director::except"){

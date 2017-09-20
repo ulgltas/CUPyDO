@@ -192,7 +192,7 @@ def mpiAllReduce(mpiComm = None, value = 0):
         mpiComm.Allreduce(sendBuff, rcvBuff, MPI.SUM)
         return rcvBuff[0]
     else:
-        return sendBuff
+        return value
 
 def mpiAllGather(mpiComm = None, value = 0):
     """
@@ -1268,7 +1268,7 @@ class Manager(ccupydo.CManager):
         """
         Description.
         """
-
+        
         return self.nFluidInterfacePhysicalNodes
 
     def getNumberOfLocalFluidInterfaceNodes(self):

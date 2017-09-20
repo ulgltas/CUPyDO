@@ -50,7 +50,7 @@ int CManager::getGlobalIndex(string const& str_physics, int const& iProc, int co
 
 }
 
-void CManager::setGlobalIndexing(std::string str_physics,std::vector<std::vector<double> > index_range){
+void CManager::setGlobalIndexing(std::string str_physics,std::vector<std::vector<int> > index_range){
 
   int physics;
 

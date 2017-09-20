@@ -28,13 +28,16 @@ ADTPoint::ADTPoint(int size_x, double* data_x, int size_y, double* data_y, int s
   data = new double[nDim*size];
   dataIDs = new int[size];
 
-  for(unsigned long ii=0; ii<size; ii++){
+  //Static cast to avoid warnings at compilation
+  unsigned long size_unsigned_long = static_cast<unsigned long>(size);
+
+  for(unsigned long ii=0; ii<size_unsigned_long; ii++){
     data[nDim*ii] = data_x[ii];
     data[nDim*ii+1] = data_y[ii];
     data[nDim*ii+2] = data_z[ii];
   }
 
-  for(unsigned long ii=0; ii<size; ii++){
+  for(unsigned long ii=0; ii<size_unsigned_long; ii++){
     dataIDs[ii] = ii;
   }
 

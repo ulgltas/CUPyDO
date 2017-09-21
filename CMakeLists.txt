@@ -63,6 +63,8 @@ INCLUDE_DIRECTORIES( ${MPI_INCLUDE_PATH} ${PETSC_INCLUDE_PATH} )
 #ADD_EXECUTABLE(cTestGeneral src/cTest_general.cpp src/cInterpolator.cpp src/cInterfaceMatrix.cpp src/cManager.cpp src/adtcore.cpp src/cAdt.cpp include/cInterpolator.h include/cManager.h include/cInterfaceMatrix.h include/adtcore.h include/cAdt.h )
 #TARGET_LINK_LIBRARIES(cTestGeneral ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
 
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 #-------------------------------------------------------------
 INCLUDE(${SWIG_USE_FILE})
 
@@ -88,5 +90,8 @@ SWIG_ADD_MODULE(CCupydo python ${ISRCS} ${SRCS})
 SWIG_LINK_LIBRARIES(CCupydo ${PYTHON_LIBRARIES} ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
 
 # --- Install ---
+SET(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}")
+MESSAGE(STATUS "Installation directory : ${CMAKE_INSTALL_PREFIX}")
+
 INSTALL_TARGETS(/ccupydo _CCupydo)
 INSTALL_FILES(/ccupydo FILES "${PROJECT_BINARY_DIR}/CCupydo.py") 

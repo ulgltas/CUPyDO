@@ -92,23 +92,23 @@ namespace std {
 //%apply double& OUTPUT {double &distance};
 
 %feature("director") CInterpolator;
-%pythonappend CInterpolator "self.__disown__()"    // for directors
+//%pythonappend CInterpolator "self.__disown__()"    // for directors
 %include "cInterpolator.h"
 
 %feature("director") CManager;
-%pythonappend CManager "self.__disown__()"    // for directors
+//%pythonappend CManager "self.__disown__()"    // for directors
 %include "cManager.h"
 
 %feature("director") CFlexInterfaceData;
-%pythonappend CFlexInterfaceData "self.__disown__()"    // for directors
+//%pythonappend CFlexInterfaceData "self.__disown__()"    // for directors
 %include "cFlexInterfaceData.h"
 
 %feature("director") CInterfaceMatrix;
-%pythonappend CInterfaceMatrix "self.__disown__()"    // for directors
+//%pythonappend CInterfaceMatrix "self.__disown__()"    // for directors
 %include "cInterfaceMatrix.h"
 
 %feature("director") CLinearSolver;
-%pythonappend CLinearSolver "self.__disown__()"    // for directors
+//%pythonappend CLinearSolver "self.__disown__()"    // for directors
 %include "cLinearSolver.h"
 
 %feature("director::except"){

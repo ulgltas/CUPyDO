@@ -90,13 +90,6 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 
     # --- Launch the FSI computation --- #
     algorithm.run()
-
-    # --- Exit the fluid solver --- #
-    fluidSolver.exit()
-
-    # --- Exit the solid solver --- #
-    if myid == rootProcess:
-        solidSolver.exit()
   
     # --- Exit computation --- #
     del manager

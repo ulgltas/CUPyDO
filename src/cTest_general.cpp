@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 #ifdef HAVE_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
-#endif
+#endif  //HAVE_MPI
 
   if(mpiSize != 4){
     throw string("MPI size must be equal to 4 for the test !");

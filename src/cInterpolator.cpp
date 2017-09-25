@@ -171,16 +171,13 @@ void CInterpolator::RBF_fillMatrixA(int size_loc_x, double* array_loc_x, int siz
     solidPoint[2] = array_loc_z[iVertex];
     iGlobalVertexSolid = manager->getGlobalIndex("solid", myid, iVertex);
     ADT.queryBallNN(3, solidPoint, radius, solidVertices);
-    //cout << "Search size : " << solidVertices.size() << endl;
     for(int jVertex : solidVertices){
       jGlobalVertexSolid = manager->getGlobalIndex("solid", iProc, jVertex);
       solidQuery[0] = buff_x[jVertex];
       solidQuery[1] = buff_y[jVertex];
       solidQuery[2] = buff_z[jVertex];
       dist = distance(3, solidPoint, 3, solidQuery);
-      //cout << "dist : " << dist << endl;
       phi = PHI_RBF(dist, radius);
-      //cout << "phi : " << phi << endl;
       A->setValue(iGlobalVertexSolid, jGlobalVertexSolid, phi);
       A_T->setValue(jGlobalVertexSolid, iGlobalVertexSolid, phi);
     }
@@ -223,16 +220,13 @@ void CInterpolator::RBF_fillMatrixB(int size_loc_x, double* array_loc_x, int siz
     fluidPoint[2] = array_loc_z[iVertex];
     iGlobalVertexFluid = manager->getGlobalIndex("fluid", myid, iVertex);
     ADT.queryBallNN(3, fluidPoint, radius, solidVertices);
-    //cout << "Search size : " << solidVertices.size() << endl;
     for(int jVertex : solidVertices){
       jGlobalVertexSolid = manager->getGlobalIndex("solid", iProc, jVertex);
       solidQuery[0] = buff_x[jVertex];
       solidQuery[1] = buff_y[jVertex];
       solidQuery[2] = buff_z[jVertex];
       dist = distance(3, fluidPoint, 3, solidQuery);
-      //cout << "dist : " << dist << endl;
       phi = PHI_RBF(dist, radius);
-      //cout << "phi : " << phi << endl;
       B->setValue(iGlobalVertexFluid, jGlobalVertexSolid,phi);
       B_T->setValue(jGlobalVertexSolid, iGlobalVertexFluid, phi);
     }

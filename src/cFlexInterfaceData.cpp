@@ -10,7 +10,7 @@
 
 #ifdef HAVE_MPI
 #include "petscvec.h"
-#endif
+#endif  //HAVE_MPI
 
 #include "../include/cMpi.h"
 #include "../include/cFlexInterfaceData.h"
@@ -45,10 +45,10 @@ vector<int> CFlexInterfaceData::getOwnershipRange() const{
   vector<int> ownershipRange(2);
 #ifdef HAVE_MPI
   VecGetOwnershipRange(dataContainer[0], &(ownershipRange[0]), &(ownershipRange[1]));
-#else
+#else  //HAVE_MPI
   ownershipRange[0] = 0;
   ownershipRange[1] = nPoint;
-#endif
+#endif  //HAVE_MPI
 
   return ownershipRange;
 }

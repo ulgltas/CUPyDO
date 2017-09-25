@@ -107,7 +107,6 @@ private:
 
 public:
     ADT_PointType(int nDim, int nPoints, double *coord, int *pointID); //Constructor
-    //ADT_PointType(int nDim, int nPoints, double *coord, int *pointID); //Constructor
     ~ADT_PointType();
     void queryNearestNeighboor(double *coord, double &dist, int &pointID, int &rankID);                                               //Query a nearest neighboor point
     void queryBallNeighboors(double *coord, double const& radius, std::vector<double> &dist, std::vector<int> &pointID, int &rankID); //Query all neighboor within a sphere

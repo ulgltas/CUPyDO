@@ -20,7 +20,7 @@ CManager::CManager(){
   MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
 #else //HAVE_MPI
   mpiSize = 1;
-#endif
+#endif //HAVE_MPI
   nPhyscis = 2;
   nIndex = 2;
 

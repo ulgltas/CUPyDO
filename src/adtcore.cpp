@@ -182,7 +182,6 @@ void ADT_BaseType::buildADT(int nDim, int nPoints, double *coord){
     int nLeavesToDivideNew = 0;                    //Number of leaves that will have to be divided during the next round
     int leafNPoints(nPoints);                      //Number of points in the current leaf
 
-    //cout << "Building ADT..." << endl;
     int round(0);
 
     leaves[0].setParent(0);
@@ -321,7 +320,6 @@ void ADT_BaseType::buildADT(int nDim, int nPoints, double *coord){
       for(int i=0; i<nPointIDs[nLeavesToDivide]; ++i) pointIDs[i]  = pointIDsNew[i];
     }
 
-    cout << "ADT has been built in " << round << " rounds." << endl;
 }
 
 double ADT_BaseType::computeDistanceSquare(double *pointA, double *pointB){
@@ -354,7 +352,6 @@ bool ADT_BaseType::intersectSphere(double *center, const double &radius, ADT_Nod
     double distanceSquare(0.0);
 
     distanceSquare = computeDistanceSquare(center, BBox);
-    //cout << "Computed squared distance" << distanceSquare << endl;
 
     if (distanceSquare == 0){   //Sphere center is included in the box, so we have intersection
       return true;
@@ -401,18 +398,11 @@ void ADT_BaseType::display(void){
 
 ADT_PointType::ADT_PointType(int nDim, int nPoints, double *coord, int *pointID){
 
-    //cout << "***************************************" << endl;
-    //cout << "Creating ADT" << endl;
-    //cout << "Type : Points" << endl;
-    //cout << "Dimensions : " << nDim << endl;
-    //cout << "Number of points : " << nPoints << endl << endl;
-
     coordPoints.assign(coord, coord + nDim*nPoints);
     localPointIDs.assign(pointID, pointID + nPoints);
     ranksOfPoints.assign(nPoints, 0);
 
     buildADT(nDim, nPoints, coord);
-    //cout << "***************************************" << endl;
 }
 
 ADT_PointType::~ADT_PointType(){}
@@ -432,20 +422,15 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
     int round(0);
 
     dist = computeDistanceSquare(coord, coordTarget);
-    //cout << "Initialize with leaf 0 at distance " << dist << " from central node " << kk << endl;
 
     /* Traverse the tree to find the nearest node and start at the root. */
     frontLeaves.clear();       // Make sure to wipe out any data from aprevious search.
     frontLeaves.push_back(0);  // Initialize frontLeaves such that it only contains the root leaf.
 
-
-    //cout << "Initial distance " << dist << endl;
-
     /* Infinite loop of the tree traversal. */
     while(1) {
 
         round++;
-        //cout << "********* ROUND *********** : " << round << endl;
 
       /* Clear the front for the next round. */
       frontLeavesNew.clear();
@@ -455,7 +440,6 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
 
         /* Get the current leaf and loop over its children (always 2 children). */
         const int iLeaf = frontLeaves[i];
-        //cout << "Looking in leaf : " << iLeaf << endl;
         for(int iChild=0; iChild<2; iChild++) {
 
           /* Determine whether this child is a point or a leaf. */
@@ -467,15 +451,12 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
             double distTarget = 0;
             distTarget = computeDistanceSquare(coord, coordTarget);
 
-            //cout << "Child is a point " << childID <<  " with distance " << sqrt(distTarget) << endl;
-
             /* If the distance is smaller than the current minimum, update the search result. */
             if(distTarget < dist) {
               dist     = distTarget;
               pointID  = localPointIDs[childID];
               rankID   = ranksOfPoints[childID];
               minIndex = childID;
-              //cout << "Updating new dist " << sqrt(dist) << endl;
             }
           }
           else {
@@ -484,12 +465,9 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
             double posDist = 0.0;
             posDist = computeDistanceSquare(coord, leaves[childID]);  //This will return 0.0 if the point is included in the bounding box associated to the leaf.
 
-            //cout << "Child is a leaf " << childID <<  " with distance " << sqrt(posDist) << endl;
-
             /* If the distance is smaller thant the current minimum, store the leaf ID to be treated during the next round.
                Also evaluate the distance to the leaf central node, and use it to update the search result.*/
             if(posDist < dist) {
-              //cout << "I will have to look at the leaf " << childID << " during next round !" << endl;
               frontLeavesNew.push_back(childID);
 
               const int jj = leaves[childID].getCentralNodeID();
@@ -498,14 +476,11 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
               double distTarget = 0;
               distTarget = computeDistanceSquare(coord, coordTarget);
 
-              //cout << "Distance with the central node " << jj << " : " << sqrt(distTarget) << endl;
-
               if(distTarget < dist) {
                 dist     = distTarget;
                 pointID  = localPointIDs[jj];
                 rankID   = ranksOfPoints[jj];
                 minIndex = jj;
-                //cout << "Updating new dist " << sqrt(dist) << endl;
               }
             }
           }
@@ -529,7 +504,6 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
 
 void ADT_PointType::queryBallNeighboors(double *coord, double const& radius, std::vector<double> &dist, std::vector<int> &pointID, int &rankID){
 
-    //int nearestNeighboor(0);
     double distanceSquare(0.0);
     double* coordTarget;
 
@@ -551,7 +525,6 @@ void ADT_PointType::queryBallNeighboors(double *coord, double const& radius, std
       /* Loop over the leaves of the current round */
       for(int i=0; i<frontLeaves.size(); i++){
         const int iLeaf = frontLeaves[i];
-        //cout << "Looking in leaf " << iLeaf << endl;
 
         /* Loop over the children of the current leaf */
         for(int iChild=0; iChild<2; iChild++){
@@ -559,12 +532,10 @@ void ADT_PointType::queryBallNeighboors(double *coord, double const& radius, std
 
           /* If the child is a point, test if it is included in the ball search */
           if(leaves[iLeaf].isChildTerminal(iChild)){
-            //cout << "Child is point " << iChild << endl;
             coordTarget = coordPoints.data() + nDimADT*childID;
             distanceSquare = computeDistanceSquare(coord, coordTarget);
             /* If the point is included in the ball search, add the point to the list */
             if (distanceSquare <= pow(radius,2)){
-              //cout << "We have a point with distance squared " << distanceSquare << endl;
               dist.push_back(sqrt(distanceSquare));
               pointID.push_back(childID);
             }
@@ -573,7 +544,6 @@ void ADT_PointType::queryBallNeighboors(double *coord, double const& radius, std
           else{
             /* If the leaf intersects the ball, it has to be investigated at the next round */
             if(intersectSphere(coord, radius, leaves[childID])){
-              //cout << "We have intersection with leaf " << childID << " and it will be investigated udring next round !" << endl;
               frontLeavesNew.push_back(childID);
             }
             /* If not, the ball is outside the leaf and this part of the tree will never be traversed */

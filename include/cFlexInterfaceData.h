@@ -11,7 +11,7 @@
 
 #ifdef HAVE_MPI
 #include "petscvec.h"
-#endif
+#endif  //HAVE_MPI
 
 #include "cMpi.h"
 

@@ -47,7 +47,6 @@ ADTPoint::ADTPoint(int size_x, double* data_x, int size_y, double* data_y, int s
 
 ADTPoint::~ADTPoint(){
 
-  cout << "CALL->ADTPoint::~ADTPoint()" << endl;
   if(data != NULL) delete data;
   if(dataIDs != NULL) delete dataIDs;
   if(dataTree != NULL) delete dataTree;
@@ -62,7 +61,6 @@ void ADTPoint::queryNN(int size, double *coord, int &pointID, double &distance){
 void ADTPoint::queryBallNN(int size, double* coord, double radius, std::vector<int> &allIDs){
 
   vector<double> allDist;
-  //vector<int> allIDS;
   int rank = 0;
 
   dataTree->queryBallNeighboors(coord, radius, allDist, allIDs, rank);

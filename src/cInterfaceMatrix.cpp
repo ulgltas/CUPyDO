@@ -10,7 +10,7 @@
 
 #ifdef HAVE_MPI
 #include "petscmat.h"
-#endif
+#endif  //HAVE_MPI
 
 #include "../include/cMpi.h"
 #include "../include/cInterfaceMatrix.h"
@@ -26,7 +26,7 @@ CInterfaceMatrix::~CInterfaceMatrix(){
     MatDestroy(&H);
   }
   else{  }
-#endif
+#endif  //HAVE_MPI
 
 }
 
@@ -35,13 +35,9 @@ void CInterfaceMatrix::createDense(){
 #ifdef HAVE_MPI
   //MatCreateDense(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, NULL, &H);
   MatCreateAIJ(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, N, NULL, N, NULL, &H);
-  //MatCreate(MPI_COMM_WORLD, &H);
-  //MatSetType(H, MATMPIAIJ);
-  //MatSetSizes(H, PETSC_DECIDE, PETSC_DECIDE, M, N);
-  //MatSetUp(H);
-#else
+#else  //HAVE_MPI
   H.resize(M*N);
-#endif
+#endif  //HAVE_MPI
 
 }
 
@@ -49,9 +45,9 @@ void CInterfaceMatrix::createSparse(int val_dnz, int val_onz){
 
 #ifdef HAVE_MPI
   MatCreateAIJ(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, val_dnz, NULL, val_onz, NULL, &H);
-#else
+#else //HAVE_MPI
   H.resize(M*N);
-#endif
+#endif //HAVE_MPI
 
 }
 
@@ -59,9 +55,9 @@ void CInterfaceMatrix::createSparseFullAlloc(){
 
 #ifdef HAVE_MPI
   MatCreateAIJ(MPI_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, M, N, N, NULL, N, NULL, &H);
-#else
+#else //HAVE_MPI
   H.resize(M*N);
-#endif
+#endif //HAVE_MPI
 
 }
 
@@ -69,9 +65,9 @@ void CInterfaceMatrix::setValue(const int &iGlobalIndex, const int &jGlobalIndex
 
 #ifdef HAVE_MPI
   MatSetValue(H, iGlobalIndex, jGlobalIndex, value, INSERT_VALUES);
-#else
+#else  //HAVE_MPI
   H[iGlobalIndex*N+jGlobalIndex] = value;
-#endif
+#endif  //HAVE_MPI
 }
 
 void CInterfaceMatrix::assemble(){
@@ -79,7 +75,7 @@ void CInterfaceMatrix::assemble(){
 #ifdef HAVE_MPI
   MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
-#endif
+#endif  //HAVE_MPI
 }
 
 #ifdef HAVE_MPI
@@ -95,4 +91,4 @@ void CInterfaceMatrix::getMat(int* size1, int* size2, double** mat_array){
   *mat_array = &(H.front());;
 }
 
-#endif
+#endif  //HAVE_MPI

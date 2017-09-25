@@ -1268,7 +1268,7 @@ class Manager(ccupydo.CManager):
         """
         Description.
         """
-        
+
         return self.nFluidInterfacePhysicalNodes
 
     def getNumberOfLocalFluidInterfaceNodes(self):
@@ -1613,7 +1613,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceHeatFlux_X, localFluidInterfaceHeatFlux_Y, localFluidInterfaceHeatFlux_Z = self.FluidSolver.getNodalHeatFluxes()
             localFluidInterfaceNormalHeatFlux = self.FluidSolver.getNodalNormalHeatFlux()
-            print localFluidInterfaceNormalHeatFlux
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
                 self.fluidInterfaceHeatFlux[iGlobalVertex] = [localFluidInterfaceHeatFlux_X[iVertex], localFluidInterfaceHeatFlux_Y[iVertex], localFluidInterfaceHeatFlux_Z[iVertex]]

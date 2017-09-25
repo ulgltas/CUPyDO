@@ -13,7 +13,7 @@
 
 #ifdef HAVE_MPI
 #include "petscmat.h"
-#endif
+#endif  //HAVE_MPI
 
 class CInterfaceMatrix{
 #ifdef HAVE_MPI
@@ -32,7 +32,7 @@ public:
   void assemble();
 #ifdef HAVE_MPI
   Mat getMat();
-#else
+#else  //HAVE_MPI
   void getMat(int* size1, int* size2, double** mat_array);
-#endif
+#endif  //HAVE_MPI
 };

@@ -18,7 +18,6 @@ protected:
   int size, nDim;
   ADT_PointType *dataTree;
 public:
-  //ADTPoint(int size_x, double* data_x, int val_size_y, double* val_data_y);
   ADTPoint(int size_x, double* data_x, int val_size_y, double* val_data_y, int size_z, double* data_z);
   ~ADTPoint();
   void queryNN(int size, double* coord, int &pointID, double &distance);

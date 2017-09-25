@@ -34,7 +34,8 @@ CLinearSolver::~CLinearSolver(){
 
 #ifdef HAVE_MPI
   if(KSPSolver) KSPDestroy(&KSPSolver);
-#endif
+#endif  //HAVE_MPI
+
 }
 
 #ifdef HAVE_MPI
@@ -43,4 +44,4 @@ void CLinearSolver::solve(Vec &VecX, Vec &VecB) const{
   KSPSolve(KSPSolver, VecB, VecX);
 
 }
-#endif
+#endif  //HAVE_MPI

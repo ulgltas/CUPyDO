@@ -10,7 +10,7 @@
 #ifdef HAVE_MPI
 #include "petscksp.h"
 #include "petscvec.h"
-#endif
+#endif  //HAVE_MPI
 
 #include "cInterfaceMatrix.h"
 
@@ -24,5 +24,5 @@ public:
   virtual ~CLinearSolver();
 #ifdef HAVE_MPI
   void solve(Vec &VecX, Vec &VecB) const;
-#endif
+#endif  //HAVE_MPI
 };

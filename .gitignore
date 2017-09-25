@@ -1,6 +1,7 @@
 *~
 *.bak
 *.pyc
+*.pyd
 *.log
 *.res
 
@@ -16,6 +17,8 @@ tests/PFEM_Metafor/workspace/
 tests/SU2_Metafor/workspace/
 tests/SU2_GetDP/workspace/
 
-*.txt
 *.bfac.gz
 
+build/
+ccupydo/*.so
+ccupydo/CCupydo*

@@ -1,4 +1,4 @@
-# fsi
+# CUPyDO
 FSI tools for partinioned coupling between generic solid and fluid solvers.
 
 For the moment, interfaces for the following solvers are implemented:

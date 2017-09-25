@@ -717,7 +717,6 @@ class LinearSolver(ccupydo.CLinearSolver):
         if mpiComm == None:
             self.LinOperator = MatrixOperator.getMat()
 
-
     def solve(self, VecB, VecX):
         """
         Solve system MatrixOperator*VecX = VecB.
@@ -2349,7 +2348,7 @@ class TPSInterpolator(RBFInterpolator):
 #    Algorithm class
 # ----------------------------------------------------------------------
 
-class Algortihm:
+class Algorithm:
     """
     Des.
     """
@@ -2639,38 +2638,61 @@ class Algortihm:
         Des.
         """
 
-        # --- Initialize output manager --- #
-        self.iniRealTimeData()
+        try:
+            # --- Initialize output manager --- #
+            self.iniRealTimeData()
 
-        mpiPrint('\n**********************************', self.mpiComm)
-        mpiPrint('*         Begin FSI computation            *', self.mpiComm)
-        mpiPrint('**********************************\n', self.mpiComm)
+            mpiPrint('\n**********************************', self.mpiComm)
+            mpiPrint('*         Begin FSI computation            *', self.mpiComm)
+            mpiPrint('**********************************\n', self.mpiComm)
 
-        self.globalTimer.start()
+            self.globalTimer.start()
 
-        #If no restart
-        mpiPrint('Setting FSI initial conditions...', self.mpiComm)
-        self.setFSIInitialConditions(0.0)
-        mpiPrint('\nFSI initial conditions are set', self.mpiComm)
+            #If no restart
+            mpiPrint('Setting FSI initial conditions...', self.mpiComm)
+            self.setFSIInitialConditions(0.0)
+            mpiPrint('\nFSI initial conditions are set', self.mpiComm)
 
-        if self.manager.computationType == 'unsteady':
-            self.__unsteadyRun()
-        else:
-            time = self.totTime
-            timeIter = 1
-            self.deltaT = self.totTime
-            self.writeInFSIloop = True
-            self.fsiCoupling(timeIter, time)
-            self.totNbOfFSIIt = self.FSIIter
-            self.globalTimer.stop()
-            self.globalTimer.cumul()
-            self.printExitInfo(timeIter, time, self.errValue)
+            if self.manager.computationType == 'unsteady':
+                self.__unsteadyRun()
+            else:
+                time = self.totTime
+                timeIter = 1
+                self.deltaT = self.totTime
+                self.writeInFSIloop = True
+                self.fsiCoupling(timeIter, time)
+                self.totNbOfFSIIt = self.FSIIter
+                self.globalTimer.stop()
+                self.globalTimer.cumul()
+                self.printExitInfo(timeIter, time, self.errValue)
 
-        mpiBarrier(self.mpiComm)
+            mpiBarrier(self.mpiComm)
 
-        mpiPrint('\n*************************', self.mpiComm)
-        mpiPrint('*    End FSI computation    *', self.mpiComm)
-        mpiPrint('*************************\n', self.mpiComm)
+            mpiPrint('\n*************************', self.mpiComm)
+            mpiPrint('*    End FSI computation    *', self.mpiComm)
+            mpiPrint('*************************\n', self.mpiComm)
+
+            # --- Exit the fluid solver --- #
+            self.FluidSolver.exit()
+
+            # --- Exit the solid solver --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.exit()
+
+            # --- Exit computation --- #
+            mpiBarrier(self.mpiComm)
+            return 0
+        except:
+            # --- Exit the fluid solver --- #
+            self.FluidSolver.exit()
+
+            # --- Exit the solid solver --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.exit()
+
+            # --- Exit computation --- #
+            mpiBarrier(self.mpiComm)
+            return 1
 
     def __unsteadyRun(self):
         """
@@ -2734,7 +2756,7 @@ class Algortihm:
         self.globalTimer.cumul()
         self.printExitInfo(timeIter, time, self.errValue)
 
-class AlgortihmBGSStaticRelax(Algortihm):
+class AlgorithmBGSStaticRelax(Algorithm):
     """
     Des.
     """
@@ -2744,7 +2766,7 @@ class AlgortihmBGSStaticRelax(Algortihm):
         Des.
         """
 
-        Algortihm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, mpiComm)
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, mpiComm)
 
         self.omegaMax = omegaMax
         self.omegaMin = 1e-12
@@ -2873,14 +2895,14 @@ class AlgortihmBGSStaticRelax(Algortihm):
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             self.interfaceInterpolator.solidInterfaceTemperature += self.solidTemperatureResidual
 
-class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
+class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaMax=1.0, mpiComm=None):
         """
         Des.
         """
 
-        AlgortihmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaMax, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaMax, mpiComm)
 
         ns = self.interfaceInterpolator.getNs()
         self.solidInterfaceResidualkM1 = FlexInterfaceData(ns, 3, self.mpiComm)
@@ -2920,7 +2942,7 @@ class AlgortihmBGSAitkenRelax(AlgortihmBGSStaticRelax):
         # --- Update the value of the residual for the next FSI iteration --- #
         self.solidInterfaceResidualkM1 = self.solidInterfaceResidual.copy()
 
-class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
+class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
     """
     Des.
     """
@@ -2930,7 +2952,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         Des.
         """
 
-        AlgortihmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaMax, mpiComm)
+        AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaMax, mpiComm)
 
         # --- Number of previous time steps used in the approximation of the tangent matrix --- #
         self.nbTimeToKeep = nbTimeToKeep
@@ -2938,8 +2960,8 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
         self.computeTangentMatrixBasedOnFirstIt = computeTangentMatrixBasedOnFirstIt
 
-        # --- Option which determines the way the c coefficients are computes either using Degroote's QR decompoistion or simply using np.linalg.lstsq
-        self.useQR = False
+        # --- Option which determines the way the c coefficients are computed either using Degroote's QR decompoistion or simply using np.linalg.lstsq
+        self.useQR = True
         self.tollQR = 1.0e-6 # tolerance used to get the tolerance for backward substitution after QR decomposition, toll, as toll = self.tollQR*norm(R)
 
         # --- Global V and W matrices for IQN-ILS algorithm, including information from previous time steps --- #
@@ -3135,7 +3157,7 @@ class AlgortihmIQN_ILS(AlgortihmBGSAitkenRelax):
         if timeIter > self.timeIterTreshold:
             mpiPrint('\n*************** IQN-ILS is converged ***************', self.mpiComm)
 
-class ThermalAlgortihmBGS(AlgortihmBGSStaticRelax):
+class ThermalAlgorithmBGS(AlgorithmBGSStaticRelax):
     """
     Des.
     """
@@ -3145,7 +3167,7 @@ class ThermalAlgortihmBGS(AlgortihmBGSStaticRelax):
         Des.
         """
 
-        AlgortihmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, 1.0, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, 1.0, mpiComm)
 
     def setFSIInitialConditions(self, time):
         """

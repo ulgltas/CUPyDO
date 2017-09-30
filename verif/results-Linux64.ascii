@@ -1,15 +1,15 @@
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [cpu FSI total]: 86.0878350735 s
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [cpu FSI total]: 84.0574998856 s
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Time steps FSI]: 4
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Successful Run FSI]: True
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Mean n. of FSI Iterations]: 1.75
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Lift coeff : 0.000976538547599
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Drag coeff : 2.63914187934
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.3792948403e-08
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-FSIhistory: 4	0.01	1.71465482856e-25	2
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [cpu FSI total]: 524.249345064 s
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Lift coeff : 0.000976515330606
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Drag coeff : 2.63913796176
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.37930753019e-08
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-FSIhistory: 4	0.01	2.32644547281e-25	2
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [cpu FSI total]: 520.66157794 s
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Time steps FSI]: 5
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Successful Run FSI]: True
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Mean n. of FSI Iterations]: 3.4
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Lift coeff : 0.248389526173
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Drag coeff : 0.00142509051662
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-FSIhistory: 5	0.005	7.35868189675e-09	4
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Lift coeff : 0.248429512326
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Drag coeff : 0.00143622623339
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-FSIhistory: 5	0.005	9.85703134777e-09	4

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-
-## \file FSICoupler.py
-#    \brief Description.
-#    \author
-#    \version BETA
+# -*- coding: latin-1; -*-
 #
+# FSICoupler.py
+# Main file (Python core) of CUPyDO.
+# Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 #
+# COPYRIGHT (C) University of Liège, 2017.
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -32,6 +32,10 @@ np.set_printoptions(threshold=np.nan)
 _theModule  = None
 _theWDir    = None # workspace directory
 _theWDirRoot = os.getcwd()  # base directory du workspace
+
+# ----------------------------------------------------------------------
+#  Utilities
+# ----------------------------------------------------------------------
 
 def solve_upper_triangular_mod(U, y, toll):
 
@@ -254,7 +258,7 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
     return interfData_Gat
 
 # ----------------------------------------------------------------------
-#   Timer classe
+#   Timer class
 # ----------------------------------------------------------------------
 
 class Timer:

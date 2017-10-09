@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
-# Battery FSI
-# Revisited for FSI by Marco Lucio CERQUAGLIA and David THOMAS
+# Battery CUPyDO
+# Revisited for CUPyDO by Marco Lucio CERQUAGLIA and David THOMAS
 # Originally written for "Metalub" by Romain Boman
-# Modified for "Metalub" by Yves CARRETTA 
+# Modified for "Metalub" by Yves CARRETTA
+#
+# COPYRIGHT (C) University of Liege, 2017. 
 
 import sys, glob, os, subprocess, platform, argparse
 

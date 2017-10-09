@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
-# \file SU2Interface.py
-#  \brief Python interface between the wrapper of SU2 and the FSI coupler.
-#  \author D. THOMAS, University of Liege, Belgium. Department of Aerospace and Mechanical Engineering.
-#  \version BETA
+# SU2Interface.py
+# Python interface between the wrapper of SU2 and CUPyDO.
+# Authors D. THOMAS
+#
+# COPYRIGHT (C) University of Liège, 2017.
 
 # ----------------------------------------------------------------------
 #  Imports

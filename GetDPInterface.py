@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
-# \file GetDPSolver.py
-#  \brief Python wrapping script used to sequentially run GetDP and exchange data with external fluid solver for coupled FSI computation.
-#  \author C. GEUZAINE, D. THOMAS, University of Liege, Belgium. Department of Mechanical and Aerospace Engineering
-#  \version BETA
+# GetDPInterface.py
+# Python interface between the wrapper of GetDP and CUPyDO.
+# Authors C. GEUZAINE, D. THOMAS
+#
+# COPYRIGHT (C) University of Liège, 2017.
 
 # ----------------------------------------------------------------------
 #  Imports

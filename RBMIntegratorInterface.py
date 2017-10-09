@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
+# RBMIntegratorInterface.py
+# Python interface between the wrapper of NativeSolid and CUPyDO.
+# Authors D. THOMAS
+#
+# COPYRIGHT (C) University of Liège, 2017.
+
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------

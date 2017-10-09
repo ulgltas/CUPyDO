@@ -2,7 +2,7 @@
  * Header for CFlexInterfaceData.
  * Authors : D. THOMAS.
  *
- * COPYRIHGHT (C) University of Liège, 2017.
+ * COPYRIGHT (C) University of Liège, 2017.
  */
 
 #pragma once

@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
+# PfemInterface.py
+# Python interface between the wrapper of PFEM solver and CUPyDO.
+# Authors M.L. CERQUAGLIA
+#
+# COPYRIGHT (C) University of Liège, 2017.
+
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------

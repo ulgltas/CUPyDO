@@ -2,7 +2,7 @@
  * Source for CInterpolator.
  * Authors : D. THOMAS.
  *
- * COPYRIHGHT (C) University of Liège, 2017.
+ * COPYRIGHT (C) University of Liège, 2017.
  */
 
 #include <iostream>

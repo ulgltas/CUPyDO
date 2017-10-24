@@ -224,4 +224,4 @@ class PfemSolver(FluidSolver):
             self.pfem.gui.save2vtk()
         self.pfem.scheme.exit()
         
-        print("***************************** Exit Pfem *****************************")
+        print("\n***************************** Exit Pfem *****************************")

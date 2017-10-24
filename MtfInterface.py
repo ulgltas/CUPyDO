@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
+# MtfInterface.py
+# Python interface between the wrapper of Metafor and CUPyDO.
+# Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
+#
+# COPYRIGHT (C) University of Liège, 2017.
+
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------

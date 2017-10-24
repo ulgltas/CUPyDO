@@ -1,13 +1,21 @@
 # -*- coding: latin-1; -*-
+
+# fsi_pyutils.py
+# Python utilities.
+# Authors: L. PAPELEUX
 #
-# $Id: pyutils.py 1792 2013-08-26 10:21:03Z papeleux $
-#
-# Utilitaires python (ne nécessitent PAS metafor!)
-#
+# COPYRIGHT (C) University of Liège, 2017.
+
+# ----------------------------------------------------------------------
+#  Imports
+# ----------------------------------------------------------------------
 
 import os, os.path, sys, platform
 import tempfile
 
+# ----------------------------------------------------------------------
+#  Utilities
+# ----------------------------------------------------------------------
 
 def quit():
     sys.exit()

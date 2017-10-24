@@ -1,3 +1,10 @@
+/*!
+ * General tests for CCUPyDO.
+ * Authors : D. THOMAS.
+ *
+ * COPYRIGHT (C) University of Liège, 2017.
+ */
+
 #include <iostream>
 #include <string>
 

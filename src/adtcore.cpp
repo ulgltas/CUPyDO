@@ -6,8 +6,8 @@
  *
  * Authors : D. THOMAS.
  *
- * COPYRIHGHT (C) 2012-2017 SU2, the open-source CFD code.
- * COPYRIHGHT (C) University of Liège, 2017.
+ * COPYRIGHT (C) 2012-2017 SU2, the open-source CFD code.
+ * COPYRIGHT (C) University of Liège, 2017.
  */
 
 #include "../include/adtcore.h"

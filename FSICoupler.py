@@ -2696,7 +2696,7 @@ class Algorithm:
         mpiPrint('[cpu FSI fluid remeshing]: ' + str(self.fluidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[cpu FSI solid remeshing]: ' + str(self.solidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[Time steps FSI]: ' + str(self.timeIter), self.mpiComm)
-        mpiPrint('[Successful Run FSI]: ' + str(self.time >= self.totTime - self.deltaT), self.mpiComm)
+        mpiPrint('[Successful Run FSI]: ' + str(self.time >= (self.totTime - 2*self.deltaT)), self.mpiComm) # NB: self.totTime - 2*self.deltaT is the extreme case that can be encountered due to rounding effects!
         mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt()), self.mpiComm)
 
         if self.myid == 0 :
@@ -3033,7 +3033,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         self.qrFilter = 'Haelterman' # Type of QR filtering employed. Possible choices are 'Degroote1', 'Degroote2', and 'Haelterman' (see 'qrSolve()' function below)
         
         self.maxNbOfItReached = False
-         
+        self.convergenceReachedInOneIt = False
+        
         # --- Global V and W matrices for IQN-ILS algorithm, including information from previous time steps --- #
         self.V = []
         self.W = []
@@ -3095,7 +3096,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         delta_ds_loc_Y = np.zeros(0)
         delta_ds_loc_Z = np.zeros(0)
 
-        if self.nbTimeToKeep!=0 and self.timeIter > 1: # If information from previous time steps is re-used then Vk = V, Wk = W
+        if (self.nbTimeToKeep!=0 and self.timeIter > 1): # If information from previous time steps is re-used then Vk = V, Wk = W
             Vk = copy.deepcopy(self.V)
             Wk = copy.deepcopy(self.W)
         else: # If information from previous time steps is not re-used then Vk and Wk are empty lists of np.array()
@@ -3153,7 +3154,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
 
                 solidInterfaceDisplacement_tilde.assemble()
                 
-                if (self.FSIIter == 0 and (self.nbTimeToKeep == 0 or (self.nbTimeToKeep != 0 and (self.maxNbOfItReached or self.timeIter == 1)))) or self.timeIter < 1: # If information from previous time steps is re-used then this step is only performed at the first iteration of the first time step, otherwise it is performed at the first iteration of every time step
+                if ((self.FSIIter == 0 and (self.nbTimeToKeep == 0 or (self.nbTimeToKeep != 0 and (self.maxNbOfItReached or self.convergenceReachedInOneIt or self.timeIter == 1)))) or self.timeIter < 1): # If information from previous time steps is re-used then this step is only performed at the first iteration of the first time step, otherwise it is performed at the first iteration of every time step
                     # --- Relax the solid position --- #
                     mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                     self.relaxSolidPosition()
@@ -3184,7 +3185,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                         Vk_mat = np.vstack(Vk).T
                         Wk_mat = np.vstack(Wk).T
                         
-                        if Vk_mat.shape[1] > self.manager.nDim*ns and self.qrFilter == 'Degroote1': # Remove extra columns if number of iterations (i.e. columns of Vk and Wk) is larger than number of interface degrees of freedom 
+                        if (Vk_mat.shape[1] > self.manager.nDim*ns and self.qrFilter == 'Degroote1'): # Remove extra columns if number of iterations (i.e. columns of Vk and Wk) is larger than number of interface degrees of freedom 
                             mpiPrint('WARNING: IQN-ILS Algorithm using \'Degroote1\' QR filter. Approximated stiffness matrix number of columns exceeds the number of degrees of freedom at FSI interface. Extra columns (the oldest ones!) are deleted for next iterations to avoid overdetermined problem!', self.mpiComm)
                             Vk_mat = np.delete(Vk_mat, np.s_[(self.manager.nDim*ns-Vk_mat.shape[1]):], 1)
                             Wk_mat = np.delete(Wk_mat, np.s_[(self.manager.nDim*ns-Wk_mat.shape[1]):], 1)
@@ -3238,16 +3239,24 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             self.FSIIter += 1
         
         # if comm.myself == rootProcess
+        
         # update of the matrices V and W at the end of the while
         if self.nbTimeToKeep != 0 and self.timeIter >= 1:
             
+            # --- Trick to avoid breaking down of the simulation in the rare cases when, in the initial time steps, FSI convergence is reached without iterating (e.g. starting from a steady condition and using very small time steps), leading to empty V and W matrices ---
+            if (self.FSIIter == 1 and self.FSIConv and len(self.V)==0): 
+                self.convergenceReachedInOneIt = True 
+            else:
+                self.convergenceReachedInOneIt = False
+            # ---
+            
+            # --- Managing situations where FSI convergence is not reached ---
             if (self.FSIIter >= nbFSIIter and not self.FSIConv):
                 mpiPrint('WARNING: IQN-ILS using information from {} previous time steps reached max number of iterations. Next time step is run without using any information from previous time steps!'.format(self.nbTimeToKeep), self.mpiComm)
                 
                 self.maxNbOfItReached = True
                 self.V = []
                 self.W = []
-            
             else:
                 self.maxNbOfItReached = False
                 
@@ -3259,6 +3268,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                 if (self.timeIter > self.nbTimeToKeep and len(self.V) > self.nbTimeToKeep):
                     del self.V[-1]
                     del self.W[-1]
+            # --- 
         
         # --- Update the FSI history file --- #
         if self.timeIter > self.timeIterTreshold:

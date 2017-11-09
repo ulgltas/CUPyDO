@@ -70,6 +70,19 @@ void CInterfaceMatrix::setValue(const int &iGlobalIndex, const int &jGlobalIndex
 #endif  //HAVE_MPI
 }
 
+void CInterfaceMatrix::setValues(int const& m, int const iGlobalIndices[], int const& n, int const jGlobalIndices[], double const values[]){
+
+#ifdef HAVE_MPI
+  MatSetValues(H, m, iGlobalIndices, n, jGlobalIndices, values, INSERT_VALUES);
+#else //HAVE_MPI
+  for(int ii=0; ii<m; ii++){
+    for(int jj=0; jj<n; jj++){
+      H[iGlobalIndices[ii]*N+jGlobalIndices[jj]] = values[ii*n+jj];
+    }
+  }
+#endif //HAVE_MPI
+}
+
 void CInterfaceMatrix::assemble(){
 
 #ifdef HAVE_MPI

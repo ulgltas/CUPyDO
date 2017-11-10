@@ -1427,11 +1427,11 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.mappingTimer = Timer()
 
-        self.nf = 0
-        self.ns = 0
-        self.nf_loc = 0
-        self.ns_loc = 0
-        self.nDim = 0
+        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
+        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
+        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
+        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
+        self.nDim = self.manager.getnDim()
 
         self.d = 0
 
@@ -1457,20 +1457,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.myid = 0
             self.mpiSize = 1
 
-    def generateInterfaceData(self):
-        """
-        Description.
-        """
-
         self.solidInterfaceDisplacement = None
         self.fluidInterfaceDisplacement = None
         self.solidInterfaceLoads = None
         self.fluidInterfaceLoads = None
-        if self.manager.withFsi:
-            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
 
         self.solidInterfaceHeatFlux = None
         self.fluidInterfaceHeatFlux = None
@@ -1480,53 +1470,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.solidInterfaceNormalHeatFlux = None
         self.fluidInterfaceRobinTemperature = None
         self.solidInterfaceRobinTemperature = None
-        if self.manager.withCht :
-            if self.chtTransferMethod == 'TFFB':
-                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
-                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            elif self.chtTransferMethod == 'FFTB':
-                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
-                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf, 1, self.mpiComm)
-                self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
-            elif self.chtTransferMethod == 'hFTB':
-                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
-                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
-                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-            elif self.chtTransferMethod == 'hFFB':
-                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
-                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
-                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
-
-
-    def createKDTree(self, posX_array, posY_array, posZ_array):
-        """
-        Description.
-        """
-
-        KDTree = spatial.KDTree(zip(posX_array, posY_array, posZ_array))
-
-        return KDTree
-
-
-    def checkConservation(self):
-        """
-        Des.
-        """
-
-        WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)
-
-        WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)
-
-        mpiPrint("Checking f/s interface conservation...", self.mpiComm)
-        mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
-        mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
 
     def checkTotalLoad(self):
         """
@@ -1877,6 +1820,57 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         else:
             self.SolidSolver.applyNodalNormalHeatFluxes(self.solidInterfaceNormalHeatFlux.getDataArray(0), time)
 
+    def interpolateFluidLoadsOnSolidMesh(self):
+        """
+        Description
+        """
+
+        self.interpolateFluidToSolid(self.fluidInterfaceLoads, self.solidInterfaceLoads)
+
+    def interpolateSolidDisplacementOnFluidMesh(self):
+        """
+        Description.
+        """
+
+        self.interpolateSolidToFluid(self.solidInterfaceDisplacement, self.fluidInterfaceDisplacement)
+
+    def interpolateSolidHeatFluxOnFluidMesh(self):
+        """
+        Description.
+        """
+
+        self.interpolateSolidToFluid(self.solidInterfaceHeatFlux, self.fluidInterfaceHeatFlux)
+
+
+    def interpolateSolidTemperatureOnFluidMesh(self):
+        """
+        Description
+        """
+
+        self.interpolateSolidToFluid(self.solidInterfaceTemperature, self.fluidInterfaceTemperature)
+
+    def interpolateFluidHeatFluxOnSolidMesh(self):
+        """
+        Description.
+        """
+
+        self.interpolateFluidToSolid(self.fluidInterfaceHeatFlux, self.solidInterfaceHeatFlux)
+        self.interpolateFluidToSolid(self.fluidInterfaceNormalHeatFlux, self.solidInterfaceNormalHeatFlux)
+
+    def interpolateFluidTemperatureOnSolidMesh(self):
+        """
+        Description.
+        """
+
+        self.interpolateFluidToSolid(self.fluidInterfaceTemperature, self.solidInterfaceTemperature)
+
+    def interpolateFluidRobinTemperatureOnSolidMesh(self):
+        """
+        Des.
+        """
+
+        self.interpolateFluidToSolid(self.fluidInterfaceRobinTemperature, self.solidInterfaceRobinTemperature)
+
     def getNs(self):
         """
         Des.
@@ -1912,29 +1906,64 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
 
         mpiPrint('\nSetting matching meshes interpolator...', mpiComm)
 
-        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
-        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
-        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
-        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
-        self.nDim = self.manager.getnDim()
-
-
         if self.nf != self.ns:
             raise Exception("Fluid and solid interface must have the same number of nodes for matching meshes ! ")
+        ccupydo.CInterpolator.matching_initSearch(self)
 
         self.generateInterfaceData()
 
+        self.generateMapping()
+
+    def generateInterfaceData(self):
+        """
+        Des.
+        """
+
+        if self.manager.withFsi:
+            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
+            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
+            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+
+        if self.manager.withCht :
+            if self.chtTransferMethod == 'TFFB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            elif self.chtTransferMethod == 'FFTB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFTB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFFB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+
         self.H = InterfaceMatrix((self.nf,self.ns), self.mpiComm)
         self.H_T = InterfaceMatrix((self.ns,self.nf), self.mpiComm)
-
         self.H.createSparse(1,1)
         self.H_T.createSparse(1,1)
+
+    def generateMapping(self):
+        """
+        Des.
+        """
 
         solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
         fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
         solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
 
-        mpiPrint('\nBuilding interpolation matrix...', mpiComm)
+        mpiPrint('\nBuilding interpolation matrix...', self.mpiComm)
         mpiPrint('\nBuilding matrix H of size {} X {}...'.format(self.nf, self.ns), self.mpiComm)
         self.mappingTimer.start()
 
@@ -1954,10 +1983,13 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
                     self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
                     self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
                     self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
-                    self.fillMatrix(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+                    self.mappingSearch(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+            if self.myid in fluidInterfaceProcessors:
+                self.fillMatrix()
         else:
             localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
-            self.fillMatrix(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+            self.mappingSearch(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+            self.fillMatrix()
 
         mpiBarrier(self.mpiComm)
         mpiPrint("\nAssembling H & H_T...", self.mpiComm)
@@ -1972,120 +2004,140 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
 
         self.mappingTimer.stop()
         self.mappingTimer.cumul()
-        #print('Maping performed in {} seconds'.format(self.mappingTimer.cumulTime))
 
-    def fillMatrix(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+    def mappingSearch(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
         """
         Des.
         """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
 
-        print('Building H on rank {}...'.format(self.myid))
+        print('Mathing mapping search on rank {}...'.format(self.myid))
         start = tm.time()
-        ccupydo.CInterpolator.matching_fillMatrix(self, localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init,
-                                              solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, self.H, self.H_T, iProc)
+        ccupydo.CInterpolator.matching_search(self, localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init,
+                                              solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
         stop = tm.time()
-        print('Built H on rank {} in {} s'.format(self.myid,stop-start))
+        print('Search on rank {} in {} s'.format(self.myid,stop-start))
 
-    def interpolateFluidLoadsOnSolidMesh(self):
-        """
-        Description
-        """
-
-        for iDim in range(3):
-            self.H_T.mult(self.fluidInterfaceLoads.getData(iDim), self.solidInterfaceLoads.getData(iDim))
-
-    def interpolateSolidDisplacementOnFluidMesh(self):
-        """
-        Description.
-        """
-
-        for iDim in range(3):
-            self.H.mult(self.solidInterfaceDisplacement.getData(iDim), self.fluidInterfaceDisplacement.getData(iDim))
-
-    def interpolateSolidHeatFluxOnFluidMesh(self):
-        """
-        Description.
-        """
-
-        for iDim in range(3):
-            self.H.mult(self.solidInterfaceHeatFlux.getData(iDim), self.fluidInterfaceHeatFlux.getData(iDim))
-
-    def interpolateSolidTemperatureOnFluidMesh(self):
-        """
-        Description
-        """
-
-        for iDim in range(1):
-            self.H.mult(self.solidInterfaceTemperature.getData(iDim), self.fluidInterfaceTemperature.getData(iDim))
-
-    def interpolateFluidHeatFluxOnSolidMesh(self):
-        """
-        Description.
-        """
-
-        for iDim in range(3):
-            self.H_T.mult(self.fluidInterfaceHeatFlux.getData(iDim), self.solidInterfaceHeatFlux.getData(iDim))
-        self.H_T.mult(self.fluidInterfaceNormalHeatFlux.getData(0), self.solidInterfaceNormalHeatFlux.getData(0))
-
-    def interpolateFluidTemperatureOnSolidMesh(self):
-        """
-        Description.
-        """
-
-        for iDim in range(1):
-            self.H_T.mult(self.fluidInterfaceTemperature.getData(iDim), self.solidInterfaceTemperature.getData(iDim))
-
-    def interpolateFluidRobinTemperatureOnSolidMesh(self):
+    def fillMatrix(self):
         """
         Des.
         """
 
-        for iDim in range(1):
-            self.H_T.mult(self.fluidInterfaceRobinTemperature.getData(iDim), self.solidInterfaceRobinTemperature.getData(iDim))
+        print('Building H on rank {}...'.format(self.myid))
+        start = tm.time()
+        ccupydo.CInterpolator.matching_fillMatrix(self, self.H, self.H_T)
+        stop = tm.time()
+        print('Built H on rank {} in {} s'.format(self.myid,stop-start))
 
+    def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
+        """
+        des.
+        """
 
-class RBFInterpolator(InterfaceInterpolator):
+        dim = fluidInterfaceData.getDim()
+
+        for iDim in range(dim):
+            self.H_T.mult(fluidInterfaceData.getData(iDim), solidInterfaceData.getData(iDim))
+
+    def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
+        """
+        Des.
+        """
+
+        dim = solidInterfaceData.getDim()
+
+        for iDim in range(dim):
+            self.H.mult(solidInterfaceData.getData(iDim), fluidInterfaceData.getData(iDim))
+
+class ConservativeInterpolator(InterfaceInterpolator):
     """
     Description.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius=0.1, mpiComm = None):
-        """"
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+        """
+        Des.
+        """
+
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+
+        mpiPrint('\nSetting non-matching conservative interpolator...', mpiComm)
+
+        self.d = self.nDim+1
+        self.SolverA = None
+        self.SolverA_T = None
+
+    def getLinearSolvers(self):
+        """
+        Des.
+        """
+
+        return [self.SolverA, self.SolverA_T]
+
+    def checkConservation(self):
+        """
+        Des.
+        """
+
+        WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)
+
+        WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)
+
+        mpiPrint("Checking f/s interface conservation...", self.mpiComm)
+        mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
+        mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
+
+    def generateInterfaceData(self):
+        """
         Description.
         """
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm)
+        if self.manager.withFsi:
+            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
 
-        mpiPrint('\nSetting non matching meshes interpolator with Radial Basis Functions...', mpiComm)
-
-        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
-        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
-        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
-        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
-        self.nDim = self.manager.getnDim()
-
-        self.d = self.nDim+1
-        self.radius = RBFradius
-
-        self.generateInterfaceData()
+        if self.manager.withCht :
+            if self.chtTransferMethod == 'TFFB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            elif self.chtTransferMethod == 'FFTB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFTB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFFB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
 
         self.A = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
         self.A_T = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
         self.B = InterfaceMatrix((self.nf,self.ns+self.d), self.mpiComm)
         self.B_T = InterfaceMatrix((self.ns+self.d,self.nf), self.mpiComm)
 
-        self.A.createSparseFullAlloc()
-        self.A_T.createSparseFullAlloc()
-        self.B.createSparseFullAlloc()
-        self.B_T.createSparseFullAlloc()
+    def generateMapping(self):
+        """
+        Des.
+        """
 
         solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
         fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
         solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
 
-        mpiPrint('\nBuilding interpolation matrices...', mpiComm)
+        mpiPrint('\nBuilding interpolation matrices...', self.mpiComm)
 
         mpiPrint('\nBuilding matrix A of size {} X {}...'.format(self.ns, self.ns), self.mpiComm)
         # Fill the matrix A
@@ -2151,10 +2203,277 @@ class RBFInterpolator(InterfaceInterpolator):
         mpiBarrier(self.mpiComm)
         stop = tm.time()
         mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
-        mpiPrint('Matrix B is built.', mpiComm)
+        mpiPrint('Matrix B is built.', self.mpiComm)
 
         self.SolverA = LinearSolver(self.A, self.mpiComm)
         self.SolverA_T = LinearSolver(self.A_T, self.mpiComm)
+
+    def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
+        """
+        des.
+        """
+
+        dim = fluidInterfaceData.getDim()
+        gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
+
+        for iDim in range(dim):
+            self.B_T.mult(fluidInterfaceData.getData(iDim), gamma_array.getData(iDim))
+            self.SolverA_T.solve(gamma_array.getData(iDim), solidInterfaceData.getData(iDim))
+
+    def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
+        """
+        Des.
+        """
+
+        dim = solidInterfaceData.getDim()
+        gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
+
+        for iDim in range(dim):
+            self.SolverA.solve(solidInterfaceData.getData(iDim), gamma_array.getData(iDim))
+            self.B.mult(gamma_array.getData(iDim), fluidInterfaceData.getData(iDim))
+
+
+class ConsistentInterpolator(InterfaceInterpolator):
+    """
+    Description.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+        """
+        Des.
+        """
+
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+
+        mpiPrint('\nSetting non-matching consistent interpolator...', mpiComm)
+
+        self.d = self.nDim+1
+        self.SolverA = None
+        self.SolverC = None
+
+    def getLinearSolvers(self):
+        """
+        Des.
+        """
+
+        return [self.SolverA, self.SolverC]
+
+    def checkConservation(self):
+        """
+        Des.
+        """
+
+        mpiPrint('No conservation check for consistent interpolation.', self.mpiComm)
+
+    def generateInterfaceData(self):
+        """
+        Description.
+        """
+
+        if self.manager.withFsi:
+            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
+            self.fluidInterfaceLoads = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
+
+        if self.manager.withCht :
+            if self.chtTransferMethod == 'TFFB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf + self.d, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            elif self.chtTransferMethod == 'FFTB':
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
+                self.fluidInterfaceNormalHeatFlux = FlexInterfaceData(self.nf + self.d, 1, self.mpiComm)
+                self.solidInterfaceNormalHeatFlux = FlexInterfaceData(self.ns, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFTB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf + self.d, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceTemperature = FlexInterfaceData(self.ns + self.d, 1, self.mpiComm)
+                self.fluidInterfaceTemperature = FlexInterfaceData(self.nf, 1, self.mpiComm)
+            elif self.chtTransferMethod == 'hFFB':
+                self.fluidInterfaceRobinTemperature = FlexInterfaceData(self.nf + self.d, 1, self.mpiComm)
+                self.solidInterfaceRobinTemperature = FlexInterfaceData(self.ns, 1, self.mpiComm)
+                self.solidInterfaceHeatFlux = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceHeatFlux = FlexInterfaceData(self.nf, 3, self.mpiComm)
+
+        self.A = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
+        self.B = InterfaceMatrix((self.nf,self.ns+self.d), self.mpiComm)
+        self.C = InterfaceMatrix((self.nf+self.d,self.nf+self.d), self.mpiComm)
+        self.D = InterfaceMatrix((self.ns,self.nf+self.d), self.mpiComm)
+
+    def generateMapping(self):
+        """
+        Des.
+        """
+
+        solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
+        fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
+        solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
+        fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
+
+        mpiPrint('\nBuilding interpolation matrices...', self.mpiComm)
+
+        mpiPrint('\nBuilding matrix A of size {} X {}...'.format(self.ns, self.ns), self.mpiComm)
+        # Fill the matrix A
+        if self.mpiComm != None:
+            for iProc in solidInterfaceProcessors:
+                if self.myid == iProc:
+                    localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
+                    for jProc in solidInterfaceProcessors:
+                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in solidInterfaceProcessors:
+                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
+                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixA(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+        else:
+            localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
+            self.fillMatrixA(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+
+        mpiBarrier(self.mpiComm)
+        mpiPrint("\nAssembling A...", self.mpiComm)
+        start = tm.time()
+        self.A.assemble()
+        mpiBarrier(self.mpiComm)
+        stop = tm.time()
+        mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
+        mpiPrint('Matrix A is built.', self.mpiComm)
+
+        mpiPrint('\nBuilding matrix B & D of size {} X {} & {} X {}...'.format(self.nf, self.ns, self.ns, self.nf), self.mpiComm)
+        # Fill the matrix B & D
+        if self.mpiComm != None:
+            for iProc in solidInterfaceProcessors:
+                if self.myid == iProc:
+                    for jProc in fluidInterfaceProcessors:
+                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in fluidInterfaceProcessors:
+                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
+                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixBD(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
+        else:
+            self.fillMatrixBD(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
+
+        mpiBarrier(self.mpiComm)
+        mpiPrint("\nAssembling B & D...", self.mpiComm)
+        start = tm.time()
+        self.B.assemble()
+        mpiBarrier(self.mpiComm)
+        self.D.assemble()
+        mpiBarrier(self.mpiComm)
+        stop = tm.time()
+        mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
+        mpiPrint('Matrix B & D are built.', self.mpiComm)
+
+        mpiPrint('\nBuilding matrix C of size {} X {}...'.format(self.nf, self.nf), self.mpiComm)
+        # Fill the matrix C
+        if self.mpiComm != None:
+            for iProc in fluidInterfaceProcessors:
+                if self.myid == iProc:
+                    localFluidInterface_array_X, localFluidInterface_array_Y, localFluidInterface_array_Z = self.FluidSolver.getNodalInitialPositions()
+                    for jProc in fluidInterfaceProcessors:
+                        self.mpiComm.Send(localFluidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Send(localFluidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Send(localFluidInterface_array_Z, dest=jProc, tag=3)
+                if self.myid in fluidInterfaceProcessors:
+                    sizeOfBuff = fluidPhysicalInterfaceNodesDistribution[iProc]
+                    fluidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
+                    fluidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
+                    fluidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
+                    self.mpiComm.Recv(fluidInterfaceBuffRcv_X, iProc, tag=1)
+                    self.mpiComm.Recv(fluidInterfaceBuffRcv_Y, iProc, tag=2)
+                    self.mpiComm.Recv(fluidInterfaceBuffRcv_Z, iProc, tag=3)
+                    self.fillMatrixC(fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, iProc)
+        else:
+            localFluidInterface_array_X, localFluidInterface_array_Y, localFluidInterface_array_Z = self.FluidSolver.getNodalInitialPositions()
+            self.fillMatrixC(localFluidInterface_array_X, localFluidInterface_array_Y, localFluidInterface_array_Z, 0)
+
+        mpiBarrier(self.mpiComm)
+        mpiPrint("\nAssembling C...", self.mpiComm)
+        start = tm.time()
+        self.C.assemble()
+        mpiBarrier(self.mpiComm)
+        stop = tm.time()
+        mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
+        mpiPrint('Matrix C is built.', self.mpiComm)
+
+        self.SolverA = LinearSolver(self.A, self.mpiComm)
+        self.SolverC = LinearSolver(self.C, self.mpiComm)
+
+    def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
+        """
+        des.
+        """
+
+        dim = fluidInterfaceData.getDim()
+        gamma_array = FlexInterfaceData(self.nf + self.d, dim, self.mpiComm)
+
+        for iDim in range(dim):
+            self.SolverC.solve(fluidInterfaceData.getData(iDim), gamma_array.getData(iDim))
+            self.D.mult(gamma_array.getData(iDim), solidInterfaceData.getData(iDim))
+
+    def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
+        """
+        Des.
+        """
+
+        dim = solidInterfaceData.getDim()
+        gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
+
+        for iDim in range(dim):
+            self.SolverA.solve(solidInterfaceData.getData(iDim), gamma_array.getData(iDim))
+            self.B.mult(gamma_array.getData(iDim), fluidInterfaceData.getData(iDim))
+
+class RBFInterpolator(ConservativeInterpolator):
+    """
+    Description.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius=0.1, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+        """"
+        Description.
+        """
+
+        ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+
+        mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
+
+        self.radius = RBFradius
+
+        self.generateInterfaceData()
+
+        self.generateMapping()
+
+
+    def generateInterfaceData(self):
+        """
+        Des.
+        """
+
+        ConservativeInterpolator.generateInterfaceData(self)
+
+        mpiPrint('Generating interface data for conservative RBF interpolator...', self.mpiComm)
+
+        self.A.createSparseFullAlloc()
+        self.A_T.createSparseFullAlloc()
+        self.B.createSparseFullAlloc()
+        self.B_T.createSparseFullAlloc()
 
     def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
         """
@@ -2181,146 +2500,110 @@ class RBFInterpolator(InterfaceInterpolator):
         stop = tm.time()
         print('Built B on rank {} in {} s'.format(self.myid,stop-start))
 
-    def interpolateFluidLoadsOnSolidMesh(self):
+
+
+class ConsistentRBFInterpolator(ConsistentInterpolator):
+    """
+    Description.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius = 0.1, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
         """
-        Description
+        Des.
         """
 
-        gamma_array = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
 
-        start = tm.time()
-        for iDim in range(3):
-            self.B_T.mult(self.fluidInterfaceLoads.getData(iDim), gamma_array.getData(iDim))
-        stop = tm.time()
-        #print("MAT-VEC MUTL {} s".format(stop-start))
+        mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
-        start = tm.time()
-        for iDim in range(3):
-            self.SolverA_T.solve(gamma_array.getData(iDim), self.solidInterfaceLoads.getData(iDim))
-        stop = tm.time()
-        #print("SOLVE RBF SYS {} s".format(stop-start))
+        self.radius = RBFradius
 
-    def interpolateSolidDisplacementOnFluidMesh(self):
+        self.generateInterfaceData()
+
+        self.generateMapping()
+
+    def generateInterfaceData(self):
+        """
+        Des.
+        """
+
+        ConsistentInterpolator.generateInterfaceData(self)
+
+        mpiPrint('Generating interface data for consistent RBF interpolator...', self.mpiComm)
+
+        self.A.createSparseFullAlloc()
+        self.B.createSparseFullAlloc()
+        self.C.createSparseFullAlloc()
+        self.D.createSparseFullAlloc()
+
+
+    def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
         """
         Description.
         """
 
-        gamma_array = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+        localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
+        start = tm.time()
+        ccupydo.CInterpolator.consistent_RBF_fillMatrixA(self, localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init,
+                                              solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, self.A, iProc, 1.01*self.radius)
+        stop = tm.time()
+        print('Built A on rank {} in {} s'.format(self.myid,stop-start))
 
-        for iDim in range(3):
-            self.SolverA.solve(self.solidInterfaceDisplacement.getData(iDim), gamma_array.getData(iDim))
+    def fillMatrixBD(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        Description.
+        """
 
-        for iDim in range(3):
-            self.B.mult(gamma_array.getData(iDim), self.fluidInterfaceDisplacement.getData(iDim))
+        localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
+        start = tm.time()
+        ccupydo.CInterpolator.consistent_RBF_fillMatrixBD(self, localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init,
+                                              solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, self.B, self.D, iProc, 1.01*self.radius)
+        stop = tm.time()
+        print('Built B & D on rank {} in {} s'.format(self.myid,stop-start))
 
-class TPSInterpolator(RBFInterpolator):
+    def fillMatrixC(self, fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, iProc):
+        """
+        Description.
+        """
+
+        localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
+        start = tm.time()
+        ccupydo.CInterpolator.consistent_RBF_fillMatrixC(self, localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init,
+                                              fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, self.C, iProc, 1.01*self.radius)
+        stop = tm.time()
+        print('Built C on rank {} in {} s'.format(self.myid,stop-start))
+
+class TPSInterpolator(ConservativeInterpolator):
     """
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm=None, chtTransferMethod=None, heatTransferCoeff=1.0):
         """
         des.
         """
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm)
+        ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
 
-        mpiPrint('\nSetting non matching meshes interpolator with Thin Plate Spline...', self.mpiComm)
-
-        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
-        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
-        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
-        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
-        self.nDim = self.manager.getnDim()
-
-        self.d = self.nDim+1
+        mpiPrint('\nSetting interpolation with Thin Plate Spline...', self.mpiComm)
 
         self.generateInterfaceData()
 
-        self.A = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
-        self.A_T = InterfaceMatrix((self.ns+self.d,self.ns+self.d), self.mpiComm)
-        self.B = InterfaceMatrix((self.nf,self.ns+self.d), self.mpiComm)
-        self.B_T = InterfaceMatrix((self.ns+self.d,self.nf), self.mpiComm)
+        self.generateMapping()
+
+    def generateInterfaceData(self):
+        """
+        Des.
+        """
+
+        ConservativeInterpolator.generateInterfaceData(self)
+
+        mpiPrint('Generating interface data for TPS interpolator...', self.mpiComm)
 
         self.A.createDense()
         self.A_T.createDense()
         self.B.createDense()
         self.B_T.createDense()
-
-        solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
-        fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
-        solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
-
-        mpiPrint('\nBuilding interpolation matrices...', mpiComm)
-
-        mpiPrint('\nBuilding matrix A of size {} X {}...'.format(self.ns, self.ns), self.mpiComm)
-        # Fill the matrix A
-        if self.mpiComm != None:
-            for iProc in solidInterfaceProcessors:
-                if self.myid == iProc:
-                    localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
-                    for jProc in solidInterfaceProcessors:
-                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
-                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
-                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
-                if self.myid in solidInterfaceProcessors:
-                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
-                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
-                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
-                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
-                    self.fillMatrixA(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
-        else:
-            localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
-            self.fillMatrixA(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
-
-        mpiBarrier(self.mpiComm)
-        mpiPrint("\nAssembling A & A_T...", self.mpiComm)
-        start = tm.time()
-        self.A.assemble()
-        mpiBarrier(self.mpiComm)
-        self.A_T.assemble()
-        mpiBarrier(self.mpiComm)
-        stop = tm.time()
-        mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
-        mpiPrint('Matrix A is built.', self.mpiComm)
-
-        mpiPrint('\nBuilding matrix B of size {} X {}...'.format(self.nf, self.ns), self.mpiComm)
-        # Fill the matrix B
-        if self.mpiComm != None:
-            for iProc in solidInterfaceProcessors:
-                if self.myid == iProc:
-                    for jProc in fluidInterfaceProcessors:
-                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
-                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
-                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
-                if self.myid in fluidInterfaceProcessors:
-                    sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
-                    solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
-                    solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
-                    solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
-                    self.fillMatrixB(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
-        else:
-            self.fillMatrixB(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
-
-        mpiBarrier(self.mpiComm)
-        mpiPrint("\nAssembling B & B_T...", self.mpiComm)
-        start = tm.time()
-        self.B.assemble()
-        mpiBarrier(self.mpiComm)
-        self.B_T.assemble()
-        mpiBarrier(self.mpiComm)
-        stop = tm.time()
-        mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
-        mpiPrint('Matrix B is built.', mpiComm)
-
-        self.SolverA = LinearSolver(self.A, self.mpiComm)
-        self.SolverA_T = LinearSolver(self.A_T, self.mpiComm)
 
     def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
         """
@@ -2347,6 +2630,74 @@ class TPSInterpolator(RBFInterpolator):
                                               solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, self.B, self.B_T, iProc)
         stop = tm.time()
         print('Built B on rank {} in {} s'.format(self.myid,stop-start))
+
+class ConsistentTPSInterpolator(ConsistentInterpolator):
+    """
+    Description.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
+        """
+        Des.
+        """
+
+        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+
+        mpiPrint('\nSetting consistent interpolation with Thin Plate Spline...', self.mpiComm)
+
+        self.generateInterfaceData()
+
+        self.generateMapping()
+
+    def generateInterfaceData(self):
+        """
+        Des.
+        """
+
+        ConsistentInterpolator.generateInterfaceData(self)
+
+        mpiPrint('Generating interface data for consistent TPS interpolator...', self.mpiComm)
+
+        self.A.createDense()
+        self.B.createDense()
+        self.C.createDense()
+        self.D.createDense()
+
+    def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        Des.
+        """
+
+        localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
+        start = tm.time()
+        ccupydo.CInterpolator.consistent_TPS_fillMatrixA(self, localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init,
+                                              solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, self.A, iProc)
+        stop = tm.time()
+        print('Built A on rank {} in {} s'.format(self.myid,stop-start))
+
+    def fillMatrixBD(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
+        """
+        des.
+        """
+
+        localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
+        start = tm.time()
+        ccupydo.CInterpolator.consistent_TPS_fillMatrixBD(self, localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init,
+                                              solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, self.B, self.D, iProc)
+        stop = tm.time()
+        print('Built B & D on rank {} in {} s'.format(self.myid,stop-start))
+
+    def fillMatrixC(self, fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, iProc):
+        """
+        Des.
+        """
+
+        localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
+        start = tm.time()
+        ccupydo.CInterpolator.consistent_TPS_fillMatrixC(self, localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init,
+                                              fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, self.C, iProc)
+        stop = tm.time()
+        print('Built C on rank {} in {} s'.format(self.myid,stop-start))
 
 # ----------------------------------------------------------------------
 #    Algorithm class
@@ -2490,16 +2841,13 @@ class Algorithm:
         predictedHF.assemble()
         predictedTemp.assemble()
 
-        self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
-        self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
-
-        #return self.solidHeatFluxResidual
-
         if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
             mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
+            self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
             return self.solidHeatFluxResidual
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
+            self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
             return self.solidTemperatureResidual
         else:
             return None
@@ -2687,6 +3035,8 @@ class Algorithm:
             mpiBarrier(self.mpiComm)
             return 0
         except:
+            mpiBarrier(self.mpiComm)
+            mpiPrint('\nA DIVINE ERROR OCCURED...EXITING SOLVERS\n', self.mpiComm)
             # --- Exit the fluid solver --- #
             self.FluidSolver.exit()
 

@@ -1972,6 +1972,19 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
 
         self.generateMapping()
 
+    def checkConservation(self):
+        """
+        Des.
+        """
+
+        WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)
+
+        WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)
+
+        mpiPrint("Checking f/s interface conservation...", self.mpiComm)
+        mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
+        mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
+
     def generateInterfaceData(self):
         """
         Des.

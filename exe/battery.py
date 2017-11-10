@@ -72,8 +72,10 @@ def runOne(donfile, nbProcs):
             raise
 
         fres.close()
-
-        if not verifOne(donfile): # check for results
+        
+        tsc = verifOne(donfile) 
+        
+        if not tsc or not checkOneRun(tsc): # check for results
             print '\tFAILURE!'
             os.utime(donfile, None) # touch donfile
 
@@ -94,6 +96,12 @@ def verifOne(donfile):
                 if line.find(exp)!=-1:
                     tsc.append(line)
     return tsc
+
+def checkOneRun(tsc):
+    runOk = False
+    if any('[Successful Run FSI]: True' in s for s in tsc):
+        runOk = True
+    return runOk
 
 def loopOnOne(file):
     if os.path.isdir(file):

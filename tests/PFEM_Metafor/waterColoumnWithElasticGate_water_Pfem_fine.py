@@ -16,13 +16,14 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, scheme, extManager, gui, contactTag):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
        self.scheme = scheme
        self.extManager = extManager
        self.gui = gui
+       self.contTag = contactTag
 
 def getPfem():
     global w
@@ -39,7 +40,7 @@ def getPfem():
     pbl.mu = mu
     pbl.nonLinAlgorithm = 1
     pbl.solScheme = 1
-    pbl.alpha = 1.2
+    pbl.alpha = 1.3
     pbl.extP = 0.
     pbl.scalingU = 2.0
     pbl.bodyForceY = -9.81
@@ -50,8 +51,13 @@ def getPfem():
     
     scheme = w.BackwardEuler(msh, pbl)
     
-    # w.Medium(msh, 100, 0., 0., 0., 4)
+    contactTag = w.Tag(100, "Contact" , 2)
+    msh.ptags[100] = contactTag
+    msh.ntags["Contact"] = contactTag
+    
+    w.Medium(msh, "Contact", 0., 0., 0., 4)
     w.Medium(msh, 17, mu, rho0, 3)
+    w.Medium(msh, 22, mu, rho0, 3)
     w.Medium(msh, 16, mu, rho0, 1)
     w.Medium(msh, 20, mu, rho0, 1)
     
@@ -59,18 +65,20 @@ def getPfem():
     w.Boundary(msh, 18, 3, pbl.extP)
     w.Boundary(msh, 16, 1, 0.0)
     w.Boundary(msh, 16, 2, 0.0)
+    w.Boundary(msh, 22, 1, 0.0)
+    w.Boundary(msh, 22, 2, 0.0)
     w.Boundary(msh, 17, 1, 0.0)
     w.Boundary(msh, 17, 2, 0.0)
     
     scheme.savefreq=1
-    scheme.nthreads=3
+    scheme.nthreads=4
     scheme.gamma = 0.5
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True
     
     #Results
     extManager = w.ExtractorsManager(msh)
-    extManager.add(2,w.PositionExtractor(msh,10))
+    extManager.add(2,w.PositionExtractor(msh,9))
     extManager.add(3,w.IntForceExtractor(msh,17))
     '''extManager.add(2,w.IntForceExtractor(msh,1))
     extManager.add(3,w.ExtForceExtractor(msh,1))
@@ -86,7 +94,7 @@ def getPfem():
     
     gui = v.MeshViewer(msh, scheme, True) 
     
-    return Module(w, msh, pbl, scheme, extManager, gui)
+    return Module(w, msh, pbl, scheme, extManager, gui, contactTag)
 
 def getRealTimeExtractorsList(pfem):
     

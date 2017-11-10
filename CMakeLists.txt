@@ -19,6 +19,7 @@ IF( NOT CMAKE_BUILD_TYPE )
 MinSizeRel."
        FORCE )
 ENDIF()
+MESSAGE(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 
 # Check for C++11
 INCLUDE(CheckCXXCompilerFlag)

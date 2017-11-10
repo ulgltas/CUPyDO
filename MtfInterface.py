@@ -382,4 +382,4 @@ class MtfSolver(SolidSolver):
         """
         Exits the Metafor solver.
         """
-        print("***************************** Exit Metafor *****************************")
+        print("\n***************************** Exit Metafor *****************************")

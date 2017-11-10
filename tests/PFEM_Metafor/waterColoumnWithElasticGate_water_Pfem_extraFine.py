@@ -39,7 +39,7 @@ def getPfem():
     pbl.mu = mu
     pbl.nonLinAlgorithm = 1
     pbl.solScheme = 1
-    pbl.alpha = 1.2
+    pbl.alpha = 1.3
     pbl.extP = 0.
     pbl.scalingU = 2.0
     pbl.bodyForceY = -9.81
@@ -70,7 +70,7 @@ def getPfem():
     
     #Results
     extManager = w.ExtractorsManager(msh)
-    extManager.add(2,w.PositionExtractor(msh,10))
+    extManager.add(2,w.PositionExtractor(msh,9))
     extManager.add(3,w.IntForceExtractor(msh,17))
     '''extManager.add(2,w.IntForceExtractor(msh,1))
     extManager.add(3,w.ExtForceExtractor(msh,1))

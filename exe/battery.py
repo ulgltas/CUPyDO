@@ -7,7 +7,7 @@
 #
 # COPYRIGHT (C) University of Liege, 2017. 
 
-import sys, glob, os, subprocess, platform, argparse
+import sys, glob, os, subprocess, platform, argparse, time
 
 defArgs = [ r"tests".replace('/',os.sep)]
 lastDir = None
@@ -55,9 +55,7 @@ def runOne(donfile, nbProcs):
 
         flog.close()
     
-    #res file
-    if not os.path.isfile(resfile) \
-        or os.path.getmtime(resfile) < os.path.getmtime(donfile):
+        #res file
         fres = open(resfile,'w')
         
         try:
@@ -70,14 +68,12 @@ def runOne(donfile, nbProcs):
             fres.close()
             cleanOne(donfile)
             raise
-
+        
         fres.close()
         
-        tsc = verifOne(donfile) 
-        
-        if not tsc or not checkOneRun(tsc): # check for results
+        if not verifOne(donfile): # tsc or not checkOneRun(tsc): # check for results
             print '\tFAILURE!'
-            os.utime(donfile, None) # touch donfile
+            os.utime(donfile, (time.time()+1.0,time.time()+1.0)) # touch donfile
 
 def cleanOne(donfile):
     for ext in ['.log','py.log','.res','.err','.pyc']:
@@ -95,6 +91,10 @@ def verifOne(donfile):
             for exp in [ 'RES-FSI-', '[Successful Run FSI]', '[cpu FSI total]', '[Time steps FSI]', '[Mean n. of FSI Iterations]']:
                 if line.find(exp)!=-1:
                     tsc.append(line)
+    
+    if not checkOneRun(tsc):
+        tsc=[]
+    
     return tsc
 
 def checkOneRun(tsc):

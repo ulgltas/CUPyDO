@@ -1,145 +1,145 @@
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [cpu FSI]: 70.3440001011s
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [cpu FSI total]: 74.4070000648 s
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 2.14
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	7.26778171889
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.00153574772165
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-FSIhistory: 50	0.0001	2.84730075728e-08	2
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [cpu FSI]: 49.4720001221s
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [Time steps FSI]: 50
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 2.38775510204
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	7.3711983637
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.00156654050315
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem.py: RES-FSI-FSIhistory: 50	0.0001	8.2197776331e-07	3
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [cpu FSI total]: 74.1789999008 s
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [Time steps FSI]: 66
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [Mean n. of FSI Iterations]: 3.82
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_18: 	0.492136904959
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_18: 	-0.00239900877931
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: RES-FSI-FSIhistory: 50	0.0001	6.80150415387e-07	5
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: [cpu FSI]: 267.582999945s
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: [Mean n. of FSI Iterations]: 4.64615384615
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_18: 	0.251127190917
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_18: 	-0.0023618346484
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym.py: RES-FSI-FSIhistory: 66	9.9e-05	4.8077173859e-07	5
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: [cpu FSI total]: 270.941999912 s
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: [Time steps FSI]: 175
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: [Mean n. of FSI Iterations]: 3.13714285714
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	80.8583241176
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.0228271678991
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: RES-FSI-FSIhistory: 175	0.00035	8.54319063685e-08	4
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [cpu FSI]: 130.467999935s
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [Time steps FSI]: 50
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: [Mean n. of FSI Iterations]: 3.39655172414
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	77.149698933
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.0227871689084
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver.py: RES-FSI-FSIhistory: 175	0.00035	2.0510733651e-07	3
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [cpu FSI total]: 46.8070001602 s
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [Time steps FSI]: 20
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [Mean n. of FSI Iterations]: 4.92
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_18: 	0.00265049797241
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_18: 	-0.00708023016837
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: RES-FSI-FSIhistory: 50	0.0001	1.80527117255e-07	5
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: [cpu FSI]: 60.8229999542s
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: [Mean n. of FSI Iterations]: 4.42105263158
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_18: 	0.00513905711516
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_18: 	-0.00687201444472
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_alu_Mtf_Pfem_Smojver_Axisym.py: RES-FSI-FSIhistory: 20	0.0001	7.46011048741e-07	5
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: [cpu FSI total]: 66.8600001335 s
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 1.68
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	5.25798469886
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.000725332428329
-\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: RES-FSI-FSIhistory: 50	0.0001	6.51907130165e-07	2
-\tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: [cpu FSI]: 47.7300000191s
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 1.87755102041
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: RES-FSI-tf_THERMODYN_TRAV_FINT_GROUP_ID_17: 	1.89523305588
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_17: 	-0.000773114799373
+\tests\PFEM_Metafor\fsi_birdImpact_deformable_panel_steel_Mtf_Pfem.py: RES-FSI-FSIhistory: 50	0.0001	1.86121852292e-07	2
+\tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: [cpu FSI total]: 46.875 s
 \tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: [Time steps FSI]: 88
 \tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 3.06818181818
-\tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: RES-FSI-FSIhistory: 88	0.5984	1.66892518211e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: [cpu FSI]: 1042.94400001s
+\tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: [Mean n. of FSI Iterations]: 3.06896551724
+\tests\PFEM_Metafor\fsi_birdStrike_lsDyna_benchmark_Mtf_Pfem.py: RES-FSI-FSIhistory: 88	0.5984	1.55176373075e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: [cpu FSI total]: 865.203000069 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: [Mean n. of FSI Iterations]: 4.0
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: RES-FSI-FSIhistory: 349	0.349	5.77856712155e-07	5
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: [cpu FSI]: 1018.45300007s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: [Mean n. of FSI Iterations]: 3.86781609195
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6.py: RES-FSI-FSIhistory: 349	0.349	4.809256058e-07	5
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: [cpu FSI total]: 882.065999985 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: [Mean n. of FSI Iterations]: 3.94555873926
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: RES-FSI-FSIhistory: 349	0.349	4.41291329926e-07	5
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: [cpu FSI]: 14021.1699998s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: [Mean n. of FSI Iterations]: 3.94252873563
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_EAS.py: RES-FSI-FSIhistory: 349	0.349	5.37008191299e-07	5
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: [cpu FSI total]: 11732.3069999 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: [Time steps FSI]: 1166
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: [Mean n. of FSI Iterations]: 3.97169811321
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: RES-FSI-FSIhistory: 1166	0.3498	7.24771571919e-07	5
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: [cpu FSI]: 1210.19199991s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: [Mean n. of FSI Iterations]: 3.86008583691
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_fine.py: RES-FSI-FSIhistory: 1166	0.3498	7.73660758234e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: [cpu FSI total]: 869.559999943 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: [Mean n. of FSI Iterations]: 4.8223495702
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: RES-FSI-FSIhistory: 349	0.349	2.93632423038e-07	7
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: [cpu FSI]: 891.646000147s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: [Mean n. of FSI Iterations]: 3.91954022989
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS.py: RES-FSI-FSIhistory: 349	0.349	6.99917417325e-08	5
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: [cpu FSI total]: 785.932999849 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: [Mean n. of FSI Iterations]: 3.34957020057
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: RES-FSI-FSIhistory: 349	0.349	2.35755161236e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: [cpu FSI]: 896.42200017s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: [Mean n. of FSI Iterations]: 3.41954022989
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_1.py: RES-FSI-FSIhistory: 349	0.349	5.21462918993e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: [cpu FSI total]: 761.957000017 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: [Mean n. of FSI Iterations]: 3.39541547278
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: RES-FSI-FSIhistory: 349	0.349	7.23233609199e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: [cpu FSI]: 895.131999969s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: [Mean n. of FSI Iterations]: 3.24425287356
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_0e6_IQN_ILS_2.py: RES-FSI-FSIhistory: 349	0.349	1.77630764083e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: [cpu FSI total]: 771.902000189 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: [Mean n. of FSI Iterations]: 3.36389684814
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: RES-FSI-FSIhistory: 349	0.349	3.99877035555e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: [cpu FSI]: 887.648999929s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: [Mean n. of FSI Iterations]: 3.34195402299
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_1_2e7.py: RES-FSI-FSIhistory: 349	0.349	8.89462997843e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: [cpu FSI total]: 791.167000055 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: [Mean n. of FSI Iterations]: 3.32664756447
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: RES-FSI-FSIhistory: 349	0.349	2.34627432498e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: [cpu FSI]: 935.891000032s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: [Mean n. of FSI Iterations]: 3.42816091954
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_2_38e7.py: RES-FSI-FSIhistory: 349	0.349	9.71319800566e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: [cpu FSI total]: 788.65199995 s
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: [Time steps FSI]: 349
 \tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: [Mean n. of FSI Iterations]: 3.57306590258
-\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: RES-FSI-FSIhistory: 349	0.349	9.77981722707e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: [cpu FSI]: 124.159000158s
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: [Mean n. of FSI Iterations]: 3.44252873563
+\tests\PFEM_Metafor\fsi_waterColoumnFallWithFlexibleObstacle_Mtf_Pfem_E_6_0e6.py: RES-FSI-FSIhistory: 349	0.349	5.18718169358e-07	5
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: [cpu FSI total]: 117.674000025 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: [Mean n. of FSI Iterations]: 5.4
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: RES-FSI-FSIhistory: 50	0.05	7.53045366699e-07	6
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: [cpu FSI]: 616.200000048s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: [Mean n. of FSI Iterations]: 5.83673469388
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100.py: RES-FSI-FSIhistory: 50	0.05	2.15302958534e-07	6
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: [cpu FSI total]: 625.494000196 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: [Time steps FSI]: 500
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: [Mean n. of FSI Iterations]: 2.252
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: RES-FSI-FSIhistory: 500	0.05	4.86924785936e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: [cpu FSI]: 1912.03999996s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: [Mean n. of FSI Iterations]: 2.54108216433
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_dt_0001.py: RES-FSI-FSIhistory: 500	0.05	1.94681272614e-07	3
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: [cpu FSI total]: 1835.44799995 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: [Time steps FSI]: 500
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: [Mean n. of FSI Iterations]: 2.518
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: RES-FSI-FSIhistory: 500	0.05	5.85152000753e-07	3
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: [cpu FSI]: 408.482999802s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: [Mean n. of FSI Iterations]: 2.71142284569
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine.py: RES-FSI-FSIhistory: 500	0.05	7.93726506751e-07	1
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: [cpu FSI total]: 368.529000044 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: [Mean n. of FSI Iterations]: 5.96
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: RES-FSI-FSIhistory: 50	0.05	1.59815922287e-05	20
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: [cpu FSI]: 116.583999872s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: [Mean n. of FSI Iterations]: 6.22448979592
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS.py: RES-FSI-FSIhistory: 50	0.05	3.15898803764e-07	8
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: [cpu FSI total]: 105.782999992 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: [Mean n. of FSI Iterations]: 5.06
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: RES-FSI-FSIhistory: 50	0.05	6.55738912481e-08	7
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: [cpu FSI]: 83.873000145s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: [Mean n. of FSI Iterations]: 5.16326530612
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS.py: RES-FSI-FSIhistory: 50	0.05	8.0369116628e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: [cpu FSI total]: 83.5329999924 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: [Mean n. of FSI Iterations]: 3.4
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: RES-FSI-FSIhistory: 50	0.05	5.57163579984e-07	6
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: [cpu FSI]: 88.367000103s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: [Mean n. of FSI Iterations]: 3.87755102041
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_1.py: RES-FSI-FSIhistory: 50	0.05	2.16547113747e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: [cpu FSI total]: 80.6889998913 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: [Mean n. of FSI Iterations]: 3.64
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: RES-FSI-FSIhistory: 50	0.05	4.61671417973e-07	6
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: [cpu FSI]: 92.140999794s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: [Mean n. of FSI Iterations]: 3.65306122449
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_2.py: RES-FSI-FSIhistory: 50	0.05	1.60182579643e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: [cpu FSI total]: 77.5479998589 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: [Mean n. of FSI Iterations]: 3.84
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: RES-FSI-FSIhistory: 50	0.05	5.55161788096e-07	6
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: [cpu FSI]: 90.873000145s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: [Mean n. of FSI Iterations]: 3.48979591837
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_4.py: RES-FSI-FSIhistory: 50	0.05	7.51819776555e-07	3
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: [cpu FSI total]: 76.5479998589 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: [Time steps FSI]: 50
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: [Mean n. of FSI Iterations]: 3.76
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: RES-FSI-FSIhistory: 50	0.05	8.08606021857e-07	6
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: [cpu FSI]: 644.68900013s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: [Mean n. of FSI Iterations]: 3.4693877551
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_6.py: RES-FSI-FSIhistory: 50	0.05	6.99623911753e-07	2
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: [cpu FSI total]: 704.385000229 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: [Time steps FSI]: 500
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: [Mean n. of FSI Iterations]: 2.402
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: RES-FSI-FSIhistory: 500	0.05	3.25356580485e-07	4
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: [cpu FSI]: 218.445999861s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: [Mean n. of FSI Iterations]: 3.03607214429
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0001.py: RES-FSI-FSIhistory: 500	0.05	5.63329243124e-07	3
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: [cpu FSI total]: 190.03399992 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: [Time steps FSI]: 100
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: [Mean n. of FSI Iterations]: 4.68
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: RES-FSI-FSIhistory: 100	0.05	8.34062066207e-07	6
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: [cpu FSI]: 463.157000065s
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: [Mean n. of FSI Iterations]: 4.56565656566
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_IQN_ILS_dt_0005.py: RES-FSI-FSIhistory: 100	0.05	4.00984212129e-07	4
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: [cpu FSI total]: 452.615999937 s
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: [Time steps FSI]: 500
 \tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: [Successful Run FSI]: True
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: [Mean n. of FSI Iterations]: 1.444
-\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: RES-FSI-FSIhistory: 500	0.05	3.14552618953e-07	1
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: [Mean n. of FSI Iterations]: 1.5370741483
+\tests\PFEM_Metafor\fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_5500.py: RES-FSI-FSIhistory: 500	0.05	2.79099756337e-07	2

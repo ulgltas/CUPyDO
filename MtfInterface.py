@@ -375,7 +375,7 @@ class MtfSolver(SolidSolver):
             buff = str()
             for ii in range(data.size()):
                 buff = buff + '\t' + str(data[ii])
-            toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
+            toPrint = 'RES-FSI-' + extractorName + ': ' + buff
             print toPrint
     
     def exit(self):

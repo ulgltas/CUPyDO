@@ -3095,9 +3095,9 @@ class Algorithm:
                 self.writeInFSIloop = True
                 self.fsiCoupling()
                 self.totNbOfFSIIt = self.FSIIter
-        except Exception as err:
-            traceback.print_exc()
+        except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            traceback.print_exc()
         finally:
             self.globalTimer.stop()
             self.globalTimer.cumul()
@@ -3119,7 +3119,6 @@ class Algorithm:
     
             # --- Exit computation --- #
             mpiBarrier(self.mpiComm)
-            return 0
 
     def __unsteadyRun(self):
         """

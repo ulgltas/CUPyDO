@@ -101,9 +101,9 @@ void CInterpolator::TPS_fillMatrixA(int size_loc_x, double* array_loc_x, int siz
   assert(size_buff_y == size_buff_z);
   assert(size_buff_x == size_buff_z);
 
-  int jGlobalVertexSolid_list[size_buff_x];
-  int iGlobalVertexSolid_list[1];
-  double phi_value[size_buff_x];
+  vector<int> jGlobalVertexSolid_list(size_buff_x);
+  vector<int> iGlobalVertexSolid_list(1);
+  vector<double> phi_value(size_buff_x);
 
   for(int iVertex=0; iVertex<ns_loc; iVertex++){
     solidPoint[0] = array_loc_x[iVertex];
@@ -121,8 +121,8 @@ void CInterpolator::TPS_fillMatrixA(int size_loc_x, double* array_loc_x, int siz
       phi = PHI_TPS(dist);
       phi_value[jVertex] = phi;
     }
-    A->setValues(1, iGlobalVertexSolid_list, size_buff_x, jGlobalVertexSolid_list, phi_value);    //set the entire row
-    A_T->setValues(size_buff_x, jGlobalVertexSolid_list, 1, iGlobalVertexSolid_list, phi_value);  //set the entire column of the transposed matrix
+    A->setValues(1, &(iGlobalVertexSolid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));    //set the entire row
+    A_T->setValues(static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), 1, &(iGlobalVertexSolid_list.front()), &(phi_value.front()));  //set the entire column of the transposed matrix
     A->setValue(iGlobalVertexSolid, ns, 1.0);
     A->setValue(iGlobalVertexSolid, ns+1, solidPoint[0]);
     A->setValue(iGlobalVertexSolid, ns+2, solidPoint[1]);
@@ -154,9 +154,9 @@ void CInterpolator::TPS_fillMatrixB(int size_loc_x, double* array_loc_x, int siz
   assert(size_buff_y == size_buff_z);
   assert(size_buff_x == size_buff_z);
 
-  int jGlobalVertexSolid_list[size_buff_x];
-  int iGlobalVertexFluid_list[1];
-  double phi_value[size_buff_x];
+  vector<int> jGlobalVertexSolid_list(size_buff_x);
+  vector<int> iGlobalVertexFluid_list(1);
+  vector<double> phi_value(size_buff_x);
 
   for(int iVertex=0; iVertex < nf_loc; iVertex++){
     fluidPoint[0] = array_loc_x[iVertex];
@@ -174,8 +174,8 @@ void CInterpolator::TPS_fillMatrixB(int size_loc_x, double* array_loc_x, int siz
       phi = PHI_TPS(dist);
       phi_value[jVertex] = phi;
     }
-    B->setValues(1, iGlobalVertexFluid_list, size_buff_x, jGlobalVertexSolid_list, phi_value);    //set the entire row
-    B_T->setValues(size_buff_x, jGlobalVertexSolid_list, 1, iGlobalVertexFluid_list, phi_value);  //set the entire column of the transposed matrix
+    B->setValues(1, &(iGlobalVertexFluid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));    //set the entire row
+    B_T->setValues(static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), 1, &(iGlobalVertexFluid_list.front()), &(phi_value.front()));  //set the entire column of the transposed matrix
     B->setValue(iGlobalVertexFluid, ns, 1.0);
     B->setValue(iGlobalVertexFluid, ns+1, fluidPoint[0]);
     B->setValue(iGlobalVertexFluid, ns+2, fluidPoint[1]);
@@ -207,9 +207,9 @@ void CInterpolator::consistent_TPS_fillMatrixA(int size_loc_x, double* array_loc
   assert(size_buff_y == size_buff_z);
   assert(size_buff_x == size_buff_z);
 
-  int jGlobalVertexSolid_list[size_buff_x];
-  int iGlobalVertexSolid_list[1];
-  double phi_value[size_buff_x];
+  vector<int> jGlobalVertexSolid_list(size_buff_x);
+  vector<int> iGlobalVertexSolid_list(1);
+  vector<double> phi_value(size_buff_x);
 
   for(int iVertex=0; iVertex<ns_loc; iVertex++){
     solidPoint[0] = array_loc_x[iVertex];
@@ -227,7 +227,7 @@ void CInterpolator::consistent_TPS_fillMatrixA(int size_loc_x, double* array_loc
       phi = PHI_TPS(dist);
       phi_value[jVertex] = phi;
     }
-    A->setValues(1, iGlobalVertexSolid_list, size_buff_x, jGlobalVertexSolid_list, phi_value);    //set the entire row
+    A->setValues(1, &(iGlobalVertexSolid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));    //set the entire row
     A->setValue(iGlobalVertexSolid, ns, 1.0);
     A->setValue(iGlobalVertexSolid, ns+1, solidPoint[0]);
     A->setValue(iGlobalVertexSolid, ns+2, solidPoint[1]);
@@ -247,7 +247,6 @@ void CInterpolator::consistent_TPS_fillMatrixBD(int size_loc_x, double* array_lo
   double solidPoint[3] = {0.0, 0.0, 0.0}, fluidQuery[3] = {0.0,0.0,0.0};
   double phi, dist;
   int iGlobalVertexFluid, jGlobalVertexSolid;
-  int iGlobalVertexSolid, jGlobalVertexFluid;
 
   assert(nf_loc == size_loc_x);
   assert(nf_loc == size_loc_y);
@@ -257,9 +256,9 @@ void CInterpolator::consistent_TPS_fillMatrixBD(int size_loc_x, double* array_lo
   assert(size_buff_y == size_buff_z);
   assert(size_buff_x == size_buff_z);
 
-  int jGlobalVertexSolid_list[size_buff_x];
-  int iGlobalVertexFluid_list[1];
-  double phi_value[size_buff_x];
+  vector<int> jGlobalVertexSolid_list(size_buff_x);
+  vector<int> iGlobalVertexFluid_list(1);
+  vector<double> phi_value(size_buff_x);
 
   //Build B (donor = solid, target = fluid)
   //Build D (donor = fluid, target = solid)
@@ -283,14 +282,14 @@ void CInterpolator::consistent_TPS_fillMatrixBD(int size_loc_x, double* array_lo
       D->setValue(jGlobalVertexSolid, nf+2, solidQuery[1]);
       if(nDim==3) D->setValue(jGlobalVertexSolid, nf+3, solidQuery[2]);
     }
-    B->setValues(1, iGlobalVertexFluid_list, size_buff_x, jGlobalVertexSolid_list, phi_value);
+    B->setValues(1, &(iGlobalVertexFluid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
     B->setValue(iGlobalVertexFluid, ns, 1.0);
     B->setValue(iGlobalVertexFluid, ns+1, fluidPoint[0]);
     B->setValue(iGlobalVertexFluid, ns+2, fluidPoint[1]);
     if(nDim == 3){
       B->setValue(iGlobalVertexFluid, ns+3, fluidPoint[2]);
     }
-    D->setValues(size_buff_x, jGlobalVertexSolid_list, 1, iGlobalVertexFluid_list, phi_value);
+    D->setValues(static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), 1, &(iGlobalVertexFluid_list.front()), &(phi_value.front()));
   }
 
 }
@@ -313,9 +312,9 @@ void CInterpolator::consistent_TPS_fillMatrixC(int size_loc_x, double* array_loc
   assert(size_buff_y == size_buff_z);
   assert(size_buff_x == size_buff_z);
 
-  int jGlobalVertexFluid_list[size_buff_x];
-  int iGlobalVertexFluid_list[1];
-  double phi_value[size_buff_x];
+  vector<int> jGlobalVertexFluid_list(size_buff_x);
+  vector<int> iGlobalVertexFluid_list(1);
+  vector<double> phi_value(size_buff_x);
 
   for(int iVertex=0; iVertex<nf_loc; iVertex++){
     fluidPoint[0] = array_loc_x[iVertex];
@@ -333,7 +332,7 @@ void CInterpolator::consistent_TPS_fillMatrixC(int size_loc_x, double* array_loc
       phi = PHI_TPS(dist);
       phi_value[jVertex] = phi;
     }
-    C->setValues(1, iGlobalVertexFluid_list, size_buff_x, jGlobalVertexFluid_list, phi_value);
+    C->setValues(1, &(iGlobalVertexFluid_list.front()), static_cast<int>(jGlobalVertexFluid_list.size()), &(jGlobalVertexFluid_list.front()), &(phi_value.front()));
     C->setValue(iGlobalVertexFluid, nf, 1.0);
     C->setValue(iGlobalVertexFluid, nf+1, fluidPoint[0]);
     C->setValue(iGlobalVertexFluid, nf+2, fluidPoint[1]);
@@ -354,7 +353,7 @@ void CInterpolator::RBF_fillMatrixA(int size_loc_x, double* array_loc_x, int siz
   int iGlobalVertexSolid, jGlobalVertexSolid;
   vector<int> solidVertices;
   vector<int> jGlobalVertexSolid_list;
-  int iGlobalVertexSolid_list[1];
+  vector<int> iGlobalVertexSolid_list(1);
   vector<double> phi_value;
 
   assert(ns_loc == size_loc_x);
@@ -385,8 +384,8 @@ void CInterpolator::RBF_fillMatrixA(int size_loc_x, double* array_loc_x, int siz
       phi = PHI_RBF(dist, radius);
       phi_value.push_back(phi);
     }
-    A->setValues(1, iGlobalVertexSolid_list, jGlobalVertexSolid_list.size(), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
-    A_T->setValues(jGlobalVertexSolid_list.size(), &(jGlobalVertexSolid_list.front()), 1, iGlobalVertexSolid_list, &(phi_value.front()));
+    A->setValues(1, &(iGlobalVertexSolid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
+    A_T->setValues(static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), 1, &(iGlobalVertexSolid_list.front()), &(phi_value.front()));
     A->setValue(iGlobalVertexSolid, ns, 1.0);
     A->setValue(iGlobalVertexSolid, ns+1, solidPoint[0]);
     A->setValue(iGlobalVertexSolid, ns+2, solidPoint[1]);
@@ -412,7 +411,7 @@ void CInterpolator::RBF_fillMatrixB(int size_loc_x, double* array_loc_x, int siz
   vector<int> solidVertices;
   vector<int> jGlobalVertexSolid_list;
   vector<double> phi_value;
-  int iGlobalVertexFluid_list[1];
+  vector<int> iGlobalVertexFluid_list(1);
 
   assert(nf_loc == size_loc_x);
   assert(nf_loc == size_loc_y);
@@ -442,8 +441,8 @@ void CInterpolator::RBF_fillMatrixB(int size_loc_x, double* array_loc_x, int siz
       phi = PHI_RBF(dist, radius);
       phi_value.push_back(phi);
     }
-    B->setValues(1, iGlobalVertexFluid_list, jGlobalVertexSolid_list.size(), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
-    B_T->setValues(jGlobalVertexSolid_list.size(), &(jGlobalVertexSolid_list.front()), 1, iGlobalVertexFluid_list, &(phi_value.front()));
+    B->setValues(1, &(iGlobalVertexFluid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
+    B_T->setValues(static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), 1, &(iGlobalVertexFluid_list.front()), &(phi_value.front()));
     B->setValue(iGlobalVertexFluid, ns, 1.0);
     B->setValue(iGlobalVertexFluid, ns+1, fluidPoint[0]);
     B->setValue(iGlobalVertexFluid, ns+2, fluidPoint[1]);
@@ -467,7 +466,7 @@ void CInterpolator::consistent_RBF_fillMatrixA(int size_loc_x, double* array_loc
   int iGlobalVertexSolid, jGlobalVertexSolid;
   vector<int> solidVertices;
   vector<int> jGlobalVertexSolid_list;
-  int iGlobalVertexSolid_list[1];
+  vector<int> iGlobalVertexSolid_list(1);
   vector<double> phi_value;
 
   assert(ns_loc == size_loc_x);
@@ -498,7 +497,7 @@ void CInterpolator::consistent_RBF_fillMatrixA(int size_loc_x, double* array_loc
       phi = PHI_RBF(dist, radius);
       phi_value.push_back(phi);
     }
-    A->setValues(1, iGlobalVertexSolid_list, jGlobalVertexSolid_list.size(), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
+    A->setValues(1, &(iGlobalVertexSolid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
     A->setValue(iGlobalVertexSolid, ns, 1.0);
     A->setValue(iGlobalVertexSolid, ns+1, solidPoint[0]);
     A->setValue(iGlobalVertexSolid, ns+2, solidPoint[1]);
@@ -522,9 +521,9 @@ void CInterpolator::consistent_RBF_fillMatrixBD(int size_loc_x, double* array_lo
   vector<int> fluidVertices;
 
   vector<int> jGlobalVertexSolid_list;
-  int iGlobalVertexFluid_list[1];
+  vector<int> iGlobalVertexFluid_list(1);
   vector<int> jGlobalVertexFluid_list;
-  int iGlobalVertexSolid_list[1];
+  vector<int> iGlobalVertexSolid_list(1);
   vector<double> phi_value;
 
 
@@ -557,7 +556,7 @@ void CInterpolator::consistent_RBF_fillMatrixBD(int size_loc_x, double* array_lo
       phi = PHI_RBF(dist, radius);
       phi_value.push_back(phi);
     }
-    B->setValues(1, iGlobalVertexFluid_list, jGlobalVertexSolid_list.size(), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
+    B->setValues(1, &(iGlobalVertexFluid_list.front()), static_cast<int>(jGlobalVertexSolid_list.size()), &(jGlobalVertexSolid_list.front()), &(phi_value.front()));
     B->setValue(iGlobalVertexFluid, ns, 1.0);
     B->setValue(iGlobalVertexFluid, ns+1, fluidPoint[0]);
     B->setValue(iGlobalVertexFluid, ns+2, fluidPoint[1]);
@@ -587,7 +586,7 @@ void CInterpolator::consistent_RBF_fillMatrixBD(int size_loc_x, double* array_lo
       phi = PHI_RBF(dist, radius);
       phi_value.push_back(phi);
     }
-    D->setValues(1, iGlobalVertexSolid_list, jGlobalVertexFluid_list.size(), &(jGlobalVertexFluid_list.front()), &(phi_value.front()));
+    D->setValues(1, &(iGlobalVertexSolid_list.front()), static_cast<int>(jGlobalVertexFluid_list.size()), &(jGlobalVertexFluid_list.front()), &(phi_value.front()));
     D->setValue(iGlobalVertexSolid, nf, 1.0);
     D->setValue(iGlobalVertexSolid, nf+1, solidPoint[0]);
     D->setValue(iGlobalVertexSolid, nf+2, solidPoint[1]);
@@ -607,7 +606,7 @@ void CInterpolator::consistent_RBF_fillMatrixC(int size_loc_x, double* array_loc
   double phi, dist;
   int iGlobalVertexFluid, jGlobalVertexFluid;
   vector<int> fluidVertices;
-  int iGlobalVertexFluid_list[1];
+  vector<int> iGlobalVertexFluid_list(1);
   vector<int> jGlobalVertexFluid_list;
   vector<double> phi_value;
 
@@ -640,7 +639,7 @@ void CInterpolator::consistent_RBF_fillMatrixC(int size_loc_x, double* array_loc
       phi = PHI_RBF(dist, radius);
       phi_value.push_back(phi);
     }
-    C->setValues(1, iGlobalVertexFluid_list, jGlobalVertexFluid_list.size(), &(jGlobalVertexFluid_list.front()), &(phi_value.front()));
+    C->setValues(1, &(iGlobalVertexFluid_list.front()), static_cast<int>(jGlobalVertexFluid_list.size()), &(jGlobalVertexFluid_list.front()), &(phi_value.front()));
     C->setValue(iGlobalVertexFluid, nf, 1.0);
     C->setValue(iGlobalVertexFluid, nf+1, fluidPoint[0]);
     C->setValue(iGlobalVertexFluid, nf+2, fluidPoint[1]);

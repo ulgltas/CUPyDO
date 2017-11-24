@@ -383,8 +383,8 @@ class Timer:
 #   FlexInterfaceData class
 # ----------------------------------------------------------------------
 
-#class FlexInterfaceData(ccupydo.CFlexInterfaceData):
-class FlexInterfaceData():
+class FlexInterfaceData(ccupydo.CFlexInterfaceData):
+#class FlexInterfaceData():
     """
     Description
     """
@@ -394,164 +394,34 @@ class FlexInterfaceData():
         Des.
         """
 
-        #ccupydo.CFlexInterfaceData.__init__(self, val_nPoint, val_nDim)
+        ccupydo.CFlexInterfaceData.__init__(self, val_nPoint, val_nDim, mpiComm)
 
-        self.mpiComm = mpiComm
-        self.nPoint = val_nPoint
-        self.nDim = val_nDim
+        #self.mpiComm = mpiComm
+        #self.nPoint = val_nPoint
+        #self.nDim = val_nDim
 
-        self.dataContainer = []
+        #self.dataContainer = []
 
-        if mpiComm != None:
-            for iDim in range(self.nDim):
-                from petsc4py import PETSc
-                data = PETSc.Vec().create(self.mpiComm)
-                data.setType('mpi')
-                data.setSizes(self.nPoint)
-                data.set(0.0)
-                self.dataContainer.append(data)
-            self.myid = self.mpiComm.Get_rank()
-            self.mpiSize = self.mpiComm.Get_size()
-            startIndex , stopIndex = self.dataContainer[0].getOwnershipRange()
-            #!!! stopIndex is 1 more than the true index !!!
-            #startIndex , stopIndex = self.getOwnershipRange()
-            self.indexing = self.mpiComm.allgather((startIndex , stopIndex))
-        else:
-            for iDim in range(self.nDim):
-                data = np.zeros(self.nPoint, dtype=float)
-                self.dataContainer.append(data)
-            self.myid = 0
-            self.mpiSize = 1
-
-    def getnPoint(self):
-        """
-        Des.
-        """
-
-        return self.nPoint
-
-    def getDim(self):
-        """
-        Des.
-        """
-
-        return self.nDim
-
-    def setValues(self, iDim, indices_list, values_array):
-        """
-        Des.
-        """
-
-        if self.mpiComm != None:
-            self.dataContainer[iDim].setValues(indices_list, values_array)
-        else:
-            self.dataContainer[iDim][indices_list] = values_array
-
-    def setAllValues(self, iDim,value):
-        """
-        Des.
-        """
-
-        if self.mpiComm != None:
-            self.dataContainer[iDim].set(value)
-        else:
-            self.dataContainer[iDim].fill(value)
-
-    def getDataContainer(self):
-        """
-        Des.
-        """
-
-        return self.dataContainer
-
-    def getData(self, iDim):
-        """
-        Des.
-        """
-
-        return self.dataContainer[iDim]
-
-    def getDataArray(self, iDim):
-        """
-        Des.
-        """
-
-        if self.mpiComm != None:
-            return self.dataContainer[iDim].getArray()
-        else:
-            return self.dataContainer[iDim]
-
-    def assemble(self):
-        """
-        Des.
-        """
-
-        if self.mpiComm != None:
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim].assemblyBegin()
-                self.dataContainer[iDim].assemblyEnd()
-
-    def norm(self):
-        """
-        Des.
-        """
-
-        normList = []
-
-        for iDim in range(self.nDim):
-            if self.mpiComm != None:
-                val_norm = self.dataContainer[iDim].norm()
-            else:
-                val_norm = np.linalg.norm(self.dataContainer[iDim])
-            normList.append(val_norm)
-
-        return normList
-
-    def sum(self):
-        """
-        Des.
-        """
-
-        sumList = []
-
-        for iDim in range(self.nDim):
-            val_sum = self.dataContainer[iDim].sum()
-            sumList.append(val_sum)
-
-        return sumList
-
-    def copy(self):
-        """
-        Des.
-        """
-
-        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
-        for iDim in range(self.nDim):
-            if self.mpiComm != None:
-                self.dataContainer[iDim].copy(newData.dataContainer[iDim])
-            else:
-                np.copyto(newData.dataContainer[iDim], self.dataContainer[iDim])
-
-        return newData
-
-    def dot(self, data):
-        """
-        Des.
-        """
-
-        dotList = []
-
-        if type(data) != type(self):
-            raise TypeError("argument is not of type  FlexInterfaceData !")
-
-        if self.nDim != data.nDim:
-            raise IndexError("argument has not the same dimension !")
-        else:
-            for iDim in range(self.nDim):
-                val_dot = self.dataContainer[iDim].dot(data.dataContainer[iDim])
-                dotList.append(val_dot)
-
-        return dotList
+        #if mpiComm != None:
+        #    for iDim in range(self.nDim):
+        #        from petsc4py import PETSc
+        #        data = PETSc.Vec().create(self.mpiComm)
+        #        data.setType('mpi')
+        #        data.setSizes(self.nPoint)
+        #        data.set(0.0)
+        #        self.dataContainer.append(data)
+        #    self.myid = self.mpiComm.Get_rank()
+        #    self.mpiSize = self.mpiComm.Get_size()
+        #    startIndex , stopIndex = self.dataContainer[0].getOwnershipRange()
+        #    #!!! stopIndex is 1 more than the true index !!!
+        #    #startIndex , stopIndex = self.getOwnershipRange()
+        #    self.indexing = self.mpiComm.allgather((startIndex , stopIndex))
+        #else:
+        #    for iDim in range(self.nDim):
+        #        data = np.zeros(self.nPoint, dtype=float)
+        #        self.dataContainer.append(data)
+        #    self.myid = 0
+        #    self.mpiSize = 1
 
     def __setitem__(self, index, values):
         """
@@ -565,47 +435,22 @@ class FlexInterfaceData():
             raise IndexError("Length of values does not match nDim !")
         else:
             for iDim in range(self.nDim):
-                self.dataContainer[iDim][index] = values[iDim]
-
-    #def __getitem__(self, index):
-    #    """
-    #    This is the implementation of the old InterfaceData class. Not reimplemented here because
-    #    it is not really useful.
-    #    """
-
-    #    if self.mpiComm != None:
-    #        send = None
-    #        rcv = None
-    #        for iProc in range(self.mpiSize):
-    #            start, stop = self.indexing[iProc]
-    #            if index in range(start, stop):
-    #                sender = iProc
-    #                break
-    #        mpiBarrier(self.mpiComm)
-    #        if self.myid == sender:
-    #            send = (float(self.data_X[index]), float(self.data_Y[index]), float(self.data_Z[index]))
-    #        rcv = self.mpiComm.bcast(send, sender)
-    #        return rcv
-    #    else:
-    #        return (float(self.data_X[index]), float(self.data_Y[index]), float(self.data_Z[index]))
+                self.setValue(iDim, index, values[iDim])
 
     def __add__(self, dataToAdd):
         """
         Des.
         """
 
-        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
         if type(dataToAdd) == type(self):
             if self.nDim != dataToAdd.nDim:
                 raise IndexError("Dimensions do not match for + operator !")
-            for iDim in range(self.nDim):
-                newData.dataContainer[iDim] = self.dataContainer[iDim] + dataToAdd.dataContainer[iDim]
-        elif type(dataToAdd) == float:
-            for iDim in range(self.nDim):
-                newData.dataContainer[iDim] = self.dataContainer[iDim] + dataToAdd
-        elif type(dataToAdd) == int:
-            for iDim in range(self.nDim):
-                newData.dataContainer[iDim] = self.dataContainer[iDim] + float(dataToAdd)
+            if self.nPoint != dataToAdd.nPoint:
+                raise IndexError("Lengthes do not match for + operator !")
+
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.comm)
+        self.copy(newData)
+        newData.add(dataToAdd)
 
         return newData
 
@@ -625,15 +470,11 @@ class FlexInterfaceData():
 
         if type(dataToAdd) == type(self):
             if self.nDim != dataToAdd.nDim:
-                raise IndexError("Dimensions do not match for += operator !")
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim] += dataToAdd.dataContainer[iDim]
-        elif type(dataToAdd) == float:
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim] += dataToAdd
-        elif type(dataToAdd) == int:
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim] += float(dataToAdd)
+                raise IndexError("Dimensions do not match for + operator !")
+            if self.nPoint != dataToAdd.nPoint:
+                raise IndexError("Lengthes do not match for + operator !")
+
+        self.add(dataToAdd)
 
         return self
 
@@ -642,63 +483,62 @@ class FlexInterfaceData():
         Des.
         """
 
-        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
         if type(dataToSub) == type(self):
             if self.nDim != dataToSub.nDim:
-                raise IndexError("Dimensions do not match for - operator !")
-            for iDim in range(self.nDim):
-                newData.dataContainer[iDim] = self.dataContainer[iDim] - dataToSub.dataContainer[iDim]
-        elif type(dataToSub) == float:
-            for iDim in range(self.nDim):
-                newData.dataContainer[iDim] = self.dataContainer[iDim] - dataToSub
-        elif type(dataToSub) == int:
-            for iDim in range(self.nDim):
-                newData.dataContainer[iDim] = self.dataContainer[iDim] - float(dataToSub)
+                raise IndexError("Dimensions do not match for + operator !")
+            if self.nPoint != dataToSub.nPoint:
+                raise IndexError("Lengthes do not match for + operator !")
+
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.comm)
+        self.copy(newData)
+        newData.sub(dataToSub)
 
         return newData
 
-    def __rsub__(self, data):
-        """
-        Des.
-        """
-
-        newData = -1*self + data
-
-        return newData
-
-    def __isub__(self,dataToSub):
+    def __rsub__(self, dataToSub):
         """
         Des.
         """
 
         if type(dataToSub) == type(self):
-            if self.nDim != dataToAdd.nDim:
-                raise IndexError("Dimensions do not match for -= operator !")
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim] -= dataToSub.dataContainer[iDim]
-        elif type(dataToSub) == float:
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim] -= dataToSub
-        elif type(dataToSub) == int:
-            for iDim in range(self.nDim):
-                self.dataContainer[iDim] -= float(dataToSub)
+            if self.nDim != dataToSub.nDim:
+                raise IndexError("Dimensions do not match for + operator !")
+            if self.nPoint != dataToSub.nPoint:
+                raise IndexError("Lengthes do not match for + operator !")
+
+        newData = -1*self + dataToSub
+
+        return newData
+
+    def __isub__(self, dataToSub):
+        """
+        Des.
+        """
+
+        if type(dataToSub) == type(self):
+            if self.nDim != dataToSub.nDim:
+                raise IndexError("Dimensions do not match for + operator !")
+            if self.nPoint != dataToSub.nPoint:
+                raise IndexError("Lengthes do not match for + operator !")
+
+        self.sub(dataToSub)
 
         return self
 
     def __mul__(self, mulVal):
         """
-        Des
+        Des.
         """
 
-        newData = FlexInterfaceData(self.nPoint, self.nDim, self.mpiComm)
-        for iDim in range(newData.nDim):
-            newData.dataContainer[iDim] = self.dataContainer[iDim]*mulVal
+        newData = FlexInterfaceData(self.nPoint, self.nDim, self.comm)
+        self.copy(newData)
+        newData.scale(mulVal)
 
         return newData
 
     def __rmul__(self, mulVal):
         """
-        Des.
+        Des
         """
 
         newData = self*mulVal
@@ -710,11 +550,9 @@ class FlexInterfaceData():
         Des.
         """
 
-        for iDim in range(self.nDim):
-            self.dataContainer[iDim] *= mulVal
+        self.scale(mulVal)
 
         return self
-
 
 # ----------------------------------------------------------------------
 #    InterfaceMatrix class
@@ -2891,7 +2729,8 @@ class Algorithm:
 
         # --- Calculate the residual (vector and norm) --- #
         mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
-        self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
+        #self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
+        self.solidInterfaceResidual.set(predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement)
 
         return self.solidInterfaceResidual
 
@@ -2919,11 +2758,13 @@ class Algorithm:
 
         if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
             mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
-            self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
+            #self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
+            self.solidHeatFluxResidual.set(predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux)
             return self.solidHeatFluxResidual
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
-            self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
+            #self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
+            self.solidTemperatureResidual.set(predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature)
             return self.solidTemperatureResidual
         else:
             return None
@@ -3369,7 +3210,8 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
         mpiPrint('Aitken under-relaxation step with parameter {}'.format(self.omega), self.mpiComm)
 
         # --- Update the value of the residual for the next FSI iteration --- #
-        self.solidInterfaceResidualkM1 = self.solidInterfaceResidual.copy()
+        #self.solidInterfaceResidualkM1 = self.solidInterfaceResidual.copy()
+        self.solidInterfaceResidual.copy(self.solidInterfaceResidualkM1)
 
 class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
     """
@@ -3589,11 +3431,11 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                 
                 if self.computeTangentMatrixBasedOnFirstIt:
                     if self.FSIIter == 0:
-                        solidInterfaceResidual0 = res.copy()
-                        solidInterfaceDisplacement_tilde1 = solidInterfaceDisplacement_tilde.copy()
+                        res.copy(solidInterfaceResidual0)
+                        solidInterfaceDisplacement_tilde.copy(solidInterfaceDisplacement_tilde1)
                 else:
-                    solidInterfaceResidual0 = res.copy()
-                    solidInterfaceDisplacement_tilde1 = solidInterfaceDisplacement_tilde.copy()
+                    res.copy(solidInterfaceResidual0)
+                    solidInterfaceDisplacement_tilde.copy(solidInterfaceDisplacement_tilde1)
             
             if self.writeInFSIloop == True:
                 self.writeRealTimeData()

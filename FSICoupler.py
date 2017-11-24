@@ -2936,9 +2936,9 @@ class Algorithm:
                 self.writeInFSIloop = True
                 self.fsiCoupling()
                 self.totNbOfFSIIt = self.FSIIter
-        except Exception as err:
-            traceback.print_exc()
+        except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            traceback.print_exc()
         finally:
             self.globalTimer.stop()
             self.globalTimer.cumul()
@@ -2960,7 +2960,6 @@ class Algorithm:
     
             # --- Exit computation --- #
             mpiBarrier(self.mpiComm)
-            return 0
 
     def __unsteadyRun(self):
         """
@@ -3448,32 +3447,34 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         if self.nbTimeToKeep != 0 and self.timeIter >= 1:
             
             # --- Trick to avoid breaking down of the simulation in the rare cases when, in the initial time steps, FSI convergence is reached without iterating (e.g. starting from a steady condition and using very small time steps), leading to empty V and W matrices ---
-            if (self.FSIIter == 1 and self.FSIConv and len(self.V)==0): 
-                self.convergenceReachedInOneIt = True 
-            else:
+            if not (self.FSIIter == 1 and self.FSIConv and len(self.V)==0):
+                
                 self.convergenceReachedInOneIt = False
+                
+                # --- Managing situations where FSI convergence is not reached ---
+                if (self.FSIIter >= nbFSIIter and not self.FSIConv):
+                    mpiPrint('WARNING: IQN-ILS using information from {} previous time steps reached max number of iterations. Next time step is run without using any information from previous time steps!'.format(self.nbTimeToKeep), self.mpiComm)
+                    
+                    self.maxNbOfItReached = True
+                    self.V = []
+                    self.W = []
+                else:
+                    self.maxNbOfItReached = False
+                    
+                    mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
+                    
+                    self.V.insert(0, Vk_mat[:,0:nIt].T)
+                    self.W.insert(0, Wk_mat[:,0:nIt].T)
+                    
+                    if (self.timeIter > self.nbTimeToKeep and len(self.V) > self.nbTimeToKeep):
+                        del self.V[-1]
+                        del self.W[-1]
+                # --- 
+            else:
+                mpiPrint('\nWARNING: IQN-ILS algorithm convergence reached in one iteration at the beginning of the simulation. V and W matrices cannot be built. BGS will be employed for the next time step!\n', self.mpiComm)
+                self.convergenceReachedInOneIt = True
             # ---
             
-            # --- Managing situations where FSI convergence is not reached ---
-            if (self.FSIIter >= nbFSIIter and not self.FSIConv):
-                mpiPrint('WARNING: IQN-ILS using information from {} previous time steps reached max number of iterations. Next time step is run without using any information from previous time steps!'.format(self.nbTimeToKeep), self.mpiComm)
-                
-                self.maxNbOfItReached = True
-                self.V = []
-                self.W = []
-            else:
-                self.maxNbOfItReached = False
-                
-                mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
-                
-                self.V.insert(0, Vk_mat[:,0:nIt].T)
-                self.W.insert(0, Wk_mat[:,0:nIt].T)
-                
-                if (self.timeIter > self.nbTimeToKeep and len(self.V) > self.nbTimeToKeep):
-                    del self.V[-1]
-                    del self.W[-1]
-            # --- 
-        
         # --- Update the FSI history file --- #
         if self.timeIter > self.timeIterTreshold:
             mpiPrint('\n*************** IQN-ILS is converged ***************', self.mpiComm)

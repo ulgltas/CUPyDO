@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 #ifdef HAVE_MPI
 #include "petscmat.h"
@@ -93,6 +94,18 @@ void CInterfaceMatrix::assemble(){
   MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
 #endif  //HAVE_MPI
+}
+
+void CInterfaceMatrix::mult(CFlexInterfaceData* B, CFlexInterfaceData* X){
+
+  assert(B->getDim() == X->getDim());
+
+#ifdef HAVE_MPI
+  for(int i=0; i<X->getDim(); i++){
+    MatMult(H, B->getData(i), X->getData(i));
+  }
+#endif  //HAVE_MPI
+
 }
 
 #ifdef HAVE_MPI

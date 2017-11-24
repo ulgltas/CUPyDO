@@ -581,16 +581,18 @@ class InterfaceMatrix(ccupydo.CInterfaceMatrix):
         self.sizes = sizes
         self.mpiComm = mpiComm
 
-    def mult(self, Vec , VecOut):
+    def mult(self, Data , DataOut):
         """
         Performs interface matrix-data multiplication.
         """
 
-        PyH = self.getMat();
         if self.mpiComm != None:
-            PyH.mult(Vec, VecOut)
+            ccupydo.CInterfaceMatrix.mult(self, Data, DataOut)
         else:
-            np.dot(PyH, Vec, VecOut)
+            PyH = self.getMat();
+            dim = Data.getDim()
+            for iDim in range(dim):
+                np.dot(PyH, Data.getData(iDim), DataOut.getData(iDim))
 
 # ----------------------------------------------------------------------
 #  Linear solver class
@@ -617,16 +619,19 @@ class LinearSolver(ccupydo.CLinearSolver):
         if mpiComm == None:
             self.LinOperator = MatrixOperator.getMat()
 
-    def solve(self, VecB, VecX):
+    def solve(self, DataB, DataX):
         """
         Solve system MatrixOperator*VecX = VecB.
         VecX and VecB are InterfaceData types.
         """
 
         if self.mpiComm != None:
-            ccupydo.CLinearSolver.solve(self, VecX, VecB)
+            ccupydo.CLinearSolver.solve(self, DataB, DataX)
         else:
-            VecX = splinalg.spsolve(self.LinOperator, VecB)
+            dim = DataB.getDim()
+            for iDim in range(dim):
+                XX = splinalg.spsolve(self.LinOperator, DataB.getData(iDim))
+                DataX.setData(iDim, XX)
 
 # ----------------------------------------------------------------------
 #  Generic solid solver class
@@ -1944,20 +1949,14 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         des.
         """
 
-        dim = fluidInterfaceData.getDim()
-
-        for iDim in range(dim):
-            self.H_T.mult(fluidInterfaceData.getData(iDim), solidInterfaceData.getData(iDim))
+        self.H_T.mult(fluidInterfaceData, solidInterfaceData)
 
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
         """
         Des.
         """
 
-        dim = solidInterfaceData.getDim()
-
-        for iDim in range(dim):
-            self.H.mult(solidInterfaceData.getData(iDim), fluidInterfaceData.getData(iDim))
+        self.H.mult(solidInterfaceData, fluidInterfaceData)
 
 class ConservativeInterpolator(InterfaceInterpolator):
     """
@@ -2125,9 +2124,8 @@ class ConservativeInterpolator(InterfaceInterpolator):
         dim = fluidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
 
-        for iDim in range(dim):
-            self.B_T.mult(fluidInterfaceData.getData(iDim), gamma_array.getData(iDim))
-            self.SolverA_T.solve(gamma_array.getData(iDim), solidInterfaceData.getData(iDim))
+        self.B_T.mult(fluidInterfaceData, gamma_array)
+        self.SolverA_T.solve(gamma_array, solidInterfaceData)
 
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
         """
@@ -2137,9 +2135,8 @@ class ConservativeInterpolator(InterfaceInterpolator):
         dim = solidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
 
-        for iDim in range(dim):
-            self.SolverA.solve(solidInterfaceData.getData(iDim), gamma_array.getData(iDim))
-            self.B.mult(gamma_array.getData(iDim), fluidInterfaceData.getData(iDim))
+        self.SolverA.solve(solidInterfaceData, gamma_array)
+        self.B.mult(gamma_array, fluidInterfaceData)
 
 
 class ConsistentInterpolator(InterfaceInterpolator):
@@ -2333,9 +2330,8 @@ class ConsistentInterpolator(InterfaceInterpolator):
         dim = fluidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.nf + self.d, dim, self.mpiComm)
 
-        for iDim in range(dim):
-            self.SolverC.solve(fluidInterfaceData.getData(iDim), gamma_array.getData(iDim))
-            self.D.mult(gamma_array.getData(iDim), solidInterfaceData.getData(iDim))
+        self.SolverC.solve(fluidInterfaceData, gamma_array)
+        self.D.mult(gamma_array, solidInterfaceData)
 
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
         """
@@ -2345,9 +2341,8 @@ class ConsistentInterpolator(InterfaceInterpolator):
         dim = solidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
 
-        for iDim in range(dim):
-            self.SolverA.solve(solidInterfaceData.getData(iDim), gamma_array.getData(iDim))
-            self.B.mult(gamma_array.getData(iDim), fluidInterfaceData.getData(iDim))
+        self.SolverA.solve(solidInterfaceData, gamma_array)
+        self.B.mult(gamma_array, fluidInterfaceData)
 
 class RBFInterpolator(ConservativeInterpolator):
     """

@@ -6,6 +6,7 @@
  */
 
  #include <iostream>
+ #include <cassert>
 
 #ifdef HAVE_MPI
 #include "petscvec.h"
@@ -48,10 +49,14 @@ CLinearSolver::~CLinearSolver(){
 }
 
 #ifdef HAVE_MPI
-void CLinearSolver::solve(Vec &VecX, Vec &VecB){
+void CLinearSolver::solve(CFlexInterfaceData* B, CFlexInterfaceData* X){
 
-  KSPSolve(KSPSolver, VecB, VecX);
-  monitor();
+  assert(X->getDim() == B->getDim());
+
+  for(int i=0; i<X->getDim(); i++){
+    KSPSolve(KSPSolver, B->getData(i), X->getData(i));
+    monitor();
+  }
 
 }
 #endif  //HAVE_MPI

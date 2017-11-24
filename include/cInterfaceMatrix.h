@@ -15,6 +15,8 @@
 #include "petscmat.h"
 #endif  //HAVE_MPI
 
+#include "cFlexInterfaceData.h"
+
 class CInterfaceMatrix{
 #ifdef HAVE_MPI
 Mat H;
@@ -31,6 +33,7 @@ public:
   void setValue(int const& iGlobalIndex, int const& jGlobalIndex, double const& value);
   void setValues(int const& m, int const iGlobalIndices[], int const& n, int const jGlobalIndices[], double const values[]);
   void assemble();
+  void mult(CFlexInterfaceData* B, CFlexInterfaceData* X);
 #ifdef HAVE_MPI
   Mat getMat();
 #else  //HAVE_MPI

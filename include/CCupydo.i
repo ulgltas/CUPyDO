@@ -81,6 +81,7 @@ namespace std {
 
 %apply (int DIM1, int* IN_ARRAY1) {(int size_indices, int* indices_list)}
 %apply (int DIM1, double* IN_ARRAY1) {(int size_values, double *values_array)}
+%apply (int DIM1, double* IN_ARRAY1) {(int size, double *data)}
 %apply(int *DIM1, double** ARGOUTVIEW_ARRAY1) {(int* size, double** data_array)}
 #ifndef HAVE_MPI
 %apply(int *DIM1, int* DIM2, double** ARGOUTVIEW_ARRAY2) {(int* size1, int* size2, double** mat_array)}

@@ -26,9 +26,9 @@ CManager::CManager(){
 
   globalIndexRange.resize(nPhyscis);
 
-  for(int ii=0; ii<globalIndexRange.size(); ii++){
+  for(unsigned int ii=0; ii<globalIndexRange.size(); ii++){
     globalIndexRange[ii].resize(mpiSize);
-    for(int jj=0; jj < globalIndexRange[ii].size(); jj++){
+    for(unsigned int jj=0; jj < globalIndexRange[ii].size(); jj++){
       globalIndexRange[ii][jj].resize(nIndex);
     }
   }
@@ -54,7 +54,7 @@ void CManager::setGlobalIndexing(std::string str_physics,std::vector<std::vector
 
   int physics;
 
-  assert(index_range.size() == mpiSize);
+  assert(index_range.size() == static_cast<unsigned int>(mpiSize));
 
   if(str_physics.compare("fluid") == 0) physics = 0;
   else if(str_physics.compare("solid") == 0) physics = 1;

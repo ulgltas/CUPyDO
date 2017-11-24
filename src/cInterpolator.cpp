@@ -18,7 +18,12 @@
 
 using namespace std;
 
-CInterpolator::CInterpolator(CManager *val_manager):ns(0),nf(0),ns_loc(0),nf_loc(0),manager(val_manager){
+CInterpolator::CInterpolator(CManager *val_manager):manager(val_manager){
+
+  ns = 0;
+  nf = 0;
+  ns_loc = 0;
+  nf_loc = 0;
 
   minDist = nullptr;
   jGlobalVertexSolid_array = nullptr;
@@ -54,8 +59,6 @@ void CInterpolator::matching_search(int size_loc_x, double* array_loc_x, int siz
   assert(size_buff_x == size_buff_y);
   assert(size_buff_y == size_buff_z);
   assert(size_buff_x == size_buff_z);
-
-  assert(size_loc == nf_loc);
 
   ADTPoint ADT(size_buff_x, buff_x, size_buff_y, buff_y, size_buff_z, buff_z);
   for(int iVertex=0; iVertex < nf_loc; iVertex++){
@@ -244,10 +247,8 @@ void CInterpolator::consistent_TPS_fillMatrixBD(int size_loc_x, double* array_lo
                                   int iProc) const{
 
   double fluidPoint[3] = {0.0, 0.0, 0.0}, solidQuery[3] = {0.0,0.0,0.0};
-  double solidPoint[3] = {0.0, 0.0, 0.0}, fluidQuery[3] = {0.0,0.0,0.0};
   double phi, dist;
   int iGlobalVertexFluid, jGlobalVertexSolid;
-  int iGlobalVertexSolid, jGlobalVertexFluid;
 
   assert(nf_loc == size_loc_x);
   assert(nf_loc == size_loc_y);
@@ -668,6 +669,9 @@ double CInterpolator::PHI_RBF(double &distance, const double &radius) const{
 }
 
 double CInterpolator::distance(int val_size1, double *array1, int val_size2, double *array2) const{
+
+  assert(val_size1 <= 3);
+  assert(val_size2 <= 3);
 
   return sqrt(pow(array2[0] - array1[0],2) + pow(array2[1] - array1[1],2) + pow(array2[2]-array1[2],2));
 }

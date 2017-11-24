@@ -54,11 +54,15 @@ ADTPoint::~ADTPoint(){
 
 void ADTPoint::queryNN(int size, double *coord, int &pointID, double &distance){
 
+  assert(size <= 3);
+
   int rank = 0;
   dataTree->queryNearestNeighboor(coord, distance, pointID, rank);
 }
 
 void ADTPoint::queryBallNN(int size, double* coord, double radius, std::vector<int> &allIDs){
+
+  assert(size <= 3);
 
   vector<double> allDist;
   int rank = 0;

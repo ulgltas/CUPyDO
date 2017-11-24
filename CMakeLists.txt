@@ -33,6 +33,12 @@ ELSE()
     MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 ENDIF()
 
+# Add warnings during compilation when build type is Debug
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
+
+
 # Build for parallel run using MPI (default is OFF)
 OPTION(WITH_MPI "Build for parallel run" OFF)
 # Build Python wrapper (default is ON)
@@ -68,11 +74,12 @@ ENDIF(WITH_PYWRAPPER)
 
 INCLUDE_DIRECTORIES( ${MPI_INCLUDE_PATH} ${PETSC_INCLUDE_PATH} )
 
-#FILE(GLOB SRCS test.cpp)
-#ADD_EXECUTABLE(cTestGeneral src/cTest_general.cpp src/cInterpolator.cpp src/cInterfaceMatrix.cpp src/cManager.cpp src/adtcore.cpp src/cAdt.cpp include/cInterpolator.h include/cManager.h include/cInterfaceMatrix.h include/adtcore.h include/cAdt.h )
-#TARGET_LINK_LIBRARIES(cTestGeneral ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
-
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+IF(WITH_MPI)
+  ADD_EXECUTABLE(test_CFlexInterfaceData src/test/test_CFlexInterfaceData.cpp src/cFlexInterfaceData.cpp)
+  TARGET_LINK_LIBRARIES(test_CFlexInterfaceData ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
+ENDIF(WITH_MPI)
 
 #-------------------------------------------------------------
 INCLUDE(${SWIG_USE_FILE})
@@ -103,4 +110,7 @@ SET(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}")
 MESSAGE(STATUS "Installation directory : ${CMAKE_INSTALL_PREFIX}")
 
 INSTALL_TARGETS(/ccupydo _CCupydo)
-INSTALL_FILES(/ccupydo FILES "${PROJECT_BINARY_DIR}/CCupydo.py") 
+INSTALL_FILES(/ccupydo FILES "${PROJECT_BINARY_DIR}/CCupydo.py")
+IF(WITH_MPI)
+  INSTALL_TARGETS(/ccupydo test_CFlexInterfaceData)
+ENDIF(WITH_MPI)

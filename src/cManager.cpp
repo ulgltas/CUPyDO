@@ -35,7 +35,13 @@ CManager::CManager(){
 
 }
 
-CManager::~CManager(){}
+CManager::~CManager(){
+
+#ifndef NDEBUG
+  cout << "Calling CManager::~CManager()" << endl;
+#endif  //NDEBUG
+
+}
 
 int CManager::getGlobalIndex(string const& str_physics, int const& iProc, int const& iVertex){
 

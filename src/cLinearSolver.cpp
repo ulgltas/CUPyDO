@@ -37,6 +37,10 @@ CLinearSolver::CLinearSolver(CInterfaceMatrix *val_matrixOperator){
 
 CLinearSolver::~CLinearSolver(){
 
+#ifndef NDEBUG
+  cout << "Calling CLinearSolver::~CLinearSolver()" << endl;
+#endif  //NDEBUG
+
 #ifdef HAVE_MPI
   if(KSPSolver) KSPDestroy(&KSPSolver);
 #endif  //HAVE_MPI

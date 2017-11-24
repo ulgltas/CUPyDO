@@ -21,6 +21,10 @@ CInterfaceMatrix::CInterfaceMatrix(int const& val_M, int const& val_N):M(val_M),
 
 CInterfaceMatrix::~CInterfaceMatrix(){
 
+#ifndef NDEBUG
+  cout << "Calling CInterfaceMatrix::~CInterfaceMatrix()" << endl;
+#endif  //NDEBUG
+
 #ifdef HAVE_MPI
   if(H){
     MatDestroy(&H);

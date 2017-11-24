@@ -31,6 +31,10 @@ CInterpolator::CInterpolator(CManager *val_manager):manager(val_manager){
 
 CInterpolator::~CInterpolator(){
 
+#ifndef NDEBUG
+  cout << "Calling CInterpolator::~CInterpolator()" << endl;
+#endif  //NDEBUG
+
   if(minDist != nullptr) delete [] minDist;
   if(jGlobalVertexSolid_array != nullptr) delete [] jGlobalVertexSolid_array;
 }

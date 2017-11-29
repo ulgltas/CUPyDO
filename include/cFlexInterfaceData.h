@@ -39,7 +39,7 @@ public:
 #ifdef HAVE_MPI
   Vec getData(const int& iDim);
 #else //HAVE_MPI
-  void getData(const int& iDim, int* size, double** data);
+  void getData(const int& iDim, int* size, double** data_array);
   void setData(const int& iDim, int size, double* data);
 #endif //HAVE_MPI
   void getDataArray(const int& iDim, int* size, double** data_array);

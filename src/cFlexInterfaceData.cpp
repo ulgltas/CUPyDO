@@ -1,6 +1,6 @@
 /*!
  * Source for CFlexInterfaceData.
- * Authors : D. THOMAS.
+ * Authors : D. THOMAS., M.L. CERQUAGLIA
  *
  * COPYRIGHT (C) University of Liège, 2017.
  */
@@ -178,9 +178,9 @@ void CFlexInterfaceData::setAllValues(const int& iDim, const double& value){
     return dataContainer[iDim];
   }
 #else //HAVE_MPI
-  void CFlexInterfaceData::getData(const int& iDim, int* size, double** data){
+  void CFlexInterfaceData::getData(const int& iDim, int* size, double** data_array){
     *size = nPoint;
-    *data = dataContainer[iDim];
+    *data_array = dataContainer[iDim];
   }
 
   void CFlexInterfaceData::setData(const int& iDim, int size, double* data){
@@ -218,30 +218,26 @@ void CFlexInterfaceData::assemble(){
 
 vector<double> CFlexInterfaceData::norm(){
 
+    vector<double> norm_list(nDim);
 #ifdef HAVE_MPI
-  vector<double> norm_list(nDim);
 
   for(int ii=0; ii<nDim; ii++){
     VecNorm(dataContainer[ii], NORM_2, &(norm_list[ii]));
   }
-
-  return norm_list;
 #endif //HAVE_MPI
-
+    return norm_list;
 }
 
 vector<double> CFlexInterfaceData::sum(){
 
+    vector<double> sum_list(nDim);
 #ifdef HAVE_MPI
-  vector<double> sum_list(nDim);
 
   for(int ii=0; ii<nDim; ii++){
     VecSum(dataContainer[ii], &(sum_list[ii]));
   }
-
-  return sum_list;
 #endif  //HAVE_MPI
-
+    return sum_list;
 }
 
 void CFlexInterfaceData::copy(CFlexInterfaceData& target){
@@ -288,16 +284,14 @@ void CFlexInterfaceData::set(CFlexInterfaceData& donor){
 
 vector<double> CFlexInterfaceData::dot(CFlexInterfaceData& data){
 
+    vector<double> dot_list(nDim);
 #ifdef HAVE_MPI
-  vector<double> dot_list(nDim);
 
   for(int ii=0; ii<nDim; ii++){
     VecDot(dataContainer[ii],data.getData(ii),&(dot_list[ii]));
   }
-
-  return dot_list;
 #endif  //HAVE_MPI
-
+    return dot_list;
 }
 
 vector<int> CFlexInterfaceData::getOwnershipRange() const{
@@ -330,7 +324,7 @@ void CFlexInterfaceData::add(CFlexInterfaceData& data){
 #else  //HAVE_MPI
   double* dataToAdd;
   int size;
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     data.getData(ii, &size, &dataToAdd);
     assert(nPoint==size);
     for(int jj=0; jj<nPoint; jj++){
@@ -352,7 +346,7 @@ void CFlexInterfaceData::add(const double & scalar){
     VecShift(dataContainer[ii], scalar);
   }
 #else  //HAVE_MPI
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     for(int jj=0; jj<nPoint; jj++){
       dataContainer[ii][jj] += scalar;
     }
@@ -372,7 +366,7 @@ void CFlexInterfaceData::add(const int & scalar){
     VecShift(dataContainer[ii], scalar);
   }
 #else  //HAVE_MPI
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     for(int jj=0; jj<nPoint; jj++){
       dataContainer[ii][jj] += scalar;
     }
@@ -397,7 +391,7 @@ void CFlexInterfaceData::sub(CFlexInterfaceData& data){
 #else  //HAVE_MPI
   double* dataToAdd;
   int size;
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     data.getData(ii, &size, &dataToAdd);
     assert(nPoint==size);
     for(int jj=0; jj<nPoint; jj++){
@@ -419,7 +413,7 @@ void CFlexInterfaceData::sub(const double & scalar){
     VecShift(dataContainer[ii], -scalar);
   }
 #else  //HAVE_MPI
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     for(int jj=0; jj<nPoint; jj++){
       dataContainer[ii][jj] -= scalar;
     }
@@ -439,7 +433,7 @@ void CFlexInterfaceData::sub(const int & scalar){
     VecShift(dataContainer[ii], -scalar);
   }
 #else  //HAVE_MPI
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     for(int jj=0; jj<nPoint; jj++){
       dataContainer[ii][jj] -= scalar;
     }
@@ -459,7 +453,7 @@ void CFlexInterfaceData::scale(const double& value){
     VecScale(dataContainer[ii], value);
   }
 #else  //HAVE_MPI
-  for(int ii=0; ii<nDim; ii+){
+  for(int ii=0; ii<nDim; ii++){
     for(int jj=0; jj<nPoint; jj++){
       dataContainer[ii][jj] *= value;
     }

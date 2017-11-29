@@ -393,7 +393,8 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         """
         Des.
         """
-
+        self.mpiComm = mpiComm
+        
         ccupydo.CFlexInterfaceData.__init__(self, val_nPoint, val_nDim, mpiComm)
 
         #self.mpiComm = mpiComm
@@ -553,6 +554,49 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         self.scale(mulVal)
 
         return self
+    
+    def dot(self, dataToDot):
+        
+        dotList = []
+
+        if self.mpiComm != None:
+            dotList = ccupydo.CFlexInterfaceData.dot(self, dataToDot)
+        else:
+            for iDim in range(self.nDim):
+                myData = self.getData(iDim)
+                dotData = dataToDot.getData(iDim)
+                val_dot = myData.dot(dotData)
+                dotList.append(val_dot)
+
+        return dotList
+    
+    def sum(self):
+        
+        sumList = []
+
+        if self.mpiComm != None:
+            sumList = ccupydo.CFlexInterfaceData.sum(self)
+        else:
+            for iDim in range(self.nDim):
+                myData = self.getData(iDim)
+                val_sum = myData.sum()
+                sumList.append(val_sum)
+
+        return sumList
+    
+    def norm(self):
+        
+        normList = []
+
+        if self.mpiComm != None:
+            normList = ccupydo.CFlexInterfaceData.norm(self)
+        else:
+            for iDim in range(self.nDim):
+                myData = self.getData(iDim)
+                val_norm = np.linalg.norm(myData)
+                normList.append(val_norm)
+
+        return normList
 
 # ----------------------------------------------------------------------
 #    InterfaceMatrix class
@@ -3412,7 +3456,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                             
                             delta_ds_loc_X = delta_ds_loc[0]
                             delta_ds_loc_Y = delta_ds_loc[1]
-                            delta_ds_loc_Z = np.zeros((ns,1))
+                            delta_ds_loc_Z = np.zeros(ns)
                         
                         for iVertex in range(delta_ds_loc_X.shape[0]):
                             iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)

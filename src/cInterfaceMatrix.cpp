@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 #ifdef HAVE_MPI
 #include "petscmat.h"
@@ -20,6 +21,10 @@ using namespace std;
 CInterfaceMatrix::CInterfaceMatrix(int const& val_M, int const& val_N):M(val_M), N(val_N){ }
 
 CInterfaceMatrix::~CInterfaceMatrix(){
+
+#ifndef NDEBUG
+  cout << "Calling CInterfaceMatrix::~CInterfaceMatrix()" << endl;
+#endif  //NDEBUG
 
 #ifdef HAVE_MPI
   if(H){
@@ -70,12 +75,37 @@ void CInterfaceMatrix::setValue(const int &iGlobalIndex, const int &jGlobalIndex
 #endif  //HAVE_MPI
 }
 
+void CInterfaceMatrix::setValues(int const& m, int const iGlobalIndices[], int const& n, int const jGlobalIndices[], double const values[]){
+
+#ifdef HAVE_MPI
+  MatSetValues(H, m, iGlobalIndices, n, jGlobalIndices, values, INSERT_VALUES);
+#else //HAVE_MPI
+  for(int ii=0; ii<m; ii++){
+    for(int jj=0; jj<n; jj++){
+      H[iGlobalIndices[ii]*N+jGlobalIndices[jj]] = values[ii*n+jj];
+    }
+  }
+#endif //HAVE_MPI
+}
+
 void CInterfaceMatrix::assemble(){
 
 #ifdef HAVE_MPI
   MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
 #endif  //HAVE_MPI
+}
+
+void CInterfaceMatrix::mult(CFlexInterfaceData* B, CFlexInterfaceData* X){
+
+  assert(B->getDim() == X->getDim());
+
+#ifdef HAVE_MPI
+  for(int i=0; i<X->getDim(); i++){
+    MatMult(H, B->getData(i), X->getData(i));
+  }
+#endif  //HAVE_MPI
+
 }
 
 #ifdef HAVE_MPI

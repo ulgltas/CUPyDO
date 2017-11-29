@@ -14,5 +14,5 @@
 #ifdef HAVE_MPI
   typedef MPI_Comm Cupydo_Comm;
 #else //HAVE_MPI
-  typedef int Cupydo_Comm;
+  typedef const int* Cupydo_Comm;
 #endif //HAVE_MPI

@@ -13,9 +13,9 @@ threads="1"
 ) CCupydo
 %{
 #define SWIG_FILE_WITH_INIT
+#include "cMpi.h"
 #include "cInterpolator.h"
 #include "cManager.h"
-#include "cMpi.h"
 #include "cFlexInterfaceData.h"
 #include "cInterfaceMatrix.h"
 #include "cLinearSolver.h"
@@ -33,9 +33,9 @@ threads="1"
 %include "typemaps.i"
 %include "numpy.i"
 #ifdef HAVE_MPI
-  %include "petsc4py/petsc4py.i"
   %include "mpi4py/mpi4py.i"
   %mpi4py_typemap(Comm, MPI_Comm)
+  %include "petsc4py/petsc4py.i"
 #endif
 
 // ----------- NATIVE CLASSES ----------------
@@ -79,6 +79,10 @@ namespace std {
                                       (int size_buff_y, double* buff_y),
                                       (int size_buff_z, double* buff_z)}
 
+%apply (int DIM1, int* IN_ARRAY1) {(int size_indices, int* indices_list)}
+%apply (int DIM1, double* IN_ARRAY1) {(int size_values, double *values_array)}
+%apply (int DIM1, double* IN_ARRAY1) {(int size, double *data)}
+%apply(int *DIM1, double** ARGOUTVIEW_ARRAY1) {(int* size, double** data_array)}
 #ifndef HAVE_MPI
 %apply(int *DIM1, int* DIM2, double** ARGOUTVIEW_ARRAY2) {(int* size1, int* size2, double** mat_array)}
 #endif

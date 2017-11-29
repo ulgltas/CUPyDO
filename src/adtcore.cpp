@@ -295,7 +295,7 @@ void ADT_BaseType::buildADT(int nDim, int nPoints, double *coord){
 
             /* More than 3 points are present and thus the right leaf is created.
                Same principle as for the left leaf. */
-            int nPointsRightChild = leafNPoints-nPointsLeftChild;
+            //int nPointsRightChild = leafNPoints-nPointsLeftChild;
             int nfr = nPointIDsNew[nLeavesToDivideNew];
 
             for(int k=kk; k<nPointIDs[i+1]; ++k)
@@ -376,7 +376,7 @@ bool ADT_BaseType::isIncluded(double *pointA, ADT_Node &BBox){
 
 void ADT_BaseType::display(void){
 
-    for(int ii=0; ii<leaves.size(); ii++){
+    for(unsigned int ii=0; ii<leaves.size(); ii++){
         cout << "Leaf " << ii << endl;
         cout << "Central node ID : " << leaves[ii].getCentralNodeID() << endl;
         cout << "Child left : " << leaves[ii].getChild(CHILD_LEFT) << "--" << leaves[ii].isChildTerminal(CHILD_LEFT) << endl;
@@ -389,7 +389,7 @@ void ADT_BaseType::display(void){
         //cout << "----------------------------------" << endl;
     }
 
-    for(int ii=0; ii<nodeParents.size(); ii++){
+    for(unsigned int ii=0; ii<nodeParents.size(); ii++){
         cout << nodeParents[ii] << endl;
     }
 }
@@ -436,7 +436,7 @@ void ADT_PointType::queryNearestNeighboor(double *coord, double &dist, int &poin
       frontLeavesNew.clear();
 
       /* Loop over the leaves of the current front. */
-      for(int i=0; i<frontLeaves.size(); ++i) {
+      for(unsigned int i=0; i<frontLeaves.size(); ++i) {
 
         /* Get the current leaf and loop over its children (always 2 children). */
         const int iLeaf = frontLeaves[i];
@@ -523,7 +523,7 @@ void ADT_PointType::queryBallNeighboors(double *coord, double const& radius, std
       frontLeavesNew.clear();
 
       /* Loop over the leaves of the current round */
-      for(int i=0; i<frontLeaves.size(); i++){
+      for(unsigned int i=0; i<frontLeaves.size(); i++){
         const int iLeaf = frontLeaves[i];
 
         /* Loop over the children of the current leaf */

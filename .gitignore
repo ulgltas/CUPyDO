@@ -4,8 +4,10 @@
 *.pyd
 *.log
 *.res
+*.old
 
 exe/workspace/
+exe/*.sh
 
 apps/
 
@@ -19,6 +21,6 @@ tests/SU2_GetDP/workspace/
 
 *.bfac.gz
 
-build/
+build*
 ccupydo/*.so
 ccupydo/CCupydo*

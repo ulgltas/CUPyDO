@@ -14,7 +14,7 @@ import os, os.path, sys, time, string
 
 import math
 import numpy as np
-from FSICoupler import FluidSolver
+from cupydo.FSICoupler import FluidSolver
 
 # ----------------------------------------------------------------------
 #  PfemSolver class

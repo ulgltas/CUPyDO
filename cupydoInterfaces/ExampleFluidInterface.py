@@ -6,18 +6,18 @@
 # ----------------------------------------------------------------------
 
 # Import whatever you want here, e.g.:
-# import solidWrapper
+# import fluidWrapper
+# import math
 
 # Those are mandatory
 import numpy as np
-from FSICoupler import SolidSolver
-
+from cupydo.FSICoupler import FluidSolver
 
 # ----------------------------------------------------------------------
 #  ExampSolver class
 # ----------------------------------------------------------------------
                
-class ExampSolver(SolidSolver):
+class ExampSolver(FluidSolver):
     def __init__(self, config): # You are free to add any arguments here
         """
         Des.
@@ -30,16 +30,11 @@ class ExampSolver(SolidSolver):
         #self.nHaloNode =                           # number of ghost nodes at the f/s boundary
         #self.nPhysicalNodes =                      # number of physical nodes at the f/s boundary
         
-        SolidSolver.__init__(self)
-        self.coreSolver = solidWrapper.solverDriver(config)
-        
-        self.__setCurrentState()           # use to fill the arrays with initial nodal values
-        self.nodalVel_XNm1 = self.nodalVel_X.copy()
-        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
-        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
+        FluidSolver.__init__(self)
+        self.coreSolver = fluidWrapper.solverDriver(config)
         
         self.initRealTimeData()
-        
+
     def run(self, t1, t2):
         """
         Des.
@@ -56,18 +51,14 @@ class ExampSolver(SolidSolver):
         """
 
         #This is an example, you are free to do it your own way
-        #for ii in range(self.nPhysicalNodes):                   
-            #self.nodalDisp_X[ii] = self.coreSolver.getDisplacementX(ii)
-            #self.nodalDisp_Y[ii] = self.coreSolver.getDisplacementY(ii)
-            #self.nodalDisp_Z[ii] = self.coreSolver.getDisplacementZ(ii)
-            #self.nodalVel_X[ii] = self.coreSolver.getVelocityX(ii)  
-            #self.nodalVel_Y[ii] = self.coreSolver.getVelocityY(ii)  
-            #self.nodalVel_Z[ii] = self.coreSolver.getVelocityZ(ii)  
-
+        #for iVertex in range(self.nPhysicalNodes):
+            #self.nodalLoad_X[iVertex] = self.coreSolver.getLoadX(iVertex)
+            #self.nodalLoad_Y[iVertex] = self.coreSolver.getLoadY(iVertex)
+            #self.nodalLoad_Z[iVertex] = self.coreSolver.getLoadZ(iVertex)
 
     def getNodalInitialPositions(self):
         """
-        Description.
+        Des.
         """
 
         #nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
@@ -83,38 +74,32 @@ class ExampSolver(SolidSolver):
 
     def getNodalIndex(self, iVertex):
         """
-        Returns the index (identifier) of the iVertex^th interface node.
+        Des.
         """
 
         #no = 
-    
+
         #return no
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z):
         """
         Des.
         """
 
         #This is just an example again
-        #for ii in range(self.nPhysicalNodes):
-            #self.coreSolver.applyNodalLoadX(load_X[ii], ii)
-            #self.coreSolver.applyNodalLoadY(load_Y[ii], ii)
-            #self.coreSolver.applyNodalLoadZ(load_Z[ii], ii)
+        #for iVertex in range(self.nPhysicalNodes):
+            #self.coreSolver.applyNodalDispX(disp_X[iVertex], iVertex)
+            #self.coreSolver.applyNodalDispY(disp_Y[iVertex], iVertex)
+            #self.coreSolver.applyNodalDispZ(disp_Z[iVertex], iVertex)
 
-    def applyNodalTemperatures(self, Temperature, val_time):
+    def update(self):
         """
         Des.
         """
 
-    def update(self):
-        """
-        Pushes back the current state in the past (previous state) before going to the next time step.
-        """
-
-        SolidSolver.update(self)
+        FluidSolver.update(self)
 
         #overload here
-
 
     def bgsUpdate(self):
         """

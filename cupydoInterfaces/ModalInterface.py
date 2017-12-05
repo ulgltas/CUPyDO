@@ -12,7 +12,7 @@
 # ----------------------------------------------------------------------
 
 import numpy as np
-from FSICoupler import SolidSolver
+from cupydo.FSICoupler import SolidSolver
 from math import *
 
 # ----------------------------------------------------------------------

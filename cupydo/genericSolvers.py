@@ -238,5 +238,8 @@ class FluidSolver:
     def meshUpdate(self, nt):
         return
 
+    def boundaryConditionsUpdate(self):
+        return
+
     def exit(self):
         return

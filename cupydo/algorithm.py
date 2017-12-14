@@ -122,6 +122,7 @@ class Algorithm:
                     self.FluidSolver.setInitialInterfaceHeatFlux()
                 elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
                     self.FluidSolver.setInitialInterfaceTemperature()
+        self.FluidSolver.boundaryConditionsUpdate()
 
     def computeSolidInterfaceResidual(self):
         """
@@ -488,6 +489,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             # --- Solid to fluid thermal transfer --- #
             if self.manager.withCht and solidHasRun:
                 self.solidToFluidThermalTransfer()
+            self.FluidSolver.boundaryConditionsUpdate()
 
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching fluid solver...', self.mpiComm)
@@ -918,6 +920,7 @@ class ThermalAlgorithmBGS(AlgorithmBGSStaticRelax):
             self.FluidSolver.setInitialInterfaceHeatFlux()
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             self.FluidSolver.setInitialInterfaceTemperature()
+        self.FluidSolver.boundaryConditionsUpdate()
 
     def fsiCoupling(self):
         """
@@ -943,6 +946,7 @@ class ThermalAlgorithmBGS(AlgorithmBGSStaticRelax):
             # --- Solid to fluid thermal transfer --- #
             if solidHasRun:
                 self.solidToFluidThermalTransfer()
+            self.FluidSolver.boundaryConditionsUpdate()
 
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching fluid solver...', self.mpiComm)

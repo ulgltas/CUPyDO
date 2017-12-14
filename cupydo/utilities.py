@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 #
-# FSICoupler.py
-# Main file (Python core) of CUPyDO.
+# utilities.py
+# Common utilities (MPI functions, timer, ...) for CUPyDO.
 # Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 #
 # COPYRIGHT (C) University of Liège, 2017.
@@ -14,19 +14,11 @@
 from math import *
 import numpy as np
 import scipy as sp
-from scipy import spatial
-import scipy.sparse.linalg as splinalg
 import os, os.path, sys, string
 import time as tm
 
-import traceback
-
 import socket, fnmatch
 import fsi_pyutils
-
-import copy
-
-import ccupydo
 
 np.set_printoptions(threshold=np.nan)
 

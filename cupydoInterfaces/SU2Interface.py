@@ -14,7 +14,7 @@
 import pysu2
 import math
 import numpy as np
-from cupydo.FSICoupler import FluidSolver
+from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver class

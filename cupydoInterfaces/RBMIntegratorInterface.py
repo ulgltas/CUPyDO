@@ -15,7 +15,7 @@ import NativeSolid
 
 import math
 import numpy as np
-from cupydo.FSICoupler import SolidSolver
+from cupydo.genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  RBMIntegrator class

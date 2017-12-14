@@ -14,7 +14,7 @@
 import math
 import os
 import numpy as np
-from cupydo.FSICoupler import SolidSolver
+from cupydo.genericSolvers import SolidSolver
 from getdp import *
 
 # ----------------------------------------------------------------------

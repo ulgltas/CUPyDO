@@ -17,7 +17,7 @@ from toolbox.utilities import *
 import toolbox.fac as fac
 from wrap import *
 import numpy as np
-from cupydo.FSICoupler import SolidSolver
+from cupydo.genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Nodal Load class

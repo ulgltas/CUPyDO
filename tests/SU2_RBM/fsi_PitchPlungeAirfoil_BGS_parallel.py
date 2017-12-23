@@ -10,7 +10,12 @@ sys.path.append(FSICouplerPath)
 
 from math import *
 from optparse import OptionParser
-import FSICoupler
+
+import cupydo.utilities as cupyutil
+import cupydo.manager as cupyman
+import cupydo.interpolator as cupyinterp
+import cupydo.criterion as cupycrit
+import cupydo.algorithm as cupyalgo
 
 def getParameters(_p):
     # --- Input parameters --- #
@@ -38,7 +43,7 @@ def main(_p, nogui):
     numberPart = 0
     rootProcess = 0
 
-    FSICoupler.load(fileName, p['withMPI'], comm, myid, numberPart)
+    cupyutil.load(fileName, p['withMPI'], comm, myid, numberPart)
 
     if p['withMPI']:
         from mpi4py import MPI
@@ -54,35 +59,35 @@ def main(_p, nogui):
     csd_file = '../../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'
 
     # --- Initialize the fluid solver --- #
-    import SU2Interface
+    import cupydoInterfaces.SU2Interface
     if comm != None:
-      fluidSolver = SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
+      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
     else:
-      fluidSolver = SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
+      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
   
-    FSICoupler.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-      import RBMIntegratorInterface
-      solidSolver = RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
+      import cupydoInterfaces.RBMIntegratorInterface
+      solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
 
-    FSICoupler.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #
-    manager = FSICoupler.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
-    FSICoupler.mpiBarrier()
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = FSICoupler.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+    interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
 
     # --- Initialize the FSI criterion --- #
-    criterion = FSICoupler.DispNormCriterion(p['tollFSI'])
-    FSICoupler.mpiBarrier()
+    criterion = cupycrit.DispNormCriterion(p['tollFSI'])
+    cupyutil.mpiBarrier()
 
     # --- Initialize the FSI algorithm --- #
-    algorithm = FSICoupler.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
 
     # --- Launch the FSI computation --- #
     algorithm.run()
@@ -94,7 +99,7 @@ def main(_p, nogui):
     del solidSolver
     del interpolator
     del algorithm
-    FSICoupler.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
     return 0
 
 

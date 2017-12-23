@@ -14,7 +14,7 @@
 import pysu2
 import math
 import numpy as np
-from FSICoupler import FluidSolver
+from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver class
@@ -230,9 +230,6 @@ class SU2Solver(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, WallHF)
                 PhysicalIndex += 1
 
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_HeatFlux(self.fluidInterfaceID)
-
     def applyNodalTemperatures(self, Temperature, time):
         """
         Des.
@@ -243,9 +240,6 @@ class SU2Solver(FluidSolver):
             if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, Temperature[PhysicalIndex])
                 PhysicalIndex += 1
-
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_Temperature(self.fluidInterfaceID)
 
     def setInitialInterfaceHeatFlux(self):
         """
@@ -258,9 +252,6 @@ class SU2Solver(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, self.QWallInit)
                 PhysicalIndex += 1
 
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_HeatFlux(self.fluidInterfaceID)
-
     def setInitialInterfaceTemperature(self):
         """
         Des
@@ -271,9 +262,6 @@ class SU2Solver(FluidSolver):
             if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, self.TWallInit)
                 PhysicalIndex += 1
-
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_Temperature(self.fluidInterfaceID)
 
     def update(self, dt):
         """
@@ -332,6 +320,13 @@ class SU2Solver(FluidSolver):
             self.SU2.DynamicMeshUpdate(nt)
         else:
             self.SU2.StaticMeshUpdate()
+
+    def boundaryConditionsUpdate(self):
+        """
+        Des.
+        """
+
+        self.SU2.BoundaryConditionsUpdate()
 
     def setInitialMeshDeformation(self):
         """

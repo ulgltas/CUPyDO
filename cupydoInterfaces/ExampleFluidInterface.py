@@ -11,7 +11,7 @@
 
 # Those are mandatory
 import numpy as np
-from FSICoupler import FluidSolver
+from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  ExampSolver class

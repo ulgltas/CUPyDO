@@ -10,7 +10,7 @@
 
 # Those are mandatory
 import numpy as np
-from FSICoupler import SolidSolver
+from cupydo.genericSolvers import SolidSolver
 
 
 # ----------------------------------------------------------------------

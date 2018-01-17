@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -12,16 +15,13 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License. 
+limitations under the License.
+
+manager.py
+Interface general manager.
+Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
-
-#!/usr/bin/env python
-# -*- coding: latin-1; -*-
-#
-# manager.py
-# Interface general manager.
-# Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 # ----------------------------------------------------------------------
 #  Imports

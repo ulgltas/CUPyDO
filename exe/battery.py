@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -14,14 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-'''
+Battery CUPyDO
+Revisited for CUPyDO by Marco Lucio CERQUAGLIA and David THOMAS
+Originally written for "Metalub" by Romain Boman
+Modified for "Metalub" by Yves CARRETTA
 
-#!/usr/bin/env python
-# -*- coding: latin-1; -*-
-# Battery CUPyDO
-# Revisited for CUPyDO by Marco Lucio CERQUAGLIA and David THOMAS
-# Originally written for "Metalub" by Romain Boman
-# Modified for "Metalub" by Yves CARRETTA
+'''
 
 import sys, glob, os, subprocess, platform, argparse, time
 

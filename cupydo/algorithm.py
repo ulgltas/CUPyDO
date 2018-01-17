@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -14,14 +17,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-'''
+algorithm.py
+Defines the coupling algorithms of CUPyDO.
+Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
-#!/usr/bin/env python
-# -*- coding: latin-1; -*-
-#
-# algorithm.py
-# Defines the coupling algorithms of CUPyDO.
-# Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
+'''
 
 # ----------------------------------------------------------------------
 #  Imports

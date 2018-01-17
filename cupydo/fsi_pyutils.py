@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -14,13 +17,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
+fsi_pyutils.py
+Python utilities.
+Authors: L. PAPELEUX
+
 '''
-
-# -*- coding: latin-1; -*-
-
-# fsi_pyutils.py
-# Python utilities.
-# Authors: L. PAPELEUX
 
 # ----------------------------------------------------------------------
 #  Imports

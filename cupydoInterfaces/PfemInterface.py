@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -14,14 +17,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
+PfemInterface.py
+Python interface between the wrapper of PFEM solver and CUPyDO.
+Authors M.L. CERQUAGLIA
+
 '''
-
-#!/usr/bin/env python
-# -*- coding: latin-1; -*-
-
-# PfemInterface.py
-# Python interface between the wrapper of PFEM solver and CUPyDO.
-# Authors M.L. CERQUAGLIA
 
 # ----------------------------------------------------------------------
 #  Imports

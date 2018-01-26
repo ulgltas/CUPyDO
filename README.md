@@ -12,3 +12,5 @@ Examples of simulations available in /tests.
 
 ![Screenshot](/tests/fsi_examples.png)
 
+[![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
+

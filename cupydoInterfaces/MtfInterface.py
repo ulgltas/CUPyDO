@@ -1,11 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
-# MtfInterface.py
-# Python interface between the wrapper of Metafor and CUPyDO.
-# Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
-#
-# COPYRIGHT (C) University of Liège, 2017.
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+MtfInterface.py
+Python interface between the wrapper of Metafor and CUPyDO.
+Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
+
+'''
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -17,7 +33,7 @@ from toolbox.utilities import *
 import toolbox.fac as fac
 from wrap import *
 import numpy as np
-from FSICoupler import SolidSolver
+from cupydo.genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Nodal Load class

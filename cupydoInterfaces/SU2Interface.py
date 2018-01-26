@@ -1,11 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
-# SU2Interface.py
-# Python interface between the wrapper of SU2 and CUPyDO.
-# Authors D. THOMAS
-#
-# COPYRIGHT (C) University of Liège, 2017.
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+SU2Interface.py
+Python interface between the wrapper of SU2 and CUPyDO.
+Authors D. THOMAS
+
+'''
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -14,7 +30,7 @@
 import pysu2
 import math
 import numpy as np
-from FSICoupler import FluidSolver
+from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver class
@@ -230,9 +246,6 @@ class SU2Solver(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, WallHF)
                 PhysicalIndex += 1
 
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_HeatFlux(self.fluidInterfaceID)
-
     def applyNodalTemperatures(self, Temperature, time):
         """
         Des.
@@ -243,9 +256,6 @@ class SU2Solver(FluidSolver):
             if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, Temperature[PhysicalIndex])
                 PhysicalIndex += 1
-
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_Temperature(self.fluidInterfaceID)
 
     def setInitialInterfaceHeatFlux(self):
         """
@@ -258,9 +268,6 @@ class SU2Solver(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, self.QWallInit)
                 PhysicalIndex += 1
 
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_HeatFlux(self.fluidInterfaceID)
-
     def setInitialInterfaceTemperature(self):
         """
         Des
@@ -271,9 +278,6 @@ class SU2Solver(FluidSolver):
             if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, self.TWallInit)
                 PhysicalIndex += 1
-
-        if self.fluidInterfaceID != None:
-            self.SU2.MGUpdateBoundaryConditions_Temperature(self.fluidInterfaceID)
 
     def update(self, dt):
         """
@@ -332,6 +336,13 @@ class SU2Solver(FluidSolver):
             self.SU2.DynamicMeshUpdate(nt)
         else:
             self.SU2.StaticMeshUpdate()
+
+    def boundaryConditionsUpdate(self):
+        """
+        Des.
+        """
+
+        self.SU2.BoundaryConditionsUpdate()
 
     def setInitialMeshDeformation(self):
         """

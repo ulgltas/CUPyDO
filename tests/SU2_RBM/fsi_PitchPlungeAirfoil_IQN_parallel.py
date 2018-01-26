@@ -1,3 +1,21 @@
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+'''
+
 import os, sys
 
 filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -10,7 +28,12 @@ sys.path.append(FSICouplerPath)
 
 from math import *
 from optparse import OptionParser
-import FSICoupler
+
+import cupydo.utilities as cupyutil
+import cupydo.manager as cupyman
+import cupydo.interpolator as cupyinterp
+import cupydo.criterion as cupycrit
+import cupydo.algorithm as cupyalgo
 
 def getParameters(_p):
     # --- Input parameters --- #
@@ -40,7 +63,7 @@ def main(_p, nogui):
     numberPart = 0
     rootProcess = 0
 
-    FSICoupler.load(fileName, p['withMPI'], comm, myid, numberPart)
+    cupyutil.load(fileName, p['withMPI'], comm, myid, numberPart)
 
     if p['withMPI']:
         from mpi4py import MPI
@@ -56,35 +79,35 @@ def main(_p, nogui):
     csd_file = '../../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'
 
     # --- Initialize the fluid solver --- #
-    import SU2Interface
+    import cupydoInterfaces.SU2Interface
     if comm != None:
-      fluidSolver = SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
+      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
     else:
-      fluidSolver = SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
+      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
   
-    FSICoupler.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-      import RBMIntegratorInterface
-      solidSolver = RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
+      import cupydoInterfaces.RBMIntegratorInterface
+      solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
 
-    FSICoupler.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #
-    manager = FSICoupler.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
-    FSICoupler.mpiBarrier()
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = FSICoupler.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+    interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
 
     # --- Initialize the FSI criterion --- #
-    criterion = FSICoupler.DispNormCriterion(p['tollFSI'])
-    FSICoupler.mpiBarrier()
+    criterion = cupycrit.DispNormCriterion(p['tollFSI'])
+    cupyutil.mpiBarrier()
 
     # --- Initialize the FSI algorithm --- #
-    algorithm = FSICoupler.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
+    algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
 
     # --- Launch the FSI computation --- #
     algorithm.run()
@@ -96,7 +119,7 @@ def main(_p, nogui):
     del solidSolver
     del interpolator
     del algorithm
-    FSICoupler.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
     return 0
 
 

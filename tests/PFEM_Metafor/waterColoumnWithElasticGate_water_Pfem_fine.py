@@ -16,10 +16,13 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, scheme, extManager, gui, contactTag):
+    def __init__(self, w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, contactTag):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
+       self.solScheme = solScheme
+       self.nonLinAlgo = nonLinAlgo
+       self.convCriterion = convCriterion
        self.scheme = scheme
        self.extManager = extManager
        self.gui = gui
@@ -49,7 +52,14 @@ def getPfem():
     msh.load(mshFile)
     print msh
     
-    scheme = w.BackwardEuler(msh, pbl)
+    toll = 1e-5
+    nItMax = 10
+    
+    solScheme = w.SchemeMonolithicPSPG(msh, pbl)
+    convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
+    nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
+    
+    scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
     
     contactTag = w.Tag(100, "Contact" , 2)
     msh.ptags[100] = contactTag
@@ -94,7 +104,7 @@ def getPfem():
     
     gui = v.MeshViewer(msh, scheme, True) 
     
-    return Module(w, msh, pbl, scheme, extManager, gui, contactTag)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, contactTag)
 
 def getRealTimeExtractorsList(pfem):
     

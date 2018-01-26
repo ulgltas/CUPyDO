@@ -97,8 +97,8 @@ class PfemSolver(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            x0[i] = node.pos0.x[0]
-            y0[i] = node.pos0.x[1]
+            x0[i] = node.posN.x[0]
+            y0[i] = node.posN.x[1]
             z0[i] = 0.
         
         return x0, y0, z0
@@ -140,8 +140,8 @@ class PfemSolver(FluidSolver):
             node = self.vnods[no]                 
             vx = -0.5 # current vx          
             vy = 0. # current vy
-            px = node.pos0.x[0] + vx*self.pfem.scheme.dt # current x         
-            py = node.pos0.x[1] + vy*self.pfem.scheme.dt# current y              
+            px = node.posN.x[0] + vx*self.pfem.scheme.dt # current x         
+            py = node.posN.x[1] + vy*self.pfem.scheme.dt# current y              
             out[no] = (px,py,vx,vy)
             
         self.applydefo(out)

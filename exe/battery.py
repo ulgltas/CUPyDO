@@ -12,6 +12,9 @@ import sys, glob, os, subprocess, platform, argparse, time
 defArgs = [ r"tests".replace('/',os.sep)]
 lastDir = None
 
+path = os.path.abspath(__file__)
+battery_path = os.path.dirname(path)
+
 def printDir(donfile):
     global lastDir
     if lastDir!=os.path.dirname(donfile):
@@ -159,7 +162,7 @@ def verif(args):
     if not args: args=defArgs
     
     fsiPth = ('..')
-    verifPth = ('..') + os.sep + 'verif'
+    verifPth = os.path.dirname(battery_path) + os.sep + 'verif'
     
     files={}
     fext = ['failed', 'results']

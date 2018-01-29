@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège

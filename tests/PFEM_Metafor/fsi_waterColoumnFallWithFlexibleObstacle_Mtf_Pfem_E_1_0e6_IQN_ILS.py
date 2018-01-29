@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -28,7 +31,6 @@ sys.path.append(appsPath)
 
 from math import *
 from optparse import OptionParser
-import FSICoupler
 
 def main(nogui): # NB, the argument 'nogui' is specific to PFEM only!
     

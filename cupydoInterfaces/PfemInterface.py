@@ -1,11 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
 
-# PfemInterface.py
-# Python interface between the wrapper of PFEM solver and CUPyDO.
-# Authors M.L. CERQUAGLIA
-#
-# COPYRIGHT (C) University of Liège, 2017.
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+PfemInterface.py
+Python interface between the wrapper of PFEM solver and CUPyDO.
+Authors M.L. CERQUAGLIA
+
+'''
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -97,8 +113,8 @@ class PfemSolver(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            x0[i] = node.pos0.x[0]
-            y0[i] = node.pos0.x[1]
+            x0[i] = node.posN.x[0]
+            y0[i] = node.posN.x[1]
             z0[i] = 0.
         
         return x0, y0, z0
@@ -140,8 +156,8 @@ class PfemSolver(FluidSolver):
             node = self.vnods[no]                 
             vx = -0.5 # current vx          
             vy = 0. # current vy
-            px = node.pos0.x[0] + vx*self.pfem.scheme.dt # current x         
-            py = node.pos0.x[1] + vy*self.pfem.scheme.dt# current y              
+            px = node.posN.x[0] + vx*self.pfem.scheme.dt # current x         
+            py = node.posN.x[1] + vy*self.pfem.scheme.dt# current y              
             out[no] = (px,py,vx,vy)
             
         self.applydefo(out)

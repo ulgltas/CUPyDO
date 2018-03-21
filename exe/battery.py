@@ -1,16 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: latin-1; -*-
-# Battery CUPyDO
-# Revisited for CUPyDO by Marco Lucio CERQUAGLIA and David THOMAS
-# Originally written for "Metalub" by Romain Boman
-# Modified for "Metalub" by Yves CARRETTA
-#
-# COPYRIGHT (C) University of Liege, 2017. 
+
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+Battery CUPyDO
+Revisited for CUPyDO by Marco Lucio CERQUAGLIA and David THOMAS
+Originally written for "Metalub" by Romain Boman
+Modified for "Metalub" by Yves CARRETTA
+
+'''
 
 import sys, glob, os, subprocess, platform, argparse, time
 
 defArgs = [ r"tests".replace('/',os.sep)]
 lastDir = None
+
+path = os.path.abspath(__file__)
+battery_path = os.path.dirname(path)
 
 def printDir(donfile):
     global lastDir
@@ -159,7 +179,7 @@ def verif(args):
     if not args: args=defArgs
     
     fsiPth = ('..')
-    verifPth = ('..') + os.sep + 'verif'
+    verifPth = os.path.dirname(battery_path) + os.sep + 'verif'
     
     files={}
     fext = ['failed', 'results']

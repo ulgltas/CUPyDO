@@ -37,7 +37,7 @@ def printDir(donfile):
     if lastDir!=os.path.dirname(donfile):
         lastDir=os.path.dirname(donfile)
 
-def runOne(donfile, nbProcs):
+def runOne(donfile, nbProcs, nthreads):
     global exeFile   
     logfile = donfile.replace('.py','.log')
     resfile=donfile.replace('.py','.res')
@@ -51,10 +51,16 @@ def runOne(donfile, nbProcs):
         if int(nbProcs) == 0:
             cmd = [r"python"]
             cmd += [donfile]
+            if not int(nthreads) == 1:
+                cmd += ["--nthreads"]
+                cmd += [nthreads]
         else:
             cmd = [r"mpirun"]
             cmd += ["--np"]
             cmd += [nbProcs]
+            '''if not int(nthreads)==1:
+                cmd += ["--nthreads"]
+                cmd += [nthreads]'''    # --> TODO it here as well? 
             cmd += ["python"]
             cmd += [donfile]
         
@@ -146,17 +152,17 @@ def loopOn(files):
             for f in loopOnOne(file):
                 yield f
 
-def process(args, cmd, nbProcs):
+def process(args, cmd, nbProcs, nthreads):
     global defArgs
     if not args: args=defArgs
     for donfile in loopOn(args):
         if cmd=='run':
-            runOne(donfile, nbProcs)
+            runOne(donfile, nbProcs, nthreads)
         elif cmd=='clean':
             cleanOne(donfile)
         elif cmd=='rerun':
             cleanOne(donfile)
-            runOne(donfile, nbProcs)
+            runOne(donfile, nbProcs, nthreads)
 
 
 def machineid():
@@ -226,17 +232,20 @@ def main():
                         help='instruction to be executed by battery')
     parser.add_argument('--np', dest='nbProcs', type=str, default='0',
                         help='number of processors for MPI computations')
+    parser.add_argument('--nthreads', dest='nthreads', type=str, default='1',
+                        help='number of threads for shared memory computations of each solver')
     parser.add_argument('tests', type=str, nargs='+',
                         help='test files name')
     args = parser.parse_args()
     
     cmd = args.cmd
     nbProcs = args.nbProcs
+    nthreads = args.nthreads
     tests = args.tests
     
     # Execution of the battery                
     if cmd in ['run', 'clean', 'rerun']:
-        process(tests, cmd, nbProcs)
+        process(tests, cmd, nbProcs, nthreads)
     elif cmd=='verif':
         verif(tests)
     else:

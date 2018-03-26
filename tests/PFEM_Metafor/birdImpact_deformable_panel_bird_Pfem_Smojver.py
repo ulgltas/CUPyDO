@@ -33,13 +33,15 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, gui):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
        self.solScheme = solScheme
        self.nonLinAlgo = nonLinAlgo
        self.convCriterion = convCriterion
+       self.bird = bird
+       self.loadingset = loadingset
        self.scheme = scheme
        self.extManager = extManager
        self.gui = gui
@@ -80,7 +82,7 @@ def getPfem():
     
     scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
 
-    w.Medium(msh, 13, mu, rho0, 3)
+    w.Medium(msh, 13, 0., 0., 3)
     w.Medium(msh, 16, mu, rho0, 1)
     
     # boundaries
@@ -110,7 +112,7 @@ def getPfem():
     
     gui = v.MeshViewer(msh, scheme, True) 
     
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, gui)
 
 def getRealTimeExtractorsList(pfem):
     

@@ -78,7 +78,7 @@ def getPfem():
     scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
     
     # w.Medium(msh, 100, 0., 0., 0., 4)
-    w.Medium(msh, 17, mu, rho0, 3)
+    w.Medium(msh, 17, 0., 0., 3)
     w.Medium(msh, 16, mu, rho0, 1)
     w.Medium(msh, 20, mu, rho0, 1)
     

@@ -48,7 +48,7 @@ class Algorithm:
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
         """
         Des.
         """
@@ -60,7 +60,7 @@ class Algorithm:
         self.FluidSolver = FluidSolver
         self.SolidSolver = SolidSolver
         self.interfaceInterpolator = InterfaceInterpolator
-        self.criterion = Criterion
+        
 
         self.globalTimer = Timer()
         self.communicationTimer = Timer()
@@ -70,43 +70,20 @@ class Algorithm:
         self.solidRemeshingTimer = Timer()
         self.fluidRemeshingTimer = Timer()
 
-        self.nbFSIIterMax = nbFSIIterMax
+        
         self.deltaT = deltaT
         self.totTime = totTime
         self.timeIterTreshold = timeIterTreshold
-        self.writeInFSIloop = False
         
         self.time = 0.0
         self.timeIter = 0
         
-        self.FSIIter = 0
-        self.errValue = 0.0
-        self.FSIConv = False
-        self.totNbOfFSIIt = 0
-
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
             self.mpiSize = self.mpiComm.Get_size()
         else:
             self.myid = 0
             self.mpiSize = 1
-
-        self.alpha_0 = 1.0
-        self.alpha_1 = 0.5
-
-        ns = self.interfaceInterpolator.getNs()
-        d = self.interfaceInterpolator.getd()
-
-        self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
-        self.solidInterfaceVelocitynM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
-
-        self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
-
-        self.solidHeatFluxResidual = None
-        self.solidTemperatureResidual = None
-        if self.manager.withCht:
-            self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
-            self.solidTemperatureResidual = FlexInterfaceData(ns+d, 1, self.mpiComm)
 
     def setFSIInitialConditions(self):
         """
@@ -139,87 +116,6 @@ class Algorithm:
                 elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
                     self.FluidSolver.setInitialInterfaceTemperature()
         self.FluidSolver.boundaryConditionsUpdate()
-
-    def computeSolidInterfaceResidual(self):
-        """
-        Des.
-        """
-
-        ns = self.interfaceInterpolator.getNs()
-        d = self.interfaceInterpolator.getd()
-
-        # --- Get the predicted (computed) solid interface displacement from the solid solver --- #
-        predictedDisplacement = FlexInterfaceData(ns+d, 3, self.mpiComm)
-
-        if self.myid in self.manager.getSolidInterfaceProcessors():
-            localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
-            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
-                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
-
-        predictedDisplacement.assemble()
-
-        # --- Calculate the residual (vector and norm) --- #
-        mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
-        #self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
-        self.solidInterfaceResidual.set(predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement)
-
-        return self.solidInterfaceResidual
-
-    def computeSolidInterfaceResidual_CHT(self):
-        """
-        Des.
-        """
-
-        ns = self.interfaceInterpolator.getNs()
-        d = self.interfaceInterpolator.getd()
-
-        predictedHF = FlexInterfaceData(ns+d, 3, self.mpiComm)
-        predictedTemp = FlexInterfaceData(ns+d, 1, self.mpiComm)
-
-        if self.myid in self.manager.getSolidInterfaceProcessors():
-            localSolidInterfaceHeatFlux_X, localSolidInterfaceHeatFlux_Y, localSolidInterfaceHeatFlux_Z = self.SolidSolver.getNodalHeatFluxes()
-            localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
-            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
-                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedHF[iGlobalVertex] = [localSolidInterfaceHeatFlux_X[iVertex], localSolidInterfaceHeatFlux_Y[iVertex], localSolidInterfaceHeatFlux_Z[iVertex]]
-                predictedTemp[iGlobalVertex] = [localSolidInterfaceTemperature[iVertex]]
-
-        predictedHF.assemble()
-        predictedTemp.assemble()
-
-        if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
-            mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
-            #self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
-            self.solidHeatFluxResidual.set(predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux)
-            return self.solidHeatFluxResidual
-        elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
-            mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
-            #self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
-            self.solidTemperatureResidual.set(predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature)
-            return self.solidTemperatureResidual
-        else:
-            return None
-
-    def solidDisplacementPredictor(self):
-        """
-        Des
-        """
-
-        # --- Get the velocity (current and previous time step) of the solid interface from the solid solver --- #
-        if self.myid in self.manager.getSolidInterfaceProcessors():
-            localSolidInterfaceVel_X, localSolidInterfaceVel_Y, localSolidInterfaceVel_Z = self.SolidSolver.getNodalVelocity()
-            localSolidInterfaceVelNm1_X, localSolidInterfaceVelNm1_Y, localSolidInterfaceVelNm1_Z = self.SolidSolver.getNodalVelocityNm1()
-            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
-                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceVelocity[iGlobalVertex] = [localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex]]
-                self.solidInterfaceVelocitynM1[iGlobalVertex] = [localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex]]
-
-        self.solidInterfaceVelocity.assemble()
-        self.solidInterfaceVelocitynM1.assemble()
-
-        # --- Predict the solid position for the next time step --- #
-        self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.deltaT*self.solidInterfaceVelocity + self.alpha_1*self.deltaT*(self.solidInterfaceVelocity-self.solidInterfaceVelocitynM1))
 
     def fluidToSolidMechaTransfer(self):
         """
@@ -280,6 +176,175 @@ class Algorithm:
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
 
+class AlgorithmExplicit(Algorithm):
+    """
+    Des.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+        """
+        Des.
+        """
+
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
+
+    def run(self):
+        """
+        Des.
+        """
+        
+        # --- Initialize output manager --- #
+        self.iniRealTimeData()
+
+        mpiPrint('\n**********************************', self.mpiComm)
+        mpiPrint('*         Begin FSI computation            *', self.mpiComm)
+        mpiPrint('**********************************\n', self.mpiComm)
+
+        self.globalTimer.start()
+
+        #If no restart
+        mpiPrint('Setting FSI initial conditions...', self.mpiComm)
+        self.setFSIInitialConditions()
+        mpiPrint('\nFSI initial conditions are set', self.mpiComm)
+        
+        try:
+            if self.manager.computationType == 'unsteady':
+                self.__unsteadyRun()
+            else:
+                raise Exception('Explicit coupling is only valid for unsteady computations!')
+        except:
+            mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            traceback.print_exc()
+        finally:
+            self.globalTimer.stop()
+            self.globalTimer.cumul()
+            
+            mpiBarrier(self.mpiComm)
+            
+            mpiPrint('\n*************************', self.mpiComm)
+            mpiPrint('*    End FSI computation    *', self.mpiComm)
+            mpiPrint('*************************\n', self.mpiComm)
+            
+            self.printExitInfo()
+            
+            # --- Exit the solid solver --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.exit()
+
+            # --- Exit the fluid solver --- #
+            self.FluidSolver.exit()
+    
+            # --- Exit computation --- #
+            mpiBarrier(self.mpiComm)
+
+    def __unsteadyRun(self):
+        """
+        Des.
+        """
+
+        #If no restart
+        nbTimeIter = int((self.totTime/self.deltaT)-1)
+
+        mpiPrint('Begin time integration\n', self.mpiComm)
+
+        # --- External temporal loop --- #
+        while self.timeIter <= nbTimeIter:
+            
+            mpiPrint("\n>>>> Time iteration {} <<<<".format(self.timeIter), self.mpiComm)
+
+            # --- Preprocess the temporal iteration --- #
+            self.FluidSolver.preprocessTimeIter(self.timeIter)
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.preprocessTimeIter(self.timeIter)
+
+            # --- Internal FSI loop --- #
+            self.fsiCoupling()
+            # --- End of FSI loop --- #
+
+            mpiBarrier(self.mpiComm)
+
+            # --- Update the fluid and solid solver for the next time step --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.update()
+            self.FluidSolver.update(self.deltaT)
+
+            # --- Write fluid and solid solution, update FSI history  ---#
+            self.FluidSolver.save(self.timeIter)
+
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.save()
+
+            self.writeRealTimeData()
+
+            # --- Perform some remeshing if necessary
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.solidRemeshingTimer.start()
+                self.SolidSolver.remeshing()
+                self.solidRemeshingTimer.stop()
+                self.solidRemeshingTimer.cumul()
+            
+            self.fluidRemeshingTimer.start()
+            self.FluidSolver.remeshing()
+            self.fluidRemeshingTimer.stop()
+            self.fluidRemeshingTimer.cumul()
+            # ---
+
+            self.timeIter += 1
+            self.time += self.deltaT
+        # --- End of the temporal loop --- #
+
+    def fsiCoupling(self):
+        """
+        FSI explicit coupling
+        """
+
+        if self.timeIter > self.timeIterTreshold:
+            mpiPrint('\n*************** Enter explicit FSI coupling ***************', self.mpiComm)
+
+        # --- Solid to fluid mechanical transfer --- #
+        self.interfaceInterpolator.getDisplacementFromSolidSolver()
+        self.solidToFluidMechaTransfer()
+        # --- Fluid mesh morphing --- #
+        mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
+        self.meshDefTimer.start()
+        self.FluidSolver.meshUpdate(self.timeIter)
+        self.meshDefTimer.stop()
+        self.meshDefTimer.cumul()
+        # --- Solid to fluid thermal transfer --- #
+        if self.manager.withCht:
+            self.solidToFluidThermalTransfer()
+        self.FluidSolver.boundaryConditionsUpdate()
+
+        # --- Fluid solver call  --- #
+        mpiPrint('\nLaunching fluid solver...', self.mpiComm)
+        self.fluidSolverTimer.start()
+        self.FluidSolver.run(self.time-self.deltaT, self.time)
+        self.fluidSolverTimer.stop()
+        self.fluidSolverTimer.cumul()
+        mpiBarrier(self.mpiComm)
+
+        if self.timeIter > self.timeIterTreshold:
+            # --- Fluid to solid mechanical transfer --- #
+            mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
+            self.fluidToSolidMechaTransfer()
+            if self.manager.withCht:
+                # --- Fluid to solid thermal transfer --- #
+                self.fluidToSolidThermalTransfer()
+            mpiBarrier(self.mpiComm)
+
+            # --- Solid solver call for FSI subiteration --- #
+            mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.solidSolverTimer.start()
+                self.SolidSolver.run(self.time-self.deltaT, self.time)
+                self.solidSolverTimer.stop()
+                self.solidSolverTimer.cumul()
+
+            # --- Update the solvers for the next BGS iteration --- #
+            #if self.myid in self.manager.getSolidSolverProcessors():
+            #    self.SolidSolver.bgsUpdate()
+            #self.FluidSolver.bgsUpdate()
+
     def iniRealTimeData(self):
         """
         Des
@@ -287,9 +352,6 @@ class Algorithm:
 
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
-        histFile = open('FSIhistory.ascii', "w")
-        histFile.write("TimeIter\tTime\tFSIError\tCHTError\tFSINbIter\n")
-        histFile.close()
 
     def writeRealTimeData(self):
         """
@@ -297,24 +359,9 @@ class Algorithm:
         """
 
         if self.myid == 0:
-            self.FluidSolver.saveRealTimeData(self.time, self.FSIIter)
+            self.FluidSolver.saveRealTimeData(self.time, 0)
             if self.timeIter >= self.timeIterTreshold:
-                self.SolidSolver.saveRealTimeData(self.time, self.FSIIter)
-            histFile = open('FSIhistory.ascii', "a")
-            histFile.write(str(self.timeIter) + '\t' + str(self.time) + '\t' + str(self.errValue) + '\t' + str(self.errValue_CHT) + '\t' + str(self.FSIIter) + '\n')
-            histFile.close()
-
-    def getMeanNbOfFSIIt(self):
-        """
-        Des
-        """
-        if self.manager.computationType == 'unsteady':
-            if self.timeIter > 1:
-                return float(self.totNbOfFSIIt)/(self.timeIter-1)
-            else:
-                return 0.0
-        else:
-            return self.FSIIter
+                self.SolidSolver.saveRealTimeData(self.time, 0)
 
     def printExitInfo(self):
         """
@@ -331,13 +378,57 @@ class Algorithm:
         mpiPrint('[cpu FSI solid remeshing]: ' + str(self.solidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[Time steps FSI]: ' + str(self.timeIter), self.mpiComm)
         mpiPrint('[Successful Run FSI]: ' + str(self.time >= (self.totTime - 2*self.deltaT)), self.mpiComm) # NB: self.totTime - 2*self.deltaT is the extreme case that can be encountered due to rounding effects!
-        mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt()), self.mpiComm)
+        mpiPrint('[Mean n. of FSI Iterations]: ' + str(1), self.mpiComm)
 
         if self.myid == 0 :
-            self.FluidSolver.printRealTimeData(self.time, self.FSIIter)
-            self.SolidSolver.printRealTimeData(self.time, self.FSIIter)
+            self.FluidSolver.printRealTimeData(self.time, 0)
+            self.SolidSolver.printRealTimeData(self.time, 0)
 
-        mpiPrint('RES-FSI-FSIhistory: ' + str(self.timeIter) + '\t' + str(self.time) + '\t' + str(self.errValue) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
+        mpiPrint('RES-FSI-FSIhistory: ' + str(self.timeIter) + '\t' + str(self.time) + '\t' + str(1.0) + '\t' + str(1) + '\n', self.mpiComm)
+
+class AlgorithmBGSStaticRelax(Algorithm):
+    """
+    Des.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaMax=1.0, mpiComm=None):
+        """
+        Des.
+        """
+
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
+
+        self.criterion = Criterion
+
+        self.nbFSIIterMax = nbFSIIterMax
+        self.omegaMax = omegaMax
+        self.omegaMin = 1e-12
+        self.omega = omegaMax
+        self.writeInFSIloop = False
+
+        self.FSIIter = 0
+        self.errValue = 0.0
+        self.FSIConv = False
+        self.totNbOfFSIIt = 0
+
+        self.predictor = True
+        self.predictorOrder = 2
+        self.alpha_0 = 1.0
+        self.alpha_1 = 0.5
+
+        ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
+
+        self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        self.solidInterfaceVelocitynM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        self.solidHeatFluxResidual = None
+        self.solidTemperatureResidual = None
+        if self.manager.withCht:
+            self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+            self.solidTemperatureResidual = FlexInterfaceData(ns+d, 1, self.mpiComm)
 
     def run(self):
         """
@@ -457,21 +548,64 @@ class Algorithm:
             self.time += self.deltaT
         # --- End of the temporal loop --- #
 
-class AlgorithmBGSStaticRelax(Algorithm):
-    """
-    Des.
-    """
-
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaMax=1.0, mpiComm=None):
+    def iniRealTimeData(self):
         """
-        Des.
+        Des
         """
 
-        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, mpiComm)
+        if self.myid in self.manager.getSolidSolverProcessors():
+            self.SolidSolver.initRealTimeData()
+        histFile = open('FSIhistory.ascii', "w")
+        histFile.write("TimeIter\tTime\tFSIError\tCHTError\tFSINbIter\tomega\n")
+        histFile.close()
 
-        self.omegaMax = omegaMax
-        self.omegaMin = 1e-12
-        self.omega = omegaMax
+    def writeRealTimeData(self):
+        """
+        Des
+        """
+
+        if self.myid == 0:
+            self.FluidSolver.saveRealTimeData(self.time, self.FSIIter)
+            if self.timeIter >= self.timeIterTreshold:
+                self.SolidSolver.saveRealTimeData(self.time, self.FSIIter)
+            histFile = open('FSIhistory.ascii', "a")
+            histFile.write(str(self.timeIter) + '\t' + str(self.time) + '\t' + str(self.errValue) + '\t' + str(self.errValue_CHT) + '\t' + str(self.FSIIter) + '\t' + str(self.omega) + '\n')
+            histFile.close()
+
+    def getMeanNbOfFSIIt(self):
+        """
+        Des
+        """
+        if self.manager.computationType == 'unsteady':
+            if self.timeIter > 1:
+                return float(self.totNbOfFSIIt)/(self.timeIter-1)
+            else:
+                return 0.0
+        else:
+            return self.FSIIter
+
+    def printExitInfo(self):
+        """
+        Des
+        """
+
+        mpiPrint('[cpu FSI total]: ' + str(self.globalTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI fluid mesh mapping]: ' + str(self.interfaceInterpolator.mappingTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI fluid mesh deformation]: ' + str(self.meshDefTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI communications]: ' + str(self.communicationTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI fluid solver]: ' + str(self.fluidSolverTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI solid solver]: ' + str(self.solidSolverTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI fluid remeshing]: ' + str(self.fluidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI solid remeshing]: ' + str(self.solidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[Time steps FSI]: ' + str(self.timeIter), self.mpiComm)
+        mpiPrint('[Successful Run FSI]: ' + str(self.time >= (self.totTime - 2*self.deltaT)), self.mpiComm) # NB: self.totTime - 2*self.deltaT is the extreme case that can be encountered due to rounding effects!
+        mpiPrint('[Mean n. of FSI Iterations]: ' + str(self.getMeanNbOfFSIIt()), self.mpiComm)
+
+        if self.myid == 0 :
+            self.FluidSolver.printRealTimeData(self.time, self.FSIIter)
+            self.SolidSolver.printRealTimeData(self.time, self.FSIIter)
+
+        mpiPrint('RES-FSI-FSIhistory: ' + str(self.timeIter) + '\t' + str(self.time) + '\t' + str(self.errValue) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
 
     def fsiCoupling(self):
         """
@@ -566,6 +700,93 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         if self.timeIter > self.timeIterTreshold:
             mpiPrint('\n*************** BGS is converged ***************', self.mpiComm)
+
+    def computeSolidInterfaceResidual(self):
+        """
+        Des.
+        """
+
+        ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
+
+        # --- Get the predicted (computed) solid interface displacement from the solid solver --- #
+        predictedDisplacement = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
+            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                predictedDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
+
+        predictedDisplacement.assemble()
+
+        # --- Calculate the residual (vector and norm) --- #
+        mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
+        #self.solidInterfaceResidual = predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement
+        self.solidInterfaceResidual.set(predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement)
+
+        return self.solidInterfaceResidual
+
+    def computeSolidInterfaceResidual_CHT(self):
+        """
+        Des.
+        """
+
+        ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
+
+        predictedHF = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        predictedTemp = FlexInterfaceData(ns+d, 1, self.mpiComm)
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceHeatFlux_X, localSolidInterfaceHeatFlux_Y, localSolidInterfaceHeatFlux_Z = self.SolidSolver.getNodalHeatFluxes()
+            localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
+            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                predictedHF[iGlobalVertex] = [localSolidInterfaceHeatFlux_X[iVertex], localSolidInterfaceHeatFlux_Y[iVertex], localSolidInterfaceHeatFlux_Z[iVertex]]
+                predictedTemp[iGlobalVertex] = [localSolidInterfaceTemperature[iVertex]]
+
+        predictedHF.assemble()
+        predictedTemp.assemble()
+
+        if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+            mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
+            #self.solidHeatFluxResidual = predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux
+            self.solidHeatFluxResidual.set(predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux)
+            return self.solidHeatFluxResidual
+        elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+            mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
+            #self.solidTemperatureResidual = predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature
+            self.solidTemperatureResidual.set(predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature)
+            return self.solidTemperatureResidual
+        else:
+            return None
+
+    def solidDisplacementPredictor(self):
+        """
+        Des
+        """
+
+        if self.predictor == False:
+            mpiPrint('No predictor required.', self.mpiComm)
+        else:
+            # --- Get the velocity (current and previous time step) of the solid interface from the solid solver --- #
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                localSolidInterfaceVel_X, localSolidInterfaceVel_Y, localSolidInterfaceVel_Z = self.SolidSolver.getNodalVelocity()
+                localSolidInterfaceVelNm1_X, localSolidInterfaceVelNm1_Y, localSolidInterfaceVelNm1_Z = self.SolidSolver.getNodalVelocityNm1()
+                for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                    iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                    self.solidInterfaceVelocity[iGlobalVertex] = [localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex]]
+                    self.solidInterfaceVelocitynM1[iGlobalVertex] = [localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex]]
+
+            self.solidInterfaceVelocity.assemble()
+            self.solidInterfaceVelocitynM1.assemble()
+
+            # --- Predict the solid position for the next time step --- #
+            if self.predictorOrder == 1:
+                self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.deltaT*self.solidInterfaceVelocity)
+            else:
+                self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.deltaT*self.solidInterfaceVelocity + self.alpha_1*self.deltaT*(self.solidInterfaceVelocity-self.solidInterfaceVelocitynM1))
 
     def setOmega(self):
         """
@@ -911,6 +1132,18 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         # --- Update the FSI history file --- #
         if self.timeIter > self.timeIterTreshold:
             mpiPrint('\n*************** IQN-ILS is converged ***************', self.mpiComm)
+
+class ThermalAlgorithmExplicit(AlgorithmExplicit):
+    """
+    Des.
+    """
+
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+        """
+        Des.
+        """
+
+        AlgorithmExplicit.__init__(Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
 
 class ThermalAlgorithmBGS(AlgorithmBGSStaticRelax):
     """

@@ -38,7 +38,7 @@ class Criterion:
     Description
     """
 
-    def __init__(self, tolerance, heatFluxTolerance = 1e12):
+    def __init__(self, tolerance, thermalTolerance = 1e12):
         """
         Description.
         """
@@ -46,10 +46,10 @@ class Criterion:
         self.tol = tolerance
         self.epsilon = 0
 
-        self.tolHeatFlux = heatFluxTolerance
-        self.epsilonHeatFlux = 0
+        self.tolthermal = thermalTolerance
+        self.epsilonThermal = 0
 
-    def isVerified(self, epsilon, epsilonHeatFlux=0):
+    def isVerified(self, epsilon, epsilonThermal=0):
         """
         Description.
         """
@@ -59,7 +59,7 @@ class Criterion:
         if epsilon < self.tol:
             verifList[0] = True
 
-        if epsilonHeatFlux < self.tolHeatFlux:
+        if epsilonThermal < self.tolthermal:
             verifList[1] = True
 
         if False in verifList:
@@ -72,12 +72,12 @@ class DispNormCriterion(Criterion):
     Description.
     """
 
-    def __init__(self, tolerance, heatFluxTolerance = 1e12):
+    def __init__(self, tolerance, thermalTolerance = 1e12):
         """
         Description.
         """
 
-        Criterion.__init__(self, tolerance, heatFluxTolerance)
+        Criterion.__init__(self, tolerance, thermalTolerance)
 
     def update(self, res):
         """
@@ -92,14 +92,14 @@ class DispNormCriterion(Criterion):
 
         return self.epsilon
 
-    def updateHeatFlux(self, resHeatFlux):
+    def updateThermal(self, resThermal):
         """
         Des.
         """
 
-        if resHeatFlux != None:
+        if resThermal != None:
             #normX, normY, normZ = resHeatFlux.norm()
-            normList = resHeatFlux.norm()
+            normList = resThermal.norm()
             normSquare = 0.0
             for ii in range(len(normList)):
                 normSquare += normList[ii]**2
@@ -109,6 +109,6 @@ class DispNormCriterion(Criterion):
         else:
             norm = 1.0
 
-        self.epsilonHeatFlux = norm
+        self.epsilonThermal = norm
 
-        return self.epsilonHeatFlux
+        return self.epsilonThermal

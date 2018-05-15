@@ -1,3 +1,5 @@
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -16,7 +18,7 @@ limitations under the License.
 
 '''
 
-# -*- coding: latin-1; -*-
+
 # bends a simple beam from a gmsh file
 
 from wrap import *

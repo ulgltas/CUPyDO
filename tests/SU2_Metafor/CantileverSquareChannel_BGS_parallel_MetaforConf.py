@@ -1,3 +1,5 @@
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -15,8 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-
-# -*- coding: latin-1; -*-
 
 from wrap import *
 

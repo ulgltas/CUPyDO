@@ -1,48 +1,48 @@
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: [cpu FSI total]: 1528.99671102 s
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: [cpu FSI total]: 1505.5415411 s
 /tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: [Time steps FSI]: 1
 /tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: [Successful Run FSI]: True
 /tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: [Mean n. of FSI Iterations]: 4
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-Lift coeff : 0.0538872639742
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-Drag coeff : 0.000351668674497
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_180: 	0.0117243978875
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_181: 	0.0133902824359
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-FSIhistory: 1	0.25	0.00141145514509	4
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: [cpu FSI total]: 1523.00119185 s
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-Lift coeff : 0.0537243401673
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-Drag coeff : 0.000350109317394
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_180: 	0.0116340060025
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_181: 	0.0132091814685
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpRBF_parallel.py: RES-FSI-FSIhistory: 1	0.25	0.00204943704619	4
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: [cpu FSI total]: 1511.03316593 s
 /tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: [Time steps FSI]: 1
 /tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: [Successful Run FSI]: True
 /tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: [Mean n. of FSI Iterations]: 4
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-Lift coeff : 0.0536185422897
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-Drag coeff : 0.000348807250233
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_180: 	0.0116102182634
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_181: 	0.0131566917302
-/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-FSIhistory: 1	0.25	0.00292193789338	4
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [cpu FSI total]: 112.898988962 s
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-Lift coeff : 0.0537589040821
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-Drag coeff : 0.000350418848535
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_180: 	0.0116468117907
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-db_Field(TZ,RE)_GROUP_ID_181: 	0.013227762867
+/tests/SU2_Metafor/fsi_AGARD445_Static_BGS_interpTPS_parallel.py: RES-FSI-FSIhistory: 1	0.25	0.00171048131382	4
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [cpu FSI total]: 115.822999001 s
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Time steps FSI]: 4
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Successful Run FSI]: True
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: [Mean n. of FSI Iterations]: 2.0
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Lift coeff : 0.0009765152908
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Drag coeff : 2.6391379667
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.37930703387e-08
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-FSIhistory: 4	0.01	1.79089855997e-25	2
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: [cpu FSI total]: 113.020734072 s
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Lift coeff : 0.000965997001456
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-Drag coeff : 2.63910920764
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.3840379683e-08
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_BGS_parallel.py: RES-FSI-FSIhistory: 4	0.01	2.72598440373e-22	2
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: [cpu FSI total]: 115.880426884 s
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: [Time steps FSI]: 4
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: [Successful Run FSI]: True
 /tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: [Mean n. of FSI Iterations]: 2.0
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-Lift coeff : 0.000976513995609
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-Drag coeff : 2.6391379667
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.37930781968e-08
-/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-FSIhistory: 4	0.01	1.86402632039e-25	2
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [cpu FSI total]: 677.734765053 s
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-Lift coeff : 0.000965995661804
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-Drag coeff : 2.63910920763
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-db_Field(TY,RE)_GROUP_ID_104: 	2.38403875941e-08
+/tests/SU2_Metafor/fsi_CantileverSquareChannel_IQN_parallel.py: RES-FSI-FSIhistory: 4	0.01	2.69895468941e-22	2
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [cpu FSI total]: 621.44195509 s
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Time steps FSI]: 5
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Successful Run FSI]: True
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Mean n. of FSI Iterations]: 4.0
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Lift coeff : 0.246553665041
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Drag coeff : 0.00168817325993
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-FSIhistory: 5	0.005	7.23210911961e-09	4
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: [cpu FSI total]: 672.804608822 s
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: [Mean n. of FSI Iterations]: 3.25
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Lift coeff : 0.246592555695
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-Drag coeff : 0.00158085805524
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_BGS_parallel.py: RES-FSI-FSIhistory: 5	0.005	4.01972870735e-09	3
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: [cpu FSI total]: 610.722816944 s
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: [Time steps FSI]: 5
 /tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: [Successful Run FSI]: True
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: [Mean n. of FSI Iterations]: 3.75
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: RES-FSI-Lift coeff : 0.246565416536
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: RES-FSI-Drag coeff : 0.00168389046994
-/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: RES-FSI-FSIhistory: 5	0.005	8.49596481972e-09	4
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: [Mean n. of FSI Iterations]: 3.0
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: RES-FSI-Lift coeff : 0.246583743036
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: RES-FSI-Drag coeff : 0.00153288131229
+/tests/SU2_RBM/fsi_PitchPlungeAirfoil_IQN_parallel.py: RES-FSI-FSIhistory: 5	0.005	2.9765028363e-09	3

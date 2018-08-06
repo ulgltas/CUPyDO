@@ -35,14 +35,12 @@ from optparse import OptionParser
 def main(nogui, nthreads): # NB, the argument 'nogui' is specific to PFEM only!
     
     p = {}
-
     p['nthreads'] = nthreads
-    p['dt'] = 7.5e-4
-    p['tTot'] = 0.05
+    p['tTot'] = 1.0
     p['mtfSaveAllFacs'] = False
-    p['saveFreqPFEM'] = 1000
+    p['saveFreqPFEM'] = 10
     
-    from PFEM_Metafor.fsi_waterColoumnWithElasticGate_Mtf_Pfem_rho_1100_fine_E_9_8e6_EAS_IQN_ILS import main
+    from PFEM_Metafor.fsi_StaticCylinder_Mtf_Pfem import main
     main(p, nogui)
 
 # --- This is only accessed if running from command prompt --- #
@@ -52,8 +50,7 @@ if __name__ == '__main__':
     parser.add_option("--nogui", action="store_true",
                         help="Specify if we need to use the GUI", dest="nogui", default=False)
     parser.add_option("--nthreads", type="int", help="Number of threads", dest="nthreads", default=1)
-
-
+    
     (options, args)=parser.parse_args()
     
     nogui = options.nogui

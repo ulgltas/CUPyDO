@@ -86,6 +86,20 @@ void CLinearSolver::setMaxNumberIterations(const int& val_maxInt){
 
 }
 
+void CLinearSolver::setRelativeTolerance(const double& val_relTol){
+
+#ifdef HAVE_MPI
+  KSPGetTolerances(KSPSolver, &relTol, &absTol, &divTol, &maxInt);
+  relTol = val_relTol;
+  KSPSetTolerances(KSPSolver, relTol, absTol, divTol, maxInt);
+
+  printTolerances();
+
+#endif //HAVE_MPI
+
+
+}
+
 void CLinearSolver::setPreconditioner(const std::string& val_precond){  //DO NOT USE !
 
 #ifdef HAVE_MPI

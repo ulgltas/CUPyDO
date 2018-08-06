@@ -46,7 +46,7 @@ def runOne(donfile, nbProcs, nthreads):
     if not os.path.isfile(logfile) \
         or os.path.getmtime(logfile) < os.path.getmtime(donfile):
         printDir(donfile)
-        exe='FSI'
+        exe='CUPyDO'
         precise=''
         if int(nbProcs) == 0:
             cmd = [r"python"]
@@ -210,7 +210,7 @@ def verif(args):
 
 def usage(exe):
     txt="""
-%s : Battery script for FSI
+%s : Battery script for CUPyDO
 
 usage: %s [run|rerun|verif|clean] tests
 
@@ -231,11 +231,11 @@ def main():
     parser.add_argument('cmd', type=str, choices=['run','rerun','clean','verif'],
                         help='instruction to be executed by battery')
     parser.add_argument('--np', dest='nbProcs', type=str, default='0',
-                        help='number of processors for MPI computations')
+                        help='number of processors for MPI computations (default=1)')
     parser.add_argument('--nthreads', dest='nthreads', type=str, default='1',
-                        help='number of threads for shared memory computations of each solver')
+                        help='number of threads for shared memory computations of each solver (default=1)')
     parser.add_argument('tests', type=str, nargs='+',
-                        help='test files name')
+                        help='relative path to test files (can be a directory)')
     args = parser.parse_args()
     
     cmd = args.cmd

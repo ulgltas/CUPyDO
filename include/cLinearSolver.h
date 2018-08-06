@@ -46,6 +46,7 @@ public:
   void solve(CFlexInterfaceData* B, CFlexInterfaceData* X);
 #endif  //HAVE_MPI
   void setMaxNumberIterations(const int& val_maxInt);
+  void setRelativeTolerance(const double& val_relTol);
   void setPreconditioner(const std::string& val_precond);
   void monitor();
   void printTolerances();

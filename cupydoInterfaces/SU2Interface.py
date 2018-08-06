@@ -61,7 +61,8 @@ class SU2Solver(FluidSolver):
         allMarkersID = self.SU2.GetAllBoundaryMarkers()                             # dic : allMarkersID['marker_tag'] = marker_ID
         self.fluidInterfaceID = None                                                # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
         if not allMovingMarkersTags and not allCHTMarkersTags:
-            raise Exception('No interface for FSI was defined.')
+            #raise Exception('No interface for FSI was defined.')
+            self.fluidInterfaceID = None
         elif allMovingMarkersTags and not allCHTMarkersTags:
             if allMovingMarkersTags[0] in allMarkersID.keys():
                 self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]

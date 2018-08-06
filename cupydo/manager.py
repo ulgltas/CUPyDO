@@ -68,8 +68,8 @@ class Manager(ccupydo.CManager):
         # --- Initialize all the parameters --- #
         self.nDim = nDim
         self.computationType = computationType
-        self.withFsi = True
-        self.withCht = False
+        self.mechanical = True
+        self.thermal = False
 
         self.haveFluidSolver = False
         self.nLocalFluidInterfaceNodes = 0

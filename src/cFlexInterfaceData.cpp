@@ -198,9 +198,8 @@ void CFlexInterfaceData::setAllValues(const int& iDim, const double& value){
   }
 
   void CFlexInterfaceData::setData(const int& iDim, int size, double* data){
-    assert(size == nPoint);
-    if(dataContainer[iDim] != NULL) delete [] dataContainer[iDim];
-    dataContainer[iDim] = data;
+	assert(size == nPoint);
+	std::copy(data, data+nPoint, dataContainer[iDim]);
   }
 
 #endif //HAVE_MPI

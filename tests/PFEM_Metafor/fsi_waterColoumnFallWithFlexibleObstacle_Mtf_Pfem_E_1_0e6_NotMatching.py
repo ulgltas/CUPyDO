@@ -42,14 +42,15 @@ def getParameters(_p):
     p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.0001
-    p['tTot'] = 0.05
+    p['dt'] = 0.001
+    p['tTot'] = 0.3
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 1000
-    p['mtfSaveAllFacs'] = False
+    p['rbfRadius'] = 100
+    p['saveFreqPFEM'] = 1
+    p['mtfSaveAllFacs'] = True
     p.update(_p)
     return p
 
@@ -67,8 +68,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = 'waterColoumnWithElasticGate_water_Pfem'
-    csd_file = 'waterColoumnWithElasticGate_gate_Mtf_rho_1100'
+    cfd_file = 'waterColoumnFallWithFlexibleObstacle_water_Pfem_NotMatching'
+    csd_file = 'waterColoumnFallWithFlexibleObstacle_obstacle_Mtf_E_1_0e6_NotMatching'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface
@@ -99,7 +100,9 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+    #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+    #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
     
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])

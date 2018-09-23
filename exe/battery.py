@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 # -*- coding: latin-1; -*-
 
 ''' 
@@ -37,7 +37,7 @@ def printDir(donfile):
     if lastDir!=os.path.dirname(donfile):
         lastDir=os.path.dirname(donfile)
 
-def runOne(donfile, nbProcs):
+def runOne(donfile, nbProcs, nthreads):
     global exeFile   
     logfile = donfile.replace('.py','.log')
     resfile=donfile.replace('.py','.res')
@@ -46,15 +46,21 @@ def runOne(donfile, nbProcs):
     if not os.path.isfile(logfile) \
         or os.path.getmtime(logfile) < os.path.getmtime(donfile):
         printDir(donfile)
-        exe='FSI'
+        exe='CUPyDO'
         precise=''
         if int(nbProcs) == 0:
             cmd = [r"python"]
             cmd += [donfile]
+            if not int(nthreads) == 1:
+                cmd += ["--nthreads"]
+                cmd += [nthreads]
         else:
             cmd = [r"mpirun"]
             cmd += ["--np"]
             cmd += [nbProcs]
+            '''if not int(nthreads)==1:
+                cmd += ["--nthreads"]
+                cmd += [nthreads]'''    # --> TODO it here as well? 
             cmd += ["python"]
             cmd += [donfile]
         
@@ -146,17 +152,17 @@ def loopOn(files):
             for f in loopOnOne(file):
                 yield f
 
-def process(args, cmd, nbProcs):
+def process(args, cmd, nbProcs, nthreads):
     global defArgs
     if not args: args=defArgs
     for donfile in loopOn(args):
         if cmd=='run':
-            runOne(donfile, nbProcs)
+            runOne(donfile, nbProcs, nthreads)
         elif cmd=='clean':
             cleanOne(donfile)
         elif cmd=='rerun':
             cleanOne(donfile)
-            runOne(donfile, nbProcs)
+            runOne(donfile, nbProcs, nthreads)
 
 
 def machineid():
@@ -204,7 +210,7 @@ def verif(args):
 
 def usage(exe):
     txt="""
-%s : Battery script for FSI
+%s : Battery script for CUPyDO
 
 usage: %s [run|rerun|verif|clean] tests
 
@@ -225,18 +231,21 @@ def main():
     parser.add_argument('cmd', type=str, choices=['run','rerun','clean','verif'],
                         help='instruction to be executed by battery')
     parser.add_argument('--np', dest='nbProcs', type=str, default='0',
-                        help='number of processors for MPI computations')
+                        help='number of processors for MPI computations (default=1)')
+    parser.add_argument('--nthreads', dest='nthreads', type=str, default='1',
+                        help='number of threads for shared memory computations of each solver (default=1)')
     parser.add_argument('tests', type=str, nargs='+',
-                        help='test files name')
+                        help='relative path to test files (can be a directory)')
     args = parser.parse_args()
     
     cmd = args.cmd
     nbProcs = args.nbProcs
+    nthreads = args.nthreads
     tests = args.tests
     
     # Execution of the battery                
     if cmd in ['run', 'clean', 'rerun']:
-        process(tests, cmd, nbProcs)
+        process(tests, cmd, nbProcs, nthreads)
     elif cmd=='verif':
         verif(tests)
     else:

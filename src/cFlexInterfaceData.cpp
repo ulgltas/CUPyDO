@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of LiÃ¨ge
+ * Copyright 2018 University of Liège
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,9 +198,8 @@ void CFlexInterfaceData::setAllValues(const int& iDim, const double& value){
   }
 
   void CFlexInterfaceData::setData(const int& iDim, int size, double* data){
-    assert(size == nPoint);
-    if(dataContainer[iDim] != NULL) delete [] dataContainer[iDim];
-    dataContainer[iDim] = data;
+	assert(size == nPoint);
+	std::copy(data, data+nPoint, dataContainer[iDim]);
   }
 
 #endif //HAVE_MPI

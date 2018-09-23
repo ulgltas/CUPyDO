@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of LiÃ¨ge
+ * Copyright 2018 University of Liège
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
 
 using namespace std;
 
-CInterfaceMatrix::CInterfaceMatrix(int const& val_M, int const& val_N):M(val_M), N(val_N){ }
+CInterfaceMatrix::CInterfaceMatrix(int const& val_M, int const& val_N) :M(val_M), N(val_N) {}
 
 CInterfaceMatrix::~CInterfaceMatrix(){
 
@@ -132,7 +132,7 @@ void CInterfaceMatrix::getMat(int* size1, int* size2, double** mat_array){
 
   *size1 = M;
   *size2 = N;
-  *mat_array = &(H.front());;
+  *mat_array = &(H.front());
 }
 
 #endif  //HAVE_MPI

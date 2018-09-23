@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: latin-1; -*-
 
 ''' 
@@ -22,13 +23,18 @@ import os, sys
 
 filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
-fsiPath = os.path.abspath('..')
+FSICouplerPath = os.path.join(os.path.dirname(__file__), '../../')
 
-sys.path.append(fsiPath)
+sys.path.append(FSICouplerPath)
 
 from math import *
 from optparse import OptionParser
-import FSICoupler as fsi
+
+import cupydo.utilities as cupyutil
+import cupydo.manager as cupyman
+import cupydo.interpolator as cupyinterp
+import cupydo.criterion as cupycrit
+import cupydo.algorithm as cupyalgo
 
 def main():
     
@@ -39,17 +45,17 @@ def main():
     numberPart = 0
     rootProcess = 0
     
-    fsi.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
     # --- Initialize the solid solver --- #
     solid = None
     if myid == rootProcess:
-        import MtfInterface
-        solid = MtfInterface.MtfSolver('beam')
-    fsi.mpiBarrier(comm)
+        import cupydoInterfaces.MtfInterface
+        solid = cupydoInterfaces.MtfInterface.MtfSolver('beam', 'unsteady')
+    cupyutil.mpiBarrier(comm)
     
     # --- Initialize the FSI algorithm --- #
-    fsi_algo = fsi.FsiSolidTestAlgorithm(solid)
+    fsi_algo = cupyalgo.FsiSolidTestAlgorithm(solid)
     
     # --- Launch the FSI computation --- #
     fsi_algo.run()
@@ -59,7 +65,7 @@ def main():
         solid.exit()
     
     # --- Exit computation --- #
-    fsi.mpiBarrier(comm)
+    cupyutil.mpiBarrier(comm)
     return 0
     
 if __name__ == "__main__":

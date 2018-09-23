@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 # -*- coding: latin-1; -*-
 
 ''' 
 
-Copyright 2018 University of LiÃ¨ge
+Copyright 2018 University of Liège
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -127,8 +127,8 @@ class PfemSolver(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]
-            fx[i] = -node.Fint.x[0]
-            fy[i] = -node.Fint.x[1]
+            fx[i] = -(node.Fine.x[0] + node.Fint.x[0] - node.Fext.x[0])
+            fy[i] = -(node.Fine.x[1] + node.Fint.x[1] - node.Fext.x[1])
             fz[i] = 0.
         
         self.nodalLoad_X = fx

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: latin-1; -*-
 
 ''' 
@@ -17,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-
 
 # bends a simple beam from a gmsh file
 
@@ -59,7 +59,7 @@ def getMetafor(p={}):
     from toolbox.gmsh import GmshImport
     f = os.path.join(os.path.dirname(__file__), "beam.msh")
     importer = GmshImport(f, domain)
-    importer.execute()
+    importer.execute2D()
 
     groupset = domain.getGeometry().getGroupSet()    
 

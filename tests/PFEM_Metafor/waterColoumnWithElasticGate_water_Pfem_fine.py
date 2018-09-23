@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: latin-1; -*-
+
 ''' 
 
 Copyright 2018 University of Liège
@@ -15,10 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-
-#! /usr/bin/env python
-# -*- coding: latin-1; -*-
-# $Id: $
 
 import sys, os, os.path
 
@@ -84,8 +83,8 @@ def getPfem():
     msh.ntags["Contact"] = contactTag
     
     w.Medium(msh, "Contact", 0., 0., 0., 4)
-    w.Medium(msh, 17, mu, rho0, 3)
-    w.Medium(msh, 22, mu, rho0, 3)
+    w.Medium(msh, 17, 0., 0., 3)
+    w.Medium(msh, 22, 0., 0., 3)
     w.Medium(msh, 16, mu, rho0, 1)
     w.Medium(msh, 20, mu, rho0, 1)
     

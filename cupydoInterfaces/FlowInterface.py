@@ -15,7 +15,7 @@ limitations under the License.
 
 @file FlowInterface.py
 @brief Python interface between Flow and CUPyDO.
-@author A. Crovato, University of Liege, Belgium, 2018-2019.
+@author A. Crovato
 """
 
 # ----------------------------------------------------------------------
@@ -31,22 +31,16 @@ from cupydo.genericSolvers import FluidSolver
 #  FlowSolver class
 # ----------------------------------------------------------------------
 
-class FlowSolver(FluidSolver):
-    def __init__(self, case, bndid):
-        self.case = case         # name of the module of the fluid case
-        self.bndid = bndid       # id of physical group of the f/s interface
-        
+class Flow(FluidSolver):
+    def __init__(self, _case):       
         # load the python module
-        import self.case as module
+        import _case as case
         
-        # create an instance of Flow
-        # TODO: flow members used in this file that should be pointed to with getFlow()
-        # self.flow.solver.phi
-        # self.flow.solver.execute()
-        self.flow = module.getFlow()
-        
-        # create an object handling the f/s boundary
-        self.boundary = self.flow.Boundary(self.flow.msh, bndid)
+        # load the case (contains flow and some of its objects)
+        self.flow = case.getFlow()
+
+        # get the f/s boundary
+        self.boundary = self.flow.boundary
 
         # number of nodes
         self.nNodes = self.boundary.nodes.size()
@@ -62,24 +56,20 @@ class FlowSolver(FluidSolver):
         """
         Run the solver for one steady (time) iteration.
         """
-        self.exeOK = self.flow.Solver.execute()
+        self.exeOK = self.flow.solver.execute()
         self.__setCurrentState()
     
     def __setCurrentState(self):
         """
         Compute nodal forces from nodal Pressure coefficient
         """
-    
-        # Flow definition TODO
-        p = 0.5 #0.5 * rho * U_inf.norm()*U_inf.norm() #TODO
-        M_inf = 0.3
-        gamma = 1.4
         
         # elemental forces: integrate pressure from nodal potential
+        p = 0.5 # dynamic pressure
         if  M_inf == 0:
-            CfE = airfoil.integrate(self.flow.solver.phi, self.flow.Fun0EleCpL())
+            CfE = airfoil.integrate(self.flow.solver.phi, self.flow.flow.Fun0EleCpL())
         else:
-            CfE = airfoil.integrate(self.flow.solver.phi, self.flow.Fun0EleCp(gamma, M_inf))
+            CfE = airfoil.integrate(self.flow.solver.phi, self.flow.flow.Fun0EleCp(self.flow.gamma, self.flow.M_inf))
         fxE = {}
         fyE = {}
         fzE = {}
@@ -161,6 +151,7 @@ class FlowSolver(FluidSolver):
         """
         TODO
         """
+        self.flow.solver.finalize()
 
     def initRealTimeData(self):
         """

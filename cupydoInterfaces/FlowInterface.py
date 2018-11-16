@@ -47,12 +47,18 @@ class Flow(FluidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.nNodes - self.nHaloNode
 
+        # nodal load
+        self.nodalLoad_X = np.zeros(nPhysicalNodes)
+        self.nodalLoad_Y = np.zeros(nPhysicalNodes)
+        self.nodalLoad_Z = np.zeros(nPhysicalNodes)
+
         # initialize
         self.exeOK = True
         FluidSolver.__init__(self)
-        # TODO should nodal positions and loads be initialized here too?
+
+        #TODO check method parameters
         
-    def run(self, t1, t2):
+    def run(self):
         """
         Run the solver for one steady (time) iteration.
         """
@@ -116,15 +122,15 @@ class Flow(FluidSolver):
         no = self.boundary.nodes[iVertex].no
         return no
 
-    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z):
+    def applyNodalDisplacements(self, dx, dy, dz):
         """
         Apply displacements coming from solid solver to f/s interface
         """
 
         for i in range(self.boundary.nodes.size()):
-            self.boundary.nodes[i].pos.x[0] += disp_X[i]
-            self.boundary.nodes[i].pos.x[1] += disp_Y[i]
-            self.boundary.nodes[i].pos.x[2] += disp_Z[i]
+            self.boundary.nodes[i].pos.x[0] += dx[i]
+            self.boundary.nodes[i].pos.x[1] += dy[i]
+            self.boundary.nodes[i].pos.x[2] += dz[i]
 
     def remeshing(self):
         """
@@ -140,7 +146,7 @@ class Flow(FluidSolver):
         dxD = np.zeros(self.nPhysicalNodes)
         dyD = np.zeros(self.nPhysicalNodes)
         dzD = np.zeros(self.nPhysicalNodes)
-        self.applyNodalDisplacements(self, dxD, dyD, dzD) # TODO: check 'self' parameter           
+        self.applyNodalDisplacements(dxD, dyD, dzD)           
         
     def update(self):
         """
@@ -149,7 +155,7 @@ class Flow(FluidSolver):
         
     def save(self):
         """
-        TODO
+        Save data on disk at each converged fsi iteration
         """
         self.flow.solver.finalize()
 
@@ -160,12 +166,12 @@ class Flow(FluidSolver):
 
     def saveRealTimeData(self, time, nFSIIter):
         """
-        TODO
+        Save data on disk...
         """
 
     def printRealTimeData(self, time, nFSIIter):
         """
-        TODO
+        Print data on screen...
         """
         
         #print toPrint

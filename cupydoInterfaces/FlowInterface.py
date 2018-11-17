@@ -34,9 +34,10 @@ from cupydo.genericSolvers import FluidSolver
 class Flow(FluidSolver):
     def __init__(self, _case):       
         # load the python module
-        import _case as case
+        case = __import__(_case)
         
         # load the case (contains flow and some of its objects)
+        # TODO: check what needs to be passed to getFlow
         self.flow = case.getFlow()
 
         # get the f/s boundary
@@ -48,20 +49,19 @@ class Flow(FluidSolver):
         self.nPhysicalNodes = self.nNodes - self.nHaloNode
 
         # nodal load
-        self.nodalLoad_X = np.zeros(nPhysicalNodes)
-        self.nodalLoad_Y = np.zeros(nPhysicalNodes)
-        self.nodalLoad_Z = np.zeros(nPhysicalNodes)
+        self.nodalLoad_X = np.zeros(self.nPhysicalNodes)
+        self.nodalLoad_Y = np.zeros(self.nPhysicalNodes)
+        self.nodalLoad_Z = np.zeros(self.nPhysicalNodes)
 
         # initialize
         self.exeOK = True
         FluidSolver.__init__(self)
-
-        #TODO check method parameters
         
     def run(self):
         """
         Run the solver for one steady (time) iteration.
         """
+
         self.exeOK = self.flow.solver.execute()
         self.__setCurrentState()
     
@@ -69,33 +69,16 @@ class Flow(FluidSolver):
         """
         Compute nodal forces from nodal Pressure coefficient
         """
-        
-        # elemental forces: integrate pressure from nodal potential
-        p = 0.5 # dynamic pressure
-        if  M_inf == 0:
-            CfE = airfoil.integrate(self.flow.solver.phi, self.flow.flow.Fun0EleCpL())
-        else:
-            CfE = airfoil.integrate(self.flow.solver.phi, self.flow.flow.Fun0EleCp(self.flow.gamma, self.flow.M_inf))
-        fxE = {}
-        fyE = {}
-        fzE = {}
-        i = 0
-        for e in self.boundary.tag.elems:
-            fxE[e] = p * cfE[i] * e.normal().x[0]
-            fyE[e] = p * cfE[i] * e.normal().x[1]
-            fzE[e] = p * cfE[i] * e.normal().x[2]
-            i += 1
 
-        # nodal forces: average forces from elements
+        # integrate Cp at element
+        cpiE = self.boundary.integrate(self.flow.solver.phi, self.flow.fCp)
+        # interpolate integrated Cp from elements to nodes
+        cfN = self.boundary.interpolate(cpiE)
         i = 0
         for n in self.boundary.nodes:
-            for e in self.boundary.neMap[n]:
-                fx += fxE.get(e)
-                fy += fyE.get(e)
-                fz += fzE.get(e)
-            self.nodalLoad_X[i] = fx / self.boundary.neMap[n].size()
-            self.nodalLoad_Y[i] = fy / self.boundary.neMap[n].size()
-            self.nodalLoad_Z[i] = fz / self.boundary.neMap[n].size()
+            self.nodalLoad_X[i] = self.flow.dynP * cfN[i][0]
+            self.nodalLoad_Y[i] = self.flow.dynP * cfN[i][1]
+            self.nodalLoad_Z[i] = self.flow.dynP * cfN[i][2]
             i += 1
 
     def getNodalInitialPositions(self):

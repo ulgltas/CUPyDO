@@ -11,6 +11,7 @@ exe/*.sh
 
 apps/
 
+tests/Flow_RBM/workspace/
 tests/FSICoupler/workspace/
 tests/Metafor/workspace/
 tests/PFEM/workspace/

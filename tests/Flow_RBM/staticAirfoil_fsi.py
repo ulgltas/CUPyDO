@@ -44,7 +44,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = fileName + '_fluid'
+    cfd_file = fileName[:-3] + "fluid"
     #csd_file = 'StaticCylinder_cylinder_Mtf'
     
     # --- Initialize the fluid solver --- #

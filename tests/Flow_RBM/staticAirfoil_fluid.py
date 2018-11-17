@@ -23,23 +23,21 @@ import tbox
 import tbox.gmsh as gmsh
 
 class Module:
-    def __init__(self, _flow, _msh, _boundary, _solver, _M_inf, _gamma):
+    def __init__(self, _boundary, _solver, _fCp, _dynP):
         # objects
-        self.flow = _flow
-        self.msh = _msh
         self.boundary = _boundary
         self.solver = _solver
+        self.fCp = _fCp
         # parameters
-        self.M_inf = _M_inf
-        self.gamma = _gamma
+        self.dynP = _dynP
 
-def initSolver():
-    solver.relTol = 1e-6
-    solver.absTol = 1e-8
-    solver.lsTol = 1e-6
-    solver.maxIt = 50
-    solver.maxLsIt = 10
-    solver.avThrsh = 1e-3
+def initSolver(_solver):
+    _solver.relTol = 1e-6
+    _solver.absTol = 1e-8
+    _solver.lsTol = 1e-6
+    _solver.maxIt = 50
+    _solver.maxLsIt = 10
+    _solver.avThrsh = 1e-3
 
 def getFlow():
 
@@ -49,6 +47,7 @@ def getFlow():
     M_inf = 0.0
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
+    dynP = 10 # dynamic pressure
 
     # mesh an airfoil
     pars = {'xLength' : 5, 'yLength' : 5, 'sEleFar' : 1., 'sEleAirfTE' : 0.015, 'sEleAirfLE' : 0.015}
@@ -58,8 +57,10 @@ def getFlow():
     # add a medium "air"
     if M_inf == 0:
         pbl.set(f.Medium(msh, "internalField", f.Fun0EleRhoL(), f.Fun0EleMachL(), f.Fun0EleCpL(), f.Fun0PosPhiInf(alpha)))
+        fCp = f.Fun0EleCpL()
     else:
         pbl.set(f.Medium(msh, "internalField", f.Fun0EleRho(gamma, M_inf, M_crit), f.Fun0EleMach(gamma, M_inf), f.Fun0EleCp(gamma, M_inf), f.Fun0PosPhiInf(alpha)))
+        fCp = f.Fun0EleCp(gamma, M_inf)
 
     # add initial condition
     pbl.add(f.Assign(msh,"internalField", f.Fun0PosPhiInf(alpha)),"IC")
@@ -81,6 +82,6 @@ def getFlow():
     initSolver(solver)
     solver.initialize()
 
-    return Module(f, msh, airfoil, solver, M_inf, gamma)
+    return Module(airfoil, solver, fCp, dynP)
 
     

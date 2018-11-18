@@ -23,10 +23,10 @@ def getParameters(_p):
     p['tollFSI'] = 1e-6
     p['dt'] = 0.1
     p['tTot'] = 1.0
-    p['nFSIIterMax'] = 20
+    p['nFSIIterMax'] = 5
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
-    p['computationType'] = 'steady'
+    p['computationType'] = 'unsteady'
     p.update(_p)
     return p
 
@@ -45,20 +45,20 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     # --- Input parameters --- #
     cfd_file = fileName[:-3] + "fluid"
-    #csd_file = 'StaticCylinder_cylinder_Mtf'
+    csd_file = "../../" + fileName[:-3] + "solid.cfg"
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.FlowInterface
-    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_file)
+    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_file) # set nthread here!
     fluidSolver.flow.solver.nthreads = p['nthreads']
     
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the solid solver --- #
     solidSolver = None
-    #if myid == rootProcess:
-    #    import cupydoInterfaces.RBMIntegratorInterface
-    #    solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
+    if myid == rootProcess:
+        import cupydoInterfaces.RBMIntegratorInterface
+        solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
         
     cupyutil.mpiBarrier(comm)
         

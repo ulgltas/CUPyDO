@@ -23,8 +23,9 @@ import tbox
 import tbox.gmsh as gmsh
 
 class Module:
-    def __init__(self, _boundary, _solver, _fCp, _dynP):
+    def __init__(self, _boundary, _msh, _solver, _fCp, _dynP):
         # objects
+        self.msh = _msh
         self.boundary = _boundary
         self.solver = _solver
         self.fCp = _fCp
@@ -42,15 +43,15 @@ def initSolver(_solver):
 def getFlow():
 
     # define flow variables
-    alpha = 2*math.pi/180 # must be zero for this testfile
+    alpha = 3*math.pi/180
     U_inf = [math.cos(alpha), math.sin(alpha)] # norm should be 1
     M_inf = 0.0
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
-    dynP = 10 # dynamic pressure
+    dynP = 1. # dynamic pressure
 
     # mesh an airfoil
-    pars = {'xLength' : 5, 'yLength' : 5, 'sEleFar' : 1., 'sEleAirfTE' : 0.015, 'sEleAirfLE' : 0.015}
+    pars = {'xLength' : 5, 'yLength' : 5, 'sEleFar' : 0.5, 'sEleAirfTE' : 0.01, 'sEleAirfLE' : 0.01}
     msh = gmsh.MeshLoader("models/n0012.geo",__file__).execute(**pars)
     pbl = f.Problem(msh)
 
@@ -82,6 +83,6 @@ def getFlow():
     initSolver(solver)
     solver.initialize()
 
-    return Module(airfoil, solver, fCp, dynP)
+    return Module(airfoil, msh, solver, fCp, dynP)
 
     

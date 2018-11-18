@@ -196,7 +196,7 @@ class FluidSolver:
     def preprocessTimeIter(self, timeIter):
         return
 
-    def run(self):
+    def run(self, t1, t2):
         return
 
     def getNodalIndex(self, iVertex):

@@ -57,7 +57,7 @@ class Flow(FluidSolver):
         self.exeOK = True
         FluidSolver.__init__(self)
         
-    def run(self):
+    def run(self, t1, t2):
         """
         Run the solver for one steady (time) iteration.
         """
@@ -105,7 +105,7 @@ class Flow(FluidSolver):
         no = self.boundary.nodes[iVertex].no
         return no
 
-    def applyNodalDisplacements(self, dx, dy, dz):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, time):
         """
         Apply displacements coming from solid solver to f/s interface
         """
@@ -131,16 +131,17 @@ class Flow(FluidSolver):
         dzD = np.zeros(self.nPhysicalNodes)
         self.applyNodalDisplacements(dxD, dyD, dzD)           
         
-    def update(self):
+    def update(self, dt):
         """
         TODO
         """
         
-    def save(self):
+    def save(self, nt):
         """
         Save data on disk at each converged fsi iteration
         """
         self.flow.solver.finalize()
+        self.flow.msh.save(str(nt) + ".msh")
 
     def initRealTimeData(self):
         """

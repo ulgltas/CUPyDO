@@ -99,18 +99,18 @@ class ExampSolver(FluidSolver):
 
         #return no
 
-    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
         """
         Des.
         """
 
         #This is just an example again
         #for iVertex in range(self.nPhysicalNodes):
-            #self.coreSolver.applyNodalDispX(disp_X[iVertex], iVertex)
-            #self.coreSolver.applyNodalDispY(disp_Y[iVertex], iVertex)
-            #self.coreSolver.applyNodalDispZ(disp_Z[iVertex], iVertex)
+            #self.coreSolver.applyNodalDispX(dx[iVertex], iVertex)
+            #self.coreSolver.applyNodalDispY(dy[iVertex], iVertex)
+            #self.coreSolver.applyNodalDispZ(dz[iVertex], iVertex)
 
-    def update(self):
+    def update(self, dt):
         """
         Des.
         """
@@ -128,7 +128,7 @@ class ExampSolver(FluidSolver):
 
         return
 
-    def save(self):
+    def save(self, nt):
         """
         Des.
         """

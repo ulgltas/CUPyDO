@@ -32,7 +32,7 @@ from cupydo.genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Flow(FluidSolver):
-    def __init__(self, _case):       
+    def __init__(self, _case, _nthreads):       
         # load the python module
         case = __import__(_case)
         
@@ -54,6 +54,7 @@ class Flow(FluidSolver):
         self.nodalLoad_Z = np.zeros(self.nPhysicalNodes)
 
         # initialize
+        self.flow.solver.nthreads = _nthreads
         self.exeOK = True
         FluidSolver.__init__(self)
         

@@ -49,8 +49,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.FlowInterface
-    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_file) # set nthread here!
-    fluidSolver.flow.solver.nthreads = p['nthreads']
+    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_file, p['nthreads'])
     
     cupyutil.mpiBarrier(comm)
     

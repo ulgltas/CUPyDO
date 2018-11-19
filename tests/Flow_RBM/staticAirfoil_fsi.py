@@ -21,12 +21,12 @@ def getParameters(_p):
     p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.1
-    p['tTot'] = 1.0
+    p['dt'] = 0.0
+    p['tTot'] = 0.0
     p['nFSIIterMax'] = 5
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
-    p['computationType'] = 'unsteady'
+    p['computationType'] = 'steady'
     p.update(_p)
     return p
 

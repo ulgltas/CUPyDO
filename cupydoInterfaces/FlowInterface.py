@@ -116,21 +116,11 @@ class Flow(FluidSolver):
             self.boundary.nodes[i].pos.x[1] += dy[i]
             self.boundary.nodes[i].pos.x[2] += dz[i]
 
-    def remeshing(self):
+    def meshUpdate(self, nt):
         """
         TODO Lagrangian remeshing
         """
-
-    def fakeSolidSolver(self):
-        """
-        Dummy solid solver for testing
-        Apply dummy displacement
-        """
-
-        dxD = np.zeros(self.nPhysicalNodes)
-        dyD = np.zeros(self.nPhysicalNodes)
-        dzD = np.zeros(self.nPhysicalNodes)
-        self.applyNodalDisplacements(dxD, dyD, dzD)           
+        self.flow.mshDef.LaplaceSmoothing()
         
     def update(self, dt):
         """
@@ -141,8 +131,8 @@ class Flow(FluidSolver):
         """
         Save data on disk at each converged fsi iteration
         """
-        self.flow.solver.finalize()
-        self.flow.msh.save(str(nt) + ".msh")
+        #self.flow.solver.finalize()
+        #self.flow.msh.save(str(nt) + ".msh")
 
     def initRealTimeData(self):
         """
@@ -153,6 +143,8 @@ class Flow(FluidSolver):
         """
         Save data on disk...
         """
+        self.flow.solver.finalize()
+        self.flow.msh.save(self.flow.msh.name + "_deformed" + str(nFSIIter) + ".msh")
 
     def printRealTimeData(self, time, nFSIIter):
         """

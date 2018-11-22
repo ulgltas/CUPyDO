@@ -23,9 +23,10 @@ import tbox
 import tbox.gmsh as gmsh
 
 class Module:
-    def __init__(self, _boundary, _msh, _solver, _fCp, _dynP):
+    def __init__(self, _msh, _mshDef, _boundary, _solver, _fCp, _dynP):
         # objects
         self.msh = _msh
+        self.mshDef = _mshDef
         self.boundary = _boundary
         self.solver = _solver
         self.fCp = _fCp
@@ -45,7 +46,7 @@ def getFlow():
     # define flow variables
     alpha = 3*math.pi/180
     U_inf = [math.cos(alpha), math.sin(alpha)] # norm should be 1
-    M_inf = 0.0
+    M_inf = 0.3
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
     dynP = 1. # dynamic pressure
@@ -78,11 +79,23 @@ def getFlow():
     airfoil = f.Boundary(msh, "airfoil")
     pbl.add(airfoil)
 
+    # initialize mesh deformation handler
+    boundaries = tbox.std_vector_string(5)
+    boundaries[0] = "upstream"
+    boundaries[1] = "sideUp"
+    boundaries[2] = "sideLw"
+    boundaries[3] = "downstream"
+    boundaries[4] = "airfoil"
+    intBoundaries = tbox.std_vector_string(2)
+    intBoundaries[0] = "wakeUp"
+    intBoundaries[1] = "wakeLw"
+    mshDef = tbox.MshDeformation(msh, "internalField", boundaries, intBoundaries)
+
     # initialize solver
     solver = f.Solver(pbl)
     initSolver(solver)
     solver.initialize()
 
-    return Module(airfoil, msh, solver, fCp, dynP)
+    return Module(msh, mshDef, airfoil, solver, fCp, dynP)
 
     

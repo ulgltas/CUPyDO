@@ -48,6 +48,9 @@ class Flow(FluidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.nNodes - self.nHaloNode
 
+        # initial nodal position
+        self.nodalInitPosX, self.nodalInitPosY, self.nodalInitPosZ = self.getNodalInitialPositions()
+
         # nodal load
         self.nodalLoad_X = np.zeros(self.nPhysicalNodes)
         self.nodalLoad_Y = np.zeros(self.nPhysicalNodes)
@@ -112,9 +115,9 @@ class Flow(FluidSolver):
         """
 
         for i in range(self.boundary.nodes.size()):
-            self.boundary.nodes[i].pos.x[0] += dx[i]
-            self.boundary.nodes[i].pos.x[1] += dy[i]
-            self.boundary.nodes[i].pos.x[2] += dz[i]
+            self.boundary.nodes[i].pos.x[0] = self.nodalInitPosX[i] + dx[i]
+            self.boundary.nodes[i].pos.x[1] = self.nodalInitPosY[i] + dy[i]
+            self.boundary.nodes[i].pos.x[2] = self.nodalInitPosZ[i] + dz[i]
 
     def meshUpdate(self, nt):
         """
@@ -129,10 +132,8 @@ class Flow(FluidSolver):
         
     def save(self, nt):
         """
-        Save data on disk at each converged fsi iteration
+        Save data on disk at each converged timestep
         """
-        #self.flow.solver.finalize()
-        #self.flow.msh.save(str(nt) + ".msh")
 
     def initRealTimeData(self):
         """
@@ -141,7 +142,7 @@ class Flow(FluidSolver):
 
     def saveRealTimeData(self, time, nFSIIter):
         """
-        Save data on disk...
+        Save data on disk at each fsi iteration
         """
         self.flow.solver.finalize()
         self.flow.msh.save(self.flow.msh.name + "_deformed" + str(nFSIIter) + ".msh")

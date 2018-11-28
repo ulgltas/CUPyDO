@@ -23,9 +23,9 @@ def getParameters(_p):
     p['tollFSI'] = 1e-6
     p['dt'] = 0.0
     p['tTot'] = 0.0
-    p['nFSIIterMax'] = 5
-    p['timeIterTreshold'] = 0
-    p['omegaMax'] = 0.5
+    p['nFSIIterMax'] = 100
+    p['timeIterTreshold'] = -1
+    p['omegaMax'] = 1.0
     p['computationType'] = 'steady'
     p.update(_p)
     return p

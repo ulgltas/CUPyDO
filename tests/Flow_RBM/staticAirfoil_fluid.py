@@ -46,15 +46,16 @@ def getFlow():
     # define flow variables
     alpha = 3*math.pi/180
     U_inf = [math.cos(alpha), math.sin(alpha)] # norm should be 1
-    M_inf = 0.3
+    M_inf = 0.03
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
-    dynP = 1. # dynamic pressure
+    c_ref = 1
+    dynP = 0.5*100 # dynamic pressure
 
     # mesh an airfoil
     pars = {'xLength' : 5, 'yLength' : 5, 'sEleFar' : 0.5, 'sEleAirfTE' : 0.01, 'sEleAirfLE' : 0.01}
     msh = gmsh.MeshLoader("models/n0012.geo",__file__).execute(**pars)
-    pbl = f.Problem(msh)
+    pbl = f.Problem(msh, alpha, M_inf, c_ref)
 
     # add a medium "air"
     if M_inf == 0:
@@ -80,16 +81,7 @@ def getFlow():
     pbl.add(airfoil)
 
     # initialize mesh deformation handler
-    boundaries = tbox.std_vector_string(5)
-    boundaries[0] = "upstream"
-    boundaries[1] = "sideUp"
-    boundaries[2] = "sideLw"
-    boundaries[3] = "downstream"
-    boundaries[4] = "airfoil"
-    intBoundaries = tbox.std_vector_string(2)
-    intBoundaries[0] = "wakeUp"
-    intBoundaries[1] = "wakeLw"
-    mshDef = tbox.MshDeformation(msh, "internalField", boundaries, intBoundaries)
+    mshDef = tbox.MshDeformation(msh, "internalField", ["upstream", "sideUp", "sideLw", "downstream", "airfoil"], ["wakeUp", "wakeLw"])
 
     # initialize solver
     solver = f.Solver(pbl)

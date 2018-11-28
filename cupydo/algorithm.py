@@ -572,7 +572,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
         histFile = open('FSIhistory.ascii', "w")
-        histFile.write("TimeIter\tTime\tFSIError\tCHTError\tFSINbIter\tomegaMecha\tomegaThermal\n")
+        histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}   {4:>12s}   {5:>12s}   {6:>12s}\n".format("TimeIter", "Time", "FSIError", "CHTError", "FSINbIter", "omegaMecha", "omegaThermal"))
         histFile.close()
 
     def writeRealTimeData(self):
@@ -585,7 +585,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             if self.timeIter >= self.timeIterTreshold:
                 self.SolidSolver.saveRealTimeData(self.time, self.FSIIter)
             histFile = open('FSIhistory.ascii', "a")
-            histFile.write(str(self.timeIter) + '\t' + str(self.time) + '\t' + str(self.errValue) + '\t' + str(self.errValue_CHT) + '\t' + str(self.FSIIter) + '\t' + str(self.omegaMecha) + '\t' + str(self.omegaThermal) + '\n')
+            histFile.write('{0:12d}   {1:.6e}   {2:.6e}   {3:.6e}   {4:12d}   {5:.6e}   {6:.6e}\n'.format(self.timeIter, self.time, self.errValue, self.errValue_CHT, self.FSIIter, self.omegaMecha, self.omegaThermal))
             histFile.close()
 
     def getMeanNbOfFSIIt(self):

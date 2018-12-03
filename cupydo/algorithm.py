@@ -474,6 +474,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.deltaT = self.totTime
                 self.writeInFSIloop = True
                 self.fsiCoupling()
+                self.FluidSolver.save(self.timeIter)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.save()
                 self.totNbOfFSIIt = self.FSIIter
         except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
@@ -569,6 +572,8 @@ class AlgorithmBGSStaticRelax(Algorithm):
         Des
         """
 
+        if self.myid == 0:
+            self.FluidSolver.initRealTimeData()
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
         histFile = open('FSIhistory.ascii', "w")

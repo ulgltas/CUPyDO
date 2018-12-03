@@ -26,6 +26,8 @@ def getParameters(_p):
     p['nFSIIterMax'] = 100
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
+    p['nbTimeToKeep'] = 0
+    p['computeTangentMatrixBasedOnFirstIt'] = False
     p['computationType'] = 'steady'
     p.update(_p)
     return p
@@ -44,12 +46,12 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = fileName[:-3] + "fluid"
-    csd_file = "../../" + fileName[:-3] + "solid.cfg"
+    cfd_module = fileName[:-3] + "fluid"
+    csd_file = filePath + "/" + fileName[:-3] + "solid.cfg"
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.FlowInterface
-    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_file, p['nthreads'])
+    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_module, p['nthreads'])
     
     cupyutil.mpiBarrier(comm)
     
@@ -74,6 +76,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     # --- Initialize the FSI algorithm --- #
     algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    #algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
     
     # --- Launch the FSI computation --- #
     algorithm.run()

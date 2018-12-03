@@ -134,18 +134,24 @@ class Flow(FluidSolver):
         """
         Save data on disk at each converged timestep
         """
+        self.flow.solver.finalize(nt)
+        self.flow.msh.save(self.flow.msh.name + "_" + str(nt) + ".msh")
 
     def initRealTimeData(self):
         """
         TODO
         """
+        histFile = open('FlowHistory.dat', "w")
+        histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
+        histFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
         """
         Save data on disk at each fsi iteration
         """
-        self.flow.solver.finalize()
-        self.flow.msh.save(self.flow.msh.name + "_deformed" + str(nFSIIter) + ".msh")
+        histFile = open('FlowHistory.dat', "a")
+        histFile.write("{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}\n".format(time, nFSIIter, self.flow.solver.Cl, self.flow.solver.Cd))
+        histFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
         """

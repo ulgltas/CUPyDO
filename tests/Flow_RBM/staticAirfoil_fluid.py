@@ -74,8 +74,8 @@ def getFlow():
     pbl.add(f.Neumann(msh, "downstream", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
     pbl.add(f.Neumann(msh, "airfoil", tbox.Fct1C(0., 0., 0.)))
     # add Wake boundary and Kutta conditions
-    pbl.add(f.Wake(msh, "wakeUp", "wakeLw", "internalField", 1e-6, 1e-6, 1e-6))
-    pbl.add(f.Kutta(msh, "teUp", "teLw", "airfoil", "internalField", 1e-6, 1e-6, 1e-6))
+    pbl.add(f.Wake(msh, ["wakeUp", "wakeLw", "internalField"]))
+    pbl.add(f.Kutta(msh, ["teUp", "teLw", "airfoil", "internalField"]))
     # identify the f/s boundary
     airfoil = f.Boundary(msh, "airfoil")
     pbl.add(airfoil)

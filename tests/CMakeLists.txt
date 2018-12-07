@@ -1,0 +1,3 @@
+
+MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/Flow_RBM)
+

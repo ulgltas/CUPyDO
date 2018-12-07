@@ -15,6 +15,8 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import verif as v
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
@@ -23,7 +25,7 @@ def getParameters(_p):
     p['tollFSI'] = 1e-6
     p['dt'] = 0.0
     p['tTot'] = 0.0
-    p['nFSIIterMax'] = 100
+    p['nFSIIterMax'] = 50
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
     p['nbTimeToKeep'] = 0
@@ -32,7 +34,7 @@ def getParameters(_p):
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
+def main(_p, nogui):
     
     p = getParameters(_p)
 
@@ -75,11 +77,14 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.mpiBarrier()
     
     # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
-    #algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
+    #algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
     
     # --- Launch the FSI computation --- #
     algorithm.run()
+
+    # --- Check the results --- #
+    v.staticAirfoil(nogui)
 
     # eof
     print ''

@@ -24,6 +24,9 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake")
 
+# macros/fcts
+INCLUDE(cupyMacros)
+
 # Type of build
 IF( NOT CMAKE_BUILD_TYPE )
   SET( CMAKE_BUILD_TYPE Release CACHE STRING
@@ -126,3 +129,9 @@ INSTALL_FILES(/ccupydo FILES "${PROJECT_BINARY_DIR}/CCupydo.py")
 IF(WITH_MPI)
   INSTALL_TARGETS(/ccupydo test_CFlexInterfaceData)
 ENDIF(WITH_MPI)
+
+# --- Enable CTest ---
+enable_testing()
+ADD_SUBDIRECTORY(tests)
+
+

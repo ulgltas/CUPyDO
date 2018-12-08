@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # testing classes (for ctest)
-# Authors Romain Boman
+# Authors Romain Boman, Adrien Crovato
 
 class ccolors:
     ANSI_RED    = '\x1b[1;31m'
@@ -9,25 +9,20 @@ class ccolors:
     ANSI_RESET  = '\x1b[0m'
 
 class CTest:
-    def __init__(self, name, val, expected, maxdiff=1e-10, refval=0.0, forceabs=False):
+    def __init__(self, name, val, expected, maxdiff=1e-10, forceabs=False):
         self.name     = name                  # name of the test
         self.val      = float(val)            # calculated value
         self.expected = float(expected)       # expected value
         self.maxdiff  = abs(float(maxdiff))   # tolerance on max difference
-        self.refval   = abs(float(refval))    # optional value used as denominator 
-                                              #   if the expected one is close to 0
+
         self.forceabs = forceabs              # force the calculation of an absolute diff
         
     def run(self):
         ok = True
         adiff = abs(self.val-self.expected) # absolute diff
         
-        # the ref value is the largest among the expected value and
-        # the one provided by the user
-        denom = max(abs(self.refval), abs(self.expected))
-        
-        if not self.forceabs and denom>self.maxdiff:
-            diff = adiff/denom # relative diff
+        if not self.forceabs:
+            diff = adiff/abs(self.expected) # relative diff
             typ='rel'
             percent = '%3.1f%%' % (self.maxdiff*100)
         else:

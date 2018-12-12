@@ -38,28 +38,29 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import verif as v
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nDim'] = 2
-    p['tollFSI'] = 1e-6
-    p['dt'] = 0.0025
-    p['tTot'] = 0.01
-    p['nFSIIterMax'] = 20
+    p['tollFSI'] = 1e-8
+    p['dt'] = 0.001
+    p['tTot'] = 0.005
+    p['nFSIIterMax'] = 6
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 1.0
     p['nbTimeToKeep'] = 0
     p['computeTangentMatrixBasedOnFirstIt'] = False
     p['computationType'] = 'unsteady'
-    p['mtfSaveAllFacs'] = False
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
     p['withMPI'] = True
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
-    
+def main(_p, nogui):
+
     p = getParameters(_p)
 
     comm = None
@@ -79,26 +80,23 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
         myid = 0
         numberPart = 1
 
-    cfd_file = '../../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
-    csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
+    cfd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_SU2Conf.cfg'
+    csd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'
 
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.SU2Interface
     if comm != None:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
+      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
     else:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
-
+      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
+  
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, p['computationType'])
-        
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
+      import cupydoInterfaces.RBMIntegratorInterface
+      solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
 
     cupyutil.mpiBarrier(comm)
 
@@ -118,6 +116,9 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 
     # --- Launch the FSI computation --- #
     algorithm.run()
+
+    # --- Check the results --- #
+    v.PitchPlungeAirfoil(nogui, algorithm.errValue, p['tollFSI'])
   
     # --- Exit computation --- #
     del manager
@@ -128,7 +129,11 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     del algorithm
     cupyutil.mpiBarrier(comm)
     return 0
-    
+
+
+# -------------------------------------------------------------------
+#  Run Main Program
+# -------------------------------------------------------------------
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

@@ -47,7 +47,7 @@ def getMetafor(p={}):
 
     # import .geo
     from toolbox.gmsh import GmshImport
-    f = os.path.join(os.path.dirname(__file__), "CantileverSquareChannel_BGS_parallel_solidMesh.geo")
+    f = os.path.join(os.path.dirname(__file__), "models/CantileverSquareChannel_BGS_parallel_solidMesh.geo")
     importer = GmshImport(f, domain)
     importer.execute2D()
 

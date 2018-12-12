@@ -84,7 +84,7 @@ def main(_p, nogui):
     algorithm.run()
 
     # --- Check the results --- #
-    v.staticAirfoil(nogui)
+    v.staticAirfoil(nogui, algorithm.errValue, p['tollFSI'])
 
     # eof
     print ''

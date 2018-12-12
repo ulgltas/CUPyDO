@@ -38,6 +38,8 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import verif as v
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
@@ -48,8 +50,6 @@ def getParameters(_p):
     p['nFSIIterMax'] = 6
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 1.0
-    p['nbTimeToKeep'] = 0
-    p['computeTangentMatrixBasedOnFirstIt'] = False
     p['computationType'] = 'unsteady'
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
@@ -78,8 +78,8 @@ def main(_p, nogui):
         myid = 0
         numberPart = 1
 
-    cfd_file = '../../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_SU2Conf.cfg'
-    csd_file = '../../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'
+    cfd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_SU2Conf.cfg'
+    csd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'
 
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.SU2Interface
@@ -110,10 +110,13 @@ def main(_p, nogui):
     cupyutil.mpiBarrier()
 
     # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
+    algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
 
     # --- Launch the FSI computation --- #
     algorithm.run()
+
+    # --- Check the results --- #
+    v.PitchPlungeAirfoil(nogui, algorithm.errValue, p['tollFSI'])
   
     # --- Exit computation --- #
     del manager

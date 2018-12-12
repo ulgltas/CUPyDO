@@ -62,7 +62,7 @@ def getMetafor(p={}):
 
   # -- Import the geometry .geo and mesh it with GMSH ---
   from toolbox.gmsh import GmshImport
-  f = os.path.join(os.path.dirname(__file__), "AGARD445_solidMesh_bis_coarse_opti.geo")
+  f = os.path.join(os.path.dirname(__file__), "models/AGARD445_solidMesh_bis_coarse_opti.geo")
   importer = GmshImport(f, domain)
   importer.execute()
 

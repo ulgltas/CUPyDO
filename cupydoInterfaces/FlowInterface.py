@@ -166,5 +166,3 @@ class Flow(FluidSolver):
         """
         Exit the Flow solver.
         """
-        
-        print("***************************** Exit Flow *****************************")

@@ -303,7 +303,7 @@ class SU2Solver(FluidSolver):
         """
 
         solFile = open('AerodynamicCoeff.ascii', "w")
-        solFile.write("Time\tnIter\tCl\tCd\n")
+        solFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
         solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
@@ -315,7 +315,8 @@ class SU2Solver(FluidSolver):
         CDrag = self.SU2.Get_DragCoeff()
 
         solFile = open('AerodynamicCoeff.ascii', "a")
-        solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(CLift)  + '\t' + str(CDrag) + '\n')
+        solFile.write("{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}\n".format(time, nFSIIter, CLift, CDrag))
+        solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
         """

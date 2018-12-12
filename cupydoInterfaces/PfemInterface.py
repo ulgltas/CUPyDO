@@ -199,25 +199,43 @@ class PfemSolver(FluidSolver):
         Des.
         """
         
+        #for extractor in self.realTimeExtractorsList:
+        #    extractorName = extractor.dofName
+        #    solFile = open(extractorName + '.ascii', "w")
+        #    solFile.write("Time\tnIter\tValue\n")
+        #    solFile.close() #Should we keep it open?
         for extractor in self.realTimeExtractorsList:
-            extractorName = extractor.dofName
+            data = extractor.extract()
+            extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "w")
-            solFile.write("Time\tnIter\tValue\n")
-            solFile.close() #Should we keep it open?
+            solFile.write("{0:>12s}   {1:>12s}".format("Time", "FSI_Iter"))
+            for ii in range(data.size()):
+                solFile.write("   {0:>12s}".format("Value_"+str(ii)))
+            solFile.write("\n")
+            solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
         """
         Des.
         """
         
+        #for extractor in self.realTimeExtractorsList:
+        #    data = extractor.extract()
+        #    extractorName = extractor.dofName
+        #    solFile = open(extractorName + '.ascii', "a")
+        #    buff = str()
+        #    for ii in range(data.size()):
+        #        buff = buff + '\t' + str(data[ii])
+        #    solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
+        #    solFile.close()
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
-            extractorName = extractor.dofName
+            extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "a")
-            buff = str()
+            solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
             for ii in range(data.size()):
-                buff = buff + '\t' + str(data[ii])
-            solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
+                solFile.write("   {0:12.6f}".format(data[ii]))
+            solFile.write("\n")
             solFile.close()
     
     def printRealTimeData(self, time, nFSIIter):

@@ -38,6 +38,8 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import verif as v
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
@@ -77,7 +79,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
         myid = 0
         numberPart = 1
 
-    cfd_file = '../../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
+    cfd_file = '../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
     csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
 
     # --- Initialize the fluid solver --- #
@@ -116,6 +118,9 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 
     # --- Launch the FSI computation --- #
     algorithm.run()
+
+    # --- Check the results --- #
+    v.CantileverSquareChannel(nogui, algorithm.errValue, p['tollFSI'])
   
     # --- Exit computation --- #
     del manager

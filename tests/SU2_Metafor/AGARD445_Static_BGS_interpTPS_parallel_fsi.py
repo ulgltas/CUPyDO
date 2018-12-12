@@ -38,6 +38,8 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import verif as v
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
@@ -46,7 +48,6 @@ def getParameters(_p):
     p['dt'] = 0.0
     p['tTot'] = 0.05
     p['nFSIIterMax'] = 4
-    p['rbfRadius'] = 0.3
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
     p['computationType'] = 'steady'
@@ -79,7 +80,7 @@ def main(_p, nogui):
       numberPart = 1
 
     # --- Input parameters --- #
-    CFD_file = '../../../tests/SU2_Metafor/AGARD445_Static_SU2Conf.cfg'
+    CFD_file = '../../tests/SU2_Metafor/AGARD445_Static_SU2Conf.cfg'
     CSD_file = 'AGARD445_Static_MetaforConf'
 
     # --- Initialize the fluid solver --- #
@@ -103,7 +104,7 @@ def main(_p, nogui):
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.RBFInterpolator(manager, FluidSolver, SolidSolver, p['rbfRadius'], comm)
+    interpolator = cupyinterp.TPSInterpolator(manager, FluidSolver, SolidSolver, comm)
     solverList = interpolator.getLinearSolvers()
     for ii in range(2):
         solverList[ii].setMaxNumberIterations(1000)
@@ -118,6 +119,9 @@ def main(_p, nogui):
 
     # --- Launch the FSI computation --- #
     algorithm.run()
+
+    # --- Check the results --- #
+    v.AGARD445_Static(nogui, algorithm.errValue, p['tollFSI'])
   
     # --- Exit computation --- #
     del manager

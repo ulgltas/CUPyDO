@@ -58,6 +58,7 @@ class Flow(FluidSolver):
 
         # initialize
         self.flow.solver.nthreads = _nthreads
+        self.flow.mshDef.nthreads = _nthreads
         self.exeOK = True
         FluidSolver.__init__(self)
         
@@ -111,9 +112,10 @@ class Flow(FluidSolver):
 
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, time):
         """
-        Apply displacements coming from solid solver to f/s interface
+        Apply displacements coming from solid solver to f/s interface after saving
         """
 
+        self.flow.mshDef.savePos()
         for i in range(self.boundary.nodes.size()):
             self.boundary.nodes[i].pos.x[0] = self.nodalInitPosX[i] + dx[i]
             self.boundary.nodes[i].pos.x[1] = self.nodalInitPosY[i] + dy[i]
@@ -121,9 +123,9 @@ class Flow(FluidSolver):
 
     def meshUpdate(self, nt):
         """
-        TODO Lagrangian remeshing
+        Deform the mesh using linear elasticity equations
         """
-        self.flow.mshDef.LaplaceSmoothing()
+        self.flow.mshDef.deform()
         
     def update(self, dt):
         """
@@ -139,7 +141,7 @@ class Flow(FluidSolver):
 
     def initRealTimeData(self):
         """
-        TODO
+        Initialize history file
         """
         histFile = open('FlowHistory.dat', "w")
         histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
@@ -147,7 +149,7 @@ class Flow(FluidSolver):
 
     def saveRealTimeData(self, time, nFSIIter):
         """
-        Save data on disk at each fsi iteration
+        Save data in history file at each fsi iteration
         """
         histFile = open('FlowHistory.dat', "a")
         histFile.write("{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}\n".format(time, nFSIIter, self.flow.solver.Cl, self.flow.solver.Cd))

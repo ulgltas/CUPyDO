@@ -11,13 +11,13 @@ def staticAirfoil(nogui):
     cRef = 1
 
     # RBM constant (defined in case_solid)
-    k = 500 # vertical stiffness
-    kappa = 50 # rotational stiffness
+    k = 250 # vertical stiffness
+    kappa = 25 # rotational stiffness
 
     # Airfoil slopes (measured from flow sovler)
     cl_alpha = 6.8
     cd_alpha = 0.085
-    cm_alpha = 0.25 # must be measured from flexural axis posit. hard to calibrate but of crucial importance!
+    cm_alpha = 0.27 # must be measured from flexural axis posit. hard to calibrate but of crucial importance!
 
     # Pitch-plunge system of equations
     A = np.array([ [k, -dynP*cRef*(cl_alpha*np.cos(alpha0) - cd_alpha*np.sin(alpha0))],
@@ -34,6 +34,6 @@ def staticAirfoil(nogui):
     # Check the solution
     res = np.genfromtxt("NativeHistory.dat", delimiter=None, skip_header=1) # import results by reading file
     tests = CTests()
-    tests.add(CTest('Vertical displacement', -res[2]/cRef, x[0]/cRef, 5e-3, True)) # abs. tol. of .5% of chord
-    tests.add(CTest('Rotational displacement', np.degrees(res[3]), np.degrees(x[1]-alpha0), 1e-1, True)) # abs. tol. of .1°
+    tests.add(CTest('Vertical displacement', -res[2]/cRef, x[0]/cRef, 1e-2, True)) # abs. tol. of 1% of chord
+    tests.add(CTest('Rotational displacement', np.degrees(res[3]), np.degrees(x[1]-alpha0), 5e-1, True)) # abs. tol. of .5°
     tests.run()

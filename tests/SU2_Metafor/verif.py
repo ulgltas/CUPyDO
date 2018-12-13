@@ -10,6 +10,9 @@ def CantileverSquareChannel(nogui, res, tol):
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TY,RE)_GROUP_ID_104.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
     if (res > tol):
@@ -23,10 +26,16 @@ def CantileverSquareChannel(nogui, res, tol):
 
 def AGARD445_Static(nogui, res, tol):
 
-        # Read results from file
+    # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TZ,RE)_GROUP_ID_180.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS1 = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TZ,RE)_GROUP_ID_181.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
     if (res > tol):
@@ -35,6 +44,6 @@ def AGARD445_Static(nogui, res, tol):
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.053, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (180, TZ)', resultS[2], 0.011, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (181, TZ)', resultS[3], 0.013, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (180, TZ)', resultS1[2], 0.011, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (181, TZ)', resultS2[2], 0.013, 1e-1, False)) # rel. tol. of 10%
     tests.run()

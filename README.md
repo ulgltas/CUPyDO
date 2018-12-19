@@ -34,7 +34,7 @@ sudo apt-get install python-petsc4py
 Compilation
 ```bash
 mkdir build && cd build
-<export INCLUDE=${INCLUDE}:/path/to/petsc/include>
+<INCLUDE=${INCLUDE}:/path/to/petsc/include>
 cmake <-DWITH_MPI=ON> <-DCMAKE_BUILD_TYPE=Release> ..
 make -j4
 ```

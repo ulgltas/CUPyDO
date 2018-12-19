@@ -90,11 +90,11 @@ INCLUDE_DIRECTORIES( ${MPI_INCLUDE_PATH} ${PETSC_INCLUDE_PATH} )
 
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-IF(WITH_MPI)
-  INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
-  ADD_EXECUTABLE(test_CGeneral src/cTest_general.cpp)
-  TARGET_LINK_LIBRARIES(test_CGeneral ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
-ENDIF(WITH_MPI)
+#IF(WITH_MPI)
+#  INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+#  ADD_EXECUTABLE(test_CGeneral src/cTest_general.cpp)
+#  TARGET_LINK_LIBRARIES(test_CGeneral ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
+#ENDIF(WITH_MPI)
 
 #-------------------------------------------------------------
 INCLUDE(${SWIG_USE_FILE})
@@ -132,9 +132,9 @@ MESSAGE(STATUS "Installation directory : ${CMAKE_INSTALL_PREFIX}")
 
 INSTALL_TARGETS(/ccupydo _CCupydo)
 INSTALL_FILES(/ccupydo FILES "${PROJECT_BINARY_DIR}/CCupydo.py")
-IF(WITH_MPI)
-  INSTALL_TARGETS(/ccupydo test_CGeneral)
-ENDIF(WITH_MPI)
+#IF(WITH_MPI)
+#  INSTALL_TARGETS(/ccupydo test_CGeneral)
+#ENDIF(WITH_MPI)
 
 # --- Enable CTest ---
 enable_testing()

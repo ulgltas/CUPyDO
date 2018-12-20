@@ -67,7 +67,7 @@ class Flow(FluidSolver):
         Run the solver for one steady (time) iteration.
         """
 
-        self.exeOK = self.flow.solver.execute()
+        self.exeOK = self.flow.solver.run()
         self.__setCurrentState()
     
     def __setCurrentState(self):
@@ -136,7 +136,7 @@ class Flow(FluidSolver):
         """
         Save data on disk at each converged timestep
         """
-        self.flow.solver.finalize(nt)
+        self.flow.solver.save(nt)
         self.flow.msh.save(self.flow.msh.name + "_" + str(nt) + ".msh")
 
     def initRealTimeData(self):

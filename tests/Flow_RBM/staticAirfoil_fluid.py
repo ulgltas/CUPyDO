@@ -55,7 +55,7 @@ def getFlow():
     # mesh an airfoil
     pars = {'xLength' : 5, 'yLength' : 5, 'sEleFar' : 0.5, 'sEleAirfTE' : 0.01, 'sEleAirfLE' : 0.01}
     msh = gmsh.MeshLoader("models/n0012.geo",__file__).execute(**pars)
-    pbl = f.Problem(msh, alpha, M_inf, c_ref)
+    pbl = f.Problem(msh, 2, alpha, M_inf, c_ref)
 
     # add a medium "air"
     if M_inf == 0:
@@ -86,7 +86,6 @@ def getFlow():
     # initialize solver
     solver = f.Solver(pbl)
     initSolver(solver)
-    solver.initialize()
 
     return Module(msh, mshDef, airfoil, solver, fCp, dynP)
 

@@ -31,6 +31,7 @@ def getParameters(_p):
     p['nbTimeToKeep'] = 0
     p['computeTangentMatrixBasedOnFirstIt'] = False
     p['computationType'] = 'steady'
+    p['withMPI'] = False
     p.update(_p)
     return p
 
@@ -39,13 +40,18 @@ def main(_p, nogui):
     p = getParameters(_p)
 
     # --- Workspace set up --- #
-    withMPI = False
-    comm = None
-    myid = 0
-    numberPart = 0
+    if p['withMPI']:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        myid = comm.Get_rank()
+        numberPart = comm.Get_size()
+    else:
+        comm = None
+        myid = 0
+        numberPart = 1
     rootProcess = 0
     
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(fileName, p['withMPI'], comm, myid, numberPart)
     
     # --- Input parameters --- #
     cfd_module = fileName[:-3] + "fluid"
@@ -71,12 +77,15 @@ def main(_p, nogui):
 
     # --- Initialize the interpolator --- #
     interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+    #interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, 1., comm)
+    #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
     
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])
     cupyutil.mpiBarrier()
     
     # --- Initialize the FSI algorithm --- #
+    #algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
     #algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
     algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
     

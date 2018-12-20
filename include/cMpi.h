@@ -30,3 +30,23 @@
 #else //HAVE_MPI
   typedef const int* Cupydo_Comm;
 #endif //HAVE_MPI
+
+/*!
+ * Allow python to know if CUPyDO has been built with MPI
+ * Authors : A. CROVATO.
+ */
+class CMpi
+{
+public:
+  bool haveMPI;
+  CMpi()
+  {
+  #ifdef HAVE_MPI
+    haveMPI = true;
+  #else //HAVE_MPI
+    haveMPI = false;
+  #endif //HAVE_MPI
+  }
+  virtual ~CMpi() {}
+};
+

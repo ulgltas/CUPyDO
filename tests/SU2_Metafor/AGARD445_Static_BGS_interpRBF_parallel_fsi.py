@@ -55,30 +55,18 @@ def getParameters(_p):
     p['mtfSaveAllFacs'] = False
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
-    p['withMPI'] = True
     p.update(_p)
     return p 
 
 def main(_p, nogui):
 
+    # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    comm = None
-    myid = 0
-    numberPart = 0
+    # --- Set up MPI and workspace --- #
+    withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-
-    cupyutil.load(fileName, p['withMPI'], comm, myid, numberPart)
-
-    if p['withMPI']:
-      from mpi4py import MPI
-      comm = MPI.COMM_WORLD
-      myid = comm.Get_rank()
-      numberPart = comm.Get_size()
-    else:
-      comm = None
-      myid = 0
-      numberPart = 1
+    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
     CFD_file = '../../tests/SU2_Metafor/AGARD445_Static_SU2Conf.cfg'
@@ -87,9 +75,9 @@ def main(_p, nogui):
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.SU2Interface
     if comm != None:
-        FluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(CFD_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
+        FluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
     else:
-        FluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(CFD_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
+        FluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #

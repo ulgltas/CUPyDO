@@ -31,29 +31,20 @@ def getParameters(_p):
     p['nbTimeToKeep'] = 0
     p['computeTangentMatrixBasedOnFirstIt'] = False
     p['computationType'] = 'steady'
-    p['withMPI'] = False
     p.update(_p)
     return p
 
 def main(_p, nogui):
     
+    # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    # --- Workspace set up --- #
-    if p['withMPI']:
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        myid = comm.Get_rank()
-        numberPart = comm.Get_size()
-    else:
-        comm = None
-        myid = 0
-        numberPart = 1
+    # --- Set up MPI and workspace --- #
+    withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
+    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
-    cupyutil.load(fileName, p['withMPI'], comm, myid, numberPart)
-    
-    # --- Input parameters --- #
+    # --- Input files --- #
     cfd_module = fileName[:-3] + "fluid"
     csd_file = filePath + "/" + fileName[:-3] + "solid.cfg"
     

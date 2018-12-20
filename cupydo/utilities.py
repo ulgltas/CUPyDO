@@ -122,6 +122,23 @@ def QRfiltering_mod(V, W, toll):
 
 # ------------------------------------------------------------------------------
 
+def getMpi():
+    """
+    Get MPI parameters
+    """
+    from ccupydo import CMpi
+    cmpi = CMpi()
+    if cmpi.haveMPI:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        myid = comm.Get_rank()
+        numberPart = comm.Get_size()
+    else:
+        comm = None
+        myid = 0
+        numberPart = 1
+    return cmpi.haveMPI, comm, myid, numberPart
+
 def load(fsiTxt, mpi_opt, com, my_id, number_part):
     """load a module and make it the current one
     """

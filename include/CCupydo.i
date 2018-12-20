@@ -40,7 +40,7 @@ threads="1"
 %nothread swig::SwigPyIterator::~SwigPyIterator();
 
 // ----------- MODULES UTILISES ------------
-%import "cMpi.h"
+%include "cMpi.h"
 %include "std_string.i"
 %include "std_vector.i"
 %include "std_map.i"

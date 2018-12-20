@@ -54,30 +54,18 @@ def getParameters(_p):
     p['mtfSaveAllFacs'] = False
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
-    p['withMPI'] = True
     p.update(_p)
     return p
 
 def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
+    # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    comm = None
-    myid = 0
-    numberPart = 0
+    # --- Set up MPI and workspace --- #
+    withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-
-    cupyutil.load(fileName, p['withMPI'], comm, myid, numberPart)
-
-    if p['withMPI']:
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        myid = comm.Get_rank()
-        numberPart = comm.Get_size()
-    else:
-        comm = None
-        myid = 0
-        numberPart = 1
+    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = '../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
     csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
@@ -85,9 +73,9 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.SU2Interface
     if comm != None:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], comm)
+        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
     else:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], p['withMPI'], 0)
+        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
 
     cupyutil.mpiBarrier(comm)
 

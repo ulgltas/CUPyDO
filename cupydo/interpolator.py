@@ -71,10 +71,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.mappingTimer = Timer()
 
-        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
-        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
-        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
-        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
+        self.nf = int(self.manager.getNumberOfFluidInterfaceNodes())
+        self.ns = int(self.manager.getNumberOfSolidInterfaceNodes())
+        self.nf_loc = int(self.manager.getNumberOfLocalFluidInterfaceNodes())
+        self.ns_loc = int(self.manager.getNumberOfLocalSolidInterfaceNodes())
         self.nDim = self.manager.getnDim()
 
         self.d = 0

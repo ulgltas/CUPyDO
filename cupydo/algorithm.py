@@ -1255,16 +1255,16 @@ class FsiSolidTestAlgorithm:
                 self.solid.fakeFluidSolver(t2)  # creates some dummy loads for time=t2
 
                 # run solid solver
-                print '='*80
-                print "running from %f to %f: try #%d" % (t1,t2,i+1)
-                print '='*80
+                print('='*80)
+                print("running from %f to %f: try #%d" % (t1,t2,i+1))
+                print('='*80)
                 self.solid.run(t1,t2)
 
                 # gets the deformed interface
                 dx, dy, dz = self.solid.getNodalDisplacements()
-                print dx
-                print dy
-                print dz
+                print(dx)
+                print(dy)
+                print(dz)
 
             self.solid.update()
             self.solid.save()

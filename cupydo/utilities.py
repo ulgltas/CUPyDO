@@ -140,7 +140,7 @@ def load(fsiTxt, mpi_opt, com, my_id, number_part):
         # ici, on a un nom de module...
         exec("import %s" % fsiTxt) # peut on le faire plus tard?
         exec("globals()['_theModule'] = %s" % fsiTxt)
-        print "module '%s' loaded!" % fsiTxt
+        print("module '%s' loaded!" % fsiTxt)
         #print '_theModule', _theModule
 
     setTheWDir(fsiTxt)
@@ -183,8 +183,8 @@ def setDir(wdir):  # (avant instance) - change le rep courant
             if not os.path.isdir(wdir):
                 os.makedirs(wdir)
             os.chdir(wdir)
-        except OSError, e:
-            print "OSError : ", e
+        except OSError as e:
+            print("OSError : ", e)
             # check UAC (Vista) or root-protected dirs (Unix)
             text = 'Directory "%s" may not be created.\n' % wdir
             text += 'Disable UAC (vista) or ask for root privilege (Unix) if you still want to work here.\n'
@@ -194,7 +194,7 @@ def setDir(wdir):  # (avant instance) - change le rep courant
             raise Exception('directory "%s" cannot be created' % wdir)
     global _theWDir
     _theWDir = os.getcwd() # stoque un chemin absolu meme si ca a merde.
-    print "_theWDir = ", _theWDir
+    print("_theWDir = ", _theWDir)
 
 def _chkWorkspace():
     """ Check/Clean workspace
@@ -219,7 +219,7 @@ def _chkWorkspace():
                 try:
                     os.remove(file)
                 except:
-                    print "Unable to remove", file
+                    print("Unable to remove", file)
         else:
             raise Exception("meta() cancelled!")
 

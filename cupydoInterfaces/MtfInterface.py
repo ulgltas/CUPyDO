@@ -65,7 +65,7 @@ class MtfSolver(SolidSolver):
         des.
         """
         
-        print '\n***************************** Initializing Metafor *****************************'
+        print('\n***************************** Initializing Metafor *****************************')
         
         # --- Load the Python module --- #
         self.testname = testname            # string (name of the module of the solid model)
@@ -392,7 +392,7 @@ class MtfSolver(SolidSolver):
             for ii in range(data.size()):
                 buff = buff + '\t' + str(data[ii])
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
-            print toPrint
+            print(toPrint)
     
     def exit(self):
         """

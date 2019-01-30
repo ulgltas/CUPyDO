@@ -48,7 +48,7 @@ class SU2Solver(FluidSolver):
 
         # --- Instantiate the single zone driver of SU2 --- #
         try:
-            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, MPIComm)
+            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, False, MPIComm)
         except TypeError as exception:
             print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
             if have_MPI == True:
@@ -87,6 +87,9 @@ class SU2Solver(FluidSolver):
             self.nNodes = self.SU2.GetNumberVertices(self.fluidInterfaceID)           # numbers of nodes at the f/s interface (halo+physical)
             self.nHaloNode = self.SU2.GetNumberHaloVertices(self.fluidInterfaceID)    # numbers of nodes at the f/s interface (halo)
         self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
+
+        # Initialize list to store point indices
+        self.pointIndexList = np.zeros(self.nPhysicalNodes, dtype=int)
     
         self.nodalInitialPos_X = np.zeros((self.nPhysicalNodes))             # initial position of the f/s interface
         self.nodalInitialPos_Y = np.zeros((self.nPhysicalNodes))
@@ -106,6 +109,8 @@ class SU2Solver(FluidSolver):
                 self.haloNodeList[GlobalIndex] = iVertex
                 self.haloNodesPositionsInit[GlobalIndex] = (posX, posY, posZ)
             else:
+                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+                self.pointIndexList[PhysicalIndex] = GlobalIndex
                 self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
                 Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
                 Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
@@ -121,6 +126,11 @@ class SU2Solver(FluidSolver):
                 PhysicalIndex += 1
 
         self.initRealTimeData()
+
+        print("\n -------------------------- FLUID NODES ------------------------------ \n")
+        print("There is a total of", self.nNodes, "nodes\n")
+        for iIndex in range(self.nPhysicalNodes):
+            print(self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex])
 
     def run(self, t1, t2):
         """

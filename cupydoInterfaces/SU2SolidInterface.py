@@ -63,8 +63,6 @@ class SU2SolidSolver(SolidSolver):
                 print(
                     'ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
 
-        print("I GET THROUGH THIS")
-
         allMovingMarkersTags = self.SU2.GetAllMovingMarkersTag()  # list containing the tags of all moving markers
         allMarkersID = self.SU2.GetAllBoundaryMarkers()  # dic : allMarkersID['marker_tag'] = marker_ID
         self.fluidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
@@ -206,18 +204,17 @@ class SU2SolidSolver(SolidSolver):
 
         # return no
 
+    def getNodalDisplacements(self):
+        """
+        Des.
+        """
+
+        return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
+
     def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
         """
         Des.
         """
-        print('HERE I SHOULD APPLY THE NODAL LOADS!!!')
-
-        # --- Initialize the interface position and the nodal loads --- #
-        for ii in range(self.nPhysicalNodes):
-            print(self.pointIndexList[ii], load_X[ii], load_Y[ii], load_Z[ii])
-            # self.coreSolver.applyNodalLoadX(load_X[ii], ii)
-            # self.coreSolver.applyNodalLoadY(load_Y[ii], ii)
-            # self.coreSolver.applyNodalLoadZ(load_Z[ii], ii)
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
@@ -235,11 +232,6 @@ class SU2SolidSolver(SolidSolver):
                 LoadZ = load_Z[PhysicalIndex]
                 PhysicalIndex += 1
             self.SU2.SetLoads(self.fluidInterfaceID, iVertex, GlobalIndex, LoadX, LoadY, LoadZ)
-
-    def applyNodalTemperatures(self, Temperature, val_time):
-        """
-        Des.
-        """
 
     def update(self):
         """
@@ -299,5 +291,6 @@ class SU2SolidSolver(SolidSolver):
         """
         Des.
         """
-
+        self.SU2.Output(2) # Temporary hack
+        self.SU2.Postprocessing()
         print("***************************** Exit Example solver *****************************")

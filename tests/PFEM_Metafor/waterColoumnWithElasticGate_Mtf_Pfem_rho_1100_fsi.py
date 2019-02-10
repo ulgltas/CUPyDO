@@ -36,19 +36,22 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import numpy as np
+from cupydo.testing import *
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.0001
+    p['dt'] = 0.001
     p['tTot'] = 0.05
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 1000
+    p['saveFreqPFEM'] = 10
     p['mtfSaveAllFacs'] = False
     p.update(_p)
     return p
@@ -67,8 +70,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = 'waterColoumnWithElasticGate_water_Pfem_fine'
-    csd_file = 'waterColoumnWithElasticGate_gate_Mtf_rho_1100_fine'
+    cfd_file = 'waterColoumnWithElasticGate_water_Pfem'
+    csd_file = 'waterColoumnWithElasticGate_gate_Mtf_rho_1100'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface
@@ -110,7 +113,25 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     # --- Launch the FSI computation --- #
     algorithm.run()
-
+    
+    # --- Check the results --- #
+    
+    # Check convergence and results
+    if (algorithm.errValue > p['tollFSI']):
+        print "\n\n" + "FSI residual = " + str(algorithm.errValue) + ", FSI tolerance = " + str(p['tollFSI'])
+        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    
+    # Read results from file
+    with open("Node_9_POS.ascii", 'rb') as f:
+        lines = f.readlines()
+    result_1 = np.genfromtxt(lines[-1:], delimiter=None)
+    
+    tests = CTests()
+    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 5, 1, True)) # abs. tol. of 1
+    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.487164, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.0006501, 1e-2, False)) # rel. tol. of 1%
+    tests.run()
+    
 # -------------------------------------------------------------------
 #    Run Main Program
 # -------------------------------------------------------------------

@@ -15,7 +15,8 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
-import verif as v
+import numpy as np
+from cupydo.testing import *
 
 def getParameters(_p):
     # --- Input parameters --- #
@@ -29,7 +30,7 @@ def getParameters(_p):
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 10
+    p['saveFreqPFEM'] = 1
     p['mtfSaveAllFacs'] = False
     p.update(_p)
     return p
@@ -90,7 +91,25 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     algorithm.run()
 
     # --- Check the results --- #
-    v.StaticCylinder(nogui, algorithm.errValue, p['tollFSI'])
+    
+    # Check convergence and results
+    if (algorithm.errValue > p['tollFSI']):
+        print "\n\n" + "FSI residual = " + str(algorithm.errValue) + ", FSI tolerance = " + str(p['tollFSI'])
+        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    
+    # Read results from file
+    with open("Node_6_POS.ascii", 'rb') as f:
+        lines = f.readlines()
+    result_1 = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("TOTAL_F_INT_Cylinder.ascii", 'rb') as f:
+        lines = f.readlines()
+    result_2 = np.genfromtxt(lines[-1:], delimiter=None)
+    
+    tests = CTests()
+    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 3, 1, True)) # abs. tol. of 1
+    tests.add(CTest('Y-coordinate Node 6', result_1[1], 0.25, 1e-4, False)) # rel. tol. of 0.001%
+    tests.add(CTest('Total force on cylinder', result_2[1], -0.116, 1e-2, False)) # rel. tol. of 1%
+    tests.run()
 
 # -------------------------------------------------------------------
 #    Run Main Program

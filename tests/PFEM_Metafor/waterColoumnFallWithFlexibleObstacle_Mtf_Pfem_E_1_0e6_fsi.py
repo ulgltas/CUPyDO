@@ -1,3 +1,24 @@
+#! /usr/bin/env python
+# -*- coding: latin-1; -*-
+
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+'''
+
 import os, sys
 
 filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -15,31 +36,30 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import numpy as np
+from cupydo.testing import *
+
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
-    p['U0'] = 100
-    p['N'] = 10
-    p['R'] = 0.01
-    p['d'] = 0.0025 # 2.5*(R/N)
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 2e-6
-    p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)
+    p['dt'] = 0.001
+    p['tTot'] = 0.35
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 1000
+    p['saveFreqPFEM'] = 100
     p['mtfSaveAllFacs'] = False
     p.update(_p)
     return p
-    
-def main(_p, nogui):
+
+def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     p = getParameters(_p)
-    
+
     # --- Workspace set up --- #
     withMPI = False
     comm = None
@@ -49,12 +69,13 @@ def main(_p, nogui):
     
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
     
-    cfd_file = 'birdImpact_deformable_panel_bird_Pfem'
-    csd_file = 'birdImpact_deformable_panel_panel_alu_Mtf'
+    # --- Input parameters --- #
+    cfd_file = 'waterColoumnFallWithFlexibleObstacle_water_Pfem'
+    csd_file = 'waterColoumnFallWithFlexibleObstacle_obstacle_Mtf_E_1_0e6'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface
-    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 13, p['dt'])
+    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 17, p['dt'])
     
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
@@ -92,6 +113,24 @@ def main(_p, nogui):
     
     # --- Launch the FSI computation --- #
     algorithm.run()
+    
+    # --- Check the results --- #
+    
+    # Check convergence and results
+    if (algorithm.errValue > p['tollFSI']):
+        print "\n\n" + "FSI residual = " + str(algorithm.errValue) + ", FSI tolerance = " + str(p['tollFSI'])
+        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    
+    # Read results from file
+    with open("Node_6_POS.ascii", 'rb') as f:
+        lines = f.readlines()
+    result_1 = np.genfromtxt(lines[-1:], delimiter=None)
+    
+    tests = CTests()
+    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 3, 1, True)) # abs. tol. of 1
+    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.317212, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.0780102, 1e-2, False)) # rel. tol. of 1%
+    tests.run()
 
 # -------------------------------------------------------------------
 #    Run Main Program

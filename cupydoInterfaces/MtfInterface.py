@@ -131,10 +131,10 @@ class MtfSolver(SolidSolver):
         self.nodalVel_YNm1 = self.nodalVel_Y.copy()
         self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
         
-        self.initRealTimeData()
-        
         # Last build operation
         self.metafor.getDomain().build() # NB: necessary to complete Metafor initialization!
+        
+        self.initRealTimeData() #NB: to be called after self.metafor.getDomain().build() otherwise no proper extractors usage!
         
     def run(self, t1, t2):
         """

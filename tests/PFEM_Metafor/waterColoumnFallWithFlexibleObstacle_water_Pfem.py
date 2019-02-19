@@ -93,7 +93,6 @@ def getPfem():
     w.Boundary(msh, 17, 2, 0.0)
     
     scheme.savefreq=1
-    scheme.nthreads=3
     scheme.gamma = 0.6
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True

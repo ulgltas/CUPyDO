@@ -86,7 +86,6 @@ def getPfem():
     
     scheme.ttot = 1.0
     scheme.savefreq=1
-    scheme.nthreads=3
     scheme.gamma = 0.5
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True

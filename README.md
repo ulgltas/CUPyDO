@@ -38,6 +38,8 @@ mkdir build && cd build
 cmake <-DWITH_MPI=ON> <-DCMAKE_BUILD_TYPE=Release> ..
 make -j4
 ```
+*NB: ```path/to/petsc/include``` is usually ```/usr/lib/petscdir/version/``` on ubutun/debian*
+
 Install
 ```bash
 make install

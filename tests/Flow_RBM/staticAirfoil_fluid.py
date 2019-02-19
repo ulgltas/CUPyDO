@@ -82,7 +82,11 @@ def getFlow():
     pbl.add(airfoil)
 
     # initialize mesh deformation handler
-    mshDef = tbox.MshDeformation(msh, "field", ["upstream", "side", "downstream"], ["airfoil"], ["wake", "wake_"])
+    mshDef = tbox.MshDeformation(msh, dim)
+    mshDef.setField("field")
+    mshDef.setFixed(["upstream", "side", "downstream"])
+    mshDef.setMoving(["airfoil"])
+    mshDef.setInternal(["wake", "wake_"])
 
     # initialize solver
     solver = f.Solver(pbl)

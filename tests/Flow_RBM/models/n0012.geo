@@ -1,26 +1,24 @@
 /* Naca0012 */
 
 // Geometry
-DefineConstant[ xLength = { 5.0, Name "Domain length (x-dir)" }  ];
-DefineConstant[ yLength = { 5.0, Name "Domain length (y-dir)" }  ];
-gap = 0e-6; // TE gap, should be zero (testing purpose only)
+DefineConstant[ xLgt = { 5.0, Name "Domain length (x-dir)" }  ];
+DefineConstant[ yLgt = { 5.0, Name "Domain length (y-dir)" }  ];
 
 // Mesh
-DefineConstant[ sEleFar = { 1.0, Name "Farfield mesh size" }  ];
-DefineConstant[ sEleAirfTE = { 0.01, Name "Airfoil TE mesh size" }  ];
-DefineConstant[ sEleAirfLE = { 0.01, Name "Airfoil LE mesh size" }  ];
+DefineConstant[ msF = { 1.0, Name "Farfield mesh size" }  ];
+DefineConstant[ msTe = { 0.01, Name "Airfoil TE mesh size" }  ];
+DefineConstant[ msLe = { 0.01, Name "Airfoil LE mesh size" }  ];
 
 /**************
-	Geometry  
+    Geometry  
  **************/
 
 // Airfoil
-TeUp = 1;
-TeLw = 201;
+Te = 1;
 Le = 101;
 
-Point(201) = {1.000000,-gap/2,0,sEleAirfTE};
-Point(200) = {0.999753,-0.000035,0};
+//Point(201) = {1.000000,0.000000,0,msTe};
+Point(200) = {0.999753,-0.000035,0, msTe};
 Point(199) = {0.999013,-0.000141,0};
 Point(198) = {0.997781,-0.000317,0};
 Point(197) = {0.996057,-0.000562,0};
@@ -119,7 +117,7 @@ Point(105) = {0.003943,-0.010884,0};
 Point(104) = {0.002219,-0.008223,0};
 Point(103) = {0.000987,-0.005521,0};
 Point(102) = {0.000247,-0.002779,0};
-Point(101) = {0.000000,0.000000,0,sEleAirfLE};
+Point(101) = {0.000000,0.000000,0,msLe};
 Point(100) = {0.000247,0.002779,0};
 Point(99) = {0.000987,0.005521,0};
 Point(98) = {0.002219,0.008223,0};
@@ -219,64 +217,47 @@ Point(5) = {0.996057,0.000562,0};
 Point(4) = {0.997781,0.000317,0};
 Point(3) = {0.999013,0.000141,0};
 Point(2) = {0.999753,0.000035,0};
-Point(1) = {1.000000,gap/2,0,sEleAirfTE};
+Point(1) = {1.000000,0.000000,0,msTe};
 
-Spline(1) = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101};
-Spline(2) = {101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201};
-
-//Center
-Point(0) = {1, 0, 0};
+Spline(1) = {101,100,99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1};
+Spline(2) = {1,200,199,198,197,196,195,194,193,192,191,190,189,188,187,186,185,184,183,182,181,180,179,178,177,176,175,174,173,172,171,170,169,168,167,166,165,164,163,162,161,160,159,158,157,156,155,154,153,152,151,150,149,148,147,146,145,144,143,142,141,140,139,138,137,136,135,134,133,132,131,130,129,128,127,126,125,124,123,122,121,120,119,118,117,116,115,114,113,112,111,110,109,108,107,106,105,104,103,102,101};
 
 // Farfield
-Point(10001) = {1+xLength, gap/2, 0,sEleFar};
-Point(10002) = {1+xLength, yLength, 0,sEleFar};
-Point(10003) = {-xLength, yLength, 0,sEleFar};
-Point(10004) = {-xLength, 0, 0,sEleFar};
-Point(10005) = {-xLength,-yLength, 0,sEleFar};
-Point(10006) = {1+xLength, -yLength, 0,sEleFar};
-Point(10007) = {1+xLength, -gap/2, 0,sEleFar};
+Point(10001) = {1+xLgt, 0, 0,msF};
+Point(10002) = {1+xLgt, yLgt, 0,msF};
+Point(10003) = {-xLgt, yLgt, 0,msF};
+Point(10004) = {-xLgt, 0, 0,msF};
+Point(10005) = {-xLgt,-yLgt, 0,msF};
+Point(10006) = {1+xLgt, -yLgt, 0,msF};
 
 Line(10001) = {10001, 10002};
 Line(10002) = {10002, 10003};
 Line(10003) = {10003, 10004};
 Line(10004) = {10004, 10005};
 Line(10005) = {10005, 10006};
-Line(10006) = {10006, 10007};
+Line(10006) = {10006, 10001};
 
 // Front and wake
 Line(10007) = {Le, 10004};
-Line(10008) = {TeUp, 10001};
-Line(10009) = {TeLw, 10007};
+Line(10008) = {Te, 10001};
 
 // Internal field
-Line Loop(10001) = {10008, 10001, 10002, 10003, -10007, -1};
-Line Loop(10002) = {10007, 10004, 10005, 10006, -10009, -2};
+Line Loop(10001) = {10008, 10001, 10002, 10003, -10007, 1};
+Line Loop(10002) = {10007, 10004, 10005, 10006, -10008, 2};
 Plane Surface(10001) = {10001};
 Plane Surface(10002) = {10002};
 
 /*************************
-	Physical Groups
+    Physical Groups
  *************************/
 
-// Physical Groups numbering
-internalField = 1000000;
-upstream = 1000001;
-sideUp = 1000002;
-sideLw = 1000003;
-downstream = 1000004;
-airfoil = 1000005;
-wakeUp = 1000006;
-wakeLw = 1000007;
-teUp = 1000008;
-teLw = 1000009;
-
-Physical Point("teUp", teUp) = {TeUp};
-Physical Point("teLw", teLw) = {TeLw};
-Physical Line("upstream", upstream) = {10003, 10004};
-Physical Line("sideUp", sideUp) = {10002};
-Physical Line("sideLw", sideLw) = {10005};
-Physical Line("downstream", downstream) = {10001, 10006};
-Physical Line("airfoil", airfoil) = {1, 2};
-Physical Line("wakeUp", wakeUp) = {10008};
-Physical Line("wakeLw", wakeLw) = {10009};
-Physical Surface("internalField", internalField) = {10001, 10002};
+Physical Point("te") = {Te};
+Physical Line("upstream") = {10003, 10004};
+Physical Line("side") = {10002, 10005};
+Physical Line("downstream") = {10001};
+Physical Line("downstream_") = {10006};
+Physical Line("airfoil") = {1};
+Physical Line("airfoil_") = {2};
+Physical Line("wake") = {10008};
+Physical Surface("field") = {10001};
+Physical Surface("field_") = {10002};

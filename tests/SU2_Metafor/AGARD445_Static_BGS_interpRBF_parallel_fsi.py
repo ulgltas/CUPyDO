@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -38,7 +38,29 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
-import verif as v
+def test(nogui, res, tol):
+
+    # Read results from file
+    with open("AerodynamicCoeff.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultA = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TZ,RE)_GROUP_ID_180.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS1 = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TZ,RE)_GROUP_ID_181.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
+
+    # Check convergence and results
+    if (res > tol):
+        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    #tests = CTests()
+    #tests.add(CTest('Lift coefficient', resultA[2], 0.053, 1e-1, False)) # rel. tol. of 10%
+    #tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
+    #tests.add(CTest('Displacement (180, TZ)', resultS1[2], 0.011, 1e-1, False)) # rel. tol. of 10%
+    #tests.add(CTest('Displacement (181, TZ)', resultS2[2], 0.013, 1e-1, False)) # rel. tol. of 10%
+    #tests.run()
 
 def getParameters(_p):
     # --- Input parameters --- #
@@ -110,7 +132,7 @@ def main(_p, nogui):
     algorithm.run()
 
     # --- Check the results --- #
-    v.AGARD445_Static(nogui, algorithm.errValue, p['tollFSI'])
+    test(nogui, algorithm.errValue, p['tollFSI'])
   
     # --- Exit computation --- #
     del manager

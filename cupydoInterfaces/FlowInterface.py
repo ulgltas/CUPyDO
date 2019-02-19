@@ -81,9 +81,9 @@ class Flow(FluidSolver):
         cfN = self.boundary.interpolate(cpiE)
         i = 0
         for n in self.boundary.nodes:
-            self.nodalLoad_X[i] = self.flow.dynP * cfN[i][0]
-            self.nodalLoad_Y[i] = self.flow.dynP * cfN[i][1]
-            self.nodalLoad_Z[i] = self.flow.dynP * cfN[i][2]
+            self.nodalLoad_X[i] = -self.flow.dynP * cfN[i][0]
+            self.nodalLoad_Y[i] = -self.flow.dynP * cfN[i][1]
+            self.nodalLoad_Z[i] = -self.flow.dynP * cfN[i][2]
             i += 1
 
     def getNodalInitialPositions(self):

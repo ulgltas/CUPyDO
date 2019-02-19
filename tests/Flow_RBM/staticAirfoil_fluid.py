@@ -37,9 +37,9 @@ def initSolver(_solver):
     _solver.relTol = 1e-6
     _solver.absTol = 1e-8
     _solver.lsTol = 1e-6
-    _solver.maxIt = 50
+    _solver.maxIt = 25
     _solver.maxLsIt = 10
-    _solver.avThrsh = 1e-3
+    _solver.avThrsh = 1e-2
 
 def getFlow():
 
@@ -51,37 +51,38 @@ def getFlow():
     M_crit = 5 # Squared critical Mach number (above which density is modified)
     c_ref = 1
     dynP = 0.5*100 # dynamic pressure
+    dim = len(U_inf)
 
     # mesh an airfoil
-    pars = {'xLength' : 5, 'yLength' : 5, 'sEleFar' : 0.5, 'sEleAirfTE' : 0.01, 'sEleAirfLE' : 0.01}
+    pars = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 0.5, 'msTe' : 0.01, 'msLe' : 0.01}
     msh = gmsh.MeshLoader("models/n0012.geo",__file__).execute(**pars)
-    pbl = f.Problem(msh, 2, alpha, M_inf, c_ref)
+    mshCrck = tbox.MshCrack(msh, dim, "wake", ["field", "field_", "airfoil", "airfoil_", "downstream", "downstream_"])
+    pbl = f.Problem(msh, dim, alpha, M_inf, c_ref, c_ref, 0., 0., 0.)
 
     # add a medium "air"
     if M_inf == 0:
-        pbl.set(f.Medium(msh, "internalField", f.Fun0EleRhoL(), f.Fun0EleMachL(), f.Fun0EleCpL(), f.Fun0PosPhiInf(alpha)))
         fCp = f.Fun0EleCpL()
+        pbl.set(f.Medium(msh, "field", f.Fun0EleRhoL(), f.Fun0EleMachL(), fCp, f.Fun0PosPhiInf(dim, alpha)))
     else:
-        pbl.set(f.Medium(msh, "internalField", f.Fun0EleRho(gamma, M_inf, M_crit), f.Fun0EleMach(gamma, M_inf), f.Fun0EleCp(gamma, M_inf), f.Fun0PosPhiInf(alpha)))
         fCp = f.Fun0EleCp(gamma, M_inf)
+        pbl.set(f.Medium(msh, "field", f.Fun0EleRho(gamma, M_inf, M_crit), f.Fun0EleMach(gamma, M_inf), fCp, f.Fun0PosPhiInf(dim, alpha)))
 
     # add initial condition
-    pbl.add(f.Assign(msh,"internalField", f.Fun0PosPhiInf(alpha)),"IC")
+    pbl.add(f.Assign(msh,"field", f.Fun0PosPhiInf(dim, alpha)),"IC")
     # add boundary conditions
     pbl.add(f.Neumann(msh, "upstream", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
-    pbl.add(f.Neumann(msh, "sideUp", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
-    pbl.add(f.Neumann(msh, "sideLw", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
+    pbl.add(f.Neumann(msh, "side", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
     pbl.add(f.Neumann(msh, "downstream", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
     pbl.add(f.Neumann(msh, "airfoil", tbox.Fct1C(0., 0., 0.)))
-    # add Wake boundary and Kutta conditions
-    pbl.add(f.Wake(msh, ["wakeUp", "wakeLw", "internalField"]))
-    pbl.add(f.Kutta(msh, ["teUp", "teLw", "airfoil", "internalField"]))
-    # identify the f/s boundary
-    airfoil = f.Boundary(msh, "airfoil")
+    # add wake/Kutta boundary conditions
+    pbl.add(f.Wake(msh, ["wake", "wake_", "field"]))
+    pbl.add(f.Kutta(msh, ["te", "wake_", "airfoil", "field"]))
+    # identify the boundary
+    airfoil = f.Boundary(msh, ["airfoil", "field"])
     pbl.add(airfoil)
 
     # initialize mesh deformation handler
-    mshDef = tbox.MshDeformation(msh, "internalField", ["upstream", "sideUp", "sideLw", "downstream"], ["airfoil"], ["wakeUp", "wakeLw"])
+    mshDef = tbox.MshDeformation(msh, "field", ["upstream", "side", "downstream"], ["airfoil"], ["wake", "wake_"])
 
     # initialize solver
     solver = f.Solver(pbl)

@@ -45,13 +45,33 @@ Install
 make install
 make clean
 ```
-Note that the path to executables of the interfaced solvers should be put in your python path.
+
+Test
+```batch
+./../run.sh
+ctest -j4
+```
 
 ## Interfaced solvers compilation (linux - gcc)
 Brief instructions to compile interfaced solvers. The full documentation is available on the aforementioned websites.
+The directories containing the external solvers must be placed next to CUPyDO directory.
 
 ### Metafor
-Todo
+Required packages
+```bash
+mkdir Metafor_Home && cd Metafor_Home
+git clone https://github.com/ulgltas/linuxbin.git
+git clone username@blueberry.ltas.ulg.ac.be:/home/metafor/GIT/parasolid.git
+```
+Compilation
+```bash
+svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_meta/trunk oo_meta
+svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_nda/trunk oo_nda
+mkdir oo_metaB && cd oo_metaB
+cmake -C ../oo_meta/CMake/configMachine.cmake <-DCMAKE_INSTALL_PREFIX:PATH=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Release> ../oo_meta
+make -j4
+<make install>
+```
 
 ### RBM
 Required packages
@@ -75,7 +95,8 @@ Todo
 ```bash
 git clone https://github.com/su2code/SU2.git
 cd SU2
-git checkout tags/v6.0.0
+git checkout tags/v6.2.0
+./boostrap
 ./configure --prefix=/path/to/SU2/install/folder CXXFLAGS="-O3" --enable-mpi --with-cc=/path/to/mpicc --with-cxx=/path/to/mpicxx --enable-PY_WRAPPER <--enable-tecio>
 make -j4
 make install
@@ -106,14 +127,6 @@ cd waves
 mkdir build && cd build
 cmake -C ../CMake/ubuntu.cmake ..
 make -j4
-```
-
-### Environment variables
-```bash
-export PYTHONPATH="${PYTHONPATH}:/path/to/NativeSolid/bin"
-export PYTHONPATH="${PYTHONPATH}:/path/to/SU2/install/folder/bin"
-export PYTHONPATH="${PYTHONPATH}:/path/to/waves/"
-export PYTHONPATH="${PYTHONPATH}:/path/to/waves/build/bin"
 ```
 
 ## Examples

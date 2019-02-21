@@ -90,8 +90,8 @@ def main(_p, nogui):
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
-    CFD_file = '../../tests/SU2_Metafor/AGARD445_Static_SU2Conf.cfg'
-    CSD_file = 'AGARD445_Static_MetaforConf'
+    cfd_file = '../../tests/SU2_Metafor/AGARD445_Static_SU2Conf.cfg'
+    csd_file = 'AGARD445_Static_MetaforConf'
 
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.SU2Interface
@@ -105,7 +105,7 @@ def main(_p, nogui):
     SolidSolver = None
     if myid == rootProcess:
         import cupydoInterfaces.MtfInterface
-        SolidSolver = cupydoInterfaces.MtfInterface.MtfSolver(CSD_file, p['computationType'])
+        SolidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, p['computationType'])
         SolidSolver.saveAllFacs = p['mtfSaveAllFacs']
     cupyutil.mpiBarrier(comm)
 

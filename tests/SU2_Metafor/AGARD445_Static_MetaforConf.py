@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ limitations under the License.
 '''
 
 from wrap import *
+from wrap.mtComposites import *
 from  math import *
 
 metafor = None
@@ -76,7 +77,7 @@ def getMetafor(p={}):
   interactionset.add( app1 )
 
   materset = domain.getMaterialSet()
-  materset.define(1, OrthoElastHypoMaterial)
+  materset.define(1, ElastOrthoHypoMaterial)
   mater1 = materset(1)
   mater1.put(MASS_DENSITY, 381.98)		#kg/m3
   mater1.put(YOUNG_MODULUS_1, 3.151e9)		#Pa

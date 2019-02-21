@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,8 +47,12 @@ class SU2Solver(FluidSolver):
         """
 
         # --- Instantiate the single zone driver of SU2 --- #
+        # @todo [Adrien Crovato ]Change CFluidDriver constructor
+        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
+        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
+        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
         try:
-            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, MPIComm)
+            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, False, MPIComm)
         except TypeError as exception:
             print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
             if have_MPI == True:

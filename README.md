@@ -61,14 +61,12 @@ Required packages
 ```bash
 mkdir Metafor_Home && cd Metafor_Home
 git clone https://github.com/ulgltas/linuxbin.git
-git clone username@blueberry.ltas.ulg.ac.be:/home/metafor/GIT/parasolid.git
 ```
 Compilation
 ```bash
 svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_meta/trunk oo_meta
-svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_nda/trunk oo_nda
 mkdir oo_metaB && cd oo_metaB
-cmake -C ../oo_meta/CMake/configMachine.cmake <-DCMAKE_INSTALL_PREFIX:PATH=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Release> ../oo_meta
+cmake -C ../oo_meta/CMake/configMachine-student.cmake <-DCMAKE_INSTALL_PREFIX:PATH=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Release> ../oo_meta
 make -j4
 <make install>
 ```

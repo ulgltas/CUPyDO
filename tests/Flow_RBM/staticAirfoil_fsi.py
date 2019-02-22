@@ -5,9 +5,6 @@ import os, sys
 
 filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
-FSICouplerPath = os.path.join(os.path.dirname(__file__), '../../')
-
-sys.path.append(FSICouplerPath)
 
 from math import *
 from optparse import OptionParser

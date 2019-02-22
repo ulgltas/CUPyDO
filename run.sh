@@ -6,14 +6,16 @@
 . ~/.profile
 
 # Set paths
-export TOP_DIR=$(cd "$(dirname "$0")/.."; pwd)
-export MTF_RUN="${TOP_DIR}/Metafor"
-export SU2_RUN="${TOP_DIR}/SU2/bin"
+CUP_DIR="$(dirname "$0")"
+TOP_DIR=$(cd "${CUP_DIR}/.."; pwd)
+MTF_RUN="${TOP_DIR}/Metafor"
+SU2_RUN="${TOP_DIR}/SU2/bin"
 # PATH
 export PATH=$PATH:${SU2_RUN}
 # LIB
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MTF_RUN}
 # PYTHON
+export PYTHONPATH=${PYTHONPATH}:${CUP_DIR}
 export PYTHONPATH=${PYTHONPATH}:${SU2_RUN}
 export PYTHONPATH="${PYTHONPATH}:${TOP_DIR}/waves"
 export PYTHONPATH="${PYTHONPATH}:${TOP_DIR}/waves/build/bin"
@@ -23,7 +25,7 @@ export PYTHONPATH=${PYTHONPATH}:${MTF_RUN}
 # Print paths
 echo PATH=${PATH}
 echo LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-echo PYTONPATH ${PYTHONPATH}
+echo PYTONPATH=${PYTHONPATH}
 echo ""
 
 # Check if arguments are provided

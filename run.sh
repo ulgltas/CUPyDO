@@ -37,18 +37,19 @@ if [ $# -ne 2 ]
 fi
 
 # Run
-if [[ -f $1 ]]
+if [ "$1" == "all" ]
   then
-    if [ "$1" == "all" ]
-      then
-        echo "Running ctest on $2 threads..."
-        cd build
-        ctest
-    else
-        echo "Running file $1 on $2 threads..."
-        python $1
-    fi
+    echo "Running ctest on $2 threads..."
+    cd build
+    ctest
 else
-    echo "$1 is not a file"
-    exit 1
+    if [[ -f $1 ]]
+      then
+        echo "Running file $1 on $2 threads..."
+        python $1 --nthreads $2
+    else
+        echo "$1 is not a file"
+        exit 1
+    fi
 fi
+

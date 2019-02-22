@@ -57,9 +57,9 @@ def test(nogui, res, tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], cl_alpha*x[1], 5e-2, False)) # rel. tol. of 5%
-    tests.add(CTest('Vertical displacement', -resultS[2]/cRef, x[0]/cRef, 1e-2, True)) # abs. tol. of 1% of chord
-    tests.add(CTest('Rotational displacement', np.degrees(resultS[3]), np.degrees(x[1]-alpha0), 5e-1, True)) # abs. tol. of .5°
+    tests.add(CTest('Lift coefficient', resultA[2], cl_alpha*x[1], 2*1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Vertical displacement', -resultS[2]/cRef, x[0]/cRef, 2*1e-2, True)) # abs. tol. of 1% of chord
+    tests.add(CTest('Rotational displacement', np.degrees(resultS[3]), np.degrees(x[1]-alpha0), 2*5e-1, True)) # abs. tol. of .5°
     tests.run()
 
 def getParameters(_p):

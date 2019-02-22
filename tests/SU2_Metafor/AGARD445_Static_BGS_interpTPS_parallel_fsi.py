@@ -33,6 +33,9 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
+import numpy as np
+from cupydo.testing import *
+
 def test(nogui, res, tol):
 
     # Read results from file

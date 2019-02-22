@@ -65,7 +65,6 @@ def getParameters(_p):
     p['computationType'] = 'unsteady'
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
-    p['withMPI'] = True
     p.update(_p)
     return p
 

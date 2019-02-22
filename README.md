@@ -46,10 +46,14 @@ make install
 make clean
 ```
 
-Test
+Run test battery
 ```batch
-./../run.sh
-ctest -j4
+./run.sh all 4
+```
+
+Run test file
+```batch
+./run.sh path/to/testfile 4
 ```
 
 ## Interfaced solvers compilation (linux - gcc)

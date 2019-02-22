@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,9 +23,7 @@ import os, sys
 
 filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
-FSICouplerPath = os.path.join(os.path.dirname(__file__), '../../')
 
-sys.path.append(FSICouplerPath)
 
 from math import *
 from optparse import OptionParser

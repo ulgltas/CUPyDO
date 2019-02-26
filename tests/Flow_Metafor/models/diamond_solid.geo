@@ -50,8 +50,9 @@ Recombine Surface{1,2,3,4};
     Physical Groups
  *************************/
 
-Physical Point("te",101) = {Te};
-Physical Point("le",103) = {Le};
-Physical Point("mc",102) = {Mc};
-Physical Line("airfoil",111) = {1,2,3,4};
-Physical Surface("material",121) = {1,2,3,4};
+Physical Point(101) = {Te};
+Physical Point(103) = {Le};
+Physical Point(102) = {Mc};
+Physical Line(111) = {1,2,3,4};
+Physical Surface(121) = {1,2,3,4};
+

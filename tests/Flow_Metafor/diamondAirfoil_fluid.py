@@ -50,12 +50,12 @@ def getFlow():
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
     c_ref = 1
-    dynP = 0.5*100 # dynamic pressure
+    dynP = 0.5*34*34 # dynamic pressure
     dim = len(U_inf)
 
     # mesh an airfoil
     pars = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 1., 'msA' : 0.01}
-    msh = gmsh.MeshLoader("models/diamond.geo",__file__).execute(**pars)
+    msh = gmsh.MeshLoader("models/diamond_fluid.geo",__file__).execute(**pars)
     mshCrck = tbox.MshCrack(msh, dim, "wake", ["field", "field_", "airfoil", "airfoil_", "downstream", "downstream_"])
     pbl = f.Problem(msh, dim, alpha, M_inf, c_ref, c_ref, 0., 0., 0.)
 

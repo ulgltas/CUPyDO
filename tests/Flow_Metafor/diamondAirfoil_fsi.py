@@ -20,7 +20,7 @@ import numpy as np
 
 def test(nogui, res, tol):
     # Read results from file
-    with open("AerodynamicCoeff.ascii", 'rb') as f:
+    with open("FlowHistory.dat", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
     with open("db_Field(TY,RE)_GROUP_ID_101.ascii", 'rb') as f:
@@ -33,7 +33,7 @@ def test(nogui, res, tol):
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0., 1, False)) # rel. tol. of 100%
-    tests.add(CTest('TE. vertical displacement', resultS[2], 0., 1 False)) # rel. tol. of 100%
+    tests.add(CTest('TE. vertical displacement', resultS[2], 0., 1, False)) # rel. tol. of 100%
     tests.run()
 
 def getParameters(_p):
@@ -42,8 +42,8 @@ def getParameters(_p):
     p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.0
-    p['tTot'] = 0.0
+    p['dt'] = 0.1
+    p['tTot'] = 0.1
     p['nFSIIterMax'] = 50
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0

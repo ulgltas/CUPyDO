@@ -141,6 +141,7 @@ if __name__ == '__main__':
     parser=OptionParser()
     parser.add_option("--nogui", action="store_true",
                         help="Specify if we need to use the GUI", dest="nogui", default=False)
+    parser.add_option("-n", type="int", help="Number of process", dest="nprocess", default=1) # not used
 
     (options, args)=parser.parse_args()
     

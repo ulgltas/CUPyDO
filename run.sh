@@ -47,7 +47,7 @@ else
     if [[ -f $1 ]]
       then
         echo "Running file $1 on $2 threads..."
-        python $1 --nthreads $2
+        python $1 -n $2
     else
         echo "$1 is not a file"
         exit 1

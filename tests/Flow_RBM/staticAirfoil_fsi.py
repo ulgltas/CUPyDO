@@ -146,7 +146,7 @@ if __name__ == '__main__':
     parser=OptionParser()
     parser.add_option("--nogui", action="store_true",
                         help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("--nthreads", type="int", help="Number of threads", dest="nthreads", default=1)
+    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
     
     
     (options, args)=parser.parse_args()

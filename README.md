@@ -34,7 +34,7 @@ sudo apt-get install python-petsc4py
 Compilation
 ```bash
 mkdir build && cd build
-<INCLUDE=${INCLUDE}:/path/to/petsc/include>
+<export INCLUDE=${INCLUDE}:/path/to/petsc/include>
 cmake <-DWITH_MPI=ON> <-DCMAKE_BUILD_TYPE=Release> ..
 make -j4
 ```
@@ -60,9 +60,18 @@ Run test file
 Brief instructions to compile interfaced solvers. The full documentation is available on the aforementioned websites.
 The directories containing the external solvers must be placed next to CUPyDO directory.
 
+### Common packages
+```bash
+sudo apt-get install gmsh
+sudo apt-get install libtbb-dev
+sudo apt-get install libvtk6.3 libvtk6-dev libvtk6-qt-dev python-vtk6 python-pyqt5
+```
+
 ### Metafor
 Required packages
 ```bash
+sudo apt install subversion
+sudo apt install bison flex 
 mkdir Metafor_Home && cd Metafor_Home
 git clone https://github.com/ulgltas/linuxbin.git
 ```
@@ -70,7 +79,7 @@ Compilation
 ```bash
 svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_meta/trunk oo_meta
 mkdir oo_metaB && cd oo_metaB
-cmake -C ../oo_meta/CMake/configMachine-student.cmake <-DCMAKE_INSTALL_PREFIX:PATH=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Release> ../oo_meta
+cmake -C ../oo_meta/CMake/configMachine-CUpYDO.cmake <-DCMAKE_INSTALL_PREFIX=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Release> ../oo_meta
 make -j4
 <make install>
 ```
@@ -79,7 +88,7 @@ make -j4
 Required packages
 ```bash
 sudo apt-get install liblapacke-dev
-sudo apt-get install liblatlas-base-dev
+sudo apt-get install libatlas-base-dev
 ```
 Compilation
 ```bash
@@ -112,14 +121,10 @@ Todo
 Required packages
 ```bash
 sudo apt-get install libgmm++-dev libeigen3-dev
-sudo apt-get install libtbb-dev
 sudo apt-get install libmumps-seq-dev libopenblas-dev
-sudo apt-get install gmsh
-sudo apt-get install python-pyqt5
 ```
 Optionnal packages
 ```bash
-sudo apt-get install python-vtk6 libvtk6.3
 sudo apt-get install python-matplotlib
 ```
 Compilation

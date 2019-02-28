@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 import numpy as np
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=np.inf)
 
 # ----------------------------------------------------------------------
 #  Generic solid solver class

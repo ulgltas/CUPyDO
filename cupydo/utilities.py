@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import time as tm
 import socket, fnmatch
 import fsi_pyutils
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=np.inf)
 
 # global vars (underscore prevent them to be imported with "from module import *")
 _theModule  = None

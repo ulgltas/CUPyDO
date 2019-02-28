@@ -36,7 +36,7 @@ import time as tm
 import socket, fnmatch
 import fsi_pyutils
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=sys.maxsize)
 
 # global vars (underscore prevent them to be imported with "from module import *")
 _theModule  = None

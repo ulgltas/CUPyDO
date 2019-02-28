@@ -32,12 +32,13 @@ import numpy as np
 import scipy as sp
 import traceback
 import copy
+import sys
 
 import ccupydo
 from utilities import *
 from interfaceData import FlexInterfaceData
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #    Algorithm class

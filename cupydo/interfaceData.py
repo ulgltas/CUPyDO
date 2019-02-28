@@ -29,10 +29,11 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 import numpy as np
 import scipy as sp
+import sys
 
 import ccupydo
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #   FlexInterfaceData class

@@ -39,7 +39,7 @@ if [ "$1" == "all" ]
   then
     echo "Running ctest on $2 threads..."
     cd build
-    ctest
+    ctest -j $2
 else
     if [[ -f $1 ]]
       then

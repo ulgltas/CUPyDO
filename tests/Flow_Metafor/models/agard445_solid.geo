@@ -367,11 +367,11 @@ Physical Surface("wing",111) = {11,12,13,14,15,16,71,72,73,74,75,76}; // wing
 Physical Surface("clamp",112) = {51,52,53,54,55,56}; // clamp
 */
 
-Physical Volume("material",101) = {1,2,3,4,5,6};
-Physical Surface("wing",111) = {11,12,13,14,15,16,61,62,63,64,65,66}; // wing
-Physical Surface("clamp",112) = {51,52,53,54,55,56}; // clamp
+Physical Volume(101) = {1,2,3,4,5,6}; // volume
+Physical Surface(111) = {11,12,13,14,15,16,61,62,63,64,65,66}; // wing
+Physical Surface(112) = {51,52,53,54,55,56}; // clamp
 
-Physical Point("Te",121) = {52};
-Physical Point("Le",122) = {77};
+Physical Point(121) = {52}; // tip te
+Physical Point(122) = {77}; // tip le
 
 Coherence;

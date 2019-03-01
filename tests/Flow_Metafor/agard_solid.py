@@ -21,49 +21,63 @@ def getMetafor(p={}):
     # -- Geometry container and computation type
     domain = metafor.getDomain()
     geometry = domain.getGeometry()
-    geometry.setDimPlaneStrain(1.0)
+    geometry.setDim3D()
 
     # -- Import the geometry
     from toolbox.gmsh import GmshImport
-    f = os.path.join(os.path.dirname(__file__), "models/diamond_solid.geo")
+    f = os.path.join(os.path.dirname(__file__), "models/agard445_solid.geo")
     importer = GmshImport(f, domain)
-    importer.execute2D()    
+    importer.execute()    
     groupset = domain.getGeometry().getGroupSet()
 
     # -- Define the material
     matset = domain.getMaterialSet()
-    matset.define( 1, ElastHypoMaterial )
-    mat1 = matset(1)
-    mat1.put(MASS_DENSITY,    100.0)  # [kg/m³]
-    mat1.put(ELASTIC_MODULUS, 1e8)  # [Pa]
-    mat1.put(POISSON_RATIO,   0.35)   # [-]
+    matset.define( 1, ElastOrthoHypoMaterial )
+    mat = matset(1)
+    mat.put(MASS_DENSITY, 381.98)          # [kg/m3]
+    mat.put(YOUNG_MODULUS_1, 3.151e9)      # [Pa]
+    mat.put(YOUNG_MODULUS_2, 0.4162e9)     # [Pa]
+    mat.put(YOUNG_MODULUS_3, 0.4162e9)     # [Pa]
+    mat.put(POISSON_RATIO_12, 0.31)        # [-]
+    mat.put(POISSON_RATIO_13, 0.31)        # [-]
+    mat.put(POISSON_RATIO_23, 0.31)        # [-]
+    mat.put(SHEAR_MODULUS_12, 0.4392e9)    # [Pa]
+    mat.put(SHEAR_MODULUS_13, 0.4392e9)    # [Pa]
+    mat.put(SHEAR_MODULUS_23, 0.4392e9)    # [Pa]
+    sweepOrtho = pi/4.0
+    mat.put(ORTHO_AX1_X, sin(sweepOrtho))
+    mat.put(ORTHO_AX1_Y, cos(sweepOrtho))
+    mat.put(ORTHO_AX1_Z, 0.0)
+    mat.put(ORTHO_AX2_X, cos(sweepOrtho))
+    mat.put(ORTHO_AX2_Y, -sin(sweepOrtho))
+    mat.put(ORTHO_AX2_Z, 0.0)
 
-    # -- Define quad solid elements
+    # -- Define hexa solid elements
     interactionset = domain.getInteractionSet()
     fieldapp1 = FieldApplicator(1)
-    fieldapp1.push( groupset(121) )    #physical group 'material' = volumic mesh of the wing
+    fieldapp1.push( groupset(101) )    #physical group 'material' = volumic mesh of the wing
     interactionset.add( fieldapp1 )
-    prp = ElementProperties(Volume2DElement)
+    prp = ElementProperties(Volume3DElement)
     fieldapp1.addProperty(prp)
     prp.put(MATERIAL, 1)
-    prp.put(CAUCHYMECHVOLINTMETH,VES_CMVIM_STD)
+    prp.put(CAUCHYMECHVOLINTMETH,VES_CMVIM_EAS)
+    prp.put(PEAS, 1e-11)
 
-    # -- Define tri solid elements
+    # -- Define prism solid elements
     fieldapp2 = FieldApplicator(2)
-    fieldapp2.push( groupset(121) )
+    fieldapp2.push( groupset(101) )
     interactionset.add( fieldapp2 )
-    prp2 = ElementProperties(TriangleVolume2DElement)
+    prp2 = ElementProperties(PentaVolume3DElement)
     fieldapp2.addProperty(prp2)
     prp2.put(MATERIAL, 1)
     prp2.put(CAUCHYMECHVOLINTMETH,VES_CMVIM_STD)
 
     # -- Boundary conditions
     loadingset = domain.getLoadingSet()
-    # Clamped node
-    loadingset.define(groupset(103), Field1D(TX,RE))
-    loadingset.define(groupset(103), Field1D(TY,RE))
-    # Supported node
-    loadingset.define(groupset(102), Field1D(TX,RE))
+    # Clamped face
+    loadingset.define(groupset(112), Field1D(TX,RE))
+    loadingset.define(groupset(112), Field1D(TY,RE))
+    loadingset.define(groupset(112), Field1D(TZ,RE))
 
     # -- Numerical parameters
     mim = metafor.getMechanicalIterationManager()
@@ -78,13 +92,14 @@ def getMetafor(p={}):
 
         # -- Value manager
         vmgr = metafor.getValuesManager()
-        vmgr.add(1, DbNodalValueExtractor(groupset(101), Field1D(TY,RE)), 'TE_dy')
+        vmgr.add(1, DbNodalValueExtractor(groupset(121), Field1D(TZ,RE)), 'TE_dz')
+        vmgr.add(2, DbNodalValueExtractor(groupset(122), Field1D(TZ,RE)), 'LE_dz')
         
         # prescribe node displacement
         fct = PieceWiseLinearFunction()
         fct.setData(0.0, 0.0)
         fct.setData(1.0, 1.0)
-        loadingset.define(groupset(101), Field1D(TY,RE), 0.2, fct)
+        loadingset.define(groupset(122), Field1D(TZ,RE), 0.2, fct)
 
         tsm = metafor.getTimeStepManager()
         tsm.setInitialTime(0.0, 0.1)
@@ -98,8 +113,10 @@ def getRealTimeExtractorsList(Mtf):
     groupset = Mtf.getDomain().getGeometry().getGroupSet()
 
     # --- Extractors list starts --- #
-    extractor = DbNodalValueExtractor(groupset(101), Field1D(TY,RE))
-    extractorsList.append(extractor)
+    extractor0 = DbNodalValueExtractor(groupset(121), Field1D(TZ,RE))
+    extractorsList.append(extractor0)
+    extractor1 = DbNodalValueExtractor(groupset(122), Field1D(TZ,RE))
+    extractorsList.append(extractor1)
     # --- Extractors list ends --- #
 
     return extractorsList

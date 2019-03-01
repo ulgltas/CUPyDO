@@ -44,20 +44,33 @@ def initSolver(_solver):
 def getFlow():
 
     # define flow variables
-    alpha = 3*math.pi/180
-    U_inf = [math.cos(alpha), math.sin(alpha)] # norm should be 1
-    M_inf = 0.3
+    alpha = 1*math.pi/180
+    U_inf = [math.cos(alpha), 0., math.sin(alpha)] # norm should be 1
+    M_inf = 0.8
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
-    c_ref = 1
-    dynP = 0.5*102*102 # dynamic pressure
+    dynP = 0.5*M_inf*340*M_inf*340 # dynamic pressure
     dim = len(U_inf)
 
+    # define dimension and mesh size
+    lgt = 7. # box length
+    hgt = 6. # box height
+    wdt = 3. # box width
+    xO = -3. # box x-origin
+    zO = -3. # box z-origin
+    S_ref = .35 # reference area
+    c_ref = .47 # reference chord (MAC)
+    rlems = 0.006 # root leading edge mesh size
+    rtems = 0.006 # root trailing edge mesh size
+    tlems = 0.004 # tip leading mesh size
+    ttems = 0.004 # tip trailing mesh size
+    fms = 1.0 # farfield mesh size
+
     # mesh an airfoil
-    pars = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 1., 'msA' : 0.01}
-    msh = gmsh.MeshLoader("models/diamond_fluid.geo",__file__).execute(**pars)
-    mshCrck = tbox.MshCrack(msh, dim, "wake", ["field", "field_", "airfoil", "airfoil_", "downstream", "downstream_"])
-    pbl = f.Problem(msh, dim, alpha, M_inf, c_ref, c_ref, 0., 0., 0.)
+    pars = {'xL' : lgt, 'yL' : wdt, 'zL' : hgt, 'xO' : xO, 'zO' : zO, 'msLeRt' : rlems, 'msTeRt' : rtems, 'msLeTp' : tlems, 'msTeTp' : ttems, 'msF' : fms}
+    msh = gmsh.MeshLoader("models/agard445_fluid.geo",__file__).execute(**pars)
+    mshCrck = tbox.MshCrack(msh, dim, "wake", ["field", "field_", "wing", "wing_", "symmetry", "symmetry_", "downstream", "downstream_"], "wakeTip")
+    pbl = f.Problem(msh, dim, alpha, M_inf, S_ref, c_ref, 0., 0., 0.)
 
     # add a medium "air"
     if M_inf == 0:
@@ -69,27 +82,27 @@ def getFlow():
 
     # add initial condition
     pbl.add(f.Assign(msh,"field", f.Fun0PosPhiInf(dim, alpha)),"IC")
-    # add boundary conditions
-    pbl.add(f.Neumann(msh, "upstream", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
-    pbl.add(f.Neumann(msh, "side", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
-    pbl.add(f.Neumann(msh, "downstream", tbox.Fct1C(-U_inf[0], -U_inf[1], 0.)))
-    pbl.add(f.Neumann(msh, "airfoil", tbox.Fct1C(0., 0., 0.)))
-    # add wake/Kutta boundary conditions
-    pbl.add(f.Wake(msh, ["wake", "wake_", "field"]))
-    pbl.add(f.Kutta(msh, ["te", "wake_", "airfoil", "field"]))
-    # identify the boundary
-    airfoil = f.Boundary(msh, ["airfoil", "field"])
-    pbl.add(airfoil)
+    # add farfield and symmetry boundary conditions
+    pbl.add(f.Neumann(msh, "farfield", tbox.Fct1C(-U_inf[0], -U_inf[1], -U_inf[2])))
+    pbl.add(f.Neumann(msh, "downstream", tbox.Fct1C(-U_inf[0], -U_inf[1], -U_inf[2])))
+    pbl.add(f.Neumann(msh, "symmetry", tbox.Fct1C(0., 0., 0.)))
+    # add wake boundary and Kutta conditions
+    pbl.add(f.Wake(msh, ["wake", "wake_", "field", "teTip"]))
+    # add slip condition
+    pbl.add(f.Neumann(msh, "wing", tbox.Fct1C(0., 0., 0.)))
+    wing = f.Boundary(msh, ["wing", "field"])
+    pbl.add(wing)
 
     # initialize mesh deformation handler
     mshDef = tbox.MshDeformation(msh, dim)
     mshDef.setField("field")
-    mshDef.setFixed(["upstream", "side", "downstream"])
-    mshDef.setMoving(["airfoil"])
+    mshDef.setFixed(["farfield", "downstream"])
+    mshDef.setMoving(["wing"])
+    mshDef.setSymmetry(["symmetry"], 1)
     mshDef.setInternal(["wake", "wake_"])
 
     # initialize solver
     solver = f.Solver(pbl)
     initSolver(solver)
 
-    return Module(msh, mshDef, airfoil, solver, fCp, dynP)
+    return Module(msh, mshDef, wing, solver, fCp, dynP)

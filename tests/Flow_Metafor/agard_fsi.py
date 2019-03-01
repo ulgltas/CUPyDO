@@ -23,7 +23,7 @@ def test(nogui, res, tol):
     with open("FlowHistory.dat", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
-    with open("db_Field(TY,RE)_GROUP_ID_101.ascii", 'rb') as f:
+    with open("db_Field(TZ,RE)_GROUP_ID_121.ascii", 'rb') as f:
         lines = f.readlines()
     resultS = np.genfromtxt(lines[-1:], delimiter=None)
 
@@ -40,7 +40,7 @@ def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
-    p['nDim'] = 2
+    p['nDim'] = 3
     p['tollFSI'] = 1e-6
     p['dt'] = 0.1
     p['tTot'] = 0.1

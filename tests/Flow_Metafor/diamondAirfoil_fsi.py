@@ -32,8 +32,8 @@ def test(nogui, res, tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.1, 1, False)) # rel. tol. of 100%
-    tests.add(CTest('TE. vertical displacement', resultS[2], 0.1, 1, False)) # rel. tol. of 100%
+    tests.add(CTest('Lift coefficient', resultA[2], 0.2, 1e-1, False)) # rel. tol. of 10%, dummy value
+    tests.add(CTest('TE. vertical displacement', resultS[2], 0.035, 1e-1, False)) # rel. tol. of 10%, dummy value
     tests.run()
 
 def getParameters(_p):
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     parser=OptionParser()
     parser.add_option("--nogui", action="store_true",
                         help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("--nthreads", type="int", help="Number of threads", dest="nthreads", default=1)
+    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
     
     
     (options, args)=parser.parse_args()

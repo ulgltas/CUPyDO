@@ -49,7 +49,7 @@ def getFlow():
     M_inf = 0.8
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
-    dynP = 0.5*M_inf*340*M_inf*340 # dynamic pressure
+    dynP = 2*0.5*0.094*247.1*247.1 # dynamic pressure
     dim = len(U_inf)
 
     # define dimension and mesh size
@@ -60,9 +60,9 @@ def getFlow():
     zO = -3. # box z-origin
     S_ref = .35 # reference area
     c_ref = .47 # reference chord (MAC)
-    rlems = 0.006 # root leading edge mesh size
+    rlems = 0.004 # root leading edge mesh size
     rtems = 0.006 # root trailing edge mesh size
-    tlems = 0.004 # tip leading mesh size
+    tlems = 0.002 # tip leading mesh size
     ttems = 0.004 # tip trailing mesh size
     fms = 1.0 # farfield mesh size
 

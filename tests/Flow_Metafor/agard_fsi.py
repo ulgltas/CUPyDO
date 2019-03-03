@@ -25,15 +25,20 @@ def test(nogui, res, tol):
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
     with open("db_Field(TZ,RE)_GROUP_ID_121.ascii", 'rb') as f:
         lines = f.readlines()
-    resultS = np.genfromtxt(lines[-1:], delimiter=None)
+    resultS1 = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TZ,RE)_GROUP_ID_122.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
     if (res > tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.22, 1e-1, False)) # rel. tol. of 10%, dummy value
-    tests.add(CTest('TE. vertical displacement', resultS[2], 0.034, 1e-1, False)) # rel. tol. of 10%, dummy value
+    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-2, True)) # abs. tol
+    tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-4, True))
+    tests.add(CTest('LE vertical displacement', resultS2[2], 0.0116, 5e-3, True))
+    tests.add(CTest('TE vertical displacement', resultS1[2], 0.0132, 5e-3, True))
     tests.run()
 
 def getParameters(_p):
@@ -46,6 +51,7 @@ def getParameters(_p):
     p['tTot'] = 0.1
     p['nFSIIterMax'] = 50
     p['timeIterTreshold'] = -1
+    p['RBFradius'] = .3
     p['omegaMax'] = 1.0
     p['nbTimeToKeep'] = 0
     p['computeTangentMatrixBasedOnFirstIt'] = False
@@ -89,7 +95,7 @@ def main(_p, nogui):
 
     # --- Initialize the interpolator --- #
     #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, 1., comm)
+    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['RBFradius'], comm)
     #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
     
     # --- Initialize the FSI criterion --- #

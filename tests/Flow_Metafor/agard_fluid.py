@@ -49,7 +49,7 @@ def getFlow():
     M_inf = 0.8
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
-    dynP = 2*0.5*0.094*247.1*247.1 # dynamic pressure
+    dynP = 0.5*0.094*247.1*247.1 # dynamic pressure
     dim = len(U_inf)
 
     # define dimension and mesh size

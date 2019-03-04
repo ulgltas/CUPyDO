@@ -77,8 +77,8 @@ class Flow(FluidSolver):
 
         # integrate Cp at element
         cpiE = self.boundary.integrate(self.flow.solver.phi, self.flow.fCp)
-        # interpolate integrated Cp from elements to nodes
-        cfN = self.boundary.interpolate(cpiE)
+        # transfer integrated Cp from elements to nodes
+        cfN = self.boundary.transfer(cpiE)
         i = 0
         for n in self.boundary.nodes:
             self.nodalLoad_X[i] = -self.flow.dynP * cfN[i][0]

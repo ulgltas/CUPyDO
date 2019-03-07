@@ -1039,6 +1039,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         self.errValue_CHT = 1e6 # Just for compatibility. CHT not yet implemented for the IQN-ILS algorithm.
         
         ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
 
         # --- Initialize all the quantities used in the IQN-ILS method --- #
         res = FlexInterfaceData(ns, 3, self.mpiComm)
@@ -1123,7 +1124,10 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
                     
                     # --- Start gathering on root process --- #
-                    res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns, self.mpiComm, 0)
+                    res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)
+                    res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                    res_Y_Gat_C = res_Y_Gat[:ns]
+                    res_Z_Gat_C = res_Z_Gat[:ns]
                     solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns, self.mpiComm, 0)
                     solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
                     solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
@@ -1131,10 +1135,10 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     if self.myid == 0:
                         if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
                             if self.manager.nDim == 3:
-                                delta_res = np.concatenate([res_X_Gat - solidInterfaceResidual0_X_Gat, res_Y_Gat - solidInterfaceResidual0_Y_Gat, res_Z_Gat - solidInterfaceResidual0_Z_Gat], axis=0)
+                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat], axis=0)
                                 delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
                             else:
-                                delta_res = np.concatenate([res_X_Gat - solidInterfaceResidual0_X_Gat, res_Y_Gat - solidInterfaceResidual0_Y_Gat], axis=0)
+                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat], axis=0)
                                 delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat], axis = 0)
                             
                             Vk.insert(0, delta_res)
@@ -1154,9 +1158,9 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                         dummy_W = Wk_mat.copy()
                         
                         if self.manager.nDim == 3:
-                            dummy_Res = np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)
+                            dummy_Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)
                         else:
-                            dummy_Res = np.concatenate([res_X_Gat, res_Y_Gat], axis=0)
+                            dummy_Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)
                         
                         if self.useQR: # Technique described by Degroote et al.
                             c, dummy_W = self.qrSolve(dummy_V, dummy_W, dummy_Res)
@@ -1164,13 +1168,13 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                             c = np.linalg.lstsq(dummy_V, -dummy_Res)[0] # Classical QR decomposition: NOT RECOMMENDED!
                         
                         if self.manager.nDim == 3:
-                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)),3,axis=0)
+                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)),3,axis=0)
                             
                             delta_ds_loc_X = delta_ds_loc[0]
                             delta_ds_loc_Y = delta_ds_loc[1]
                             delta_ds_loc_Z = delta_ds_loc[2]
                         else:
-                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat, res_Y_Gat], axis=0)),2,axis=0)
+                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)),2,axis=0)
                             
                             delta_ds_loc_X = delta_ds_loc[0]
                             delta_ds_loc_Y = delta_ds_loc[1]

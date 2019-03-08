@@ -1048,7 +1048,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         solidInterfaceDisplacement_tilde = FlexInterfaceData(ns, 3, self.mpiComm)
         solidInterfaceDisplacement_tilde1 = FlexInterfaceData(ns, 3, self.mpiComm)
 
-        delta_ds = FlexInterfaceData(ns, 3, self.mpiComm)
+        delta_ds = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         Vk_mat = np.zeros((self.manager.nDim*ns,1))
         Wk_mat = np.zeros((self.manager.nDim*ns,1))

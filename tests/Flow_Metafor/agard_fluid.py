@@ -23,10 +23,11 @@ import tbox
 import tbox.gmsh as gmsh
 
 class Module:
-    def __init__(self, _msh, _mshDef, _boundary, _solver, _fCp, _dynP):
+    def __init__(self, _msh, _mshDef, _mshWriter, _boundary, _solver, _fCp, _dynP):
         # objects
         self.msh = _msh
         self.mshDef = _mshDef
+        self.mshWriter = _mshWriter
         self.boundary = _boundary
         self.solver = _solver
         self.fCp = _fCp
@@ -42,7 +43,6 @@ def initSolver(_solver):
     _solver.avThrsh = 1e-2
 
 def getFlow():
-
     # define flow variables
     alpha = 1*math.pi/180
     U_inf = [math.cos(alpha), 0., math.sin(alpha)] # norm should be 1
@@ -69,7 +69,8 @@ def getFlow():
     # mesh an airfoil
     pars = {'xL' : lgt, 'yL' : wdt, 'zL' : hgt, 'xO' : xO, 'zO' : zO, 'msLeRt' : rlems, 'msTeRt' : rtems, 'msLeTp' : tlems, 'msTeTp' : ttems, 'msF' : fms}
     msh = gmsh.MeshLoader("models/agard445_fluid.geo",__file__).execute(**pars)
-    mshCrck = tbox.MshCrack(msh, dim, "wake", ["field", "field_", "wing", "wing_", "symmetry", "symmetry_", "downstream", "downstream_"], "wakeTip")
+    gmshWriter = tbox.GMshExport(msh)
+    mshCrck = tbox.MshCrack(msh, dim, gmshWriter, "wake", ["field", "field_", "wing", "wing_", "symmetry", "symmetry_", "downstream", "downstream_"], "wakeTip")
     pbl = f.Problem(msh, dim, alpha, M_inf, S_ref, c_ref, 0., 0., 0.)
 
     # add a medium "air"
@@ -94,7 +95,7 @@ def getFlow():
     pbl.add(wing)
 
     # initialize mesh deformation handler
-    mshDef = tbox.MshDeformation(msh, dim)
+    mshDef = tbox.MshDeform(msh, dim)
     mshDef.setField("field")
     mshDef.setFixed(["farfield", "downstream"])
     mshDef.setMoving(["wing"])
@@ -105,4 +106,4 @@ def getFlow():
     solver = f.Solver(pbl)
     initSolver(solver)
 
-    return Module(msh, mshDef, wing, solver, fCp, dynP)
+    return Module(msh, mshDef, gmshWriter, wing, solver, fCp, dynP)

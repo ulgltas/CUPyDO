@@ -39,12 +39,13 @@ if [ "$1" == "all" ]
   then
     echo "Running ctest on $2 threads..."
     cd build
-    ctest -j $2
+    ctest -j $2 2>&1 | tee ${CUP_DIR}/workspace/FSI_ctest.log
 else
     if [[ -f $1 ]]
       then
         echo "Running file $1 on $2 threads..."
-        python $1 -n $2
+        tdir=${1%.*}
+        python $1 -n $2 2>&1 | tee ${CUP_DIR}/workspace/FSI_${tdir##*/}.log
     else
         echo "$1 is not a file"
         exit 1

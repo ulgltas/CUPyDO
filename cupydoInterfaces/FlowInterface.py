@@ -136,8 +136,8 @@ class Flow(FluidSolver):
         """
         Save data on disk at each converged timestep
         """
-        self.flow.solver.save(nt)
-        self.flow.msh.save(self.flow.msh.name + "_" + str(nt) + ".msh")
+        self.flow.solver.save(nt, self.flow.mshWriter)
+        self.flow.mshWriter.save(self.flow.msh.name + "_" + str(nt))
 
     def initRealTimeData(self):
         """

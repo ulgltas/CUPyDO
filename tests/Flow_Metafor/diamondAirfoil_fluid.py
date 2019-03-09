@@ -23,10 +23,11 @@ import tbox
 import tbox.gmsh as gmsh
 
 class Module:
-    def __init__(self, _msh, _mshDef, _boundary, _solver, _fCp, _dynP):
+    def __init__(self, _msh, _mshDef, _mshWriter, _boundary, _solver, _fCp, _dynP):
         # objects
         self.msh = _msh
         self.mshDef = _mshDef
+        self.mshWriter = _mshWriter
         self.boundary = _boundary
         self.solver = _solver
         self.fCp = _fCp
@@ -42,7 +43,6 @@ def initSolver(_solver):
     _solver.avThrsh = 1e-2
 
 def getFlow():
-
     # define flow variables
     alpha = 3*math.pi/180
     U_inf = [math.cos(alpha), math.sin(alpha)] # norm should be 1
@@ -56,7 +56,8 @@ def getFlow():
     # mesh an airfoil
     pars = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 1., 'msA' : 0.01}
     msh = gmsh.MeshLoader("models/diamond_fluid.geo",__file__).execute(**pars)
-    mshCrck = tbox.MshCrack(msh, dim, "wake", ["field", "field_", "airfoil", "airfoil_", "downstream", "downstream_"])
+    gmshWriter = tbox.GmshExport(msh)
+    mshCrck = tbox.MshCrack(msh, dim, gmshWriter, "wake", ["field", "field_", "airfoil", "airfoil_", "downstream", "downstream_"])
     pbl = f.Problem(msh, dim, alpha, M_inf, c_ref, c_ref, 0., 0., 0.)
 
     # add a medium "air"
@@ -82,7 +83,7 @@ def getFlow():
     pbl.add(airfoil)
 
     # initialize mesh deformation handler
-    mshDef = tbox.MshDeformation(msh, dim)
+    mshDef = tbox.MshDeform(msh, dim)
     mshDef.setField("field")
     mshDef.setFixed(["upstream", "side", "downstream"])
     mshDef.setMoving(["airfoil"])
@@ -92,4 +93,4 @@ def getFlow():
     solver = f.Solver(pbl)
     initSolver(solver)
 
-    return Module(msh, mshDef, airfoil, solver, fCp, dynP)
+    return Module(msh, mshDef, gmshWriter, airfoil, solver, fCp, dynP)

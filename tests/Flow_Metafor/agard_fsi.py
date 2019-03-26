@@ -1,23 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: latin-1; -*-
-
-''' 
-
-Copyright 2018 University of Li�ge
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. 
-
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os, sys
 
@@ -33,47 +15,52 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
-import numpy as np
 from cupydo.testing import *
+import numpy as np
 
 def test(nogui, res, tol):
-    
     # Read results from file
-    with open("AerodynamicCoeff.ascii", 'rb') as f:
+    with open("FlowHistory.dat", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
-    with open("db_Field(TY,RE)_GROUP_ID_104.ascii", 'rb') as f:
+    with open("db_Field(TZ,RE)_GROUP_ID_121.ascii", 'rb') as f:
         lines = f.readlines()
-    resultS = np.genfromtxt(lines[-1:], delimiter=None)
+    resultS1 = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TZ,RE)_GROUP_ID_122.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
     if (res > tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.00095, 5e-4, True)) # abs. tol.
-    tests.add(CTest('Drag coefficient', resultA[3], 2.64, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (104, TY)', resultS[2], 0., 1e-4, True)) # abs. tol.
+    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-2, True)) # abs. tol
+    tests.add(CTest('Drag coefficient', resultA[3], 0.00045, 1e-4, True))
+    tests.add(CTest('LE vertical displacement', resultS2[2], 0.0116, 5e-3, True))
+    tests.add(CTest('TE vertical displacement', resultS1[2], 0.0132, 5e-3, True))
     tests.run()
 
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
-    p['nDim'] = 2
+    p['nthreads'] = 1
+    p['nDim'] = 3
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.0025
-    p['tTot'] = 0.01
-    p['nFSIIterMax'] = 20
-    p['timeIterTreshold'] = 0
+    p['dt'] = 0.1
+    p['tTot'] = 0.1
+    p['nFSIIterMax'] = 50
+    p['timeIterTreshold'] = -1
+    p['RBFradius'] = .3
     p['omegaMax'] = 1.0
-    p['computationType'] = 'unsteady'
+    p['nbTimeToKeep'] = 0
+    p['computeTangentMatrixBasedOnFirstIt'] = False
+    p['computationType'] = 'steady'
     p['mtfSaveAllFacs'] = False
-    p['nodalLoadsType'] = 'force'
-    p['nZones_SU2'] = 0
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
+def main(_p, nogui):
     
     # --- Get FSI parameters ---#
     p = getParameters(_p)
@@ -82,73 +69,71 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
-
-    cfd_file = '../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
-    csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
-
+    
+    # --- Input files --- #
+    cfd_module = fileName[:-3] + "fluid"
+    csd_module = fileName[:-3] + "solid"
+    
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.SU2Interface
-    if comm != None:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
-    else:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
-
+    import cupydoInterfaces.FlowInterface
+    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_module, p['nthreads'])
+    
     cupyutil.mpiBarrier(comm)
-
+    
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
         import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, p['computationType'])
+        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_module, p['computationType'])
+        solidSolver.saveAllFacs = p['mtfSaveAllFacs'] # specific to metafor
         
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
-
     cupyutil.mpiBarrier(comm)
-
+        
     # --- Initialize the FSI manager --- #
     manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
-
+    #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['RBFradius'], comm)
+    #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
+    
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])
     cupyutil.mpiBarrier()
-
+    
     # --- Initialize the FSI algorithm --- #
     algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
-
+    #algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    #algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
+    
     # --- Launch the FSI computation --- #
     algorithm.run()
 
     # --- Check the results --- #
     test(nogui, algorithm.errValue, p['tollFSI'])
-  
-    # --- Exit computation --- #
-    del manager
-    del criterion
-    del fluidSolver
-    del solidSolver
-    del interpolator
-    del algorithm
-    cupyutil.mpiBarrier(comm)
-    return 0
-    
+
+    # eof
+    print ''
+
+# -------------------------------------------------------------------
+#    Run Main Program
+# -------------------------------------------------------------------
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':
-
+    
     p = {}
     
     parser=OptionParser()
     parser.add_option("--nogui", action="store_true",
                         help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of process", dest="nprocess", default=1) # not used
-
+    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
+    
+    
     (options, args)=parser.parse_args()
     
     nogui = options.nogui
+    p['nthreads'] = options.nthreads
     
     main(p, nogui)

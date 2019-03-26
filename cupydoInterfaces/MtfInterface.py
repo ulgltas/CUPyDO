@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -359,11 +359,6 @@ class MtfSolver(SolidSolver):
         Des.
         """
         
-        #for extractor in self.realTimeExtractorsList:
-        #    extractorName = extractor.buildName()
-        #    solFile = open(extractorName + '.ascii', "w")
-        #    solFile.write("Time\tnIter\tValue\n")
-        #    solFile.close()  #Should we keep it open?
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()
@@ -379,15 +374,6 @@ class MtfSolver(SolidSolver):
         Des.
         """
         
-        #for extractor in self.realTimeExtractorsList:
-        #    data = extractor.extract()
-        #    extractorName = extractor.buildName()
-        #    solFile = open(extractorName + '.ascii', "a")
-        #    buff = str()
-        #    for ii in range(data.size()):
-        #        buff = buff + '\t' + str(data[ii])
-        #    solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
-        #    solFile.close()
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()

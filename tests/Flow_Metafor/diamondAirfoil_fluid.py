@@ -46,16 +46,16 @@ def getFlow():
     # define flow variables
     alpha = 3*math.pi/180
     U_inf = [math.cos(alpha), math.sin(alpha)] # norm should be 1
-    M_inf = 0.03
+    M_inf = 0.3
     gamma = 1.4
     M_crit = 5 # Squared critical Mach number (above which density is modified)
     c_ref = 1
-    dynP = 0.5*100 # dynamic pressure
+    dynP = 0.5*102*102 # dynamic pressure
     dim = len(U_inf)
 
     # mesh an airfoil
-    pars = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 0.5, 'msTe' : 0.01, 'msLe' : 0.01}
-    msh = gmsh.MeshLoader("models/n0012.geo",__file__).execute(**pars)
+    pars = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 1., 'msA' : 0.01}
+    msh = gmsh.MeshLoader("models/diamond_fluid.geo",__file__).execute(**pars)
     gmshWriter = tbox.GmshExport(msh)
     mshCrck = tbox.MshCrack(msh, dim, gmshWriter, "wake", ["field", "field_", "airfoil", "airfoil_", "downstream", "downstream_"])
     pbl = f.Problem(msh, dim, alpha, M_inf, c_ref, c_ref, 0., 0., 0.)

@@ -28,8 +28,9 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 # ----------------------------------------------------------------------
 
 import numpy as np
+import sys
 
-np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #  Generic solid solver class

@@ -32,7 +32,7 @@ import numpy as np
 import ccupydo
 from utilities import *
 
-np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #    Manager class

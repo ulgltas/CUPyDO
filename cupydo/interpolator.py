@@ -28,6 +28,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 # ----------------------------------------------------------------------
 
 import numpy as np
+import sys
 
 import ccupydo
 from utilities import *
@@ -35,7 +36,7 @@ from interfaceData import FlexInterfaceData
 from interfaceData import InterfaceMatrix
 from linearSolver import LinearSolver
 
-np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #    Interpolator class

@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -359,17 +359,12 @@ class MtfSolver(SolidSolver):
         Des.
         """
         
-        #for extractor in self.realTimeExtractorsList:
-        #    extractorName = extractor.buildName()
-        #    solFile = open(extractorName + '.ascii', "w")
-        #    solFile.write("Time\tnIter\tValue\n")
-        #    solFile.close()  #Should we keep it open?
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "w")
             solFile.write("{0:>12s}   {1:>12s}".format("Time", "FSI_Iter"))
-            for ii in range(data.size()):
+            for ii in range(len(data)):
                 solFile.write("   {0:>12s}".format("Value_"+str(ii)))
             solFile.write("\n")
             solFile.close()
@@ -379,22 +374,13 @@ class MtfSolver(SolidSolver):
         Des.
         """
         
-        #for extractor in self.realTimeExtractorsList:
-        #    data = extractor.extract()
-        #    extractorName = extractor.buildName()
-        #    solFile = open(extractorName + '.ascii', "a")
-        #    buff = str()
-        #    for ii in range(data.size()):
-        #        buff = buff + '\t' + str(data[ii])
-        #    solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
-        #    solFile.close()
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "a")
             solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
-            for ii in range(data.size()):
-                solFile.write("   {0:12.6f}".format(data[ii]))
+            for d in data:
+                solFile.write("   {0:12.6f}".format(d))
             solFile.write("\n")
             solFile.close()
 
@@ -407,8 +393,8 @@ class MtfSolver(SolidSolver):
             data = extractor.extract()
             extractorName = extractor.buildName()
             buff = str()
-            for ii in range(data.size()):
-                buff = buff + '\t' + str(data[ii])
+            for d in data:
+                buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
             print toPrint
     

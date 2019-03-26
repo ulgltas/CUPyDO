@@ -69,7 +69,7 @@ def getFlow():
     # mesh an airfoil
     pars = {'xL' : lgt, 'yL' : wdt, 'zL' : hgt, 'xO' : xO, 'zO' : zO, 'msLeRt' : rlems, 'msTeRt' : rtems, 'msLeTp' : tlems, 'msTeTp' : ttems, 'msF' : fms}
     msh = gmsh.MeshLoader("models/agard445_fluid.geo",__file__).execute(**pars)
-    gmshWriter = tbox.GMshExport(msh)
+    gmshWriter = tbox.GmshExport(msh)
     mshCrck = tbox.MshCrack(msh, dim, gmshWriter, "wake", ["field", "field_", "wing", "wing_", "symmetry", "symmetry_", "downstream", "downstream_"], "wakeTip")
     pbl = f.Problem(msh, dim, alpha, M_inf, S_ref, c_ref, 0., 0., 0.)
 

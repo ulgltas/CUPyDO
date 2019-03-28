@@ -74,7 +74,7 @@ class ModalSolver():
         nodalMod_Y = np.zeros((self.nNodes, self.nModes), dtype=float)
         nodalMod_Z = np.zeros((self.nNodes, self.nModes), dtype=float)
 
-        with open(self.fname, 'r') as file:
+        with open(fname, 'r') as file:
             line = file.readline()
             if line:
                 pos = line.find('Global_Index')
@@ -118,7 +118,7 @@ class ModalSolver():
         """Set the load before the computation
         """
         f = np.concatenate((_fx, _fy, _fz)) # physical force vector
-        self.fq = self.__toModal(f) # modal force vector
+        self.fq = self.__getModalForce(f) # modal force vector
 
     def runStatic(self):
         """Run the static modal solver
@@ -163,17 +163,17 @@ class ModalSolver():
         """Transform a displacement vector to the physical space
         """
         d = np.dot(self.Phi, d)
-        dX = self.d[0:self.nNodes]
-        dY = self.d[self.nNodes:2*self.nNodes]
-        dZ = self.d[2*self.nNodes:3*self.nNodes]
+        dX = d[0:self.nNodes]
+        dY = d[self.nNodes:2*self.nNodes]
+        dZ = d[2*self.nNodes:3*self.nNodes]
         return dX, dY, dZ
 
-    def __linecount(self, fileName):
+    def __linecount(self, fname):
         """
         Count lines of a file
         """
         count = 0
-        with open(fileName, 'r') as file:
+        with open(fname, 'r') as file:
             while 1:
                 line = file.readline()
                 if not line:

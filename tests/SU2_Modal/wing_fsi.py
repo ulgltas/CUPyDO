@@ -36,7 +36,7 @@ def getParameters(_p):
     p['computationType'] = 'unsteady'
     p['mtfSaveAllFacs'] = False
     p['nodalLoadsType'] = 'force'
-    p['nZones_SU2'] = 0 # 1?
+    p['nZones_SU2'] = 1
     p.update(_p)
     return p
 
@@ -50,7 +50,7 @@ def main(_p, nogui):
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
-    cfd_file = 'wing_fluid.cfg'
+    cfd_file = '../../tests/SU2_Modal/wing_fluid.cfg'
     csd_file = 'wing_solid'
 
     # --- Initialize the fluid solver --- #
@@ -65,7 +65,7 @@ def main(_p, nogui):
     solidSolver = None
     if myid == rootProcess:
         import cupydoInterfaces.ModalInterface
-        solidSolver = cupydoInterfaces.ModalInterface.modalInterface(csd_file, p['computationType'])
+        solidSolver = cupydoInterfaces.ModalInterface.ModalInterface(csd_file, p['computationType'])
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #

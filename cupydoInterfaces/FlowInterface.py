@@ -51,11 +51,6 @@ class Flow(FluidSolver):
         # initial nodal position
         self.nodalInitPosX, self.nodalInitPosY, self.nodalInitPosZ = self.getNodalInitialPositions()
 
-        # nodal load
-        self.nodalLoad_X = np.zeros(self.nPhysicalNodes)
-        self.nodalLoad_Y = np.zeros(self.nPhysicalNodes)
-        self.nodalLoad_Z = np.zeros(self.nPhysicalNodes)
-
         # initialize
         self.flow.solver.nthreads = _nthreads
         self.flow.mshDef.nthreads = _nthreads

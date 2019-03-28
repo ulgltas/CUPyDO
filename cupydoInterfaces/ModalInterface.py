@@ -46,7 +46,7 @@ class ModalInterface(SolidSolver):
         self.modal = module.getModal()
 
         # get number of nodes
-        self.nNodes = self.modal.nNodes
+        self.nNodes = self.modal.solver.nNodes
         self.nHaloNodes = 0
         self.nPhysicalNodes = self.nNodes - self.nHaloNodes
 
@@ -78,19 +78,19 @@ class ModalInterface(SolidSolver):
     def applyNodalLoads(self, load_X, load_Y, load_Z, time):
         """
         """
-        self.modal.updateLoads(load_X, load_Y, load_Z)            
+        self.modal.solver.updateLoads(load_X, load_Y, load_Z)            
             
     def getNodalInitialPositions(self):
         """
         Des.
         """
-        return (self.modal.nodalCoord_X, self.modal.nodalCoord_Y, self.modal.nodalCoord_Z)
+        return (self.modal.solver.nodalCoord_X, self.modal.solver.nodalCoord_Y, self.modal.solver.nodalCoord_Z)
 
     def getNodalIndex(self, iVertex):
         """
         Des.
         """
-        return self.modal.nodalGlobalIndex[iVertex]
+        return self.modal.solver.nodalGlobalIndex[iVertex]
 
     #def update(self):
     #    """
@@ -103,9 +103,9 @@ class ModalInterface(SolidSolver):
         """
         histFile = open('ModalHistory.dat', "w")
         histFile.write('{0:>12s}   {1:>12s}'.format("Time", "FSI_Iter"))
-        for i in range(0, self.modal.solver.nModes)
+        for i in range(0, self.modal.solver.nModes):
             histFile.write('   {0:>12s}'.format('y_'+str(i)))
-        for i in range(0, self.modal.solver.nModes)
+        for i in range(0, self.modal.solver.nModes):
             histFile.write('   {0:>12s}'.format('fq_'+str(i)))
         histFile.write('\n')
         histFile.close()
@@ -115,9 +115,9 @@ class ModalInterface(SolidSolver):
         """
         histFile = open('ModalHistory.dat', "a")
         histFile.write('{0:12.6f}   {1:12d}'.format("Time", "FSI_Iter"))
-        for i in range(0, self.modal.solver.nModes)
+        for i in range(0, self.modal.solver.nModes):
             histFile.write('   {0:12.6f}'.format(self.modal.solver.y0[i]))
-        for i in range(0, self.modal.solver.nModes)
+        for i in range(0, self.modal.solver.nModes):
             histFile.write('   {0:12.6f}'.format(self.modal.solver.fq[i]))
         histFile.write('\n')
         histFile.close()

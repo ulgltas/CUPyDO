@@ -56,6 +56,12 @@ class ModalInterface(SolidSolver):
         self.__setCurrentState()
         self.initRealTimeData()
 
+    def setInitialDisplacements(self):
+        """
+        Des.
+        """
+        self.__setCurrentState()
+
     def run(self, t1, t2):
         """
         Des.

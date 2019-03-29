@@ -34,9 +34,8 @@ def getParameters(_p):
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
     p['computationType'] = 'unsteady'
-    p['mtfSaveAllFacs'] = False
     p['nodalLoadsType'] = 'force'
-    p['nZones_SU2'] = 1
+    p['nZones_SU2'] = 0
     p.update(_p)
     return p
 
@@ -80,7 +79,7 @@ def main(_p, nogui):
     cupyutil.mpiBarrier()
 
     # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
+    algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
     
     # --- Launch the FSI computation --- #
     algorithm.run()

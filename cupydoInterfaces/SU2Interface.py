@@ -78,7 +78,7 @@ class SU2Solver(FluidSolver):
                 if allMovingMarkersTags[0] in allMarkersID.keys():
                     self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
             else:
-                raise Exception("Moving and CHT markes have to be the same.")
+                raise Exception("Moving and CHT markers have to be the same!\n")
 
         self.computationType = computationType                                    # computation type : steady (default) or unsteady
         self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)

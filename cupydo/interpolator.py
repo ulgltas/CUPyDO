@@ -326,31 +326,35 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                             sendBuffHalo[key].append(solidInterfaceData_array_recon[iDim][globalIndex])
                     iTagSend = 1
                     for iDim in range(solidInterfaceData.nDim):
-                        self.mpiComm.Send(sendBuff[iDim], dest=iProc, tag = iTagSend)
+                        self.mpiComm.Isend(sendBuff[iDim], dest=iProc, tag = iTagSend)
                         iTagSend += 1
                     #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
                     sendBuffHalo_key = np.array(sendBuffHalo.keys())
                     sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
                     for ii in range(sendBuffHalo_key.size):
                         sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
-                    self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
-                    self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
-                    self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
+                    self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                    self.mpiComm.Isend(sendBuffHalo_key, dest=iProc, tag=102)
+                    self.mpiComm.Isend(sendBuffHalo_values, dest=iProc, tag=103)
             if self.myid in self.manager.getSolidInterfaceProcessors():
                 localSolidInterfaceData_array = []
                 iTagRec = 1
                 for iDim in range(solidInterfaceData.nDim):
                     local_array = np.zeros(self.ns_loc)
-                    self.mpiComm.Recv(local_array, source=0, tag = iTagRec)
+                    req = self.mpiComm.Irecv(local_array, source=0, tag = iTagRec)
+                    req.Wait()
                     localSolidInterfaceData_array.append(local_array)
                     iTagRec += 1
                 #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
                 nHaloNodesRcv = np.empty(1, dtype=int)
-                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
+                req = self.mpiComm.Irecv(nHaloNodesRcv, source=0, tag=101)
+                req.Wait()
                 rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
-                self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                req = self.mpiComm.Irecv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                req.Wait()
                 rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
-                self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
+                req = self.mpiComm.Irecv(rcvBuffHalo_values, source=0, tag=103)
+                req.Wait()
                 for ii in range(len(rcvBuffHalo_keyBuff)):
                     haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
                 haloNodesData = haloNodesData_bis

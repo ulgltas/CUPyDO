@@ -79,12 +79,12 @@ class ModalInterface(SolidSolver):
         """
         self.nodalDisp_X = self.modal.solver.dispX
         self.nodalDisp_Y = self.modal.solver.dispY
-        self.nodalDisp_Z = self.modal.solver.dispZ          
+        self.nodalDisp_Z = self.modal.solver.dispZ
            
     def applyNodalLoads(self, load_X, load_Y, load_Z, time):
         """
         """
-        self.modal.solver.updateLoads(load_X, load_Y, load_Z)            
+        self.modal.solver.updateLoads(load_X[0:self.nPhysicalNodes], load_Y[0:self.nPhysicalNodes], load_Z[0:self.nPhysicalNodes])            
             
     def getNodalInitialPositions(self):
         """
@@ -102,6 +102,7 @@ class ModalInterface(SolidSolver):
     #    """
     #    Des.
     #    """
+    #    ## TODO: if velocities matter, then usefull I think
     #    SolidSolver.update(self)
 
     def initRealTimeData(self):
@@ -116,11 +117,10 @@ class ModalInterface(SolidSolver):
         histFile.write('\n')
         histFile.close()
 
-    def saveRealTimeData():
+    def saveRealTimeData(self, time, nFSIIter):
         """
         """
         histFile = open('ModalHistory.dat', "a")
-        histFile.write('{0:12.6f}   {1:12d}'.format("Time", "FSI_Iter"))
         for i in range(0, self.modal.solver.nModes):
             histFile.write('   {0:12.6f}'.format(self.modal.solver.y0[i]))
         for i in range(0, self.modal.solver.nModes):

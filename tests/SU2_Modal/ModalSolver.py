@@ -53,66 +53,44 @@ class ModalSolver():
         self.invMq = inv(self.Mq)
         self.Cq = _Cq
         self.Kq = _Kq
+        print 'Number of modes:', self.nModes
+        print 'Initialized modal matrices.'
 
     def readModes(self, fname):
         """Read the modes
         """
-
-        # TODO: we read the file twice, to rework
-
-        # First read to get nNodes
-        print 'Reading file', 'fname', '...'
-        self.nNodes = self.__linecount(fname)-1
-        print 'Counted modal data for {0:d} nodes.'.format(self.nNodes)
-
-        # Second read the get the modal matrix
-        self.nodalGlobalIndex = np.zeros(self.nNodes, dtype=int)
-        self.nodalCoord_X = np.zeros(self.nNodes, dtype=float)
-        self.nodalCoord_Y = np.zeros(self.nNodes, dtype=float)
-        self.nodalCoord_Z = np.zeros(self.nNodes, dtype=float)
-        nodalMod_X = np.zeros((self.nNodes, self.nModes), dtype=float)
-        nodalMod_Y = np.zeros((self.nNodes, self.nModes), dtype=float)
-        nodalMod_Z = np.zeros((self.nNodes, self.nModes), dtype=float)
-
-        with open(fname, 'r') as file:
-            line = file.readline()
-            if line:
-                pos = line.find('Global_Index')
-                if pos == -1:
-                    raise Exception('Invalid file format!\n')
-                iVertex = 0
-                while 1:
-                    line = file.readline()
-                    if not line:
-                        break
-                    line = line.split(',')
-                    for ii in range(len(line)):
-                        line[ii] = line[ii].strip(' ')
-                        line[ii] = line[ii].strip('\n\r')
-                    self.nodalGlobalIndex[iVertex] = int(line[0])
-                    self.nodalCoord_X[iVertex] = float(line[1])
-                    self.nodalCoord_Y[iVertex] = float(line[2])
-                    self.nodalCoord_Z[iVertex] = float(line[3])
-                    for iMode in range(self.nModes):
-                        nodalMod_X[iVertex, iMode] = float(line[4 + 3*iMode])
-                        nodalMod_Y[iVertex, iMode] = float(line[5 + 3*iMode])
-                        nodalMod_Z[iVertex, iMode] = float(line[6 + 3*iMode])
-                    iVertex += 1
-
-        if iVertex != self.nNodes:
-            raise Exception('Could not read all data in file!\n')
-        else:
-            print 'Read modal data for {0:d} nodes.\n'.format(iVertex)
-
+        # Read file
+        print 'Reading file:', fname
+        fl = file(fname)
+        label = fl.next().split(',')
+        fl.close()
+        data = np.loadtxt(fname, delimiter=',', skiprows=1)
+        # Store data
+        self.nNodes = data.shape[0]
+        self.nodalGlobalIndex = data[:,0]
+        self.nodalCoord_X = data[:,1]
+        self.nodalCoord_Y = data[:,2]
+        self.nodalCoord_Z = data[:,3]
+        nodalMod_X = np.zeros((self.nNodes, self.nModes))
+        nodalMod_Y = np.zeros((self.nNodes, self.nModes))
+        nodalMod_Z = np.zeros((self.nNodes, self.nModes))
+        for i in range(0, self.nModes):
+            nodalMod_X[:,i] = data[:,4+3*i]
+            nodalMod_Y[:,i] = data[:,5+3*i]
+            nodalMod_Z[:,i] = data[:,6+3*i]
+        print 'Number of nodes:', self.nNodes
         # Initialize modal matrix
         self.Phi = np.concatenate((nodalMod_X, nodalMod_Y, nodalMod_Z))    
         self.PhiT = self.Phi.transpose()
+        print 'Initialized mode shape matrix.'
 
     def setInitial(self, _xi, _vi):
         """Set the initial conditions (displacement and velocity)
         """
         self.y0 = np.concatenate((_xi, _vi))
         self.dispX, self.dispY, self.dispZ = self.__getPhysicalDisp(self.y0[0:self.nModes])
+        print 'Set initial displacements:', self.y0[0:self.nModes]
+        print 'Set initial velocities:', self.y0[self.nModes-1:-1]
 
     def updateLoads(self, _fx, _fy, _fz):
         """Set the load before the computation
@@ -126,7 +104,7 @@ class ModalSolver():
         # Solve
         y = np.zeros((2, len(self.y0)))
         y[0, :] = self.y0 # store initial state
-        for i in range(0, nModes):
+        for i in range(0, self.nModes):
             y[1, i] = self.fq[i] / self.Kq[i,i]
         self.y0 = y[1, :] # update initial state
         # Get physical physical displacements
@@ -167,17 +145,3 @@ class ModalSolver():
         dY = d[self.nNodes:2*self.nNodes]
         dZ = d[2*self.nNodes:3*self.nNodes]
         return dX, dY, dZ
-
-    def __linecount(self, fname):
-        """
-        Count lines of a file
-        """
-        count = 0
-        with open(fname, 'r') as file:
-            while 1:
-                line = file.readline()
-                if not line:
-                    break
-                count += 1
-
-        return count

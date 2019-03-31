@@ -121,6 +121,7 @@ class ModalInterface(SolidSolver):
         """
         """
         histFile = open('ModalHistory.dat', "a")
+        histFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
         for i in range(0, self.modal.solver.nModes):
             histFile.write('   {0:12.6f}'.format(self.modal.solver.y0[i]))
         for i in range(0, self.modal.solver.nModes):

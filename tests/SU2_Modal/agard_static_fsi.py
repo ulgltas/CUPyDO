@@ -18,10 +18,33 @@ import cupydo.manager as cupyman
 import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
+from cupydo.testing import *
 
 # -------------------------------------------------------------------
 #    Script
 # -------------------------------------------------------------------
+
+def test(res, tol):
+
+    # Read results from file
+    with open("AerodynamicCoeff.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultA = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("NodalDisplacement.dat", 'rb') as f:
+        lines = f.readlines()
+    resultS = np.genfromtxt(lines[-1:], delimiter=None)
+
+    # Check convergence and results
+    # residual for test is 0.005
+    #if (res > tol):
+    #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+    #    raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    tests = CTests()
+    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('LE Displacement (16, z)', resultS[4], 0.0116, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.0132, 1e-1, False)) # rel. tol. of 10%
+    tests.run()
 
 def getParameters(_p):
     # --- Input parameters --- #
@@ -85,6 +108,9 @@ def main(_p, nogui):
     
     # --- Launch the FSI computation --- #
     algorithm.run()
+
+    # --- Check the results --- #
+    test(algorithm.errValue, p['tollFSI'])
 
     # --- Exit computation --- #
     del manager

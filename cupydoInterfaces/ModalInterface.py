@@ -106,8 +106,9 @@ class ModalInterface(SolidSolver):
     #    SolidSolver.update(self)
 
     def initRealTimeData(self):
+        """Initialize results files
         """
-        """
+        # History
         histFile = open('ModalHistory.dat', "w")
         histFile.write('{0:>12s}   {1:>12s}'.format("Time", "FSI_Iter"))
         for i in range(0, self.modal.solver.nModes):
@@ -116,10 +117,19 @@ class ModalInterface(SolidSolver):
             histFile.write('   {0:>12s}'.format('fq_'+str(i)))
         histFile.write('\n')
         histFile.close()
+        # Nodal displacements
+        solFile = open('NodalDisplacement.dat', "w")
+        solFile.write('{0:>12s}   {1:>12s}'.format("Time", "FSI_Iter"))
+        for gidx in self.modal.solver.extractor:
+            solFile.write('   {0:>12s}   {1:>12s}   {2:>12s}'.format('x_'+str(gidx), 'y_'+str(gidx), 'z_'+str(gidx)))
+        solFile.write('\n')
+        solFile.close()
+
 
     def saveRealTimeData(self, time, nFSIIter):
+        """Write results to file
         """
-        """
+        # History
         histFile = open('ModalHistory.dat', "a")
         histFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
         for i in range(0, self.modal.solver.nModes):
@@ -128,6 +138,13 @@ class ModalInterface(SolidSolver):
             histFile.write('   {0:12.6f}'.format(self.modal.solver.fq[i]))
         histFile.write('\n')
         histFile.close()
+        # Nodal displacements
+        solFile = open('NodalDisplacement.dat', "a")
+        solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
+        for lidx in self.modal.solver.extractor.values():
+            solFile.write('   {0:12.6f}   {1:12.6f}   {2:12.6f}'.format(self.nodalDisp_X[lidx], self.nodalDisp_Y[lidx], self.nodalDisp_Z[lidx]))
+        solFile.write('\n')
+        solFile.close()
 
     def exit(self):
         """

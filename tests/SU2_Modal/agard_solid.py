@@ -20,9 +20,10 @@ def getModal():
     nModes = initialModalDisp.shape[0]
 
     # Solver
-    solver = ms.ModalSolver()
-    solver.setMatrices(nModes, modalMass, modalDamping, modalStiffness)
+    solver = ms.ModalSolver(nModes)
+    solver.setMatrices(modalMass, modalDamping, modalStiffness)
     solver.readModes(fconfig)
     solver.setInitial(initialModalDisp, initialModalVel)
+    solver.setExtractor([16, 13808])
 
     return Module(solver)

@@ -39,21 +39,23 @@ class ModalSolver():
     """
     Modal solver
     """
-    def __init__(self):
+    def __init__(self, m):
         # Say hi!
         print 'Hi! I am a modal solver!'
         print 'Huseyin Guner and Adrien Crovato'
         print 'ULiege, 2018-2019\n'
 
-    def setMatrices(self, m, _Mq, _Cq, _Kq):
+        # Get number of modes
+        self.nModes = m
+        print 'Number of modes:', self.nModes
+
+    def setMatrices(self, _Mq, _Cq, _Kq):
         """Set the modal matrices and the number of modes
         """
-        self.nModes = m
         self.Mq = _Mq
         self.invMq = inv(self.Mq)
         self.Cq = _Cq
         self.Kq = _Kq
-        print 'Number of modes:', self.nModes
         print 'Initialized modal matrices.'
 
     def readModes(self, fname):
@@ -91,6 +93,15 @@ class ModalSolver():
         self.dispX, self.dispY, self.dispZ = self.__getPhysicalDisp(self.y0[0:self.nModes])
         print 'Set initial displacements:', self.y0[0:self.nModes]
         print 'Set initial velocities:', self.y0[self.nModes-1:-1]
+
+    def setExtractor(self, _list):
+        """Set an extractor list
+        """
+        self.extractor = {} # dictionnay mapping global to local index
+        for gidx in _list:
+            lidx = np.argwhere(self.nodalGlobalIndex == gidx)
+            self.extractor[gidx] = lidx[0,0]
+        print 'Initialized extractor list with indices:', self.extractor
 
     def updateLoads(self, _fx, _fy, _fz):
         """Set the load before the computation

@@ -98,13 +98,6 @@ class ModalInterface(SolidSolver):
         """
         return self.modal.solver.nodalGlobalIndex[iVertex]
 
-    #def update(self):
-    #    """
-    #    Des.
-    #    """
-    #    ## TODO: if velocities matter, then usefull I think
-    #    SolidSolver.update(self)
-
     def initRealTimeData(self):
         """Initialize results files
         """

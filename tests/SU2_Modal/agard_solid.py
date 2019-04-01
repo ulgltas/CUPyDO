@@ -3,6 +3,7 @@
 
 import numpy as np
 import ModalSolver as ms
+import os.path
 
 class Module:
     def __init__(self, _solver):
@@ -10,7 +11,7 @@ class Module:
 
 def getModal():
     # Config file
-    fconfig = '../../tests/SU2_Modal/models/agard_modes.csv'
+    fconfig = os.path.join(os.path.abspath(os.path.dirname(__file__)),'models/agard_modes.csv')
     # Paramters
     initialModalDisp = np.array([1., 0., 0., 0.])
     initialModalVel = np.zeros(4, dtype=float)

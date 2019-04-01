@@ -35,28 +35,29 @@ def test(res, tol):
     resultS = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
-    if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    # residual for test is xxx
+    #if (res > tol):
+    #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+    #    raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('LE Displacement (16, z)', resultS[4], 0.0116, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.0132, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Lift coefficient', resultA[2], 0.1, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 0.1, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('LE Displacement (16, z)', resultS[4], 0.1, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.1, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nDim'] = 3
-    p['tollFSI'] = 5e-3
-    p['dt'] = 0.
-    p['tTot'] = 0.
-    p['nFSIIterMax'] = 6
+    p['tollFSI'] = 1e-6
+    p['dt'] = 6.392969e-04
+    p['tTot'] = 1.537509e-01
+    p['nFSIIterMax'] = 5
     p['rbfRadius'] = 1.0
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
-    p['computationType'] = 'steady'
+    p['computationType'] = 'unsteady'
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
     p.update(_p)
@@ -72,7 +73,7 @@ def main(_p, nogui):
     cupyutil.load(fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
-    cfd_file = os.path.join(filePath,'agard_static_fluid.cfg')
+    cfd_file = os.path.join(filePath,'agard_dynamic_fluid.cfg')
     csd_file = 'agard_solid'
 
     # --- Initialize the fluid solver --- #
@@ -83,7 +84,7 @@ def main(_p, nogui):
         fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
-    # --- Initialize modal solver --- #
+    # --- Initialize modal interpreter --- #
     solidSolver = None
     if myid == rootProcess:
         import cupydoInterfaces.ModalInterface
@@ -95,6 +96,7 @@ def main(_p, nogui):
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
+    #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
     interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
 
     # --- Initialize the FSI criterion --- #

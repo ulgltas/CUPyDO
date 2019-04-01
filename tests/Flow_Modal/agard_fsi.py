@@ -18,17 +18,14 @@ import cupydo.algorithm as cupyalgo
 from cupydo.testing import *
 import numpy as np
 
-def test(nogui, res, tol):
+def test(res, tol):
     # Read results from file
     with open("FlowHistory.dat", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
-    with open("db_Field(TZ,RE)_GROUP_ID_121.ascii", 'rb') as f:
+    with open("NodalDisplacement.dat", 'rb') as f:
         lines = f.readlines()
-    resultS1 = np.genfromtxt(lines[-1:], delimiter=None)
-    with open("db_Field(TZ,RE)_GROUP_ID_122.ascii", 'rb') as f:
-        lines = f.readlines()
-    resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
+    resultS = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
     if (res > tol):
@@ -37,8 +34,8 @@ def test(nogui, res, tol):
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-2, True)) # abs. tol
     tests.add(CTest('Drag coefficient', resultA[3], 0.00045, 1e-4, True))
-    tests.add(CTest('LE vertical displacement', resultS2[2], 0.0116, 5e-3, True))
-    tests.add(CTest('TE vertical displacement', resultS1[2], 0.0132, 5e-3, True))
+    tests.add(CTest('LE Displacement (16, z)', resultS[4], 0.0116, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.0132, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getParameters(_p):
@@ -47,16 +44,15 @@ def getParameters(_p):
     p['nthreads'] = 1
     p['nDim'] = 3
     p['tollFSI'] = 1e-5
-    p['dt'] = 0.1
-    p['tTot'] = 0.1
+    p['dt'] = 0.
+    p['tTot'] = 0.
     p['nFSIIterMax'] = 50
     p['timeIterTreshold'] = -1
-    p['RBFradius'] = .3
+    p['RBFradius'] = 1.
     p['omegaMax'] = 1.0
     p['nbTimeToKeep'] = 0
     p['computeTangentMatrixBasedOnFirstIt'] = False
     p['computationType'] = 'steady'
-    p['mtfSaveAllFacs'] = False
     p.update(_p)
     return p
 
@@ -80,13 +76,11 @@ def main(_p, nogui):
     
     cupyutil.mpiBarrier(comm)
     
-    # --- Initialize the solid solver --- #
+    # --- Initialize modal solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_module, p['computationType'])
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs'] # specific to metafor
-        
+        import cupydoInterfaces.ModalInterface
+        solidSolver = cupydoInterfaces.ModalInterface.ModalInterface(csd_module, p['computationType'])
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
@@ -102,12 +96,21 @@ def main(_p, nogui):
     
     # --- Initialize the FSI algorithm --- #
     algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
- 
+    
     # --- Launch the FSI computation --- #
     algorithm.run()
 
     # --- Check the results --- #
-    test(nogui, algorithm.errValue, p['tollFSI'])
+    test(algorithm.errValue, p['tollFSI'])
+
+    # --- Exit computation --- #
+    del manager
+    del criterion
+    del fluidSolver
+    del solidSolver
+    del interpolator
+    del algorithm
+    cupyutil.mpiBarrier(comm)
 
     # eof
     print ''

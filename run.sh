@@ -17,6 +17,7 @@ export PYTHONPATH="${PYTHONPATH}:${TOP_DIR}/SU2/bin"
 export PYTHONPATH="${PYTHONPATH}:${TOP_DIR}/waves"
 export PYTHONPATH="${PYTHONPATH}:${TOP_DIR}/NativeSolid/bin"
 export PYTHONPATH=${PYTHONPATH}:${MTF_RUN}
+export PYTHONPATH="${PYTHONPATH}:${TOP_DIR}/ModalSolver/"
 
 # Print paths
 echo PATH=${PATH}

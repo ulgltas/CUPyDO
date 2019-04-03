@@ -1043,7 +1043,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
 
         # --- Initialize all the quantities used in the IQN-ILS method --- #
         res = FlexInterfaceData(ns, 3, self.mpiComm)
-        solidInterfaceResidual0 = FlexInterfaceData(ns, 3, self.mpiComm)
+        solidInterfaceResidual0 = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         solidInterfaceDisplacement_tilde = FlexInterfaceData(ns, 3, self.mpiComm)
         solidInterfaceDisplacement_tilde1 = FlexInterfaceData(ns, 3, self.mpiComm)
@@ -1128,17 +1128,20 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
                     res_Y_Gat_C = res_Y_Gat[:ns]
                     res_Z_Gat_C = res_Z_Gat[:ns]
-                    solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns, self.mpiComm, 0)
+                    solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns+d, self.mpiComm, 0)
+                    solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                    solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
+                    solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
                     solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
                     solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
                     
                     if self.myid == 0:
                         if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
                             if self.manager.nDim == 3:
-                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat], axis=0)
+                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
                                 delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
                             else:
-                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat], axis=0)
+                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C], axis=0)
                                 delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat], axis = 0)
                             
                             Vk.insert(0, delta_res)

@@ -96,7 +96,6 @@ def main(_p, nogui):
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
     interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
 
     # --- Initialize the FSI criterion --- #
@@ -104,7 +103,8 @@ def main(_p, nogui):
     cupyutil.mpiBarrier()
 
     # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    #algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator, p['dt'], p['tTot'], p['timeIterTreshold'], comm)
     
     # --- Launch the FSI computation --- #
     algorithm.run()

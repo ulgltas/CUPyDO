@@ -107,6 +107,15 @@ def main(_p, nogui):
     # --- Check the results --- #
     test(nogui, algorithm.errValue, p['tollFSI'])
 
+    # --- Exit computation --- #
+    del manager
+    del criterion
+    del fluidSolver
+    del solidSolver
+    del interpolator
+    del algorithm
+    cupyutil.mpiBarrier(comm)
+
     # eof
     print ''
 

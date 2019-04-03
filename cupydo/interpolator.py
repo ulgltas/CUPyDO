@@ -809,17 +809,20 @@ class ConservativeInterpolator(InterfaceInterpolator):
                 if self.myid == iProc:
                     localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
                     for jProc in solidInterfaceProcessors:
-                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
-                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
-                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                        self.mpiComm.Isend(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Isend(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Isend(localSolidInterface_array_Z, dest=jProc, tag=3)
                 if self.myid in solidInterfaceProcessors:
                     sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
                     solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req.Wait()
                     self.fillMatrixA(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
         else:
             localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
@@ -842,17 +845,20 @@ class ConservativeInterpolator(InterfaceInterpolator):
             for iProc in solidInterfaceProcessors:
                 if self.myid == iProc:
                     for jProc in fluidInterfaceProcessors:
-                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
-                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
-                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                        self.mpiComm.Isend(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Isend(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Isend(localSolidInterface_array_Z, dest=jProc, tag=3)
                 if self.myid in fluidInterfaceProcessors:
                     sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
                     solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req.Wait()
                     self.fillMatrixB(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
         else:
             self.fillMatrixB(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)
@@ -985,17 +991,20 @@ class ConsistentInterpolator(InterfaceInterpolator):
                 if self.myid == iProc:
                     localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
                     for jProc in solidInterfaceProcessors:
-                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
-                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
-                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                        self.mpiComm.Isend(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Isend(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Isend(localSolidInterface_array_Z, dest=jProc, tag=3)
                 if self.myid in solidInterfaceProcessors:
                     sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
                     solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req.Wait()
                     self.fillMatrixA(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
         else:
             localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z = self.SolidSolver.getNodalInitialPositions()
@@ -1016,17 +1025,20 @@ class ConsistentInterpolator(InterfaceInterpolator):
             for iProc in solidInterfaceProcessors:
                 if self.myid == iProc:
                     for jProc in fluidInterfaceProcessors:
-                        self.mpiComm.Send(localSolidInterface_array_X, dest=jProc, tag=1)
-                        self.mpiComm.Send(localSolidInterface_array_Y, dest=jProc, tag=2)
-                        self.mpiComm.Send(localSolidInterface_array_Z, dest=jProc, tag=3)
+                        self.mpiComm.Isend(localSolidInterface_array_X, dest=jProc, tag=1)
+                        self.mpiComm.Isend(localSolidInterface_array_Y, dest=jProc, tag=2)
+                        self.mpiComm.Isend(localSolidInterface_array_Z, dest=jProc, tag=3)
                 if self.myid in fluidInterfaceProcessors:
                     sizeOfBuff = solidPhysicalInterfaceNodesDistribution[iProc]
                     solidInterfaceBuffRcv_X = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Y = np.zeros(sizeOfBuff)
                     solidInterfaceBuffRcv_Z = np.zeros(sizeOfBuff)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_X, iProc, tag=1)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Y, iProc, tag=2)
-                    self.mpiComm.Recv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_X, iProc, tag=1)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Y, iProc, tag=2)
+                    req.Wait()
+                    req = self.mpiComm.Irecv(solidInterfaceBuffRcv_Z, iProc, tag=3)
+                    req.Wait()
                     self.fillMatrixBD(solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc)
         else:
             self.fillMatrixBD(localSolidInterface_array_X, localSolidInterface_array_Y, localSolidInterface_array_Z, 0)

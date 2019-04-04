@@ -44,7 +44,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     numberPart = 0
     rootProcess = 0
     
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     cfd_file = 'birdImpact_deformable_panel_bird_Pfem_Smojver_Axisym'
     csd_file = 'birdImpact_deformable_panel_panel_alu_Mtf_Smojver_Axisym'

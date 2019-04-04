@@ -81,7 +81,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     # --- Set up MPI and workspace --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = '../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
     csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'

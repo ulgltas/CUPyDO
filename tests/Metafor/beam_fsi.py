@@ -43,7 +43,7 @@ def main():
     numberPart = 0
     rootProcess = 0
     
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     # --- Initialize the solid solver --- #
     solid = None

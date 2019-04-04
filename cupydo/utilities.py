@@ -139,7 +139,7 @@ def getMpi():
         numberPart = 1
     return cmpi.haveMPI, comm, myid, numberPart
 
-def load(fsiTxt, mpi_opt, com, my_id, number_part):
+def load(fsiPath, fsiTxt, mpi_opt, com, my_id, number_part):
     """load a module and make it the current one
     """
     global _theModule
@@ -160,7 +160,7 @@ def load(fsiTxt, mpi_opt, com, my_id, number_part):
         print "module '%s' loaded!" % fsiTxt
         #print '_theModule', _theModule
 
-    setTheWDir(fsiTxt)
+    setTheWDir(os.path.basename(fsiPath)+'_'+fsiTxt)
     setDir(_theWDir)
     _chkWorkspace()
 

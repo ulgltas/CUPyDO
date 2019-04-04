@@ -78,7 +78,7 @@ def main(_p, nogui):
     # --- Set up MPI and workspace --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_SU2Conf.cfg'
     csd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'

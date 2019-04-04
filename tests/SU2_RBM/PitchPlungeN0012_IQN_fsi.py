@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of Liï¿½ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ def main(_p, nogui):
     # --- Set up MPI and workspace --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = '../../tests/SU2_RBM/PitchPlungeN0012_IQN_fsi_SU2Conf.cfg'
     csd_file = '../../tests/SU2_RBM/PitchPlungeN0012_IQN_fsi_RBMConf.cfg'

@@ -44,7 +44,7 @@ def main(_p, nogui):
     numberPart = 0
     rootProcess = 0
     
-    cupyutil.load(fileName, withMPI, comm, myid, numberPart)
+    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     cfd_file = 'birdImpact_deformable_panel_bird_Pfem'
     csd_file = 'birdImpact_deformable_panel_panel_alu_Mtf'

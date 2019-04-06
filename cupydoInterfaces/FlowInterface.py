@@ -32,12 +32,11 @@ from cupydo.genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Flow(FluidSolver):
-    def __init__(self, _case, _nthreads):       
+    def __init__(self, _case, _nthreads, _saveFreq = sys.maxsize):       
         # load the python module
         case = __import__(_case)
         
         # load the case (contains flow and some of its objects)
-        # TODO: check what needs to be passed to getFlow
         self.flow = case.getFlow()
 
         # get the f/s boundary
@@ -50,6 +49,9 @@ class Flow(FluidSolver):
 
         # initial nodal position
         self.nodalInitPosX, self.nodalInitPosY, self.nodalInitPosZ = self.getNodalInitialPositions()
+
+        # save frequency (fsi)
+        self.saveFreq = _saveFreq
 
         # initialize
         self.flow.solver.nthreads = _nthreads
@@ -149,6 +151,8 @@ class Flow(FluidSolver):
         histFile = open('FlowHistory.dat', "a")
         histFile.write("{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}\n".format(time, nFSIIter, self.flow.solver.Cl, self.flow.solver.Cd))
         histFile.close()
+        if np.mod(nFSIIter+1, self.saveFreq) == 0:
+            self.flow.solver.save(1000000+int(nFSIIter+1)/int(self.saveFreq), self.flow.mshWriter)
 
     def printRealTimeData(self, time, nFSIIter):
         """

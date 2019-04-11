@@ -139,6 +139,12 @@ class ModalInterface(SolidSolver):
         solFile.write('\n')
         solFile.close()
 
+    def save(self):
+        """
+        Save data on disk at each converged timestep
+        """
+        self.modal.solver.write('deformed_modes')
+
     def exit(self):
         """
         Des.

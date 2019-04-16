@@ -23,7 +23,7 @@ sudo apt-get install swig
 sudo apt-get install python-numpy python-scipy
 
 ```
-Optional packages (parallel build, required for SU2)
+Optional packages (parallel build, required for SU2+MPI)
 ```bash
 sudo apt-get install libopenblas-dev liblapack-dev
 sudo apt-get install openmpi-bin openmpi-common libopenmpi-dev
@@ -34,11 +34,11 @@ sudo apt-get install python-petsc4py
 Compilation
 ```bash
 mkdir build && cd build
-<export INCLUDE=${INCLUDE}:/path/to/petsc/include>
-cmake <-DWITH_MPI=ON> <-DCMAKE_BUILD_TYPE=Release> ..
+[export INCLUDE=${INCLUDE}:/path/to/petsc/include]
+cmake [-DWITH_MPI=ON] [-DCMAKE_BUILD_TYPE=Debug] ..
 make -j4
 ```
-*NB: ```path/to/petsc/include``` is usually ```/usr/lib/petscdir/version/``` on ubutun/debian*
+*NB: `path/to/petsc/include` is usually `/usr/lib/petscdir/version/` on ubutun/debian*
 
 Install
 ```bash
@@ -47,12 +47,12 @@ make clean
 ```
 
 Run test battery
-```batch
+```bash
 ./run.sh all 4
 ```
 
 Run test file
-```batch
+```bash
 ./run.sh path/to/testfile 4
 ```
 
@@ -73,13 +73,13 @@ Required packages
 sudo apt install subversion
 sudo apt install bison flex 
 mkdir Metafor_Home && cd Metafor_Home
-git clone https://github.com/ulgltas/linuxbin.git
+git clone git@github.com:ulgltas/linuxbin.git
 ```
 Compilation
 ```bash
 svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_meta/trunk oo_meta
 mkdir oo_metaB && cd oo_metaB
-cmake -C ../oo_meta/CMake/configMachine-CUPyDO.cmake <-DCMAKE_INSTALL_PREFIX=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Release> ../oo_meta
+cmake -C ../oo_meta/CMake/configMachine-CUPyDO.cmake <-DCMAKE_INSTALL_PREFIX=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Debug> ../oo_meta
 make -j4
 <make install>
 ```
@@ -92,7 +92,7 @@ sudo apt-get install libatlas-base-dev
 ```
 Compilation
 ```bash
-git clone https://github.com/ulgltas/NativeSolid.git
+git clone git@github.com:ulgltas/NativeSolid.git
 cd NativeSolid
 mkdir build && cd build
 cmake ..
@@ -105,20 +105,26 @@ Todo
 ### SU2
 ```bash
 sudo apt-get install autoconf
-git clone https://github.com/su2code/SU2.git
+git clone git@github.com:su2code/SU2.git
 cd SU2
 git checkout tags/v6.2.0
-./boostrap
+./bootstrap
 ./configure --prefix=/path/to/SU2/install/folder CXXFLAGS="-O3" --enable-mpi --with-cc=/path/to/mpicc --with-cxx=/path/to/mpicxx --enable-PY_WRAPPER <--enable-tecio>
 make -j4
 make install
 make clean
 ```
 
+NOTE: Romain/garfield:
+```
+./configure --prefix=/home/boman/dev/CUPyDO/SU2 CXXFLAGS="-O3" --enable-mpi --with-cc=mpicc --with-cxx=mpicxx --enable-PY_WRAPPER --enable-tecio
+```
+
+
 ### GetDP
 Todo
 
-### Flow
+### Waves/flow
 Required packages
 ```bash
 sudo apt-get install libgmm++-dev libeigen3-dev
@@ -130,7 +136,7 @@ sudo apt-get install python-matplotlib
 ```
 Compilation
 ```bash
-git clone
+git clone git@github.com:ulgltas/waves.git
 cd waves
 mkdir build && cd build
 cmake -C ../CMake/ubuntu.cmake ..

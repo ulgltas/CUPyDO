@@ -16,3 +16,5 @@ apps/
 build*
 ccupydo/*.so
 ccupydo/CCupydo*
+
+.vscode/

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of Liï¿½ge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@
  * Authors : D. THOMAS.
  */
 
-#pragma once
+#ifndef CINTERFACEMATRIX_H
+#define CINTERFACEMATRIX_H
 
 #include <vector>
 
@@ -54,3 +55,5 @@ public:
   void getMat(int* size1, int* size2, double** mat_array);
 #endif  //HAVE_MPI
 };
+
+#endif //CINTERFACEMATRIX_H

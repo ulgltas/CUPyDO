@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of Liï¿½ge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@
  * Authors : D. THOMAS.
  */
 
-#pragma once
+#ifndef ADTCORE_H
+#define ADTCORE_H
 
 #include <string>
 #include <fstream>
@@ -138,3 +139,5 @@ public:
     ~ADT_Compare();
     bool operator()(const int p0, const int p1) const;
 };
+
+#endif //ADTCORE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of Liï¿½ge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,28 @@
  */
 
 /*!
- * Header for CManager.
+ * Header for CADT.
  * Authors : D. THOMAS.
  */
 
-#pragma once
+#ifndef CADT_H
+#define CADT_H
 
-#include <string>
 #include <vector>
 
-class CManager{
+#include "adtcore.h"
 
+class ADTPoint{
+protected:
+  double* data;
+  int *dataIDs;
+  int size, nDim;
+  ADT_PointType *dataTree;
 public:
-  CManager();
-  virtual ~CManager();
-  int getGlobalIndex(std::string const& str_physics, int const& iProc, int const& iVertex);
-  void setGlobalIndexing(std::string str_physics, std::vector<std::vector<int> > index_range);
-  std::vector< std::vector< std::vector<int> > > globalIndexRange;
-  int nPhyscis;
-  int nIndex;
-  int mpiSize;
+  ADTPoint(int size_x, double* data_x, int val_size_y, double* val_data_y, int size_z, double* data_z);
+  ~ADTPoint();
+  void queryNN(int size, double* coord, int &pointID, double &distance);
+  void queryBallNN(int size, double* coord, double radius, std::vector<int> &allIDs);
 };
+
+#endif //CADT_H

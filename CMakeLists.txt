@@ -31,21 +31,19 @@ IF( NOT CMAKE_BUILD_TYPE )
 ENDIF()
 MESSAGE(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 
+# Options
+OPTION(WITH_MPI "Build for parallel run" OFF)
+
 # -- C++11
 SET(CMAKE_CXX_STANDARD 11) # newer way to set C++11 (requires cmake>=3.1)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 
 # Add warnings during compilation when build type is Debug
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 ENDIF()
 
-
 # Build for parallel run using MPI (default is OFF)
-OPTION(WITH_MPI "Build for parallel run" OFF)
-
-
 IF(WITH_MPI)
   FIND_PACKAGE(MPI REQUIRED)
   IF(MPI_FOUND)
@@ -56,7 +54,7 @@ IF(WITH_MPI)
   ENDIF(MPI_FOUND)
 ENDIF(WITH_MPI)
 
-
+# Python/SWIG
 FIND_PACKAGE(PythonInterp REQUIRED)
 FIND_PACKAGE(PythonLibs REQUIRED)
 MESSAGE(STATUS "PYTHONINTERP_FOUND=${PYTHONINTERP_FOUND}")
@@ -73,11 +71,11 @@ IF(WITH_MPI)
   FIND_PACKAGE(Mpi4Py REQUIRED)
 ENDIF(WITH_MPI)
 
-
 INCLUDE_DIRECTORIES( ${MPI_INCLUDE_PATH} ${PETSC_INCLUDE_PATH} )
 
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# [AC] I am not even sure that this works/is usefull...
 #IF(WITH_MPI)
 #  INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 #  ADD_EXECUTABLE(test_CGeneral src/cTest_general.cpp)
@@ -87,7 +85,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #-------------------------------------------------------------
 INCLUDE(${SWIG_USE_FILE})
 
-INCLUDE_DIRECTORIES(  ${PROJECT_SOURCE_DIR}/include 
+INCLUDE_DIRECTORIES(  ${PROJECT_SOURCE_DIR}/src 
                       ${PYTHON_INCLUDE_PATH} 
                       ${NUMPY_INCLUDE_DIR} 
                       ${PETSC4PY_INCLUDE_DIR} 
@@ -95,8 +93,7 @@ INCLUDE_DIRECTORIES(  ${PROJECT_SOURCE_DIR}/include
 
 FILE(GLOB SRCS src/*.h src/*.cpp)
 
-
-FILE(GLOB ISRCS include/CCupydo.i)
+FILE(GLOB ISRCS _src/*.i)
 
 IF(WITH_MPI)
   SET(CMAKE_SWIG_FLAGS "-DHAVE_MPI")

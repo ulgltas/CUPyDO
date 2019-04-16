@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of Liï¿½ge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 #include <cassert>
 #include <vector>
 
-#include "../include/cMpi.h"
-#include "../include/cManager.h"
+#include "cMpi.h"
+#include "cManager.h"
 
 using namespace std;
 

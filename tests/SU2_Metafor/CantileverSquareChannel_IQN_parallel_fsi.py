@@ -21,7 +21,7 @@ limitations under the License.
 
 import os, sys
 
-filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
+filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 from math import *
@@ -80,10 +80,10 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    # --- Set up MPI and workspace --- #
+    # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
+    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = '../../tests/SU2_Metafor/CantileverSquareChannel_BGS_parallel_SU2Conf.cfg'
     csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'

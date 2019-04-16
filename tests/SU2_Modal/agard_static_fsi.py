@@ -6,7 +6,7 @@
 
 import os, sys
 
-filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
+filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 from optparse import OptionParser	# use a parser for configuration
@@ -66,10 +66,10 @@ def main(_p, nogui):
     # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    # --- Set up MPI and workspace --- #
+    # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
+    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
     cfd_file = os.path.join(filePath,'agard_static_fluid.cfg')

@@ -5,7 +5,7 @@
 import sys, os, os.path
 
 runPath = os.path.dirname(sys.modules[__name__].__file__)
-filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
+filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 import pfem

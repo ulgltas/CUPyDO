@@ -1,6 +1,6 @@
 import os, sys
 
-filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
+filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 from math import *
@@ -44,7 +44,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     numberPart = 0
     rootProcess = 0
     
-    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
+    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     cfd_file = 'birdImpact_deformable_panel_bird_Pfem'
     csd_file = 'birdImpact_deformable_panel_panel_steel_Mtf'

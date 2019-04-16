@@ -21,7 +21,7 @@ limitations under the License.
 
 import os, sys
 
-filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
+filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 from math import *
@@ -75,10 +75,10 @@ def main(_p, nogui):
     # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    # --- Set up MPI and workspace --- #
+    # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
+    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = '../../tests/SU2_RBM/PitchPlungeN0012_IQN_fsi_SU2Conf.cfg'
     csd_file = '../../tests/SU2_RBM/PitchPlungeN0012_IQN_fsi_RBMConf.cfg'

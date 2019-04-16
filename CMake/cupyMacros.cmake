@@ -14,7 +14,7 @@ MACRO(MACRO_AddTest srcDir)
             message(STATUS "Adding test ${strip}")
             add_test(NAME ${strip} 
                      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-                     COMMAND ${PYTHON_EXECUTABLE} ${strip} --nogui)
+                     COMMAND ${PYTHON_EXECUTABLE} run.py ${strip} --nogui)
         else()
             MACRO_AddTest(${srcDir}/${tfile})
         endif()

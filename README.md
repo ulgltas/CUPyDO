@@ -7,11 +7,12 @@ As of December 2018, interfaces for the following solvers are implemented:
 - Solid:
   - Metafor --> A Nonlinear Finite Element solid solver developed at the University of Liege (http://metafor.ltas.ulg.ac.be/dokuwiki/)
   - RBM --> A dynamic 2dof pitch/plunge solid solver developed at the University of Liege (https://github.com/ulgltas/NativeSolid)
+  - Modal Solver -> A static/dynamic modal solver developed at the University of Liege (https://github.com/ulgltas/ModalSolver)
 - Fluid:
   - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liege (http://metafor.ltas.ulg.ac.be/dokuwiki/poliflows/start)
   - SU2 --> Open-source CFD code developed at Stanford University (http://su2.stanford.edu/)
   - GetDP --> A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liege (http://getdp.info/)
-  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liege ()
+  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liege (https://github.com/ulgltas/waves)
 
 ## CUPyDO Compilation (linux - gcc)
 Required packages
@@ -21,7 +22,6 @@ sudo apt-get install cmake
 sudo apt-get install python2.7 python2.7-dev libpython2.7-dev
 sudo apt-get install swig
 sudo apt-get install python-numpy python-scipy
-
 ```
 Optional packages (parallel build, required for SU2+MPI)
 ```bash
@@ -48,12 +48,12 @@ make clean
 
 Run test battery
 ```bash
-./run.sh all 4
+ctest [-R include_pattern] [-E exclude_pattern] -j4
 ```
 
 Run test file
 ```bash
-./run.sh path/to/testfile 4
+python run.py path/to/testfile_fsi.py -n4
 ```
 
 ## Interfaced solvers compilation (linux - gcc)
@@ -72,14 +72,14 @@ Required packages
 ```bash
 sudo apt install subversion
 sudo apt install bison flex 
-mkdir Metafor_Home && cd Metafor_Home
+mkdir Metafor && cd Metafor
 git clone git@github.com:ulgltas/linuxbin.git
 ```
 Compilation
 ```bash
 svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_meta/trunk oo_meta
 mkdir oo_metaB && cd oo_metaB
-cmake -C ../oo_meta/CMake/configMachine-CUPyDO.cmake <-DCMAKE_INSTALL_PREFIX=/path/to/Metafor/install/folder> <-DCMAKE_BUILD_TYPE=Debug> ../oo_meta
+cmake -C ../oo_meta/CMake/configMachine-CUPyDO.cmake [-DCMAKE_INSTALL_PREFIX=/path/to/Metafor/install/folder] [-DCMAKE_BUILD_TYPE=Debug] ../oo_meta
 make -j4
 <make install>
 ```

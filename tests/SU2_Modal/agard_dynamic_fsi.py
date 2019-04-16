@@ -6,7 +6,7 @@
 
 import os, sys
 
-filePath = os.path.abspath(os.path.dirname(sys.argv[0]))
+filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 from optparse import OptionParser	# use a parser for configuration
@@ -69,10 +69,10 @@ def main(_p, nogui):
 
     raise Exception('Test is NOT validated and should not be automatically run by the battery yet! Remove this exception when ready.\n')
 
-    # --- Set up MPI and workspace --- #
+    # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
+    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
     cfd_file = os.path.join(filePath,'agard_dynamic_fluid.cfg')

@@ -56,7 +56,6 @@ class Flow(FluidSolver):
         # initialize
         self.flow.solver.nthreads = _nthreads
         self.flow.mshDef.nthreads = _nthreads
-        self.exeOK = True
         FluidSolver.__init__(self)
         
     def run(self, t1, t2):
@@ -64,7 +63,9 @@ class Flow(FluidSolver):
         Run the solver for one steady (time) iteration.
         """
 
-        self.exeOK = self.flow.solver.run()
+        exeOK = self.flow.solver.run()
+        if not exeOK:
+            raise RuntimeError('Flow solver diverged!\n')
         self.__setCurrentState()
     
     def __setCurrentState(self):

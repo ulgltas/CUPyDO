@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Li�ge
+ * Copyright 2018 University of Liege
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@
 #ifdef HAVE_MPI
 #include "petscksp.h"
 #include "petscvec.h"
-#endif  //HAVE_MPI
+#endif //HAVE_MPI
 
 #include "cInterfaceMatrix.h"
 #include "cFlexInterfaceData.h"
 
-class CLinearSolver{
+class CLinearSolver
+{
 #ifdef HAVE_MPI
   KSP KSPSolver;
   PC Precond;
@@ -41,17 +42,16 @@ class CLinearSolver{
 
 #endif
 public:
-  CLinearSolver(CInterfaceMatrix* val_matrixOperator);
+  CLinearSolver(CInterfaceMatrix *val_matrixOperator);
   virtual ~CLinearSolver();
 #ifdef HAVE_MPI
-  void solve(CFlexInterfaceData* B, CFlexInterfaceData* X);
-#endif  //HAVE_MPI
-  void setMaxNumberIterations(const int& val_maxInt);
-  void setRelativeTolerance(const double& val_relTol);
-  void setPreconditioner(const std::string& val_precond);
+  void solve(CFlexInterfaceData *B, CFlexInterfaceData *X);
+#endif //HAVE_MPI
+  void setMaxNumberIterations(const int &val_maxInt);
+  void setRelativeTolerance(const double &val_relTol);
+  void setPreconditioner(const std::string &val_precond);
   void monitor();
   void printTolerances();
-
 };
 
 #endif //CLINEARSOLVER_H

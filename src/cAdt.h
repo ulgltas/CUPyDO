@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Li�ge
+ * Copyright 2018 University of Liege
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,19 @@
 
 #include "adtcore.h"
 
-class ADTPoint{
+class ADTPoint
+{
 protected:
-  double* data;
+  double *data;
   int *dataIDs;
   int size, nDim;
   ADT_PointType *dataTree;
+
 public:
-  ADTPoint(int size_x, double* data_x, int val_size_y, double* val_data_y, int size_z, double* data_z);
+  ADTPoint(int size_x, double *data_x, int val_size_y, double *val_data_y, int size_z, double *data_z);
   ~ADTPoint();
-  void queryNN(int size, double* coord, int &pointID, double &distance);
-  void queryBallNN(int size, double* coord, double radius, std::vector<int> &allIDs);
+  void queryNN(int size, double *coord, int &pointID, double &distance);
+  void queryBallNN(int size, double *coord, double radius, std::vector<int> &allIDs);
 };
 
 #endif //CADT_H

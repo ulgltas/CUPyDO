@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of Liege
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,17 @@
  * Authors : D. THOMAS.
  */
 
-#pragma once
+#ifndef CMPI_H
+#define CMPI_H
 
 #ifdef HAVE_MPI
 #include "mpi.h"
 #endif
 
 #ifdef HAVE_MPI
-  typedef MPI_Comm Cupydo_Comm;
-#else //HAVE_MPI
-  typedef const int* Cupydo_Comm;
+typedef MPI_Comm Cupydo_Comm;
+#else  //HAVE_MPI
+typedef const int *Cupydo_Comm;
 #endif //HAVE_MPI
 
 /*!
@@ -41,12 +42,13 @@ public:
   bool haveMPI;
   CMpi()
   {
-  #ifdef HAVE_MPI
+#ifdef HAVE_MPI
     haveMPI = true;
-  #else //HAVE_MPI
+#else  //HAVE_MPI
     haveMPI = false;
-  #endif //HAVE_MPI
+#endif //HAVE_MPI
   }
   virtual ~CMpi() {}
 };
 
+#endif //CMPI_H

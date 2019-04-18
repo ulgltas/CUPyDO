@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Li�ge
+ * Copyright 2018 University of Liege
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,15 @@
 #include <string>
 #include <vector>
 
-class CManager{
+class CManager
+{
 
 public:
   CManager();
   virtual ~CManager();
-  int getGlobalIndex(std::string const& str_physics, int const& iProc, int const& iVertex);
-  void setGlobalIndexing(std::string str_physics, std::vector<std::vector<int> > index_range);
-  std::vector< std::vector< std::vector<int> > > globalIndexRange;
+  int getGlobalIndex(std::string const &str_physics, int const &iProc, int const &iVertex);
+  void setGlobalIndexing(std::string str_physics, std::vector<std::vector<int>> index_range);
+  std::vector<std::vector<std::vector<int>>> globalIndexRange;
   int nPhyscis;
   int nIndex;
   int mpiSize;

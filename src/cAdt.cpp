@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Li�ge
+ * Copyright 2018 University of Liege
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,11 @@
 
 using namespace std;
 
-ADTPoint::ADTPoint(int size_x, double* data_x, int size_y, double* data_y, int size_z, double* data_z){
+ADTPoint::ADTPoint(int size_x, double *data_x, int size_y, double *data_y, int size_z, double *data_z)
+{
 
-  assert(size_x==size_y);
-  assert(size_y==size_z);
+  assert(size_x == size_y);
+  assert(size_y == size_z);
 
   nDim = 3;
   size = size_x;
@@ -39,34 +40,40 @@ ADTPoint::ADTPoint(int size_x, double* data_x, int size_y, double* data_y, int s
   dataIDs = NULL;
   dataTree = NULL;
 
-  data = new double[nDim*size];
+  data = new double[nDim * size];
   dataIDs = new int[size];
 
   //Static cast to avoid warnings at compilation
   unsigned long size_unsigned_long = static_cast<unsigned long>(size);
 
-  for(unsigned long ii=0; ii<size_unsigned_long; ii++){
-    data[nDim*ii] = data_x[ii];
-    data[nDim*ii+1] = data_y[ii];
-    data[nDim*ii+2] = data_z[ii];
+  for (unsigned long ii = 0; ii < size_unsigned_long; ii++)
+  {
+    data[nDim * ii] = data_x[ii];
+    data[nDim * ii + 1] = data_y[ii];
+    data[nDim * ii + 2] = data_z[ii];
   }
 
-  for(unsigned long ii=0; ii<size_unsigned_long; ii++){
+  for (unsigned long ii = 0; ii < size_unsigned_long; ii++)
+  {
     dataIDs[ii] = ii;
   }
 
   dataTree = new ADT_PointType(nDim, size, data, dataIDs);
-
 }
 
-ADTPoint::~ADTPoint(){
+ADTPoint::~ADTPoint()
+{
 
-  if(data != NULL) delete data;
-  if(dataIDs != NULL) delete dataIDs;
-  if(dataTree != NULL) delete dataTree;
+  if (data != NULL)
+    delete data;
+  if (dataIDs != NULL)
+    delete dataIDs;
+  if (dataTree != NULL)
+    delete dataTree;
 }
 
-void ADTPoint::queryNN(int size, double *coord, int &pointID, double &distance){
+void ADTPoint::queryNN(int size, double *coord, int &pointID, double &distance)
+{
 
   assert(size <= 3);
 
@@ -74,7 +81,8 @@ void ADTPoint::queryNN(int size, double *coord, int &pointID, double &distance){
   dataTree->queryNearestNeighboor(coord, distance, pointID, rank);
 }
 
-void ADTPoint::queryBallNN(int size, double* coord, double radius, std::vector<int> &allIDs){
+void ADTPoint::queryBallNN(int size, double *coord, double radius, std::vector<int> &allIDs)
+{
 
   assert(size <= 3);
 
@@ -82,5 +90,4 @@ void ADTPoint::queryBallNN(int size, double* coord, double radius, std::vector<i
   int rank = 0;
 
   dataTree->queryBallNeighboors(coord, radius, allDist, allIDs, rank);
-
 }

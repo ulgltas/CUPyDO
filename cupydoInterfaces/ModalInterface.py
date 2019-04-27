@@ -90,7 +90,10 @@ class ModalInterface(SolidSolver):
         """
         Des.
         """
-        return (self.modal.solver.nodalCoord_X, self.modal.solver.nodalCoord_Y, self.modal.solver.nodalCoord_Z)
+        # Numpy arrays have to be C-contiguous in order to be passed through MPI
+        return (np.ascontiguousarray(self.modal.solver.nodalCoord_X),
+            np.ascontiguousarray(self.modal.solver.nodalCoord_Y),
+            np.ascontiguousarray(self.modal.solver.nodalCoord_Z))
 
     def getNodalIndex(self, iVertex):
         """

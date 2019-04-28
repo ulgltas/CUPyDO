@@ -39,16 +39,16 @@ typedef const int *Cupydo_Comm;
 class CMpi
 {
 public:
-  bool haveMPI;
-  CMpi()
-  {
+    bool haveMPI;
+    CMpi()
+    {
 #ifdef HAVE_MPI
-    haveMPI = true;
+        haveMPI = true;
 #else  //HAVE_MPI
-    haveMPI = false;
+        haveMPI = false;
 #endif //HAVE_MPI
-  }
-  virtual ~CMpi() {}
+    }
+    virtual ~CMpi() {}
 };
 
 #endif //CMPI_H

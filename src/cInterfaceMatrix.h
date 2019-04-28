@@ -35,26 +35,26 @@
 class CInterfaceMatrix
 {
 #ifdef HAVE_MPI
-  Mat H;
+    Mat H;
 #else  //HAVE_MPI
-  std::vector<double> H;
+    std::vector<double> H;
 #endif //HAVE_MPI
-  int M, N;
+    int M, N;
 
 public:
-  CInterfaceMatrix(int const &val_M, int const &val_N);
-  virtual ~CInterfaceMatrix();
-  void createDense();
-  void createSparse(int val_dnz, int val_onz);
-  void createSparseFullAlloc();
-  void setValue(int const &iGlobalIndex, int const &jGlobalIndex, double const &value);
-  void setValues(int const &m, int const iGlobalIndices[], int const &n, int const jGlobalIndices[], double const values[]);
-  void assemble();
-  void mult(CFlexInterfaceData *B, CFlexInterfaceData *X);
+    CInterfaceMatrix(int const &val_M, int const &val_N);
+    virtual ~CInterfaceMatrix();
+    void createDense();
+    void createSparse(int val_dnz, int val_onz);
+    void createSparseFullAlloc();
+    void setValue(int const &iGlobalIndex, int const &jGlobalIndex, double const &value);
+    void setValues(int const &m, int const iGlobalIndices[], int const &n, int const jGlobalIndices[], double const values[]);
+    void assemble();
+    void mult(CFlexInterfaceData *B, CFlexInterfaceData *X);
 #ifdef HAVE_MPI
-  Mat getMat();
+    Mat getMat();
 #else  //HAVE_MPI
-  void getMat(int *size1, int *size2, double **mat_array);
+    void getMat(int *size1, int *size2, double **mat_array);
 #endif //HAVE_MPI
 };
 

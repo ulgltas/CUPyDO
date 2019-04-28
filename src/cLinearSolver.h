@@ -35,23 +35,23 @@
 class CLinearSolver
 {
 #ifdef HAVE_MPI
-  KSP KSPSolver;
-  PC Precond;
-  int nInt, maxInt;
-  double rNorm, relTol, absTol, divTol;
+    KSP KSPSolver;
+    PC Precond;
+    int nInt, maxInt;
+    double rNorm, relTol, absTol, divTol;
 
 #endif
 public:
-  CLinearSolver(CInterfaceMatrix *val_matrixOperator);
-  virtual ~CLinearSolver();
+    CLinearSolver(CInterfaceMatrix *val_matrixOperator);
+    virtual ~CLinearSolver();
 #ifdef HAVE_MPI
-  void solve(CFlexInterfaceData *B, CFlexInterfaceData *X);
+    void solve(CFlexInterfaceData *B, CFlexInterfaceData *X);
 #endif //HAVE_MPI
-  void setMaxNumberIterations(const int &val_maxInt);
-  void setRelativeTolerance(const double &val_relTol);
-  void setPreconditioner(const std::string &val_precond);
-  void monitor();
-  void printTolerances();
+    void setMaxNumberIterations(const int &val_maxInt);
+    void setRelativeTolerance(const double &val_relTol);
+    void setPreconditioner(const std::string &val_precond);
+    void monitor();
+    void printTolerances();
 };
 
 #endif //CLINEARSOLVER_H

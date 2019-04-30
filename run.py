@@ -45,7 +45,7 @@ def setPath():
     rbmdir = os.path.join(topdir, 'NativeSolid', 'bin')
     mosdir = os.path.join(topdir, 'ModalSolver')
     wavdir = os.path.join(topdir, 'waves')
-    pfmdir = os.path.join(topdir, 'pfem')
+    pfmdir = os.path.join(topdir, 'PFEM')
     su2dir = os.path.join(topdir, 'SU2', 'bin')
     # Add paths
     sys.path.append(mtfdir)

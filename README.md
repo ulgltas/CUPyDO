@@ -37,14 +37,13 @@ mkdir build && cd build
 [export INCLUDE=${INCLUDE}:/path/to/petsc/include]
 cmake [-DWITH_MPI=ON] [-DCMAKE_BUILD_TYPE=Debug] ..
 make -j4
-```
-*NB: `path/to/petsc/include` is usually `/usr/lib/petscdir/version/` on ubutun/debian*
-
-Install
-```bash
 make install
-make clean
 ```
+Notes:
+* MPI should be enabled if you want to use the MPI version of SU2. Keep this option disabled otherwise. 
+* `path/to/petsc/include` is usually `/usr/lib/petscdir/version/` on Ubuntu/Debian
+* The "install" step is mandatory. It copies the binaries in `CUPyDO/ccupydo`.
+
 
 Run test battery
 ```bash
@@ -58,7 +57,7 @@ python run.py path/to/testfile_fsi.py -n4
 
 ## Interfaced solvers compilation (linux - gcc)
 Brief instructions to compile interfaced solvers. The full documentation is available on the aforementioned websites.
-The directories containing the external solvers must be placed next to CUPyDO directory.
+The directories containing the external solvers must be placed at the same level as CUPyDO directory.
 
 ### Common packages
 ```bash
@@ -68,6 +67,8 @@ sudo apt-get install libvtk6.3 libvtk6-dev libvtk6-qt-dev python-vtk6 python-pyq
 ```
 
 ### Metafor
+[Linux, Windows, macOS]
+
 Required packages
 ```bash
 sudo apt install subversion
@@ -83,8 +84,13 @@ cmake -C ../oo_meta/CMake/configMachine-CUPyDO.cmake [-DCMAKE_INSTALL_PREFIX=/pa
 make -j4
 <make install>
 ```
+Notes: 
+* Metafor cannot be built with the "parasolid" interface which uses the same class names as `waves/fwk`
+* A "stdent" configuration can be safely used.
 
-### RBM
+### RBM [NativeSolid]
+[Linux]
+
 Required packages
 ```bash
 sudo apt-get install liblapacke-dev
@@ -98,33 +104,33 @@ mkdir build && cd build
 cmake ..
 make -j4
 ```
+Windows: FIX LAPACKE
 
-### PFEM
-Todo
 
 ### SU2
+[Linux]
 ```bash
 sudo apt-get install autoconf
 git clone git@github.com:su2code/SU2.git
 cd SU2
 git checkout tags/v6.2.0
+unset MKLROOT   # <= MKL should be disabled
 ./bootstrap
-./configure --prefix=/path/to/SU2/install/folder CXXFLAGS="-O3" --enable-mpi --with-cc=/path/to/mpicc --with-cxx=/path/to/mpicxx --enable-PY_WRAPPER <--enable-tecio>
+./configure --prefix=/path/to/SU2/install/folder CXXFLAGS="-O3" --enable-mpi --with-cc=/path/to/mpicc --with-cxx=/path/to/mpicxx --enable-PY_WRAPPER [--enable-tecio]
 make -j4
 make install
-make clean
 ```
-
-NOTE: Romain/garfield:
-```
-./configure --prefix=/home/boman/dev/CUPyDO/SU2 CXXFLAGS="-O3" --enable-mpi --with-cc=mpicc --with-cxx=mpicxx --enable-PY_WRAPPER --enable-tecio
-```
+Notes:
+* The INSTALL step is mandatory!
+* MPI should be enabled/disabled in both CUPyDO and SU2.
 
 
 ### GetDP
 Todo
 
 ### Waves/flow
+[Linux, Windows, macOS]
+
 Required packages
 ```bash
 sudo apt-get install libgmm++-dev libeigen3-dev
@@ -139,12 +145,25 @@ Compilation
 git clone git@github.com:ulgltas/waves.git
 cd waves
 mkdir build && cd build
-cmake -C ../CMake/ubuntu.cmake ..
+cmake ..
 make -j4
 ```
 
+### PFEM
+[Linux, Windows, macOS]
+```bash
+git clone git@github.com:ulgltas/waves.git 
+[build waves as above]
+git@github.com:ulgltas/PFEM.git
+cd PFEM
+mkdir build && cd build
+cmake ..
+make -j4
+```
+
+
 ## Examples
-Examples of simulations available in /tests.
+Examples of simulations available in `CUPyDO/tests`.
 
 ![Screenshot](/tests/fsi_examples.png)
 

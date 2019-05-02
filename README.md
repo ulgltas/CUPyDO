@@ -145,9 +145,11 @@ Compilation
 git clone git@github.com:ulgltas/waves.git
 cd waves
 mkdir build && cd build
-cmake ..
+cmake -C disable-trilinos.cmake ..
 make -j4
 ```
+Note:
+* `disable-trilinos.cmake` is not mandatory but it helps save much build time.
 
 ### PFEM
 [Linux, Windows, macOS]
@@ -163,7 +165,7 @@ make -j4
 
 
 ## Examples
-Examples of simulations available in `CUPyDO/tests`.
+Examples of simulations are available in [CUPyDO/tests](https://github.com/ulgltas/CUPyDO/tree/master/tests) and [CUPyDO/cases](https://github.com/ulgltas/CUPyDO/tree/master/cases).
 
 ![Screenshot](/tests/fsi_examples.png)
 

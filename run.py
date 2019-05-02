@@ -6,6 +6,9 @@
 # External solver dir should place next to CUPyDO dir
 # Romain Boman and Adrien Crovato
 
+import os
+import sys
+
 class DupStream(object):
     def __init__(self, stream1, stream2):
         self.stream1 = stream1
@@ -34,31 +37,35 @@ class Tee(object):
         sys.stderr = self.stderrbak
         self.file.close()
 
+def addPath(p):
+    # windows binaries are located somewhere else
+    pathw = os.path.join(p, 'Release')
+    if os.path.isdir(pathw):
+        p = pathw
+    # add folder to path if it exists
+    if os.path.isdir(p):
+        print 'INFO: adding %s to PYTHONPATH'
+        sys.path.append(p)
+    else:
+        print 'INFO: %s not found!'
+
+
 def setPath():
     import os, sys
     # Set paths
     cupdir = os.path.abspath(os.path.split(__file__)[0])
     topdir = os.path.abspath(os.path.dirname(cupdir))
-    mtfdir = os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin')
-    mtfdir2 = os.path.join(topdir, 'Metafor', 'oo_meta')
-    mtfdir3 = os.path.join(topdir, 'Metafor', 'linuxbin')
-    rbmdir = os.path.join(topdir, 'NativeSolid', 'bin')
-    mosdir = os.path.join(topdir, 'ModalSolver')
-    wavdir = os.path.join(topdir, 'waves')
-    pfmdir = os.path.join(topdir, 'PFEM')
-    su2dir = os.path.join(topdir, 'SU2', 'bin')
-    # Add paths
-    sys.path.append(mtfdir)
-    sys.path.append(mtfdir2)
-    sys.path.append(mtfdir3)
-    sys.path.append(rbmdir)
-    sys.path.append(mosdir)
-    sys.path.append(wavdir)
-    sys.path.append(pfmdir)
-    sys.path.append(su2dir)
-    # Print paths
-    print 'PYTHONPATH =', sys.path
-    print ''
+
+    addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
+    addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
+    addPath(os.path.join(topdir, 'Metafor', 'oo_meta'))
+    addPath(os.path.join(topdir, 'Metafor', 'linuxbin'))
+    addPath(os.path.join(topdir, 'NativeSolid', 'bin'))
+    addPath(os.path.join(topdir, 'ModalSolver'))
+    addPath(os.path.join(topdir, 'waves'))
+    addPath(os.path.join(topdir, 'PFEM'))
+    addPath(os.path.join(topdir, 'SU2', 'bin'))
+    print 'PYTHONPATH = %s\n' % sys.path
 
 def main():
     # Global variables

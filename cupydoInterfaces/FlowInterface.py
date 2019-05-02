@@ -21,9 +21,7 @@ limitations under the License.
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
-import os, os.path, sys, time, string
-
-import math
+import sys
 import numpy as np
 from cupydo.genericSolvers import FluidSolver
 
@@ -62,7 +60,6 @@ class Flow(FluidSolver):
         """
         Run the solver for one steady (time) iteration.
         """
-
         exeOK = self.flow.solver.run()
         if not exeOK:
             raise RuntimeError('Flow solver diverged!\n')
@@ -72,7 +69,6 @@ class Flow(FluidSolver):
         """
         Compute nodal forces from nodal Pressure coefficient
         """
-
         # integrate Cp at element
         cpiE = self.boundary.integrate(self.flow.solver.phi, self.flow.fCp)
         # transfer integrated Cp from elements to nodes
@@ -88,7 +84,6 @@ class Flow(FluidSolver):
         """
         Get the initial position of each node
         """
-        
         x0 = np.zeros(self.nPhysicalNodes)
         y0 = np.zeros(self.nPhysicalNodes)
         z0 = np.zeros(self.nPhysicalNodes)
@@ -104,7 +99,6 @@ class Flow(FluidSolver):
         """
         Get index of each node
         """
-
         no = self.boundary.nodes[iVertex].no
         return no
 
@@ -112,7 +106,6 @@ class Flow(FluidSolver):
         """
         Apply displacements coming from solid solver to f/s interface after saving
         """
-
         self.flow.mshDef.savePos()
         for i in range(self.boundary.nodes.size()):
             self.boundary.nodes[i].pos.x[0] = self.nodalInitPosX[i] + dx[i]
@@ -125,11 +118,6 @@ class Flow(FluidSolver):
         """
         self.flow.mshDef.deform()
         
-    def update(self, dt):
-        """
-        TODO
-        """
-        
     def save(self, nt):
         """
         Save data on disk at each converged timestep
@@ -141,26 +129,26 @@ class Flow(FluidSolver):
         """
         Initialize history file
         """
-        histFile = open('FlowHistory.dat', "w")
-        histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
+        histFile = open('FlowHistory.dat', 'w')
+        histFile.write('{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}   {4:>12s}\n'.format('Time', 'FSI_Iter', 'C_Lift', 'C_Drag', 'C_Moment'))
         histFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
         """
         Save data in history file at each fsi iteration
         """
-        histFile = open('FlowHistory.dat', "a")
-        histFile.write("{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}\n".format(time, nFSIIter, self.flow.solver.Cl, self.flow.solver.Cd))
+        histFile = open('FlowHistory.dat', 'a')
+        histFile.write('{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}   {4:12.6f}\n'.format(time, nFSIIter, self.flow.solver.Cl, self.flow.solver.Cd, self.flow.solver.Cm))
         histFile.close()
         if np.mod(nFSIIter+1, self.saveFreq) == 0:
             self.flow.solver.save(1000000+int(nFSIIter+1)/int(self.saveFreq), self.flow.mshWriter)
 
     def printRealTimeData(self, time, nFSIIter):
         """
-        Print data on screen...
+        Print data on screen at the end of fsi simulation
         """
-        
-        #print toPrint
+        print '[Flow lift, drag, moment]: {0:6.3f}, {1:6.4f}, {2:6.3f}'.format(self.flow.solver.Cl, self.flow.solver.Cd, self.flow.solver.Cm)
+        print ''
     
     def exit(self):
         """

@@ -3,7 +3,7 @@
 
 ''' 
 
-Copyright 2018 University of Li�ge
+Copyright 2018 University of Liège
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,16 +21,14 @@ limitations under the License.
 
 import sys
 import os
-import os.path
+#import os.path
 
 runPath = os.path.dirname(sys.modules[__name__].__file__)
 filePath = os.path.abspath(os.path.dirname(__file__))
 fileName = os.path.splitext(os.path.basename(__file__))[0]
 
 import pfem
-
-import pfemtools as wt
-import viewer as v
+import pfem.tools.pfemtools as wt
 
 w = None
 
@@ -105,11 +103,15 @@ def getPfem():
     extManager.add(20, w.IntForceExtractor(msh, "Cylinder"))
     extManager.add(21, wt.TotalIntForceExtractor(msh, "Cylinder"))
 
-    gui = v.MeshViewer(msh, scheme, True)
+    #import pfem.tools.viewer as v
+    #gui = v.MeshViewer(msh, scheme, True)
+
+    import pfem.tools.link2vtk as v
+    gui = v.Link2VTK(msh, scheme, True)
+    scheme.start()
 
     return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
 
 
 def getRealTimeExtractorsList(pfem):
-    extractorsList = []
-    return extractorsList
+    return []

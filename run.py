@@ -44,10 +44,10 @@ def addPath(p):
         p = pathw
     # add folder to path if it exists
     if os.path.isdir(p):
-        print 'INFO: adding %s to PYTHONPATH'
+        print 'INFO: adding %s to PYTHONPATH' % p
         sys.path.append(p)
     else:
-        print 'INFO: %s not found!'
+        print 'INFO: %s not found!' % p
 
 
 def setPath():

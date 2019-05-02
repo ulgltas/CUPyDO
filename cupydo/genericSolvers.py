@@ -162,8 +162,7 @@ class SolidSolver:
 # ----------------------------------------------------------------------
 
 class FluidSolver:
-    """
-    Des.
+    """Generic fluid solver class
     """
 
     def __init__(self):

@@ -260,8 +260,8 @@ class PfemSolver(FluidSolver):
         """
         Exits the Pfem solver.
         """
-        if not self.pfem.gui==None:
-            self.pfem.gui.save2vtk()
+        #if not self.pfem.gui==None:
+        #    self.pfem.gui.save2vtk()
         self.pfem.scheme.exit()
         
         print("\n***************************** Exit Pfem *****************************")

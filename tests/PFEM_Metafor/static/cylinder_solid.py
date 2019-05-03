@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf-8 -*-
+# original name: StaticCylinder_cylinder_Mtf.py
 
 ''' 
 
@@ -19,35 +20,37 @@ limitations under the License.
 
 '''
 
-
 from wrap import *
 
 metafor = None
 
+
 def params(q={}):
     """ default model parameters
     """
-    p={}
-    p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
-    p['tend']       = 2.            # final time
-    p['dtmax']      = 0.005          # max time step
-    p['bndno']      = 17            # interface boundary number
-    
+    p = {}
+    p['tolNR'] = 1.0e-7        # Newton-Raphson tolerance
+    p['tend'] = 1.            # final time
+    p['dtmax'] = 0.005          # max time step
+    p['bndno'] = 9            # interface boundary number
+
     # BC type
-    #p['bctype']     = 'pressure'     # uniform pressure
-    #p['bctype']     = 'deadload'     # uniform nodal load
-    #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
-    p['bctype']     = 'pydeadloads'  # variable loads
-    #p['bctype']     = 'slave'     # variable loads (mpi)
-                                       
+    # p['bctype']     = 'pressure'     # uniform pressure
+    # p['bctype']     = 'deadload'     # uniform nodal load
+    # p['bctype']     = 'pydeadload1'  # uniform nodal load (python)
+    p['bctype'] = 'pydeadloads'  # variable loads
+    # p['bctype']     = 'slave'     # variable loads (mpi)
+
     p.update(q)
     return p
 
+
 def getMetafor(p={}):
     global metafor
-    if metafor: return metafor
+    if metafor:
+        return metafor
     metafor = Metafor()
-    
+
     p = params(p)
 
     domain = metafor.getDomain()
@@ -56,40 +59,40 @@ def getMetafor(p={}):
 
     # import .geo
     from toolbox.gmsh import GmshImport
-    f = os.path.join(os.path.dirname(__file__), "waterColoumnWithElasticGate_Mtf_Pfem.msh")
+    f = os.path.join(os.path.dirname(__file__), "cylinder.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()
 
-    groupset = domain.getGeometry().getGroupSet()    
+    groupset = domain.getGeometry().getGroupSet()
 
     # solid elements / material
     interactionset = domain.getInteractionSet()
 
     app1 = FieldApplicator(1)
-    app1.push( groupset(21) )  # physical group 100: beam
-    interactionset.add( app1 )
+    app1.push(groupset(15))  # physical group 100: beam
+    interactionset.add(app1)
 
     materset = domain.getMaterialSet()
-    materset.define( 1, ElastHypoMaterial )
+    materset.define(1, ElastHypoMaterial)
     mater1 = materset(1)
-    mater1.put(MASS_DENSITY,    1100.0)  # [kg/m³]
-    mater1.put(ELASTIC_MODULUS, 1.0e7)  # [Pa]
-    mater1.put(POISSON_RATIO,   0.4)   # [-]
+    mater1.put(MASS_DENSITY,    1.0)  # [kg/m³]
+    mater1.put(ELASTIC_MODULUS, 1.0e6)  # [Pa]
+    mater1.put(POISSON_RATIO,   0.)   # [-]
 
-    prp = ElementProperties(Volume2DElement)
+    prp = ElementProperties(TriangleVolume2DElement)
     app1.addProperty(prp)
-    prp.put (MATERIAL, 1)
-    prp.put(CAUCHYMECHVOLINTMETH,VES_CMVIM_STD)
-    
+    prp.put(MATERIAL, 1)
+    prp.put(GRAVITY_Y,   -9.81)   # [-]
+    prp.put(CAUCHYMECHVOLINTMETH, VES_CMVIM_STD)
+
     # boundary conditions
     loadingset = domain.getLoadingSet()
 
-    #Physical Line(101) - clamped side of the beam
-    loadingset.define(groupset(19), Field1D(TX,RE))
-    loadingset.define(groupset(19), Field1D(TY,RE))
-    #Physical Line(102) - free surface of the beam  
-    #Physical Line(103) - upper surface of the beam (for tests only)
-
+    # Physical Line(101) - clamped side of the beam
+    #loadingset.define(groupset(15), Field1D(TX,RE))
+    #loadingset.define(groupset(15), Field1D(TY,RE))
+    # Physical Line(102) - free surface of the beam
+    # Physical Line(103) - upper surface of the beam (for tests only)
 
     mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(4)
@@ -108,17 +111,10 @@ def getMetafor(p={}):
     #vmgr = metafor.getValuesManager()
     #vmgr.add(1, MiscValueExtractor(metafor, EXT_T), 'time')
     #vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
-    
+
     return metafor
 
+
 def getRealTimeExtractorsList(mtf):
-    
     extractorsList = []
-
-    # --- Extractors list starts --- #
-    # --- Extractors list ends --- #
-
     return extractorsList
-
-
-

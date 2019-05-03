@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# original name: StaticCylinder_fluid_Pfem.py
 
 ''' 
 
@@ -21,7 +22,6 @@ limitations under the License.
 
 import sys
 import os
-#import os.path
 
 runPath = os.path.dirname(sys.modules[__name__].__file__)
 filePath = os.path.abspath(os.path.dirname(__file__))
@@ -103,12 +103,8 @@ def getPfem():
     extManager.add(20, w.IntForceExtractor(msh, "Cylinder"))
     extManager.add(21, wt.TotalIntForceExtractor(msh, "Cylinder"))
 
-    #import pfem.tools.viewer as v
-    #gui = v.MeshViewer(msh, scheme, True)
-
     import pfem.tools.link2vtk as v
     gui = v.Link2VTK(msh, scheme, True)
-    scheme.start()
 
     return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
 

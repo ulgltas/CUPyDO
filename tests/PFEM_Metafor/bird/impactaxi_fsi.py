@@ -1,23 +1,7 @@
+
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
-
-''' 
-
-Copyright 2018 University of Li�ge
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. 
-
-'''
+# -*- coding: utf-8 -*-
+# original name: birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym_fsi.py
 
 import os, sys
 
@@ -41,10 +25,14 @@ def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
+    p['U0'] = 100
+    p['N'] = 10
+    p['R'] = 0.01
+    p['d'] = 0.0025 # 2.5*(R/N)
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.001
-    p['tTot'] = 0.05
+    p['dt'] = 1.5e-6
+    p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
@@ -67,13 +55,12 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
-    # --- Input parameters --- #
-    cfd_file = 'waterColoumnWithElasticGate_water_Pfem'
-    csd_file = 'waterColoumnWithElasticGate_gate_Mtf_rho_1100'
+    cfd_file = 'impactaxi_fluid'
+    csd_file = 'impactaxi_solid'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface
-    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 17, p['dt'])
+    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 13, p['dt'])
     
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
@@ -120,16 +107,15 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
-    with open("Node_9_POS.ascii", 'rb') as f:
+    with open("db_Field(TY,RE)_GROUP_ID_18.ascii", 'rb') as f:
         lines = f.readlines()
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 5, 1, True)) # abs. tol. of 1
-    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.487164, 1e-2, False)) # rel. tol. of 1%
-    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.0006501, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 4, 1, True)) # abs. tol. of 1
+    tests.add(CTest('Y-displacement panel center', result_1[2], -0.002028, 1e-2, False)) # rel. tol. of 1%
     tests.run()
-    
+
 # -------------------------------------------------------------------
 #    Run Main Program
 # -------------------------------------------------------------------

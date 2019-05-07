@@ -1,9 +1,10 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf-8 -*-
+# original name: 
 
 ''' 
 
-Copyright 2018 University of Li�ge
+Copyright 2018 University of Liège
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,12 +45,14 @@ def getParameters(_p):
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
     p['dt'] = 0.001
-    p['tTot'] = 0.35
+    p['tTot'] = 0.05
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 100
+    p['nbTimeToKeep'] = 0
+    p['computeTangentMatrixBasedOnFirstIt'] = False
+    p['saveFreqPFEM'] = 10
     p['mtfSaveAllFacs'] = False
     p.update(_p)
     return p
@@ -68,8 +71,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = 'waterColoumnFallWithFlexibleObstacle_water_Pfem'
-    csd_file = 'waterColoumnFallWithFlexibleObstacle_obstacle_Mtf_E_1_0e6'
+    cfd_file = 'rho1100_fluid'
+    csd_file = 'rho1100_solid'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface
@@ -107,7 +110,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     cupyutil.mpiBarrier()
     
     # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+    algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
     
     # --- Launch the FSI computation --- #
     algorithm.run()
@@ -120,14 +123,14 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
-    with open("Node_6_POS.ascii", 'rb') as f:
+    with open("Node_9_POS.ascii", 'rb') as f:
         lines = f.readlines()
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 3, 1, True)) # abs. tol. of 1
-    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.317212, 1e-2, False)) # rel. tol. of 1%
-    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.0780102, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 4, 1, True)) # abs. tol. of 1
+    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.487164, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.0006501, 1e-2, False)) # rel. tol. of 1%
     tests.run()
 
 # -------------------------------------------------------------------

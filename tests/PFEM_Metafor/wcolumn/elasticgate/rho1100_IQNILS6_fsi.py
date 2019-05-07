@@ -1,9 +1,10 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf-8 -*-
+# original name: 
 
 ''' 
 
-Copyright 2018 University of Li�ge
+Copyright 2018 University of Liège
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -70,8 +71,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = 'waterColoumnWithElasticGate_water_Pfem'
-    csd_file = 'waterColoumnWithElasticGate_gate_Mtf_rho_1100'
+    cfd_file = 'rho1100_fluid'
+    csd_file = 'rho1100_solid'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface

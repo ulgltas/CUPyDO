@@ -127,9 +127,13 @@ def setDirs(fpath):
     """
     import os, sys
     # append to python path
-    sys.path.append(os.path.dirname(fpath))
+    sys.path.append(os.path.dirname(fpath)) # [RB] !this folder is can be a subfolder of one of the folders in the pythonpath
     # create workspace from current directory
-    foldername = (os.path.join(os.path.basename(os.path.dirname(fpath)), os.path.splitext(os.path.basename(fpath))[0])).replace(os.sep,'_')
+    foldername = (os.path.join(os.path.basename(os.path.dirname(fpath)), 
+                  os.path.splitext(os.path.basename(fpath))[0])).replace(os.sep,'_')
+    # [RB] if we have "tests/PFEM_Metafor/bird/impact_fsi.py" and "tests/SU2_Metafor/bird/impact_fsi.py"
+    #      both tests will be in "workspace/bird_impact_fsi"!
+    #      => see waves for a safer naming of workspace folders.
     wdir = os.path.join(os.getcwd(), 'workspace', foldername)
     if not os.path.isdir(wdir):
         print "creating", wdir

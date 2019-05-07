@@ -1,3 +1,25 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# original name: 
+
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+'''
+
 import os, sys
 
 filePath = os.path.abspath(os.path.dirname(__file__))
@@ -22,34 +44,37 @@ def getParameters(_p):
     p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
-    p['dt'] = 0.1
-    p['tTot'] = 1.0
+    p['dt'] = 0.001
+    p['tTot'] = 0.05
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 1
+    p['saveFreqPFEM'] = 10
     p['mtfSaveAllFacs'] = False
     p.update(_p)
     return p
 
 def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
-    # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    # --- Set up MPI --- #
-    withMPI, comm, myid, numberPart = cupyutil.getMpi()
+    # --- Workspace set up --- #
+    withMPI = False
+    comm = None
+    myid = 0
+    numberPart = 0
     rootProcess = 0
+    
     #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     # --- Input parameters --- #
-    cfd_file = 'StaticCylinder_fluid_Pfem'
-    csd_file = 'StaticCylinder_cylinder_Mtf'
+    cfd_file = 'rho1100_fluid'
+    csd_file = 'rho1100_solid'
     
     # --- Initialize the fluid solver --- #
     import cupydoInterfaces.PfemInterface
-    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 9, p['dt'])
+    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 17, p['dt'])
     
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
@@ -87,7 +112,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     # --- Launch the FSI computation --- #
     algorithm.run()
-
+    
     # --- Check the results --- #
     
     # Check convergence and results
@@ -96,19 +121,16 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
-    with open("Node_6_POS.ascii", 'rb') as f:
+    with open("Node_9_POS.ascii", 'rb') as f:
         lines = f.readlines()
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
-    with open("TOTAL_F_INT_Cylinder.ascii", 'rb') as f:
-        lines = f.readlines()
-    result_2 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 3, 1, True)) # abs. tol. of 1
-    tests.add(CTest('Y-coordinate Node 6', result_1[1], 0.25, 1e-4, False)) # rel. tol. of 0.001%
-    tests.add(CTest('Total force on cylinder', result_2[1], -0.116, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 5, 1, True)) # abs. tol. of 1
+    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.487164, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.0006501, 1e-2, False)) # rel. tol. of 1%
     tests.run()
-
+    
 # -------------------------------------------------------------------
 #    Run Main Program
 # -------------------------------------------------------------------

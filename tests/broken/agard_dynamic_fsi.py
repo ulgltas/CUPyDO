@@ -67,7 +67,7 @@ def main(_p, nogui):
     # --- Get FSI parameters ---#
     p = getParameters(_p)
 
-    raise Exception('Test is NOT validated and should not be automatically run by the battery yet! Remove this exception when ready.\n')
+    raise Exception('Test should work but is NOT validated (no reference data). Remove this exception when ready.\n')
 
     # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()

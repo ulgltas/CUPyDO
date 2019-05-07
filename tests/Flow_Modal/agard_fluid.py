@@ -103,7 +103,7 @@ def getFlow():
     mshDef.setInternal(["wake", "wake_"])
 
     # initialize solver
-    solver = f.Solver(pbl)
+    solver = f.Newton(pbl)
     initSolver(solver)
 
     return Module(msh, mshDef, gmshWriter, wing, solver, fCp, dynP)

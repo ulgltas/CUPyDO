@@ -69,7 +69,6 @@ def main(_p, nogui):
     # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     # --- Input parameters --- #
     cfd_file = os.path.join(filePath,'agard_static_fluid.cfg')

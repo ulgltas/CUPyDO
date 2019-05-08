@@ -35,15 +35,12 @@ import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
 def main():
+
+    raise Exception('Test is not working (free(): invalid pointer after Metafor sucessfull run). AFAIK, it was not tested anymore when I started with CUPyDO.\n')
     
-    # --- Workspace set up --- #
-    withMPI = False
-    comm = None
-    myid = 0
-    numberPart = 0
+    # --- Set up MPI --- #
+    withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    
-    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     # --- Initialize the solid solver --- #
     solid = None

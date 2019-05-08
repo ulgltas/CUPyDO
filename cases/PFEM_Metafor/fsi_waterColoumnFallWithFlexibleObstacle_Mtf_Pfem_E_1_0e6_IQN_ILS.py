@@ -43,7 +43,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     numberPart = 0
     rootProcess = 0
     
-    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
+    
     
     # --- Input parameters --- #
     cfd_file = 'waterColoumnFallWithFlexibleObstacle_water_Pfem'

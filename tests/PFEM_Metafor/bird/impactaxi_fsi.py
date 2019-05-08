@@ -46,14 +46,9 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     p = getParameters(_p)
 
-    # --- Workspace set up --- #
-    withMPI = False
-    comm = None
-    myid = 0
-    numberPart = 0
+    # --- Set up MPI --- #
+    withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    
-    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     cfd_file = 'impactaxi_fluid'
     csd_file = 'impactaxi_solid'

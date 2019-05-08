@@ -49,14 +49,9 @@ def main(_p, nogui):
 
     p = getParameters(_p)
 
-    # --- Workspace set up --- #
-    withMPI = False
-    comm = None
-    myid = 0
-    numberPart = 0
+    # --- Set up MPI --- #
+    withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-
-    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
 
     cfd_file = 'impact_fluid'
     csd_file = 'impact_solid'

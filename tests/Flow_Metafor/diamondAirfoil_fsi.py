@@ -62,7 +62,6 @@ def main(_p, nogui):
     # --- Set up MPI --- #
     withMPI, comm, myid, numberPart = cupyutil.getMpi()
     rootProcess = 0
-    #cupyutil.load(filePath, fileName, withMPI, comm, myid, numberPart)
     
     # --- Input files --- #
     cfd_module = fileName[:-3] + "fluid"

@@ -8,10 +8,10 @@ As of December 2018, interfaces for the following solvers are implemented:
   - Metafor --> A Nonlinear Finite Element solid solver developed at the University of Liege (http://metafor.ltas.ulg.ac.be/dokuwiki/)
   - RBM --> A dynamic 2dof pitch/plunge solid solver developed at the University of Liege (https://github.com/ulgltas/NativeSolid)
   - Modal Solver -> A static/dynamic modal solver developed at the University of Liege (https://github.com/ulgltas/ModalSolver)
-- Fluid:
-  - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liege (http://metafor.ltas.ulg.ac.be/dokuwiki/poliflows/start)
-  - SU2 --> Open-source CFD code developed at Stanford University (http://su2.stanford.edu/)
   - GetDP --> A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liege (http://getdp.info/)
+- Fluid:
+  - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liege (https://github.com/ulgltas/PFEM)
+  - SU2 --> Open-source CFD code developed at Stanford University (http://su2.stanford.edu/)
   - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liege (https://github.com/ulgltas/waves)
 
 ## CUPyDO Compilation (linux - gcc)
@@ -82,7 +82,6 @@ svn co svn+ssh://username@blueberry.ltas.ulg.ac.be/home/metafor/SVN/oo_meta/trun
 mkdir oo_metaB && cd oo_metaB
 cmake -C ../oo_meta/CMake/configMachine-CUPyDO.cmake [-DCMAKE_INSTALL_PREFIX=/path/to/Metafor/install/folder] [-DCMAKE_BUILD_TYPE=Debug] ../oo_meta
 make -j4
-<make install>
 ```
 Notes: 
 * Metafor cannot be built with the "parasolid" interface which uses the same class names as `waves/fwk`
@@ -116,7 +115,7 @@ cd SU2
 git checkout tags/v6.2.0
 unset MKLROOT   # <= MKL should be disabled
 ./bootstrap
-./configure --prefix=/path/to/SU2/install/folder CXXFLAGS="-O3" --enable-mpi --with-cc=/path/to/mpicc --with-cxx=/path/to/mpicxx --enable-PY_WRAPPER [--enable-tecio]
+./configure --prefix=/path/to/SU2/install/folder CXXFLAGS="-O3" [--enable-mpi --with-cc=/path/to/mpicc --with-cxx=/path/to/mpicxx] --enable-PY_WRAPPER [--enable-tecio]
 make -j4
 make install
 ```

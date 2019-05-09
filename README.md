@@ -1,5 +1,6 @@
 # CUPyDO
 FSI tools for partinioned coupling between generic solid and fluid solvers.
+
 [![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 
 ## Features

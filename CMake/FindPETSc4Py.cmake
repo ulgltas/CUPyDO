@@ -1,4 +1,4 @@
-# Copyright 2018 University of Liège
+# Copyright 2018 University of LiÃ¨ge
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,57 +26,57 @@
 #  PETSC4PY_LIBRARIES         - path to PETSc library
 
 IF(PETSC4PY_INCLUDE_DIR)
-  SET(PETSC4PY_FIND_QUIETLY TRUE)
+    SET(PETSC4PY_FIND_QUIETLY TRUE)
 ENDIF(PETSC4PY_INCLUDE_DIR)
 
 IF(NOT PYTHON_EXECUTABLE)
-  IF(PETSC4PY_FIND_REQUIRED)
-    MESSAGE(SEND_ERROR
-      "Python executable not found, so required PETSc4Py module not found"
-    )
-  ENDIF(PETSC4PY_FIND_REQUIRED)
+    IF(PETSC4PY_FIND_REQUIRED)
+        MESSAGE(SEND_ERROR
+            "Python executable not found, so required PETSc4Py module not found"
+        )
+    ENDIF(PETSC4PY_FIND_REQUIRED)
 
 ELSE(NOT PYTHON_EXECUTABLE)
-  EXECUTE_PROCESS(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; print cg.get_python_lib(1,0)"
-    OUTPUT_VARIABLE PYTHON_SITEDIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  EXECUTE_PROCESS(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; from sys import stdout; stdout.write(petsc4py.get_include())"
-    OUTPUT_VARIABLE PETSC4PY_INCLUDE_DIR
-    RESULT_VARIABLE PETSC4PY_NOT_FOUND
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-
-  INCLUDE(FindPackageHandleStandardArgs)
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(PETSc4Py DEFAULT_MSG PETSC4PY_INCLUDE_DIR)
-
-  IF(PETSC4PY_FOUND)
     EXECUTE_PROCESS(
-      COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; print petsc4py.__version__"
-      OUTPUT_VARIABLE PETSC4PY_VERSION
-      RESULT_VARIABLE PETSC4PY_NOT_FOUND
-      OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; print cg.get_python_lib(1,0)"
+        OUTPUT_VARIABLE PYTHON_SITEDIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    IF(NOT PETSC4PY_FIND_QUIETLY)
-      MESSAGE(STATUS "petsc4py version ${PETSC4PY_VERSION} found")
-    ENDIF(NOT PETSC4PY_FIND_QUIETLY)
-    FIND_FILE(PETSC4PY_HEADERS petsc4py.h HINTS ${PETSC4PY_INCLUDE_DIR}/petsc4py ${PYTHON_SITEDIR}/petsc4py/include/petsc4py)
-    IF(NOT PETSC4PY_HEADERS)
-      MESSAGE(STATUS "petsc4py.h not found !")
-    ENDIF(NOT PETSC4PY_HEADERS)
-    FIND_FILE(PETSC4PY_SWIG_FILE petsc4py.i HINTS ${PETSC4PY_INCLUDE_DIR}/petsc4py ${PYTHON_SITEDIR}/petsc4py/include/petsc4py)
-    IF(NOT PETSC4PY_SWIG_FILE)
-      MESSAGE(STATUS "petsc4py.i not found !")
-    ENDIF(NOT PETSC4PY_SWIG_FILE)
-    FIND_FILE(PETSC4PY_LIBRARIES PETSc.so HINTS ${PETSC4PY_INCLUDE_DIR}/../lib ${PETSC4PY_INCLUDE_DIR}/../lib/$ENV{PETSC_ARCH} ${PYTHON_SITEDIR}/petsc4py/lib ${PYTHON_SITEDIR}/petsc4py/lib/$ENV{PETSC_ARCH})
-  ELSE(PETSC4PY_FOUND)
-    IF(PETSC4PY_FIND_REQUIRED)
-      MESSAGE(FATAL_ERROR "petsc4py headers missing")
-    ENDIF(PETSC4PY_FIND_REQUIRED)
-  ENDIF(PETSC4PY_FOUND)
+    EXECUTE_PROCESS(
+        COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; from sys import stdout; stdout.write(petsc4py.get_include())"
+        OUTPUT_VARIABLE PETSC4PY_INCLUDE_DIR
+        RESULT_VARIABLE PETSC4PY_NOT_FOUND
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    INCLUDE(FindPackageHandleStandardArgs)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(PETSc4Py DEFAULT_MSG PETSC4PY_INCLUDE_DIR)
+
+    IF(PETSC4PY_FOUND)
+        EXECUTE_PROCESS(
+            COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; print petsc4py.__version__"
+            OUTPUT_VARIABLE PETSC4PY_VERSION
+            RESULT_VARIABLE PETSC4PY_NOT_FOUND
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        IF(NOT PETSC4PY_FIND_QUIETLY)
+            MESSAGE(STATUS "petsc4py version ${PETSC4PY_VERSION} found")
+        ENDIF(NOT PETSC4PY_FIND_QUIETLY)
+        FIND_FILE(PETSC4PY_HEADERS petsc4py.h HINTS ${PETSC4PY_INCLUDE_DIR}/petsc4py ${PYTHON_SITEDIR}/petsc4py/include/petsc4py)
+        IF(NOT PETSC4PY_HEADERS)
+            MESSAGE(STATUS "petsc4py.h not found !")
+        ENDIF(NOT PETSC4PY_HEADERS)
+        FIND_FILE(PETSC4PY_SWIG_FILE petsc4py.i HINTS ${PETSC4PY_INCLUDE_DIR}/petsc4py ${PYTHON_SITEDIR}/petsc4py/include/petsc4py)
+        IF(NOT PETSC4PY_SWIG_FILE)
+            MESSAGE(STATUS "petsc4py.i not found !")
+        ENDIF(NOT PETSC4PY_SWIG_FILE)
+        FIND_FILE(PETSC4PY_LIBRARIES PETSc.so HINTS ${PETSC4PY_INCLUDE_DIR}/../lib ${PETSC4PY_INCLUDE_DIR}/../lib/$ENV{PETSC_ARCH} ${PYTHON_SITEDIR}/petsc4py/lib ${PYTHON_SITEDIR}/petsc4py/lib/$ENV{PETSC_ARCH})
+    ELSE(PETSC4PY_FOUND)
+        IF(PETSC4PY_FIND_REQUIRED)
+            MESSAGE(FATAL_ERROR "petsc4py headers missing")
+        ENDIF(PETSC4PY_FIND_REQUIRED)
+    ENDIF(PETSC4PY_FOUND)
 
 ENDIF(NOT PYTHON_EXECUTABLE)
 

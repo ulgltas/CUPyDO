@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of LiÃ¨ge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ threads="1"
 %}
 
 // petite bidouille pour pouvoir compiler avec "threads=1" et iterer sur des std_vector
-// (sinon ca explose à la destruction de l'iterateur)
+// (sinon ca explose ï¿½ la destruction de l'iterateur)
 %nothread swig::SwigPyIterator::~SwigPyIterator();
 
 // ----------- MODULES UTILISES ------------

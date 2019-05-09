@@ -3,14 +3,14 @@
 =========================================================================
 
 CUPyDO
-Copyright 2018-2019 University of Liège.
+Copyright 2018-2019 University of LiÃ¨ge.
 
-This software was developed at the University of Liège (Belgium) by: 
+This software was developed at the University of LiÃ¨ge (Belgium) by: 
 
 David THOMAS
 Marco Lucio CERQUAGLIA
 Adrien CROVATO
-Mariano MARTINEZ SANCHEZ
+Mariano SANCHEZ MARTINEZ
 Romain BOMAN
 
 Portions of this software were developed with the help of Christophe GEUZAINE and Luc PAPELEUX.

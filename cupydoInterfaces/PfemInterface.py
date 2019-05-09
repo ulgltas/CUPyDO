@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Li�ge
+Copyright 2018 University of Liège
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -199,11 +199,6 @@ class PfemSolver(FluidSolver):
         Des.
         """
         
-        #for extractor in self.realTimeExtractorsList:
-        #    extractorName = extractor.dofName
-        #    solFile = open(extractorName + '.ascii', "w")
-        #    solFile.write("Time\tnIter\tValue\n")
-        #    solFile.close() #Should we keep it open?
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()
@@ -219,15 +214,6 @@ class PfemSolver(FluidSolver):
         Des.
         """
         
-        #for extractor in self.realTimeExtractorsList:
-        #    data = extractor.extract()
-        #    extractorName = extractor.dofName
-        #    solFile = open(extractorName + '.ascii', "a")
-        #    buff = str()
-        #    for ii in range(data.size()):
-        #        buff = buff + '\t' + str(data[ii])
-        #    solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
-        #    solFile.close()
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()

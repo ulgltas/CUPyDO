@@ -1,18 +1,19 @@
 # CUPyDO
 FSI tools for partinioned coupling between generic solid and fluid solvers.
+[![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 
 ## Features
 As of December 2018, interfaces for the following solvers are implemented:
 
 - Solid:
-  - Metafor --> A Nonlinear Finite Element solid solver developed at the University of Liege (http://metafor.ltas.ulg.ac.be/dokuwiki/)
-  - RBM --> A dynamic 2dof pitch/plunge solid solver developed at the University of Liege (https://github.com/ulgltas/NativeSolid)
-  - Modal Solver -> A static/dynamic modal solver developed at the University of Liege (https://github.com/ulgltas/ModalSolver)
-  - GetDP --> A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liege (http://getdp.info/)
+  - Metafor --> A Nonlinear Finite Element solid solver developed at the University of Liège (http://metafor.ltas.ulg.ac.be/dokuwiki/)
+  - RBM --> A dynamic 2dof pitch/plunge solid solver developed at the University of Liège (https://github.com/ulgltas/NativeSolid)
+  - Modal Solver -> A static/dynamic modal solver developed at the University of Liège (https://github.com/ulgltas/ModalSolver)
+  - GetDP --> A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liège (http://getdp.info/)
 - Fluid:
-  - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liege (https://github.com/ulgltas/PFEM)
+  - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liège (https://github.com/ulgltas/PFEM)
   - SU2 --> Open-source CFD code developed at Stanford University (http://su2.stanford.edu/)
-  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liege (https://github.com/ulgltas/waves)
+  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège (https://github.com/ulgltas/waves)
 
 ## CUPyDO Compilation (linux - gcc)
 Required packages
@@ -85,7 +86,7 @@ make -j4
 ```
 Notes: 
 * Metafor cannot be built with the "parasolid" interface which uses the same class names as `waves/fwk`
-* A "stdent" configuration can be safely used.
+* A "sutdent" configuration can be used but some tests will not pass due to license restrictions.
 
 ### RBM [NativeSolid]
 [Linux]
@@ -172,6 +173,3 @@ Examples of simulations are available in [CUPyDO/tests](https://github.com/ulglt
 Cerquaglia M.L., Thomas D., Boman R., Terrapon V.E., Ponthot J.-P., [A fully partitioned Lagrangian framework for FSI problems characterized by free surfaces, large solid deformations and displacements, and strong added-mass effects](https://doi.org/10.1016/j.cma.2019.01.021), Computer Methods in Applied Mechanics and Engineering, in press (2019)
 
 Thomas D., Cerquaglia M.L., Boman R., Economon T.D., Alonso J.J., Dimitriadis G., Terrapon V.E., [CUPyDO - An integrated Python environment for coupled multi-physics simulations](https://doi.org/10.1016/j.advengsoft.2018.05.007), Advances in Engineering Software 128:69-85 (2019)
-
-[![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
-

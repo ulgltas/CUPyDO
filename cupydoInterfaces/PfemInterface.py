@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -200,10 +200,14 @@ class PfemSolver(FluidSolver):
         """
         
         for extractor in self.realTimeExtractorsList:
-            extractorName = extractor.dofName
+            data = extractor.extract()
+            extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "w")
-            solFile.write("Time\tnIter\tValue\n")
-            solFile.close() #Should we keep it open?
+            solFile.write("{0:>12s}   {1:>12s}".format("Time", "FSI_Iter"))
+            for ii in range(len(data)):
+                solFile.write("   {0:>12s}".format("Value_"+str(ii)))
+            solFile.write("\n")
+            solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
         """
@@ -212,12 +216,12 @@ class PfemSolver(FluidSolver):
         
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
-            extractorName = extractor.dofName
+            extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "a")
-            buff = str()
-            for ii in range(data.size()):
-                buff = buff + '\t' + str(data[ii])
-            solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
+            solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
+            for d in data:
+                solFile.write("   {0:12.6f}".format(d))
+            solFile.write("\n")
             solFile.close()
     
     def printRealTimeData(self, time, nFSIIter):
@@ -229,8 +233,8 @@ class PfemSolver(FluidSolver):
             data = extractor.extract()
             extractorName = extractor.dofName
             buff = str()
-            for ii in range(data.size()):
-                buff = buff + '\t' + str(data[ii])
+            for d in data:
+                buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
             print toPrint
     
@@ -242,8 +246,8 @@ class PfemSolver(FluidSolver):
         """
         Exits the Pfem solver.
         """
-        if not self.pfem.gui==None:
-            self.pfem.gui.save2vtk()
+        #if not self.pfem.gui==None:
+        #    self.pfem.gui.save2vtk()
         self.pfem.scheme.exit()
         
         print("\n***************************** Exit Pfem *****************************")

@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,8 +47,12 @@ class SU2Solver(FluidSolver):
         """
 
         # --- Instantiate the single zone driver of SU2 --- #
+        # @todo [Adrien Crovato ]Change CFluidDriver constructor
+        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
+        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
+        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
         try:
-            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, MPIComm)
+            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, False, MPIComm)
         except TypeError as exception:
             print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
             if have_MPI == True:
@@ -74,7 +78,7 @@ class SU2Solver(FluidSolver):
                 if allMovingMarkersTags[0] in allMarkersID.keys():
                     self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
             else:
-                raise Exception("Moving and CHT markes have to be the same.")
+                raise Exception("Moving and CHT markers have to be the same!\n")
 
         self.computationType = computationType                                    # computation type : steady (default) or unsteady
         self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)
@@ -303,7 +307,7 @@ class SU2Solver(FluidSolver):
         """
 
         solFile = open('AerodynamicCoeff.ascii', "w")
-        solFile.write("Time\tnIter\tCl\tCd\n")
+        solFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
         solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
@@ -315,7 +319,8 @@ class SU2Solver(FluidSolver):
         CDrag = self.SU2.Get_DragCoeff()
 
         solFile = open('AerodynamicCoeff.ascii', "a")
-        solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(CLift)  + '\t' + str(CDrag) + '\n')
+        solFile.write("{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}\n".format(time, nFSIIter, CLift, CDrag))
+        solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
         """

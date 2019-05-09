@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,14 +52,14 @@ def runOne(donfile, nbProcs, nthreads):
             cmd = [r"python"]
             cmd += [donfile]
             if not int(nthreads) == 1:
-                cmd += ["--nthreads"]
+                cmd += ["-n"]
                 cmd += [nthreads]
         else:
             cmd = [r"mpirun"]
             cmd += ["--np"]
             cmd += [nbProcs]
             '''if not int(nthreads)==1:
-                cmd += ["--nthreads"]
+                cmd += ["-n"]
                 cmd += [nthreads]'''    # --> TODO it here as well? 
             cmd += ["python"]
             cmd += [donfile]
@@ -232,7 +232,7 @@ def main():
                         help='instruction to be executed by battery')
     parser.add_argument('--np', dest='nbProcs', type=str, default='0',
                         help='number of processors for MPI computations (default=1)')
-    parser.add_argument('--nthreads', dest='nthreads', type=str, default='1',
+    parser.add_argument('-n', dest='nthreads', type=str, default='1',
                         help='number of threads for shared memory computations of each solver (default=1)')
     parser.add_argument('tests', type=str, nargs='+',
                         help='relative path to test files (can be a directory)')

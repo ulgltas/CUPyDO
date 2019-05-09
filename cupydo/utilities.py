@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ limitations under the License.
 
 utilities.py
 Common utilities (MPI functions, timer, ...) for CUPyDO.
-Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
+Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 
 '''
 
@@ -36,7 +36,7 @@ import time as tm
 import socket, fnmatch
 import fsi_pyutils
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=sys.maxsize)
 
 # global vars (underscore prevent them to be imported with "from module import *")
 _theModule  = None
@@ -122,106 +122,140 @@ def QRfiltering_mod(V, W, toll):
 
 # ------------------------------------------------------------------------------
 
-def load(fsiTxt, mpi_opt, com, my_id, number_part):
-    """load a module and make it the current one
+def setDirs(fpath):
+    """Add file dir to python path and setup the working directory
     """
-    global _theModule
+    import os, sys
+    # append to python path
+    sys.path.append(os.path.dirname(fpath)) # [RB] !this folder is can be a subfolder of one of the folders in the pythonpath
+    base = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ' ')) # find base directory
+    print base
+    common = os.path.commonprefix((fpath, base)) # find common part of testname ad base name
+    resdir = os.path.splitext(fpath[len(common):].replace(os.sep,"_"))[0] # common part, change seprator to underscore and remove ".py"
+    wdir=os.path.join('workspace', resdir) # that is our workspace!
+    if not os.path.isdir(wdir):
+        print "creating", wdir
+        os.makedirs(wdir)
+    print 'changing to', wdir
+    os.chdir(wdir)
 
-    if not isinstance(fsiTxt, str): raise Exception("argument must be a string!")
-    if _theModule: raise Exception("no more than one module may be loaded!")
-
-    if fsiTxt=="__main__": # on est dans un script => getpfem est/sera dans __main__
-        _theModule = sys.modules['__main__']
+def getMpi():
+    """
+    Get MPI parameters
+    """
+    from ccupydo import CMpi
+    cmpi = CMpi()
+    if cmpi.haveMPI:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        myid = comm.Get_rank()
+        numberPart = comm.Get_size()
     else:
-        if os.path.isfile(fsiTxt): # c'est une nom de fichier => on convertit en nom de module
-            module = pyutils.fileToModule(fsiTxt, verb=False)
-            if not module: raise Exception('file "%s" is not a reachable python module!' % fsiTxt)
-            fsiTxt = module
-        # ici, on a un nom de module...
-        exec("import %s" % fsiTxt) # peut on le faire plus tard?
-        exec("globals()['_theModule'] = %s" % fsiTxt)
-        print "module '%s' loaded!" % fsiTxt
-        #print '_theModule', _theModule
+        comm = None
+        myid = 0
+        numberPart = 1
+    return cmpi.haveMPI, comm, myid, numberPart
 
-    setTheWDir(fsiTxt)
-    setDir(_theWDir)
-    _chkWorkspace()
+#def load(fsiPath, fsiTxt, mpi_opt, com, my_id, number_part):
+#    """load a module and make it the current one
+#    """
+#    global _theModule
+#
+#    if not isinstance(fsiTxt, str): raise Exception("argument must be a string!")
+#    if _theModule: raise Exception("no more than one module may be loaded!")
+#
+#    if fsiTxt=="__main__": # on est dans un script => getpfem est/sera dans __main__
+#        _theModule = sys.modules['__main__']
+#    else:
+#        if os.path.isfile(fsiTxt): # c'est une nom de fichier => on convertit en nom de module
+#            module = pyutils.fileToModule(fsiTxt, verb=False)
+#            if not module: raise Exception('file "%s" is not a reachable python module!' % fsiTxt)
+#            fsiTxt = module
+#        # ici, on a un nom de module...
+#        exec("import %s" % fsiTxt) # peut on le faire plus tard?
+#        exec("globals()['_theModule'] = %s" % fsiTxt)
+#        print "module '%s' loaded!" % fsiTxt
+#        #print '_theModule', _theModule
+#
+#    setTheWDir(os.path.basename(fsiPath)+'_'+fsiTxt)
+#    setDir(_theWDir)
+#    _chkWorkspace()
+#
+#    if mpi_opt == True:
+#        from mpi4py import MPI  # MPI is initialized from now by python and can be continued in C++ !
+#        com = MPI.COMM_WORLD
+#        my_id = com.Get_rank()
+#        number_part = com.Get_size()
+#    else:
+#        com = None
+#        my_id = 0
+#        number_part = 1
+#
+#    return _theModule
 
-    if mpi_opt == True:
-        from mpi4py import MPI  # MPI is initialized from now by python and can be continued in C++ !
-        com = MPI.COMM_WORLD
-        my_id = com.Get_rank()
-        number_part = com.Get_size()
-    else:
-        com = None
-        my_id = 0
-        number_part = 1
+#def setTheWDir(fsiTxt):
+#    global _theWDir
+#    _theWDir = defaultWDir(fsiTxt)
+#    # on fait un chdir si ce rep existe!
+#    if os.path.isdir(_theWDir):
+#        setDir(_theWDir)
+#
+#    return _theWDir
 
-    return _theModule
+#def defaultWDir(moduleTxt):
+#    global _theWDirRoot
+#    return os.path.join(_theWDirRoot, os.path.join("workspace", moduleTxt.replace('.','_') )) # default WDir for the module
 
-def setTheWDir(fsiTxt):
-    global _theWDir
-    _theWDir = defaultWDir(fsiTxt)
-    # on fait un chdir si ce rep existe!
-    if os.path.isdir(_theWDir):
-        setDir(_theWDir)
+#def setDir(wdir):  # (avant instance) - change le rep courant
+#    global _theWDirRoot
+#    """ change the current working directory
+#    """
+#    if wdir:
+#        if not os.path.isabs(wdir):
+#            os.path.join(_theWDirRoot, wdir)
+#        try:
+#            if not os.path.isdir(wdir):
+#                os.makedirs(wdir)
+#            os.chdir(wdir)
+#        except OSError, e:
+#            print "OSError : ", e
+#            # check UAC (Vista) or root-protected dirs (Unix)
+#            text = 'Directory "%s" may not be created.\n' % wdir
+#            text += 'Disable UAC (vista) or ask for root privilege (Unix) if you still want to work here.\n'
+#            text += 'Otherwise, rebase to another directory!'
+#            try: wrap.GUILink().warningMsg(text)
+#            except: pass
+#            raise Exception('directory "%s" cannot be created' % wdir)
+#    global _theWDir
+#    _theWDir = os.getcwd() # stoque un chemin absolu meme si ca a merde.
+#    print "_theWDir = ", _theWDir
 
-    return _theWDir
-
-def defaultWDir(moduleTxt):
-    global _theWDirRoot
-    return os.path.join(_theWDirRoot, os.path.join("workspace", moduleTxt.replace('.','_') )) # default WDir for the module
-
-def setDir(wdir):  # (avant instance) - change le rep courant
-    global _theWDirRoot
-    """ change the current working directory
-    """
-    if wdir:
-        if not os.path.isabs(wdir):
-            os.path.join(_theWDirRoot, wdir)
-        try:
-            if not os.path.isdir(wdir):
-                os.makedirs(wdir)
-            os.chdir(wdir)
-        except OSError, e:
-            print "OSError : ", e
-            # check UAC (Vista) or root-protected dirs (Unix)
-            text = 'Directory "%s" may not be created.\n' % wdir
-            text += 'Disable UAC (vista) or ask for root privilege (Unix) if you still want to work here.\n'
-            text += 'Otherwise, rebase to another directory!'
-            try: wrap.GUILink().warningMsg(text)
-            except: pass
-            raise Exception('directory "%s" cannot be created' % wdir)
-    global _theWDir
-    _theWDir = os.getcwd() # stoque un chemin absolu meme si ca a merde.
-    print "_theWDir = ", _theWDir
-
-def _chkWorkspace():
-    """ Check/Clean workspace
-    """
-    flist=[]
-    for file in os.listdir('.'):
-        if os.path.isdir(file):
-            raise Exception("Your workspace contains one or more directories!")
-        elif os.path.isfile(file):
-            for sk in ['*.fdb','*.conf','*.msh']: # files to keep
-                if fnmatch.fnmatch(os.path.basename(file), sk):
-                    break
-            else:
-                flist.append(os.path.abspath(file))
-
-    if flist:
-        answer = True
-        try: answer = wrap.GUILink().askDelete(flist)
-        except: pass
-        if answer:
-            for file in flist:
-                try:
-                    os.remove(file)
-                except:
-                    print "Unable to remove", file
-        else:
-            raise Exception("meta() cancelled!")
+#def _chkWorkspace():
+#    """ Check/Clean workspace
+#    """
+#    flist=[]
+#    for file in os.listdir('.'):
+#        if os.path.isdir(file):
+#            raise Exception("Your workspace contains one or more directories!")
+#        elif os.path.isfile(file):
+#            for sk in ['*.fdb','*.conf','*.msh']: # files to keep
+#                if fnmatch.fnmatch(os.path.basename(file), sk):
+#                    break
+#            else:
+#                flist.append(os.path.abspath(file))
+#
+#    if flist:
+#        answer = True
+#        try: answer = wrap.GUILink().askDelete(flist)
+#        except: pass
+#        if answer:
+#            for file in flist:
+#                try:
+#                    os.remove(file)
+#                except:
+#                    print "Unable to remove", file
+#        else:
+#            raise Exception("meta() cancelled!")
 
 
 # ----------------------------------------------------------------------

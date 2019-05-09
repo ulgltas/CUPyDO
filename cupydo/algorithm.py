@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,12 +32,13 @@ import numpy as np
 import scipy as sp
 import traceback
 import copy
+import sys
 
 import ccupydo
 from utilities import *
 from interfaceData import FlexInterfaceData
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #    Algorithm class
@@ -474,6 +475,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.deltaT = self.totTime
                 self.writeInFSIloop = True
                 self.fsiCoupling()
+                self.FluidSolver.save(self.timeIter)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.save()
                 self.totNbOfFSIIt = self.FSIIter
         except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
@@ -569,10 +573,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
         Des
         """
 
+        if self.myid == 0:
+            self.FluidSolver.initRealTimeData()
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
         histFile = open('FSIhistory.ascii', "w")
-        histFile.write("TimeIter\tTime\tFSIError\tCHTError\tFSINbIter\tomegaMecha\tomegaThermal\n")
+        histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}   {4:>12s}   {5:>12s}   {6:>12s}\n".format("TimeIter", "Time", "FSIError", "CHTError", "FSINbIter", "omegaMecha", "omegaThermal"))
         histFile.close()
 
     def writeRealTimeData(self):
@@ -585,7 +591,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             if self.timeIter >= self.timeIterTreshold:
                 self.SolidSolver.saveRealTimeData(self.time, self.FSIIter)
             histFile = open('FSIhistory.ascii', "a")
-            histFile.write(str(self.timeIter) + '\t' + str(self.time) + '\t' + str(self.errValue) + '\t' + str(self.errValue_CHT) + '\t' + str(self.FSIIter) + '\t' + str(self.omegaMecha) + '\t' + str(self.omegaThermal) + '\n')
+            histFile.write('{0:12d}   {1:.6e}   {2:.6e}   {3:.6e}   {4:12d}   {5:.6e}   {6:.6e}\n'.format(self.timeIter, self.time, self.errValue, self.errValue_CHT, self.FSIIter, self.omegaMecha, self.omegaThermal))
             histFile.close()
 
     def getMeanNbOfFSIIt(self):
@@ -1033,15 +1039,16 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         self.errValue_CHT = 1e6 # Just for compatibility. CHT not yet implemented for the IQN-ILS algorithm.
         
         ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
 
         # --- Initialize all the quantities used in the IQN-ILS method --- #
         res = FlexInterfaceData(ns, 3, self.mpiComm)
-        solidInterfaceResidual0 = FlexInterfaceData(ns, 3, self.mpiComm)
+        solidInterfaceResidual0 = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         solidInterfaceDisplacement_tilde = FlexInterfaceData(ns, 3, self.mpiComm)
         solidInterfaceDisplacement_tilde1 = FlexInterfaceData(ns, 3, self.mpiComm)
 
-        delta_ds = FlexInterfaceData(ns, 3, self.mpiComm)
+        delta_ds = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         Vk_mat = np.zeros((self.manager.nDim*ns,1))
         Wk_mat = np.zeros((self.manager.nDim*ns,1))
@@ -1117,18 +1124,24 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
                     
                     # --- Start gathering on root process --- #
-                    res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns, self.mpiComm, 0)
-                    solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns, self.mpiComm, 0)
+                    res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)
+                    res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                    res_Y_Gat_C = res_Y_Gat[:ns]
+                    res_Z_Gat_C = res_Z_Gat[:ns]
+                    solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns+d, self.mpiComm, 0)
+                    solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                    solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
+                    solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
                     solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
                     solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
                     
                     if self.myid == 0:
                         if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
                             if self.manager.nDim == 3:
-                                delta_res = np.concatenate([res_X_Gat - solidInterfaceResidual0_X_Gat, res_Y_Gat - solidInterfaceResidual0_Y_Gat, res_Z_Gat - solidInterfaceResidual0_Z_Gat], axis=0)
+                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
                                 delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
                             else:
-                                delta_res = np.concatenate([res_X_Gat - solidInterfaceResidual0_X_Gat, res_Y_Gat - solidInterfaceResidual0_Y_Gat], axis=0)
+                                delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C], axis=0)
                                 delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat], axis = 0)
                             
                             Vk.insert(0, delta_res)
@@ -1148,9 +1161,9 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                         dummy_W = Wk_mat.copy()
                         
                         if self.manager.nDim == 3:
-                            dummy_Res = np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)
+                            dummy_Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)
                         else:
-                            dummy_Res = np.concatenate([res_X_Gat, res_Y_Gat], axis=0)
+                            dummy_Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)
                         
                         if self.useQR: # Technique described by Degroote et al.
                             c, dummy_W = self.qrSolve(dummy_V, dummy_W, dummy_Res)
@@ -1158,13 +1171,13 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                             c = np.linalg.lstsq(dummy_V, -dummy_Res)[0] # Classical QR decomposition: NOT RECOMMENDED!
                         
                         if self.manager.nDim == 3:
-                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat, res_Y_Gat, res_Z_Gat], axis=0)),3,axis=0)
+                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)),3,axis=0)
                             
                             delta_ds_loc_X = delta_ds_loc[0]
                             delta_ds_loc_Y = delta_ds_loc[1]
                             delta_ds_loc_Z = delta_ds_loc[2]
                         else:
-                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat, res_Y_Gat], axis=0)),2,axis=0)
+                            delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)),2,axis=0)
                             
                             delta_ds_loc_X = delta_ds_loc[0]
                             delta_ds_loc_Y = delta_ds_loc[1]

@@ -6,21 +6,15 @@
 *.res
 *.old
 
-exe/workspace/
+workspace/
 exe/*.sh
 
 apps/
-
-tests/FSICoupler/workspace/
-tests/Metafor/workspace/
-tests/PFEM/workspace/
-tests/SU2/workspace/
-tests/PFEM_Metafor/workspace/
-tests/SU2_Metafor/workspace/
-tests/SU2_GetDP/workspace/
 
 *.bfac.gz
 
 build*
 ccupydo/*.so
 ccupydo/CCupydo*
+
+.vscode/

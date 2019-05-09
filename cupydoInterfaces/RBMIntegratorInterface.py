@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -149,17 +149,12 @@ class RBMIntegrator(SolidSolver):
         Des.
         """
 
-        solFile = open('NodalDisplacement.ascii', "w")
-        solFile.write("Time\tnIter\tValue\n")
-        solFile.close()
-
     def saveRealTimeData(self, time, nFSIIter):
         """
         Des.
         """
 
-        solFile = open('NodalDisplacement.ascii', "a")
-        solFile.write(str(time) + '\t' + str(nFSIIter) + '\t' + str(0.0) + '\n')
+        self.NativeSolid.writeSolution(time, nFSIIter)
 
     def save(self):
         """

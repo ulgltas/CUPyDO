@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of Liège
+ * Copyright 2018 University of LiÃ¨ge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,66 +23,76 @@
 #include <cassert>
 #include <vector>
 
-#include "../include/cMpi.h"
-#include "../include/cManager.h"
+#include "cMpi.h"
+#include "cManager.h"
 
 using namespace std;
 
-CManager::CManager(){
+CManager::CManager()
+{
 
 #ifdef HAVE_MPI
-  MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
-#else //HAVE_MPI
-  mpiSize = 1;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
+#else  //HAVE_MPI
+    mpiSize = 1;
 #endif //HAVE_MPI
-  nPhyscis = 2;
-  nIndex = 2;
+    nPhyscis = 2;
+    nIndex = 2;
 
-  globalIndexRange.resize(nPhyscis);
+    globalIndexRange.resize(nPhyscis);
 
-  for(unsigned int ii=0; ii<globalIndexRange.size(); ii++){
-    globalIndexRange[ii].resize(mpiSize);
-    for(unsigned int jj=0; jj < globalIndexRange[ii].size(); jj++){
-      globalIndexRange[ii][jj].resize(nIndex);
+    for (unsigned int ii = 0; ii < globalIndexRange.size(); ii++)
+    {
+        globalIndexRange[ii].resize(mpiSize);
+        for (unsigned int jj = 0; jj < globalIndexRange[ii].size(); jj++)
+        {
+            globalIndexRange[ii][jj].resize(nIndex);
+        }
     }
-  }
-
 }
 
-CManager::~CManager(){
+CManager::~CManager()
+{
 
 #ifndef NDEBUG
-  cout << "Calling CManager::~CManager()" << endl;
-#endif  //NDEBUG
-
+    cout << "Calling CManager::~CManager()" << endl;
+#endif //NDEBUG
 }
 
-int CManager::getGlobalIndex(string const& str_physics, int const& iProc, int const& iVertex){
+int CManager::getGlobalIndex(string const &str_physics, int const &iProc, int const &iVertex)
+{
 
+    int physics;
 
-  int physics;
+    if (str_physics.compare("fluid") == 0)
+        physics = 0;
+    else if (str_physics.compare("solid") == 0)
+        physics = 1;
+    else
+        physics = 1000;
 
-  if(str_physics.compare("fluid") == 0) physics = 0;
-  else if(str_physics.compare("solid") == 0) physics = 1;
-  else physics=1000;
-
-  return globalIndexRange[physics][iProc][0] + iVertex;
-
+    return globalIndexRange[physics][iProc][0] + iVertex;
 }
 
-void CManager::setGlobalIndexing(std::string str_physics,std::vector<std::vector<int> > index_range){
+void CManager::setGlobalIndexing(std::string str_physics, std::vector<std::vector<int>> index_range)
+{
 
-  int physics;
+    int physics;
 
-  assert(index_range.size() == static_cast<unsigned int>(mpiSize));
+    assert(index_range.size() == static_cast<unsigned int>(mpiSize));
 
-  if(str_physics.compare("fluid") == 0) physics = 0;
-  else if(str_physics.compare("solid") == 0) physics = 1;
-  else physics=1000;
+    if (str_physics.compare("fluid") == 0)
+        physics = 0;
+    else if (str_physics.compare("solid") == 0)
+        physics = 1;
+    else
+        physics = 1000;
 
-  for(int ii=0; ii < mpiSize; ii++){
-    for(int jj=0; jj < 2; jj++){
-      globalIndexRange[physics][ii][jj] = index_range[ii][jj];
+    for (int ii = 0; ii < mpiSize; ii++)
+    {
+        for (int jj = 0; jj < 2; jj++)
+        {
+            globalIndexRange[physics][ii][jj] = index_range[ii][jj];
+        }
     }
-  }
 }

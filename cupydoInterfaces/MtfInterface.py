@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -131,10 +131,10 @@ class MtfSolver(SolidSolver):
         self.nodalVel_YNm1 = self.nodalVel_Y.copy()
         self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
         
-        self.initRealTimeData()
-        
         # Last build operation
         self.metafor.getDomain().build() # NB: necessary to complete Metafor initialization!
+        
+        self.initRealTimeData() #NB: to be called after self.metafor.getDomain().build() otherwise no proper extractors usage!
         
     def run(self, t1, t2):
         """
@@ -360,10 +360,14 @@ class MtfSolver(SolidSolver):
         """
         
         for extractor in self.realTimeExtractorsList:
+            data = extractor.extract()
             extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "w")
-            solFile.write("Time\tnIter\tValue\n")
-            solFile.close() #Should we keep it open?
+            solFile.write("{0:>12s}   {1:>12s}".format("Time", "FSI_Iter"))
+            for ii in range(len(data)):
+                solFile.write("   {0:>12s}".format("Value_"+str(ii)))
+            solFile.write("\n")
+            solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
         """
@@ -374,10 +378,10 @@ class MtfSolver(SolidSolver):
             data = extractor.extract()
             extractorName = extractor.buildName()
             solFile = open(extractorName + '.ascii', "a")
-            buff = str()
-            for ii in range(data.size()):
-                buff = buff + '\t' + str(data[ii])
-            solFile.write(str(time) + '\t' + str(nFSIIter) + buff + '\n')
+            solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
+            for d in data:
+                solFile.write("   {0:12.6f}".format(d))
+            solFile.write("\n")
             solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
@@ -389,8 +393,8 @@ class MtfSolver(SolidSolver):
             data = extractor.extract()
             extractorName = extractor.buildName()
             buff = str()
-            for ii in range(data.size()):
-                buff = buff + '\t' + str(data[ii])
+            for d in data:
+                buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
             print toPrint
     

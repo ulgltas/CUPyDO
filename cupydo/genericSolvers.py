@@ -1,9 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: latin-1; -*-
+# -*- coding: utf8 -*-
 
 ''' 
 
-Copyright 2018 University of Liège
+Copyright 2018 University of LiÃ¨ge
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 # ----------------------------------------------------------------------
 
 import numpy as np
+import sys
 
-np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=sys.maxsize)
 
 # ----------------------------------------------------------------------
 #  Generic solid solver class
@@ -161,8 +162,7 @@ class SolidSolver:
 # ----------------------------------------------------------------------
 
 class FluidSolver:
-    """
-    Des.
+    """Generic fluid solver class
     """
 
     def __init__(self):
@@ -196,7 +196,7 @@ class FluidSolver:
     def preprocessTimeIter(self, timeIter):
         return
 
-    def run(self):
+    def run(self, t1, t2):
         return
 
     def getNodalIndex(self, iVertex):

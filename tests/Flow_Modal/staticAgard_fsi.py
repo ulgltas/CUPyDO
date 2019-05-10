@@ -79,7 +79,7 @@ def main(_p, nogui):
     solidSolver = None
     if myid == rootProcess:
         import cupydoInterfaces.ModalInterface
-        solidSolver = cupydoInterfaces.ModalInterface.ModalInterface(csd_module, p['computationType'])
+        solidSolver = cupydoInterfaces.ModalInterface.Modal(csd_module, p['computationType'])
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #

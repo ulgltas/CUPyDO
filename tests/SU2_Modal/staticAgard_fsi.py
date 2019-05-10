@@ -72,7 +72,7 @@ def main(_p, nogui):
     rootProcess = 0
 
     # --- Input parameters --- #
-    cfd_file = os.path.join(filePath,'agard_static_fluid.cfg')
+    cfd_file = os.path.join(filePath,'staticAgard_fluid.cfg')
     csd_file = 'agard_solid'
 
     # --- Initialize the fluid solver --- #
@@ -87,7 +87,7 @@ def main(_p, nogui):
     solidSolver = None
     if myid == rootProcess:
         import cupydoInterfaces.ModalInterface
-        solidSolver = cupydoInterfaces.ModalInterface.ModalInterface(csd_file, p['computationType'])
+        solidSolver = cupydoInterfaces.ModalInterface.Modal(csd_file, p['computationType'])
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #

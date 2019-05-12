@@ -83,19 +83,19 @@ def main(_p, nogui):
     csd_file = '../../tests/SU2_RBM/PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg'
 
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.SU2Interface
+    import cupydo.interfaces.SU2 as fItf
     if comm != None:
-      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+      fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
     else:
-      fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+      fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
   
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-      import cupydoInterfaces.RBMIntegratorInterface
-      solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
+      import cupydo.interfaces.RBMI as sItf
+      solidSolver = sItf.RBMI(csd_file, p['computationType'])
 
     cupyutil.mpiBarrier(comm)
 

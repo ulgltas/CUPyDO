@@ -93,16 +93,16 @@ def main(_p, nogui):
     csd_file = filePath + "/" + fileName[:-3] + "solid.cfg"
     
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.FlowInterface
-    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_module, p['nthreads'])
+    import cupydo.interfaces.Flow as fItf
+    fluidSolver = fItf.Flow(cfd_module, p['nthreads'])
     
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.RBMIntegratorInterface
-        solidSolver = cupydoInterfaces.RBMIntegratorInterface.RBMIntegrator(csd_file, p['computationType'])
+        import cupydo.interfaces.RBMI as sItf
+        solidSolver = sItf.RBMI(csd_file, p['computationType'])
         
     cupyutil.mpiBarrier(comm)
         

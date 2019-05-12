@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-SU2Interface.py
+SU2.py
 Python interface between the wrapper of SU2 and CUPyDO.
 Authors D. THOMAS
 
@@ -33,10 +33,10 @@ import numpy as np
 from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
-#  SU2 solver class
+#  SU2 solver interface class
 # ----------------------------------------------------------------------
 
-class SU2Solver(FluidSolver):
+class SU2(FluidSolver):
     """
     SU2 solver interface.
     """

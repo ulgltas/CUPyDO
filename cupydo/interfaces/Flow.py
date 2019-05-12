@@ -13,9 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-@file FlowInterface.py
-@brief Python interface between Flow and CUPyDO.
-@author A. Crovato
+Flow.py
+Python interface between Flow and CUPyDO.
+Authors A. Crovato
 """
 
 # ----------------------------------------------------------------------
@@ -33,7 +33,7 @@ class Flow(FluidSolver):
     def __init__(self, _module, _nthreads, _saveFreq = sys.maxsize):
         # load the python module and initialize the solver
         module = __import__(_module)
-        self.initFlow(module.getParams(), _nthreads)
+        self.__initFlow(module.getParams(), _nthreads)
 
         # count fsi nodes and get their positions
         self.nNodes = self.boundary.nodes.size()
@@ -47,7 +47,7 @@ class Flow(FluidSolver):
         # generic init
         FluidSolver.__init__(self)
 
-    def initFlow(self, p, _nthreads):
+    def __initFlow(self, p, _nthreads):
         """Initilize flow classes
         Adrien Crovato
         """
@@ -229,11 +229,11 @@ class Flow(FluidSolver):
         """Save data at each fsi iteration
         Adrien Crovato
         """
-        # History at each iteration
+        # history at each iteration
         histFile = open('FlowHistory.dat', 'a')
         histFile.write('{0:12.6f}   {1:12d}   {2:12.6f}   {3:12.6f}   {4:12.6f}\n'.format(time, nFSIIter, self.solver.Cl, self.solver.Cd, self.solver.Cm))
         histFile.close()
-        # Full solution at user-defined frequency
+        # full solution at user-defined frequency
         if np.mod(nFSIIter+1, self.saveFreq) == 0:
             self.solver.save(1000000+int(nFSIIter+1)/int(self.saveFreq), self.mshWriter)
 

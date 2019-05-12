@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-PfemInterface.py
+Pfem.py
 Python interface between the wrapper of PFEM solver and CUPyDO.
 Authors M.L. CERQUAGLIA
 
@@ -33,10 +33,10 @@ import numpy as np
 from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
-#  PfemSolver class
+#  Pfem solver interface class
 # ----------------------------------------------------------------------
 
-class PfemSolver(FluidSolver):
+class Pfem(FluidSolver):
     def __init__(self, testname, bndno, dt):
         
         print '\n***************************** Initializing Pfem *****************************'

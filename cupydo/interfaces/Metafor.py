@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-MtfInterface.py
+Metafor.py
 Python interface between the wrapper of Metafor and CUPyDO.
 Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 
@@ -56,10 +56,10 @@ class NLoad:
         self.val1 = self.val2
 
 # ----------------------------------------------------------------------
-#  MtfSolver class
+#  Metafor solver interface class
 # ----------------------------------------------------------------------
                
-class MtfSolver(SolidSolver):
+class Metafor(SolidSolver):
     def __init__(self, testname, computationType):
         """
         des.

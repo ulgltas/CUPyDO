@@ -70,16 +70,16 @@ def main(_p, nogui):
     csd_module = fileName[:-3] + "solid"
     
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.FlowInterface
-    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_module, p['nthreads'])
+    import cupydo.interfaces.Flow as fItf
+    fluidSolver = fItf.Flow(cfd_module, p['nthreads'])
     
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize modal solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.ModalInterface
-        solidSolver = cupydoInterfaces.ModalInterface.Modal(csd_module, p['computationType'])
+        import cupydo.interfaces.Modal as sItf
+        solidSolver = sItf.Modal(csd_module, p['computationType'])
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #

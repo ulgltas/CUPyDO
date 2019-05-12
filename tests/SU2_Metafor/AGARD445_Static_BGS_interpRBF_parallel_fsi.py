@@ -93,18 +93,18 @@ def main(_p, nogui):
     csd_file = 'AGARD445_Static_MetaforConf'
 
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.SU2Interface
+    import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        FluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+        FluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
     else:
-        FluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+        FluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #
     SolidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        SolidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, p['computationType'])
+        import cupydo.interfaces.Metafor as sItf
+        SolidSolver = sItf.Metafor(csd_file, p['computationType'])
         SolidSolver.saveAllFacs = p['mtfSaveAllFacs']
     cupyutil.mpiBarrier(comm)
 

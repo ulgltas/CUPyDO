@@ -88,19 +88,19 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     csd_file = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
 
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.SU2Interface
+    import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
     else:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
 
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, p['computationType'])
+        import cupydo.interfaces.Metafor as sItf
+        solidSolver = sItf.Metafor(csd_file, p['computationType'])
         
         # --- This part is specific to Metafor ---
         solidSolver.saveAllFacs = p['mtfSaveAllFacs']

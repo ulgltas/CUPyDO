@@ -74,16 +74,16 @@ def main(_p, nogui):
     csd_module = fileName[:-3] + "solid"
     
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.FlowInterface
-    fluidSolver = cupydoInterfaces.FlowInterface.Flow(cfd_module, p['nthreads'])
+    import cupydo.interfaces.Flow as fItf
+    fluidSolver = fItf.Flow(cfd_module, p['nthreads'])
     
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_module, p['computationType'])
+        import cupydo.interfaces.Metafor as sItf
+        solidSolver = sItf.Metafor(csd_module, p['computationType'])
         solidSolver.saveAllFacs = p['mtfSaveAllFacs'] # specific to metafor
         
     cupyutil.mpiBarrier(comm)

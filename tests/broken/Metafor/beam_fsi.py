@@ -45,8 +45,8 @@ def main():
     # --- Initialize the solid solver --- #
     solid = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solid = cupydoInterfaces.MtfInterface.MtfSolver('beam', 'unsteady')
+        import cupydo.interfaces.Metafor as sItf
+        solid = sItf.Metafor('beam', 'unsteady')
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the FSI algorithm --- #

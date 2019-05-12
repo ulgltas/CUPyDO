@@ -4,6 +4,8 @@
 # CUPyDO configuration file for Flow
 # Naca0012 airfoil
 # Adrien Crovato
+#
+# CAUTION: fluid solver convergence might stall if geometry is meshed with gmsh 4.x.x (test should still pass)
 
 import os
 
@@ -34,7 +36,7 @@ def getParams():
     p['NSolver'] = 'Newton' # Noninear solver type (Picard or Newton)
     p['Rel_tol'] = 1e-6 # Relative tolerance on solver residual
     p['Abs_tol'] = 1e-8 # Absolute tolerance on solver residual
-    p['Max_it'] = 25 # Solver maximum number of iterations
+    p['Max_it'] = 10 # Solver maximum number of iterations
     p['LS_tol'] = 1e-6 # Tolerance on linesearch residual
     p['Max_it_LS'] = 10 # Linesearch maximum number of iterations
     p['AV_thrsh'] = 1e-2 # Residual threshold below which the artificial viscosity is decreased

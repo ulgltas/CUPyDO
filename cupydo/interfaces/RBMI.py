@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-RBMIntegratorInterface.py
+RBMIntegrator.py
 Python interface between the wrapper of NativeSolid and CUPyDO.
 Authors D. THOMAS
 
@@ -34,10 +34,10 @@ import numpy as np
 from cupydo.genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
-#  RBMIntegrator class
+#  RBMI solver interface class
 # ----------------------------------------------------------------------
 
-class RBMIntegrator(SolidSolver):
+class RBMI(SolidSolver):
 
     def __init__(self, confFile, computationType):
         """

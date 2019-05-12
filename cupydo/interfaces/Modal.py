@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-ModalInterface.py
+Modal.py
 Python interface between a modal solver and CUPyDO.
 Adrien Crovato, Mariano Sanchez Martinez
 

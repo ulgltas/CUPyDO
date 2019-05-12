@@ -57,8 +57,8 @@ def main(_p, nogui):
     csd_file = 'impact_solid'
 
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.PfemInterface
-    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(
+    import cupydo.interfaces.Pfem as fItf
+    fluidSolver = fItf.Pfem(
         cfd_file, 13, p['dt'])
 
     # --- This part is specific to PFEM ---
@@ -73,8 +73,8 @@ def main(_p, nogui):
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(
+        import cupydo.interfaces.Metafor as sItf
+        solidSolver = sItf.Metafor(
             csd_file, p['computationType'])
 
         # --- This part is specific to Metafor ---

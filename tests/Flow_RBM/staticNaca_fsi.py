@@ -1,24 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys
+# CUPyDO configuration file
+# Naca0012 airfoil
+# Adrien Crovato
 
-filePath = os.path.abspath(os.path.dirname(__file__))
-fileName = os.path.splitext(os.path.basename(__file__))[0]
-
-from math import *
-from optparse import OptionParser
-
-import cupydo.utilities as cupyutil
-import cupydo.manager as cupyman
-import cupydo.interpolator as cupyinterp
-import cupydo.criterion as cupycrit
-import cupydo.algorithm as cupyalgo
-
-from cupydo.testing import *
-import numpy as np
-
-def test(nogui, res, tol):
+def test(res, tol):
+    import numpy as np
+    from cupydo.testing import *
     # Flow constant (defined in case_fluid)
     dynP = 0.5*100 # dynamic pressure
     alpha0 = np.radians(3) # initial angle of attack
@@ -40,11 +29,10 @@ def test(nogui, res, tol):
     x = np.linalg.solve(A, b)
 
     # Display the solution
-    if not nogui:
-        print "Ref. lift coefficient: " + str(cl_alpha*x[1])
-        print "Ref. vertical displacement: " + str(x[0])
-        print "Ref. new angle of attack: " + str(np.degrees(x[1]))
-        print "Ref. rotational displacement : " + str(np.degrees(x[1]-alpha0))
+    print "Ref. lift coefficient: " + str(cl_alpha*x[1])
+    print "Ref. vertical displacement: " + str(x[0])
+    print "Ref. new angle of attack: " + str(np.degrees(x[1]))
+    print "Ref. rotational displacement : " + str(np.degrees(x[1]-alpha0))
 
     # Read results from file
     resultS = np.genfromtxt("NativeHistory.dat", delimiter=None, skip_header=1)
@@ -62,95 +50,44 @@ def test(nogui, res, tol):
     tests.add(CTest('Rotational displacement', np.degrees(resultS[3]), np.degrees(x[1]-alpha0), 2*5e-1, True)) # abs. tol. of .5°
     tests.run()
 
-def getParameters(_p):
-    # --- Input parameters --- #
+def getFsiP():
+    """Fsi parameters"""
+    import os
+    filePath = os.path.abspath(os.path.dirname(__file__))
+    fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
-    p['nthreads'] = 1
+    # Solvers and config files
+    p['fluidSolver'] = 'Flow'
+    p['solidSolver'] = 'RBMI'
+    p['cfdFile'] = fileName[:-3] + 'fluid'
+    p['csdFile'] = os.path.join(filePath, fileName[:-3] + 'solid.cfg')
+    # FSI objects
+    p['interpolator'] = 'Matching'
+    p['criterion'] = 'Displacements'
+    p['algorithm'] = 'IQN_ILS'
+    # FSI parameters
+    p['compType'] = 'steady'
     p['nDim'] = 2
-    p['tollFSI'] = 1e-6
     p['dt'] = 0.0
     p['tTot'] = 0.0
-    p['nFSIIterMax'] = 50
-    p['timeIterTreshold'] = -1
-    p['omegaMax'] = 1.0
-    p['nbTimeToKeep'] = 0
-    p['computeTangentMatrixBasedOnFirstIt'] = False
-    p['computationType'] = 'steady'
-    p.update(_p)
+    p['timeItTresh'] = -1
+    p['tol'] = 1e-4
+    p['maxIt'] = 50
+    p['omega'] = 1.0
+    p['nSteps'] = 0
+    p['firstItTgtMat'] = False
     return p
 
-def main(_p, nogui):
+def main():
+    import cupydo.interfaces.CUPYDO as cupy
+    p = getFsiP() # get parameters
+    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo.run() # run fsi process
+    test(cupydo.algorithm.errValue, p['tol']) # check the results
     
-    # --- Get FSI parameters ---#
-    p = getParameters(_p)
-
-    # --- Set up MPI --- #
-    withMPI, comm, myid, numberPart = cupyutil.getMpi()
-    rootProcess = 0
-    
-    # --- Input files --- #
-    cfd_module = fileName[:-3] + "fluid"
-    csd_file = filePath + "/" + fileName[:-3] + "solid.cfg"
-    
-    # --- Initialize the fluid solver --- #
-    import cupydo.interfaces.Flow as fItf
-    fluidSolver = fItf.Flow(cfd_module, p['nthreads'])
-    
-    cupyutil.mpiBarrier(comm)
-    
-    # --- Initialize the solid solver --- #
-    solidSolver = None
-    if myid == rootProcess:
-        import cupydo.interfaces.RBMI as sItf
-        solidSolver = sItf.RBMI(csd_file, p['computationType'])
-        
-    cupyutil.mpiBarrier(comm)
-        
-    # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
-    cupyutil.mpiBarrier()
-
-    # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
-    #interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, 1., comm)
-    #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
-    
-    # --- Initialize the FSI criterion --- #
-    criterion = cupycrit.DispNormCriterion(p['tollFSI'])
-    cupyutil.mpiBarrier()
-    
-    # --- Initialize the FSI algorithm --- #
-    #algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
-    #algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
-    algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
-    
-    # --- Launch the FSI computation --- #
-    algorithm.run()
-
-    # --- Check the results --- #
-    test(nogui, algorithm.errValue, p['tollFSI'])
-
     # eof
     print ''
 
-# -------------------------------------------------------------------
-#    Run Main Program
-# -------------------------------------------------------------------
-
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':
-    
-    p = {}
-    
-    parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
-    
-    
-    (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    p['nthreads'] = options.nthreads
-    
-    main(p, nogui)
+    main()

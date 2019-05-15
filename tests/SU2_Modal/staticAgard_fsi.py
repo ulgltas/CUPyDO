@@ -1,32 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# ----------------------------------------------------------------------
-#  Imports
-# ----------------------------------------------------------------------
-
-import os, sys
-
-filePath = os.path.abspath(os.path.dirname(__file__))
-fileName = os.path.splitext(os.path.basename(__file__))[0]
-
-from optparse import OptionParser	# use a parser for configuration
-from math import *
-import numpy as np
-
-import cupydo.utilities as cupyutil
-import cupydo.manager as cupyman
-import cupydo.interpolator as cupyinterp
-import cupydo.criterion as cupycrit
-import cupydo.algorithm as cupyalgo
-from cupydo.testing import *
-
-# -------------------------------------------------------------------
-#    Script
-# -------------------------------------------------------------------
+# CUPyDO configuration file
+# Agard445 wing
+# Adrien Crovato
 
 def test(res, tol):
-
+    import numpy as np
+    from cupydo.testing import *
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -46,97 +27,44 @@ def test(res, tol):
     tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.0132, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
-def getParameters(_p):
-    # --- Input parameters --- #
+def getFsiP():
+    """Fsi parameters"""
+    import os
+    filePath = os.path.abspath(os.path.dirname(__file__))
+    fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
+    # Solvers and config files
+    p['fluidSolver'] = 'SU2'
+    p['solidSolver'] = 'Modal'
+    p['cfdFile'] = os.path.join(filePath,'staticAgard_fluid.cfg')
+    p['csdFile'] = fileName[:-3] + 'solid'
+    # FSI objects
+    p['interpolator'] = 'RBF'
+    p['criterion'] = 'Displacements'
+    p['algorithm'] = 'StaticBGS'
+    # FSI parameters
+    p['compType'] = 'steady'
     p['nDim'] = 3
-    p['tollFSI'] = 5e-3
     p['dt'] = 0.
     p['tTot'] = 0.
-    p['nFSIIterMax'] = 6
-    p['rbfRadius'] = 1.0
-    p['timeIterTreshold'] = -1
-    p['omegaMax'] = 1.0
-    p['computationType'] = 'steady'
+    p['timeItTresh'] = -1
+    p['tol'] = 5e-3
+    p['maxIt'] = 6
+    p['omega'] = 1.0
+    p['rbfRadius'] = 1.
     p['nodalLoadsType'] = 'force'
-    p['nZones_SU2'] = 0
-    p.update(_p)
     return p
 
-def main(_p, nogui):
-    # --- Get FSI parameters ---#
-    p = getParameters(_p)
-
-    # --- Set up MPI --- #
-    withMPI, comm, myid, numberPart = cupyutil.getMpi()
-    rootProcess = 0
-
-    # --- Input parameters --- #
-    cfd_file = os.path.join(filePath,'staticAgard_fluid.cfg')
-    csd_file = 'agard_solid'
-
-    # --- Initialize the fluid solver --- #
-    import cupydo.interfaces.SU2 as fItf
-    if comm != None:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
-    else:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
-    cupyutil.mpiBarrier(comm)
-
-    # --- Initialize modal solver --- #
-    solidSolver = None
-    if myid == rootProcess:
-        import cupydo.interfaces.Modal as sItf
-        solidSolver = sItf.Modal(csd_file, p['computationType'])
-    cupyutil.mpiBarrier(comm)
-
-    # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
-    cupyutil.mpiBarrier()
-
-    # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
-
-    # --- Initialize the FSI criterion --- #
-    criterion = cupycrit.DispNormCriterion(p['tollFSI'])
-    cupyutil.mpiBarrier()
-
-    # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
+def main():
+    import cupydo.interfaces.CUPYDO as cupy
+    p = getFsiP() # get parameters
+    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo.run() # run fsi process
+    test(cupydo.algorithm.errValue, p['tol']) # check the results
     
-    # --- Launch the FSI computation --- #
-    algorithm.run()
-
-    # --- Check the results --- #
-    test(algorithm.errValue, p['tollFSI'])
-
-    # --- Exit computation --- #
-    del manager
-    del criterion
-    del fluidSolver
-    del solidSolver
-    del interpolator
-    del algorithm
-    cupyutil.mpiBarrier(comm)
-
     # eof
     print ''
 
-# -------------------------------------------------------------------
-#  Run Main Program
-# -------------------------------------------------------------------
-
-# this is only accessed if running from command prompt
+# --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':
-    p = {}
-    
-    parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of process", dest="nprocess", default=1) # not used
-
-    (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    
-    main(p, nogui)
+    main()

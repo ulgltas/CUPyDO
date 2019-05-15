@@ -20,99 +20,9 @@ limitations under the License.
 
 '''
 
-import os, sys
-
-filePath = os.path.abspath(os.path.dirname(__file__))
-fileName = os.path.splitext(os.path.basename(__file__))[0]
-
-
-from math import *
-from optparse import OptionParser
-
-import cupydo.utilities as cupyutil
-import cupydo.manager as cupyman
-import cupydo.interpolator as cupyinterp
-import cupydo.criterion as cupycrit
-import cupydo.algorithm as cupyalgo
-
-import numpy as np
-from cupydo.testing import *
-
-def getParameters(_p):
-    # --- Input parameters --- #
-    p = {}
-    p['nthreads'] = 1
-    p['nDim'] = 2
-    p['tollFSI'] = 1e-6
-    p['dt'] = 0.001
-    p['tTot'] = 0.35
-    p['nFSIIterMax'] = 20
-    p['timeIterTreshold'] = 0
-    p['omegaMax'] = 0.5
-    p['computationType'] = 'unsteady'
-    p['rbfRadius'] = 100
-    p['saveFreqPFEM'] = 100
-    p['mtfSaveAllFacs'] = True
-    p.update(_p)
-    return p
-
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
-    
-    p = getParameters(_p)
-
-    # --- Set up MPI --- #
-    withMPI, comm, myid, numberPart = cupyutil.getMpi()
-    rootProcess = 0
-    
-    # --- Input parameters --- #
-    cfd_file = 'nonmatching_fluid'
-    csd_file = 'nonmatching_solid'
-    
-    # --- Initialize the fluid solver --- #
-    import cupydo.interfaces.Pfem as fItf
-    fluidSolver = fItf.Pfem(cfd_file, 17, p['dt'])
-    
-    # --- This part is specific to PFEM ---
-    fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    if nogui:
-        fluidSolver.pfem.gui = None
-    # ---
-    
-    cupyutil.mpiBarrier(comm)
-    
-    # --- Initialize the solid solver --- #
-    solidSolver = None
-    if myid == rootProcess:
-        import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, p['computationType'])
-        
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
-        
-    cupyutil.mpiBarrier(comm)
-        
-    # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
-    cupyutil.mpiBarrier()
-
-    # --- Initialize the interpolator --- #
-    #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
-    #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
-    
-    # --- Initialize the FSI criterion --- #
-    criterion = cupycrit.DispNormCriterion(p['tollFSI'])
-    cupyutil.mpiBarrier()
-    
-    # --- Initialize the FSI algorithm --- #
-    algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], comm)
-    
-    # --- Launch the FSI computation --- #
-    algorithm.run()
-    
-    # --- Check the results --- #
-    
+def test(res, tol, it):
+    import numpy as np
+    from cupydo.testing import *
     # Check convergence and results
     if (algorithm.errValue > p['tollFSI']):
         print "\n\n" + "FSI residual = " + str(algorithm.errValue) + ", FSI tolerance = " + str(p['tollFSI'])
@@ -124,29 +34,50 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', algorithm.getMeanNbOfFSIIt(), 3, 1, True)) # abs. tol. of 1
-    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.301478, 1e-2, False)) # rel. tol. of 1%
-    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.0804463, 1e-2, False)) # rel. tol. of 1%
+    tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
+    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.301478, 1e-2, False))
+    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.0804463, 1e-2, False))
     tests.run()
 
-# -------------------------------------------------------------------
-#    Run Main Program
-# -------------------------------------------------------------------
+def getFsiP():
+    """Fsi parameters"""
+    import os
+    fileName = os.path.splitext(os.path.basename(__file__))[0]
+    p = {}
+    # Solvers and config files
+    p['fluidSolver'] = 'Pfem'
+    p['solidSolver'] = 'Metafor'
+    p['cfdFile'] = fileName[:-3] + 'fluid'
+    p['csdFile'] = fileName[:-3] + 'solid'
+    # FSI objects
+    p['interpolator'] = 'RBF'
+    p['criterion'] = 'Displacements'
+    p['algorithm'] = 'AitkenBGS'
+    # FSI parameters
+    p['compType'] = 'unsteady'
+    p['nDim'] = 2
+    p['dt'] = 0.001
+    p['tTot'] = 0.35
+    p['timeItTresh'] = 0
+    p['tol'] = 1e-6
+    p['maxIt'] = 20
+    p['omega'] = 0.5
+    p['rbfRadius'] = 100
+    p['nBnd'] = 17
+    p['saveFreqPFEM'] = 100
+    p['mtfSaveAllFacs'] = True
+    return p
+
+def main():
+    import cupydo.interfaces.CUPYDO as cupy
+    p = getFsiP() # get parameters
+    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo.run() # run fsi process
+    test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
+    
+    # eof
+    print ''
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':
-    
-    p = {}
-    
-    parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
-    
-    
-    (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    p['nthreads'] = options.nthreads
-    
-    main(p, nogui)
+    main()

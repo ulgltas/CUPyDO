@@ -48,7 +48,6 @@ def getFsiP():
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.9
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():
@@ -60,3 +59,7 @@ def main():
     
     # eof
     print ''
+
+# --- This is only accessed if running from command prompt --- #
+if __name__ == '__main__':
+    main()

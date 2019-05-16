@@ -43,13 +43,12 @@ def getFsiP():
     # FSI parameters
     p['compType'] = 'unsteady'
     p['nDim'] = 2
-    p['dt'] = 1.5e-6
+    p['dt'] = 2e-6
     p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)
     p['timeItTresh'] = 0
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():

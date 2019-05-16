@@ -49,7 +49,6 @@ def getFsiP():
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():

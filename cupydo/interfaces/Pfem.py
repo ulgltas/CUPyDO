@@ -85,8 +85,8 @@ class Pfem(FluidSolver):
         self.pfem.scheme.dt = dt
         self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         # [AC] I moved the following 3 lines from the test cases definition to the interface
-        self.pfem.scheme.nthreads
-        if args.nogui:
+        self.pfem.scheme.nthreads = nthreads
+        if nogui:
             self.pfem.gui = None
         
         self.runOK = True

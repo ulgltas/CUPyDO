@@ -31,13 +31,12 @@ def getFsiP():
     """Fsi parameters"""
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
-    fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
     # Solvers and config files
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'Modal'
     p['cfdFile'] = os.path.join(filePath,'staticAgard_fluid.cfg')
-    p['csdFile'] = fileName[:-3] + 'solid'
+    p['csdFile'] = 'agard_solid'
     # FSI objects
     p['interpolator'] = 'RBF'
     p['criterion'] = 'Displacements'
@@ -56,9 +55,9 @@ def getFsiP():
     return p
 
 def main():
-    import cupydo.interfaces.CUPYDO as cupy
+    import cupydo.interfaces.Cupydo as cupy
     p = getFsiP() # get parameters
-    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     

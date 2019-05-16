@@ -36,7 +36,7 @@ w = None
 class Module:
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
                  convCriterion, bird, loadingset,
-                 scheme, extManager, gui):
+                 scheme, extManager, gui, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -48,6 +48,7 @@ class Module:
         self.scheme = scheme
         self.extManager = extManager
         self.gui = gui
+        self.bndno = bndno
 
 
 def getPfem():
@@ -86,6 +87,8 @@ def getPfem():
 
     scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
 
+    bndno = 13 # fsi boundary no
+
     w.Medium(msh, 13, 0., 0., 3)
     w.Medium(msh, 17, mu, rho0, 1)
 
@@ -105,7 +108,7 @@ def getPfem():
     loadingset = w.LoadingSet(msh)
     loadingset.add(1, w.InitialVelocity(msh, bird, 0., -U0, 0.))
 
-    scheme.savefreq = 1
+    scheme.savefreq = 10
     scheme.nthreads = 3
     scheme.gamma = 0.5
     scheme.omega = 0.5
@@ -123,7 +126,7 @@ def getPfem():
     import pfem.tools.link2vtk as v
     gui = v.Link2VTK(msh, scheme, True)
 
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, gui)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, gui, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

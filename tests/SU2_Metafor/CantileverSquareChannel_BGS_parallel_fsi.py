@@ -64,13 +64,12 @@ def getFsiP():
     p['maxIt'] = 20
     p['omega'] = 1.0
     p['nodalLoadsType'] = 'force'
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():
-    import cupydo.interfaces.CUPYDO as cupy
+    import cupydo.interfaces.Cupydo as cupy
     p = getFsiP() # get parameters
-    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     

@@ -6,10 +6,9 @@ def test(res, tol, it):
     import numpy as np
     from cupydo.testing import *
     # Check convergence and results
-    if (algorithm.errValue > p['tollFSI']):
-        print "\n\n" + "FSI residual = " + str(algorithm.errValue) + ", FSI tolerance = " + str(p['tollFSI'])
-        raise Exception(ccolors.ANSI_RED +
-                        "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    if (res > tol):
+        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
 
     # Read results from file
     with open("Node_6_POS.ascii", 'rb') as f:
@@ -53,15 +52,12 @@ def getFsiP():
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5
-    p['nBnd'] = 9
-    p['saveFreqPFEM'] = 1
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():
-    import cupydo.interfaces.CUPYDO as cupy
+    import cupydo.interfaces.Cupydo as cupy
     p = getFsiP() # get parameters
-    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     

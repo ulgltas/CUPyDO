@@ -36,7 +36,7 @@ w = None
 class Module:
     def __init__(self, w, msh, pbl, contactTag, solScheme,
                  nonLinAlgo, convCriterion, scheme,
-                 extManager, gui):
+                 extManager, gui, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -47,6 +47,7 @@ class Module:
         self.scheme = scheme
         self.extManager = extManager
         self.gui = gui
+        self.bndno = bndno
 
 
 def getPfem():
@@ -81,6 +82,8 @@ def getPfem():
 
     scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
 
+    bndno = 17 # fsi boundary
+
     contactTag = w.Tag(100, "Contact", 2)
     msh.ptags[100] = contactTag
     msh.ntags["Contact"] = contactTag
@@ -97,7 +100,7 @@ def getPfem():
     w.Boundary(msh, 17, 1, 0.0)
     w.Boundary(msh, 17, 2, 0.0)
 
-    scheme.savefreq = 1
+    scheme.savefreq = 100
     scheme.gamma = 0.6
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True
@@ -121,7 +124,7 @@ def getPfem():
     import pfem.tools.link2vtk as v
     gui = v.Link2VTK(msh, scheme, True)
 
-    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
+    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

@@ -24,8 +24,8 @@ def test(res, tol, it):
     import numpy as np
     from cupydo.testing import *
     # Check convergence and results
-    if (algorithm.errValue > p['tollFSI']):
-        print "\n\n" + "FSI residual = " + str(algorithm.errValue) + ", FSI tolerance = " + str(p['tollFSI'])
+    if (res > tol):
+        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
@@ -64,15 +64,12 @@ def getFsiP():
     p['omega'] = 0.5
     p['firstItTgtMat'] = False
     p['nSteps'] = 0
-    p['nBnd'] = 17
-    p['saveFreqPFEM'] = 10
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():
-    import cupydo.interfaces.CUPYDO as cupy
+    import cupydo.interfaces.Cupydo as cupy
     p = getFsiP() # get parameters
-    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     

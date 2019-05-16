@@ -19,8 +19,7 @@ limitations under the License.
 
 '''
 
-
-def test(nogui, res, tol):
+def test(res, tol):
     import numpy as np
     from cupydo.testing import *
     # Read results from file
@@ -71,13 +70,12 @@ def getFsiP():
     p['omega'] = 1.0
     p['interpOpts'] = [1000, 'JACOBI']
     p['nodalLoadsType'] = 'force'
-    p['mtfSaveAllFacs'] = False
     return p
 
 def main():
-    import cupydo.interfaces.CUPYDO as cupy
+    import cupydo.interfaces.Cupydo as cupy
     p = getFsiP() # get parameters
-    cupydo = cupy.Cupydo(p) # create fsi driver
+    cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     

@@ -29,7 +29,7 @@ import cupydo.interpolator as cupyinterp
 import cupydo.criterion as cupycrit
 import cupydo.algorithm as cupyalgo
 
-class Cupydo():
+class CUPyDO():
     def __init__(self, p):
         # --- Set up MPI --- #
         withMPI, comm, myId, numberPart = cupyutil.getMpi()
@@ -55,7 +55,7 @@ class Cupydo():
         else:
             raise RuntimeError(p['interpolator'], 'not available! (avail: "Matching", "RBF" or "TPS").\n')
         # if petsc is used, then some options can be set
-        if withMPI and p['interpOpts']:
+        if withMPI and 'interpOpts' in p:
             for linSolver in interpolator.getLinearSolvers():
                 linSolver.setMaxNumberIterations(p['interpOpts'][0])
                 linSolver.setPreconditioner(p['interpOpts'][1])
@@ -103,13 +103,7 @@ class Cupydo():
                 fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
         elif p['fluidSolver'] == 'Pfem':
             import cupydo.interfaces.Pfem as fItf
-            fluidSolver = fItf.Pfem(p['cfdFile'], p['nBnd'], p['dt'])
-            ####################################################
-            fluidSolver.pfem.scheme.nthreads = args.n
-            fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-            if args.nogui:
-                fluidSolver.pfem.gui = None
-            ####################################################
+            fluidSolver = fItf.Pfem(p['cfdFile'], args.n, args.nogui, p['dt'])
         elif p['fluidSolver'] == 'Flow':
             import cupydo.interfaces.Flow as fItf
             fluidSolver = fItf.Flow(p['cfdFile'], args.n)
@@ -126,9 +120,6 @@ class Cupydo():
             if p['solidSolver'] == 'Metafor':
                 import cupydo.interfaces.Metafor as sItf
                 solidSolver = sItf.Metafor(p['csdFile'], p['compType'])
-                ############################################
-                solidSolver.saveAllFacs = p['mtfSaveAllFacs']
-                ############################################
             elif p['solidSolver'] == 'RBMI':
                 import cupydo.interfaces.RBMI as sItf
                 solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
@@ -136,6 +127,7 @@ class Cupydo():
                 import cupydo.interfaces.Modal as sItf
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
             elif p['solidSolver'] == 'GetDP':
+                import cupydo.interfaces.GetDP as sItf
                 raise RuntimeError('GetDP interface not up-to-date!\n')
             else:
                 raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')
@@ -143,6 +135,7 @@ class Cupydo():
 
 # ---------------------------------------------------------------------- #
 # Sample parameters list
+
 # Solvers
 # - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow
 # - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP
@@ -176,8 +169,4 @@ class Cupydo():
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['nodalLoadsType'], SU2
-# - p['saveFreqPFEM'], PFEM
-# - p['nBnd'], PFEM
-# - p['saveFreq'], Flow
-# - p['mtfSaveAllFacs'], Metafor
 # ---------------------------------------------------------------------- #

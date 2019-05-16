@@ -30,10 +30,11 @@ from cupydo.genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Flow(FluidSolver):
-    def __init__(self, _module, _nthreads, _saveFreq = sys.maxsize):
+    def __init__(self, _module, _nthreads):
         # load the python module and initialize the solver
         module = __import__(_module)
-        self.__initFlow(module.getParams(), _nthreads)
+        floP = module.getParams()
+        self.__initFlow(floP, _nthreads)
 
         # count fsi nodes and get their positions
         self.nNodes = self.boundary.nodes.size()
@@ -42,7 +43,10 @@ class Flow(FluidSolver):
         self.nodalInitPosX, self.nodalInitPosY, self.nodalInitPosZ = self.getNodalInitialPositions()
 
         # init save frequency (fsi)
-        self.saveFreq = _saveFreq
+        if 'saveFreq' in floP:
+            self.saveFreq = p['saveFreq']
+        else:
+            self.saveFreq = sys.maxsize
 
         # generic init
         FluidSolver.__init__(self)

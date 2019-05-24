@@ -114,14 +114,11 @@ class Flow(FluidSolver):
             self.fCp = flow.Fun0EleCp(p['gamma'], p['M_inf'])
             pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRho(p['gamma'], p['M_inf'], p['M_crit']), flow.Fun0EleMach(p['gamma'], p['M_inf']), self.fCp, phiInfFun))
         # add initial condition
-        pbl.add(flow.Assign(self.msh, p['Fluid'], phiInfFun), "IC")
+        pbl.add(flow.Initial(self.msh, p['Fluid'], phiInfFun))
         # add farfield and symmetry boundary conditions
         for bnd in p['Farfield']:
-            pbl.add(flow.Neumann(self.msh, bnd, velInfFun))
-        if p['Dim'] == 3:
-            pbl.add(flow.Neumann(self.msh, p['Symmetry'], tbox.Fct1C(0., 0., 0.)))
-        # add slip boundary condition and identify f/s boundary
-        pbl.add(flow.Neumann(self.msh, p['Body'], tbox.Fct1C(0., 0., 0.)))
+            pbl.add(flow.Freestream(self.msh, bnd, velInfFun))
+        # identify f/s boundary
         self.boundary = flow.Boundary(self.msh, [p['Body'], p['Fluid']])
         pbl.add(self.boundary)
         # add wake/kutta condition

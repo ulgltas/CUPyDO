@@ -20,6 +20,7 @@ def getParams():
     p['Fluid'] = 'field' # Name of physical group containing the fluid
     p['Farfield'] = ['upstream', 'side', 'downstream'] # Name of physical groups containing the farfield boundaries (downstream should be last element)
     p['Body'] = 'airfoil' # Name of physical group containing the (solid) body boundary
+    p['Fsi'] = 'airfoil' # Name of the physical group containing the FSI boundary
     p['Wake'] = 'wake' # Name of physical group containing the wake
     p['Te'] =  'te' # Name of physical group containing the trailing edge
     # Freestream
@@ -41,6 +42,4 @@ def getParams():
     p['Max_it_LS'] = 10 # Linesearch maximum number of iterations
     p['AV_thrsh'] = 1e-2 # Residual threshold below which the artificial viscosity is decreased
     p['M_crit'] = 5. # Critical Mach number above which density is damped
-    # Thermodynamic
-    p['gamma'] = 1.4 # Specific heat ratio
     return p

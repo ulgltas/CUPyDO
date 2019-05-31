@@ -23,8 +23,9 @@ def getParams():
     # Markers
     p['Fluid'] = 'field' # Name of physical group containing the fluid
     p['Symmetry'] = 'symmetry' # Name of physical group containing the (slip) symmetry boundary
-    p['Farfield'] = ['farfield', 'downstream'] # Name of physical groups containing the farfield boundaries (downstream should be last element)
-    p['Body'] = 'wing' # Name of physical group containing the (solid) body boundary
+    p['Farfield'] = ['farfield', 'downstream'] # LIST of names of physical groups containing the farfield boundaries (downstream should be last element)
+    p['Body'] = ['wing'] # LIST of names of physical group containing the (solid) body boundary
+    p['Fsi'] = 'wing' # Name of the physical group containing the FSI boundary
     p['Wake'] = 'wake' # Name of physical group containing the wake
     p['WakeTip'] = 'wakeTip' # Name of physical group containing the edge of the wake
     p['TeTip'] = 'teTip' # Name of physical group containing the edge of the wake and the trailing edge
@@ -47,6 +48,4 @@ def getParams():
     p['Max_it_LS'] = 10 # Linesearch maximum number of iterations
     p['AV_thrsh'] = 1e-2 # Residual threshold below which the artificial viscosity is decreased
     p['M_crit'] = 5. # Critical Mach number above which density is damped
-    # Thermodynamic
-    p['gamma'] = 1.4 # Specific heat ratio
     return p

@@ -77,21 +77,28 @@ class Flow(FluidSolver):
 
         # mesh the geometry
         self.msh = gmsh.MeshLoader(p['File'],__file__).execute(**p['Pars'])
-        self.mshWriter = Writer(self.msh)
         gmshWriter = tbox.GmshExport(self.msh)
         if p['Dim'] == 2:
-            mshCrck = tbox.MshCrack(self.msh, p['Dim'], gmshWriter, p['Wake'], [p['Fluid'], p['Fluid']+'_', p['Body'], p['Body']+'_', p['Farfield'][-1], p['Farfield'][-1]+'_'])
+            mshCrck = tbox.MshCrack(self.msh, p['Dim'])
+            mshCrck.addCrack(p['Wake'])
+            mshCrck.addBoundaries([p['Fluid'], p['Farfield'][-1], p['Body']])
+            mshCrck.run(gmshWriter)
         else:
-            mshCrck = tbox.MshCrack(self.msh, p['Dim'], gmshWriter, p['Wake'], [p['Fluid'], p['Fluid']+'_', p['Body'], p['Body']+'_', p['Farfield'][-1], p['Farfield'][-1]+'_', p['Symmetry'], p['Symmetry']+'_'], p['WakeTip'])
+            mshCrck = tbox.MshCrack(self.msh, p['Dim'])
+            mshCrck.addCrack(p['Wake'])
+            mshCrck.addBoundaries([p['Fluid'], p['Symmetry'], p['Farfield'][-1]] + p['Body'])
+            mshCrck.addExcluded(p['WakeTip'])
+            mshCrck.run(gmshWriter)
         del gmshWriter
         del mshCrck
+        self.mshWriter = Writer(self.msh)
 
         # initialize mesh deformation handler
         self.mshDef = tbox.MshDeform(self.msh, p['Dim'])
         self.mshDef.nthreads = _nthreads
         self.mshDef.setField(p['Fluid'])
         self.mshDef.setFixed(p['Farfield'])
-        self.mshDef.setMoving([p['Body']])
+        self.mshDef.setMoving([p['Fsi']])
         if p['Dim'] == 3:
             self.mshDef.setSymmetry([p['Symmetry']], 1)
         self.mshDef.setInternal([p['Wake'], p['Wake']+'_'])
@@ -111,16 +118,23 @@ class Flow(FluidSolver):
             self.fCp = flow.Fun0EleCpL()
             pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRhoL(), flow.Fun0EleMachL(), self.fCp, phiInfFun))
         else:
-            self.fCp = flow.Fun0EleCp(p['gamma'], p['M_inf'])
-            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRho(p['gamma'], p['M_inf'], p['M_crit']), flow.Fun0EleMach(p['gamma'], p['M_inf']), self.fCp, phiInfFun))
+            self.fCp = flow.Fun0EleCp(p['M_inf'])
+            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRho(p['M_inf'], p['M_crit']), flow.Fun0EleMach(p['M_inf']), self.fCp, phiInfFun))
         # add initial condition
         pbl.add(flow.Initial(self.msh, p['Fluid'], phiInfFun))
         # add farfield and symmetry boundary conditions
-        for bnd in p['Farfield']:
-            pbl.add(flow.Freestream(self.msh, bnd, velInfFun))
-        # identify f/s boundary
-        self.boundary = flow.Boundary(self.msh, [p['Body'], p['Fluid']])
-        pbl.add(self.boundary)
+        for bd in p['Farfield']:
+            pbl.add(flow.Freestream(self.msh, bd, velInfFun))
+        # add solid boundaries and identify f/s boundary
+        if p['Dim'] == 2:
+            self.boundary = flow.Boundary(self.msh, [p['Body'], p['Fluid']])
+            pbl.add(self.boundary)
+        else:
+            for bd in p['Body']:
+                bnd = flow.Boundary(self.msh, [bd, p['Fluid']])
+                pbl.add(bnd)
+                if bd == p['Fsi']:
+                    self.boundary = bnd
         # add wake/kutta condition
         if p['Dim'] == 2:
             pbl.add(flow.Wake(self.msh, [p['Wake'], p['Wake']+'_', p['Fluid']]))

@@ -60,9 +60,9 @@ class Modal(SolidSolver):
         """Initialize ModalSolver classes
         Adrien Crovato
         """
-        import ModalSolver
+        import modali
         # initialize solver
-        self.solver = ModalSolver.ModalSolver(p['nm'])
+        self.solver = modali.modali(p['nm'])
         self.solver.setMatrices(p['M_q'], p['C_q'], p['K_q']) # modal matrices
         self.solver.readModes(p['File']) # config file
         self.solver.setInitial(p['x_i'], p['v_i'], p['f_i']) # initial conditions

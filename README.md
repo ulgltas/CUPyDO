@@ -9,7 +9,7 @@ As of December 2018, interfaces for the following solvers are implemented:
 - Solid:
   - Metafor --> A Nonlinear Finite Element solid solver developed at the University of Liège (http://metafor.ltas.ulg.ac.be/dokuwiki/)
   - RBM --> A dynamic 2dof pitch/plunge solid solver developed at the University of Liège (https://github.com/ulgltas/NativeSolid)
-  - Modal Solver -> A static/dynamic modal solver developed at the University of Liège (https://github.com/ulgltas/ModalSolver)
+  - modali -> A static/dynamic modal solver developed at the University of Liège (https://github.com/ulgltas/modali)
   - GetDP --> A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liège (http://getdp.info/)
 - Fluid:
   - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liège (https://github.com/ulgltas/PFEM)
@@ -107,6 +107,13 @@ make -j4
 ```
 Windows: FIX LAPACKE
 
+### modali
+[Linux]
+
+Get the code
+```bash
+git clone git@github.com:ulgltas/modali.git
+```
 
 ### SU2
 [Linux]
@@ -125,9 +132,6 @@ Notes:
 * The INSTALL step is mandatory!
 * MPI should be enabled/disabled in both CUPyDO and SU2.
 
-
-### GetDP
-Todo
 
 ### Waves/flow
 [Linux, Windows, macOS]
@@ -157,7 +161,7 @@ Note:
 ```bash
 git clone git@github.com:ulgltas/waves.git 
 [build waves as above]
-git@github.com:ulgltas/PFEM.git
+git@gitlab.uliege.be:am-dept/PFEM.git
 cd PFEM
 mkdir build && cd build
 cmake ..

@@ -44,7 +44,7 @@ class Flow(FluidSolver):
 
         # init save frequency (fsi)
         if 'saveFreq' in floP:
-            self.saveFreq = p['saveFreq']
+            self.saveFreq = floP['saveFreq']
         else:
             self.saveFreq = sys.maxsize
 

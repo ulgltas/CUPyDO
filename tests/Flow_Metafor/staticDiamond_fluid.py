@@ -22,7 +22,7 @@ def getParams():
     p['Wake'] = 'wake' # Name of physical group containing the wake
     p['Te'] =  'te' # Name of physical group containing the trailing edge
     # Freestream
-    p['M_inf'] = 0.3 # Freestream Mach number
+    p['M_inf'] = 0.31 # Freestream Mach number
     p['AoA'] = 3. # Freestream angle of attack
     p['P_dyn'] = 0.5*102*102 # Dynamic pressure
     # Geometry

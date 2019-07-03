@@ -55,7 +55,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
   
     IF(MPI4PY_FOUND)  
         EXECUTE_PROCESS(  
-            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print mpi4py.__versio  n__"
+            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print mpi4py.__version__"
             OUTPUT_VARIABLE MPI4PY_VERSION  
             RESULT_VARIABLE  MPI4PY_NOT_FOUND  
             OUTPUT_STRIP_TRAILING_WHITESPACE  

@@ -55,7 +55,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
   
     IF(MPI4PY_FOUND)  
         EXECUTE_PROCESS(  
-            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print mpi4py.__versio  n__"
+            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print mpi4py.__version__"
             OUTPUT_VARIABLE MPI4PY_VERSION  
             RESULT_VARIABLE  MPI4PY_NOT_FOUND  
             OUTPUT_STRIP_TRAILING_WHITESPACE  
@@ -63,7 +63,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
         IF(NOT MPI4PY_FIND_QUIETLY)  
             MESSAGE(STATUS "mpi4py version ${MPI4PY_VERSION} found")  
         ENDIF(NOT MPI4PY_FIND_QUIETLY)  
-        FIND_FILE(MPI4PY_HEADERS mpi4py.h HINTS ${MPI4PY_INCLUDE_DIR}/mpi4py ${  PYTHON_SITEDIR}/mpi4py/include/mpi4py)
+        FIND_FILE(MPI4PY_HEADERS mpi4py.h HINTS ${MPI4PY_INCLUDE_DIR}/mpi4py ${PYTHON_SITEDIR}/mpi4py/include/mpi4py)
         IF(NOT MPI4PY_HEADERS)  
             MESSAGE(STATUS "mpi4py.h not found !")  
         ENDIF(NOT MPI4PY_HEADERS)  
@@ -71,7 +71,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
         IF(NOT MPI4PY_SWIG_FILE)  
             MESSAGE(STATUS "mpi4py.i not found !")  
         ENDIF(NOT MPI4PY_SWIG_FILE)  
-        FIND_FILE(MPI4PY_LIBRARIES MPI.so HINTS ${MPI4PY_INCLUDE_DIR}/.. ${PYTH  ON_SITEDIR}/mpi4py)
+        FIND_FILE(MPI4PY_LIBRARIES MPI.so HINTS ${MPI4PY_INCLUDE_DIR}/.. ${PYTHON_SITEDIR}/mpi4py)
     ELSE(MPI4PY_FOUND)  
         IF(MPI4PY_FIND_REQUIRED)  
             MESSAGE(FATAL_ERROR "mpi4py not found !")  

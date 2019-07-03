@@ -30,6 +30,7 @@ def params(q={}):
     p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
 
     p['bndno'] = 102
+    p['saveAllFacs'] = False
                                        
     p.update(q)
     return p

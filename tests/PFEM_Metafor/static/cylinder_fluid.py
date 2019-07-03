@@ -35,7 +35,7 @@ w = None
 
 class Module:
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
-                 convCriterion, scheme, extManager, gui):
+                 convCriterion, scheme, extManager, gui, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -45,6 +45,7 @@ class Module:
         self.scheme = scheme
         self.extManager = extManager
         self.gui = gui
+        self.bndno = bndno
 
 
 def getPfem():
@@ -79,6 +80,7 @@ def getPfem():
 
     scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
 
+    bndno = 9
     msh.ptags[9].name = "Cylinder"
     msh.ntags["Cylinder"] = msh.ptags[9]
 
@@ -106,7 +108,7 @@ def getPfem():
     import pfem.tools.link2vtk as v
     gui = v.Link2VTK(msh, scheme, True)
 
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

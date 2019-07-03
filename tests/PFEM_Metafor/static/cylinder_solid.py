@@ -33,6 +33,7 @@ def params(q={}):
     p['tend'] = 1.            # final time
     p['dtmax'] = 0.005          # max time step
     p['bndno'] = 9            # interface boundary number
+    p['saveAllFacs'] = False # keep the Fac corresponding to the end of the time step
 
     # BC type
     # p['bctype']     = 'pressure'     # uniform pressure

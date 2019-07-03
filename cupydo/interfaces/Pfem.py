@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-PfemInterface.py
+Pfem.py
 Python interface between the wrapper of PFEM solver and CUPyDO.
 Authors M.L. CERQUAGLIA
 
@@ -33,16 +33,15 @@ import numpy as np
 from cupydo.genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
-#  PfemSolver class
+#  Pfem solver interface class
 # ----------------------------------------------------------------------
 
-class PfemSolver(FluidSolver):
-    def __init__(self, testname, bndno, dt):
+class Pfem(FluidSolver):
+    def __init__(self, testname, nthreads, nogui, dt):
         
         print '\n***************************** Initializing Pfem *****************************'
         
         self.testname = testname  # string (name of the module of the fluid model)
-        self.bndno = bndno        # phygroup# of the f/s interface
         
         # internal vars
         self.vnods = []           # dict of interface nodes / prescribed velocities
@@ -59,10 +58,9 @@ class PfemSolver(FluidSolver):
         self.realTimeExtractorsList = module.getRealTimeExtractorsList(self.pfem)
         
         # retrieve the f/s boundary and the related nodes
-        gr = self.pfem.w.Group(self.pfem.msh, bndno)
+        gr = self.pfem.w.Group(self.pfem.msh, self.pfem.bndno)
         
         # builds a list (dict) of interface nodes
-        
         nods = {}
         for e in gr.tag.elems:
             for n in e.nodes:
@@ -86,6 +84,10 @@ class PfemSolver(FluidSolver):
         self.pfem.scheme.t = 0.
         self.pfem.scheme.dt = dt
         self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity)
+        # [AC] I moved the following 3 lines from the test cases definition to the interface
+        self.pfem.scheme.nthreads = nthreads
+        if nogui:
+            self.pfem.gui = None
         
         self.runOK = True
         

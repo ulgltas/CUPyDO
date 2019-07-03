@@ -1,24 +1,28 @@
-
-#! /usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# original name: birdImpact_deformable_panel_alu_Mtf_Pfem_fsi
 
-def test(res, tol, it):
+# CUPyDO configuration file
+# Diamond airfoil
+# Adrien Crovato
+
+def test(res, tol):
     import numpy as np
     from cupydo.testing import *
+    # Read results from file
+    with open("FlowHistory.dat", 'rb') as f:
+        lines = f.readlines()
+    resultA = np.genfromtxt(lines[-1:], delimiter=None)
+    with open("db_Field(TY,RE)_GROUP_ID_101.ascii", 'rb') as f:
+        lines = f.readlines()
+    resultS = np.genfromtxt(lines[-1:], delimiter=None)
+
     # Check convergence and results
     if (res > tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
-
-    # Read results from file
-    with open("db_Field(TY,RE)_GROUP_ID_17.ascii", 'rb') as f:
-        lines = f.readlines()
-    result_1 = np.genfromtxt(lines[-1:], delimiter=None)
-
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 2, 1, True))
-    tests.add(CTest('Y-displacement panel center', result_1[2], -0.001462, 1e-2, False))
+    tests.add(CTest('Lift coefficient', resultA[2], 0.22, 1e-1, False)) # rel. tol. of 10%, dummy value
+    tests.add(CTest('TE. vertical displacement', resultS[2], 0.034, 1e-1, False)) # rel. tol. of 10%, dummy value
     tests.run()
 
 def getFsiP():
@@ -26,29 +30,27 @@ def getFsiP():
     import os
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
-    # For this case
-    U0 = 100
-    N = 10
-    R = 0.01
-    d = 2.5*R/N
     # Solvers and config files
-    p['fluidSolver'] = 'Pfem'
+    p['fluidSolver'] = 'Flow'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'
     # FSI objects
-    p['interpolator'] = 'Matching'
+    p['interpolator'] = 'RBF'
     p['criterion'] = 'Displacements'
-    p['algorithm'] = 'AitkenBGS'
+    p['algorithm'] = 'IQN_ILS'
     # FSI parameters
-    p['compType'] = 'unsteady'
+    p['compType'] = 'steady'
     p['nDim'] = 2
-    p['dt'] = 2e-6
-    p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)
-    p['timeItTresh'] = 0
-    p['tol'] = 1e-6
-    p['maxIt'] = 20
-    p['omega'] = 0.5
+    p['dt'] = 0.1
+    p['tTot'] = 0.1
+    p['timeItTresh'] = -1
+    p['tol'] = 1e-5
+    p['maxIt'] = 50
+    p['omega'] = 1.0
+    p['nSteps'] = 0
+    p['firstItTgtMat'] = False
+    p['rbfRadius'] = 1.
     return p
 
 def main():
@@ -56,7 +58,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
+    test(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
     print ''

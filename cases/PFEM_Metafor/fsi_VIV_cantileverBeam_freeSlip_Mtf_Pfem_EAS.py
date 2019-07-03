@@ -45,8 +45,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     computationType = 'unsteady'
     
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.PfemInterface
-    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 23, dt)
+    import cupydo.interfaces.Pfem as fItf
+    fluidSolver = fItf.Pfem(cfd_file, 23, dt)
     
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
@@ -60,8 +60,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, computationType)
+        import cupydo.interfaces.Metafor as sItf
+        solidSolver = sItf.Metafor(csd_file, computationType)
         
         # --- This part is specific to Metafor ---
         solidSolver.saveAllFacs = p['mtfSaveAllFacs']

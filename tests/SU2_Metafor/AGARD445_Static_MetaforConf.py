@@ -33,6 +33,7 @@ def params(q={}):
     #p['tolNR']      = 1.0e-6        # Newton-Raphson tolerance
     p['tend']       = 0.05           # final time
     p['dtmax']      = 0.05          # max time step
+    p['saveAllFacs'] = False
     
     # BC type
     #p['bctype']     = 'pressure'     # uniform pressure

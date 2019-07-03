@@ -1,23 +1,9 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-''' 
-
-Copyright 2018 University of Liège
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. 
-
-'''
+# CUPyDO configuration file
+# Agard445 wing
+# Adrien Crovato
 
 def test(res, tol):
     import numpy as np
@@ -26,7 +12,7 @@ def test(res, tol):
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
-    with open("db_Field(TY,RE)_GROUP_ID_104.ascii", 'rb') as f:
+    with open("NodalDisplacement.dat", 'rb') as f:
         lines = f.readlines()
     resultS = np.genfromtxt(lines[-1:], delimiter=None)
 
@@ -35,9 +21,10 @@ def test(res, tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.00095, 5e-4, True)) # abs. tol.
-    tests.add(CTest('Drag coefficient', resultA[3], 2.64, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (104, TY)', resultS[2], 0., 1e-4, True)) # abs. tol.
+    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('LE Displacement (16, z)', resultS[4], 0.0116, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.0132, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getFsiP():
@@ -47,22 +34,23 @@ def getFsiP():
     p = {}
     # Solvers and config files
     p['fluidSolver'] = 'SU2'
-    p['solidSolver'] = 'Metafor'
-    p['cfdFile'] = os.path.join(filePath, 'CantileverSquareChannel_BGS_parallel_SU2Conf.cfg')
-    p['csdFile'] = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
+    p['solidSolver'] = 'Modal'
+    p['cfdFile'] = os.path.join(filePath,'staticAgard_fluid.cfg')
+    p['csdFile'] = 'agard_solid'
     # FSI objects
-    p['interpolator'] = 'Matching'
+    p['interpolator'] = 'RBF'
     p['criterion'] = 'Displacements'
     p['algorithm'] = 'StaticBGS'
     # FSI parameters
-    p['compType'] = 'unsteady'
-    p['nDim'] = 2
-    p['dt'] = 0.0025
-    p['tTot'] = 0.01
-    p['timeItTresh'] = 0
-    p['tol'] = 1e-6
-    p['maxIt'] = 20
+    p['compType'] = 'steady'
+    p['nDim'] = 3
+    p['dt'] = 0.
+    p['tTot'] = 0.
+    p['timeItTresh'] = -1
+    p['tol'] = 5e-3
+    p['maxIt'] = 6
     p['omega'] = 1.0
+    p['rbfRadius'] = 1.
     p['nodalLoadsType'] = 'force'
     return p
 

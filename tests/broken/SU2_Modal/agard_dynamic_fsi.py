@@ -79,18 +79,18 @@ def main(_p, nogui):
     csd_file = 'agard_solid'
 
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.SU2Interface
+    import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
     else:
-        fluidSolver = cupydoInterfaces.SU2Interface.SU2Solver(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize modal interpreter --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.ModalInterface
-        solidSolver = cupydoInterfaces.ModalInterface.ModalInterface(csd_file, p['computationType'])
+        import cupydo.interfaces.Modal as sItf
+        solidSolver = sItf.ModalInterface(csd_file, p['computationType'])
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #

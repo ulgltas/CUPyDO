@@ -9,6 +9,7 @@
 import os
 import sys
 
+# These two classes will not redirect c++ output without the underlying c++ code (waves/fwk)
 class DupStream(object):
     def __init__(self, stream1, stream2):
         self.stream1 = stream1
@@ -24,7 +25,6 @@ class DupStream(object):
 
 class Tee(object):
     def __init__(self, name):
-        import sys
         self.file = open(name, 'w')
         self.stdoutbak = sys.stdout
         self.stderrbak = sys.stderr
@@ -32,7 +32,6 @@ class Tee(object):
         sys.stderr = DupStream(sys.stderr, self.file)
 
     def __del__(self):
-        import sys
         sys.stdout = self.stdoutbak
         sys.stderr = self.stderrbak
         self.file.close()
@@ -51,17 +50,15 @@ def addPath(p):
 
 
 def setPath():
-    import os, sys
     # Set paths
     cupdir = os.path.abspath(os.path.split(__file__)[0])
     topdir = os.path.abspath(os.path.dirname(cupdir))
 
     addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
-    addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
     addPath(os.path.join(topdir, 'Metafor', 'oo_meta'))
     addPath(os.path.join(topdir, 'Metafor', 'linuxbin'))
     addPath(os.path.join(topdir, 'NativeSolid', 'bin'))
-    addPath(os.path.join(topdir, 'ModalSolver'))
+    addPath(os.path.join(topdir, 'modali'))
     addPath(os.path.join(topdir, 'waves'))
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
@@ -74,13 +71,9 @@ def main():
     # Find solvers and set paths
     setPath()
 
-    # Parse options
-    import os, argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', nargs=1, help='Python input file')
-    parser.add_argument('-n', dest='n', help='Number of threads or processes', default=1, type=int)
-    parser.add_argument('--nogui', action='store_true', help='Disable GUI', default=False)
-    args = parser.parse_args()
+    # Parse arguments
+    import cupydo.utilities as cupyutils
+    args = cupyutils.parseArgs()
 
     # Process
     for file in args.file:

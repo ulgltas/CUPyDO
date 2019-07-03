@@ -52,8 +52,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     csd_file = 'waterColoumnWithElasticGate_gate_Mtf_rho_1100_fine_gravity'
     
     # --- Initialize the fluid solver --- #
-    import cupydoInterfaces.PfemInterface
-    fluidSolver = cupydoInterfaces.PfemInterface.PfemSolver(cfd_file, 17, p['dt'])
+    import cupydo.interfaces.Pfem as fItf
+    fluidSolver = fItf.Pfem(cfd_file, 17, p['dt'])
     
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
@@ -67,8 +67,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
-        import cupydoInterfaces.MtfInterface
-        solidSolver = cupydoInterfaces.MtfInterface.MtfSolver(csd_file, p['computationType'])
+        import cupydo.interfaces.Metafor as sItf
+        solidSolver = sItf.Metafor(csd_file, p['computationType'])
         
         # --- This part is specific to Metafor ---
         solidSolver.saveAllFacs = p['mtfSaveAllFacs']

@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 
-GetDPInterface.py
+GetDP.py
 Python interface between the wrapper of GetDP and CUPyDO.
 Authors C. GEUZAINE, D. THOMAS
 
@@ -34,10 +34,10 @@ from cupydo.genericSolvers import SolidSolver
 from getdp import *
 
 # ----------------------------------------------------------------------
-#  GetDPSolver class
+#  GetDP solver interface class
 # ----------------------------------------------------------------------
 
-class GetDPSolver(SolidSolver):
+class GetDP(SolidSolver):
     """
     Des.
     """

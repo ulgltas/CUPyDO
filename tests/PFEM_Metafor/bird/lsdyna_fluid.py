@@ -35,7 +35,7 @@ w = None
 
 class Module:
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
-                 convCriterion, bird, loadingset, scheme, extManager, gui):
+                 convCriterion, bird, loadingset, scheme, extManager, gui, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -47,6 +47,7 @@ class Module:
         self.scheme = scheme
         self.extManager = extManager
         self.gui = gui
+        self.bndno = bndno
 
 
 def getPfem():
@@ -86,6 +87,8 @@ def getPfem():
 
     scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
 
+    bndno = 15 # fsi boundary
+
     w.Medium(msh, 15, 0., 0., 3)
     w.Medium(msh, 17, mu, rho0, 1)
 
@@ -122,7 +125,7 @@ def getPfem():
 
     return Module(w, msh, pbl, solScheme, nonLinAlgo,
                   convCriterion, bird, loadingset,
-                  scheme, extManager, gui)
+                  scheme, extManager, gui, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

@@ -11,8 +11,8 @@ dihedral = [0.0]
 root_chord = 0.55905
 
 offset = [0.0, 0.0]
-
-os.mkdir("models") # Needs to exist to write airfoil data
+if not os.path.exists("models"):
+    os.mkdir("models") # Needs to exist to write airfoil data
 
 w = inputs.VLMWing(airfoils, span, taper, sweep_LE, dihedral, twist, root_chord, offset)
 

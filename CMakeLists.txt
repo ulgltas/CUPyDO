@@ -89,7 +89,7 @@ INCLUDE_DIRECTORIES( ${MPI_INCLUDE_PATH} ${PETSC_INCLUDE_PATH} )
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 IF(WITH_MPI)
-  ADD_EXECUTABLE(test_CFlexInterfaceData src/test/test_CFlexInterfaceData.cpp src/cFlexInterfaceData.cpp)
+  ADD_EXECUTABLE(test_CFlexInterfaceData src/cFlexInterfaceData.cpp)
   TARGET_LINK_LIBRARIES(test_CFlexInterfaceData ${MPI_LIBRARIES} ${PETSC_LIBRARIES})
 ENDIF(WITH_MPI)
 

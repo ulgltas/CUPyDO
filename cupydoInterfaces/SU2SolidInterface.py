@@ -28,7 +28,7 @@ Authors R. Sanchez - TU Kaiserslautern
 #  Imports
 # ----------------------------------------------------------------------
 
-import pysu2
+import pysu2ad as pysu2
 import math
 import numpy as np
 
@@ -53,7 +53,9 @@ class SU2SolidSolver(SolidSolver):
 
         # --- Instantiate the structural driver of SU2 --- #
         try:
-            self.SU2 = pysu2.CGeneralDriver(confFile, 1, nDim, False, MPIComm)
+            print("CGeneralDriver")
+            pysu2.CGeneralDriver(confFile, 1, nDim, False, MPIComm)
+            print("Goes through")
         except TypeError as exception:
             print('A TypeError occured in pysu2.CSingleZoneDriver : ', exception)
             if have_MPI == True:

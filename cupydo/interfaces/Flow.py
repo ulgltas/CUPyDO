@@ -118,7 +118,7 @@ class Flow(FluidSolver):
 
         # initialize the problem
         p['AoA'] = p['AoA']*np.pi/180 # convert to radians
-        phiInfFun = flow.Fun0PosPhiInf(p['Dim'], p['AoA'])
+        phiInfFun = flow.F0PsPhiInf(p['Dim'], p['AoA'])
         if p['Dim'] == 2:
             velInfFun = tbox.Fct1C(-np.cos(p['AoA']), -np.sin(p['AoA']), 0.)
         else:
@@ -128,16 +128,15 @@ class Flow(FluidSolver):
 
         # add medium
         if p['M_inf'] == 0:
-            self.fCp = flow.Fun0EleCpL()
-            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRhoL(), flow.Fun0EleMachL(), self.fCp, phiInfFun))
+            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.F0ElRhoL(), flow.F0ElMachL(), flow.F0ElCpL(), phiInfFun))
         else:
-            self.fCp = flow.Fun0EleCp(p['M_inf'])
-            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRho(p['M_inf'], p['M_crit']), flow.Fun0EleMach(p['M_inf']), self.fCp, phiInfFun))
+            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.F0ElRho(p['M_inf'], p['M_crit']), flow.F0ElMach(p['M_inf']), flow.F0ElCp(p['M_inf']), phiInfFun))
         # add initial condition
         pbl.add(flow.Initial(self.msh, p['Fluid'], phiInfFun))
-        # add farfield and symmetry boundary conditions
-        for bd in p['Farfield']:
-            pbl.add(flow.Freestream(self.msh, bd, velInfFun))
+        # add farfield boundary conditions
+        pbl.add(flow.Dirichlet(self.msh, p['Farfield'][0], phiInfFun))
+        for i in range (1, len(p['Farfield'])):
+            pbl.add(flow.Freestream(self.msh, p['Farfield'][i], velInfFun))
         # add solid boundaries and identify f/s boundary
         if p['Dim'] == 2:
             self.boundary = flow.Boundary(self.msh, [p['Wing'], p['Fluid']])
@@ -189,18 +188,14 @@ class Flow(FluidSolver):
         self.__setCurrentState()
     
     def __setCurrentState(self):
-        """Compute nodal forces from nodal Pressure coefficient
+        """Compute nodal forces from nodal normalized forces
         Adrien Crovato
         """
-        # integrate Cp at element
-        cpiE = self.boundary.integrate(self.solver.phi, self.fCp)
-        # transfer integrated Cp from elements to nodes
-        cfN = self.boundary.transfer(cpiE)
         i = 0
         for n in self.boundary.nodes:
-            self.nodalLoad_X[i] = -self.dynP * cfN[i][0]
-            self.nodalLoad_Y[i] = -self.dynP * cfN[i][1]
-            self.nodalLoad_Z[i] = -self.dynP * cfN[i][2]
+            self.nodalLoad_X[i] = -self.dynP * self.boundary.cLoadX[i]
+            self.nodalLoad_Y[i] = -self.dynP * self.boundary.cLoadY[i]
+            self.nodalLoad_Z[i] = -self.dynP * self.boundary.cLoadZ[i]
             i += 1
 
     def getNodalInitialPositions(self):
@@ -279,7 +274,6 @@ class Flow(FluidSolver):
         """
         Exit the Flow solver
         """
-        del self.fCp
         del self.solver
         del self.mshDef
         del self.msh

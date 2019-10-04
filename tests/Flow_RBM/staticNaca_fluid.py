@@ -18,7 +18,7 @@ def getParams():
     p['Format'] = 'gmsh' # Save format (vtk or gmsh)
     # Markers
     p['Fluid'] = 'field' # Name of physical group containing the fluid
-    p['Farfield'] = ['upstream', 'side', 'downstream'] # LIST of name of physical groups containing the farfield boundaries (downstream should be last element)
+    p['Farfield'] = ['upstream', 'side', 'downstream'] # LIST of name of physical groups containing the farfield boundaries (upstream/downstream should be first/last element)
     p['Wing'] = 'airfoil' # Name of physical group containing the airfoil FSI boundary
     p['Wake'] = 'wake' # Name of physical group containing the wake
     p['Te'] =  'te' # Name of physical group containing the trailing edge

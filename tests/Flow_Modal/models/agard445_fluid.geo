@@ -369,7 +369,8 @@ Physical Surface("symmetry") = {1};
 Physical Surface("symmetry_") = {6};
 
 // Farfield:
-Physical Surface("farfield") = {3,4,5,8,9,10};
+Physical Surface("upstream") = {10};
+Physical Surface("farfield") = {3,4,5,8,9};
 
 // Downstream:
 Physical Surface("downstream") = {2};

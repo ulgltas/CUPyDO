@@ -23,7 +23,7 @@ def getParams():
     # Markers
     p['Fluid'] = 'field' # Name of physical group containing the fluid
     p['Symmetry'] = 'symmetry' # Name of physical group containing the (slip) symmetry boundary
-    p['Farfield'] = ['farfield', 'downstream'] # LIST of names of physical groups containing the farfield boundaries (downstream should be last element)
+    p['Farfield'] = ['upstream', 'farfield', 'downstream'] # LIST of names of physical groups containing the farfield boundaries (upstream/downstream should be first/last element)
     p['Wings'] = ['wing'] # LIST of names of physical group containing the lifting surface boundary
     p['Fsi'] = 'wing' # Name of the physical group containing the FSI boundary
     p['Wakes'] = ['wake'] # LIST of names of physical groups containing the wake

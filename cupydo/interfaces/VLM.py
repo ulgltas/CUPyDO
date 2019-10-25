@@ -26,6 +26,7 @@ limitations under the License.
 # Import VLM driver:
 import pythonVLM.VLM_driver as VLM_driver
 import pythonVLM.VLM_inputs as inputs
+import os
 
 # CUPyDO imports
 import numpy as np

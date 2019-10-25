@@ -41,6 +41,8 @@ class VLMSolver(FluidSolver):
         
         module = __import__(_module)
         pars = module.getParams()
+        if not os.path.exists("models"):
+            os.mkdir("models") # Needs to exist to write airfoil data
         w = inputs.VLMWing(pars["Airfoil"], pars["Span"], pars["Taper"], pars["SweepLE"], pars["Dihedral"],
                             pars["Twist"], pars["RootChord"], pars["Offset"])
         w.write_geofile(pars["Geofile"])

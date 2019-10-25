@@ -24,10 +24,10 @@ def test(cupydo, tol):
         print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', cl, 0.0537, 1e-2, True)) # abs. tol
+    tests.add(CTest('Lift coefficient', cl, 0.0460, 1e-2, True)) # abs. tol
     tests.add(CTest('Drag coefficient', cd, 0.00080, 1e-4, True))
-    tests.add(CTest('LE vertical displacement', resultS2[2], 0.0116, 5e-3, True))
-    tests.add(CTest('TE vertical displacement', resultS1[2], 0.0132, 5e-3, True))
+    tests.add(CTest('LE vertical displacement', resultS2[2], 0.009, 5e-3, True))
+    tests.add(CTest('TE vertical displacement', resultS1[2], 0.010, 5e-3, True))
     tests.run()
 
 def getFsiP():

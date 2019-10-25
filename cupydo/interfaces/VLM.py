@@ -25,6 +25,7 @@ limitations under the License.
 
 # Import VLM driver:
 import pythonVLM.VLM_driver as VLM_driver
+import pythonVLM.VLM_inputs as inputs
 
 # CUPyDO imports
 import numpy as np
@@ -35,10 +36,53 @@ from cupydo.genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
                
 class VLMSolver(FluidSolver):
-    def __init__(self, infile):
+    def __init__(self, _module):
         print '\n***************************** Initializing VLM *****************************'
         
-        self.coreSolver = VLM_driver.VLMDriver(infile)
+        module = __import__(_module)
+        pars = module.getParams()
+        w = inputs.VLMWing(pars["Airfoil"], pars["Span"], pars["Taper"], pars["SweepLE"], pars["Dihedral"],
+                            pars["Twist"], pars["RootChord"], pars["Offset"])
+        w.write_geofile(pars["Geofile"])
+        w.chordwise_panels = pars["ChordwisePanels"]
+        w.spanwise_panels = pars["SpanwisePanels"]
+        w.geometry_file = pars["Geofile"]
+        # Initialise empty VTail and HTail
+        v_airfoils = []
+
+        v_span = []
+        v_taper = []
+        v_sweep = []
+        v_dihedral = []
+        v_twist = []
+        v_root_chord = 0.5
+        v_offset = [0.0, 0.0]
+
+        vtail = inputs.VLMVTail(v_airfoils, v_span, v_taper, v_sweep, v_dihedral, v_twist, v_root_chord, v_offset)
+
+        h_airfoils = []
+        h_span = []
+        h_taper = []
+        h_sweep = []
+        h_dihedral = []
+        h_twist = []
+        h_root_chord = 0.5
+        h_offset = [0., 0.]
+
+        htail = inputs.VLMHTail(h_airfoils, h_span, h_taper, h_sweep, h_dihedral, h_twist, h_root_chord, h_offset)
+
+        properties = inputs.VLMProperties(w, htail, vtail)
+
+        properties.u = pars["U_inf"]
+        properties.rho = pars["Rho"]
+        properties.AoA = pars["AoA"]
+        properties.timesteps = pars["TimeSteps"]
+        properties.denominator = pars["TimeDenominator"]
+        properties.freewake = pars["FreeWake"]
+        properties.infile = pars["Infile"]
+        properties.write_infile()
+
+        self.coreSolver = VLM_driver.VLMDriver(pars["Infile"])
         self.isRun = False
         self.nNodes =   self.coreSolver.data.wing.nvert+ \
                         self.coreSolver.data.flap.nvert+self.coreSolver.data.aileron.nvert  # number of nodes (physical + ghost) at the f/s boundary

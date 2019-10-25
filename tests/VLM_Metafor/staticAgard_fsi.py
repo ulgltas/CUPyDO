@@ -3,7 +3,7 @@
 
 # CUPyDO configuration file
 # Agard445 wing
-# Adrien Crovato
+# Adrien Crovato & Mariano Sánchez Martínez
 
 def test(cupydo, tol):
     res = cupydo.algorithm.errValue
@@ -38,7 +38,7 @@ def getFsiP():
     # Solvers and config files
     p['fluidSolver'] = 'VLM'
     p['solidSolver'] = 'Metafor'
-    p['cfdFile'] = 'AGARD445_fluid.arp'
+    p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'
     # FSI objects
     p['interpolator'] = 'RBF'

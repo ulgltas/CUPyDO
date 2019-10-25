@@ -23,11 +23,10 @@ limitations under the License.
 #  Imports
 # ----------------------------------------------------------------------
 
-# Import whatever you want here, e.g.:
+# Import VLM driver:
 import pythonVLM.VLM_driver as VLM_driver
-# import math
 
-# Those are mandatory
+# CUPyDO imports
 import numpy as np
 from cupydo.genericSolvers import FluidSolver
 
@@ -36,11 +35,7 @@ from cupydo.genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
                
 class VLMSolver(FluidSolver):
-    def __init__(self, infile): # You are free to add any arguments here
-        """
-        Des.
-        """
-        
+    def __init__(self, infile):
         print '\n***************************** Initializing VLM *****************************'
         
         self.coreSolver = VLM_driver.VLMDriver(infile)
@@ -56,10 +51,8 @@ class VLMSolver(FluidSolver):
 
     def run(self, t1, t2):
         """
-        Des.
+        Run the VLM code for one full iteration
         """
-
-        #Run the solver for one iteration, e.g. :
         if self.isRun:
             self.update(t2-t1)
         else:
@@ -70,29 +63,25 @@ class VLMSolver(FluidSolver):
 
     def __setCurrentState(self):
         """
-        Des.
+        Interpolate forces from panels to vertices and provide them to the corresponding CUPyDO array
         """
         force = np.zeros([self.nPhysicalNodes,3,4])
-        weights = [0.375, 0.375, 0.125, 0.125]
-        for i in range(self.coreSolver.data.wing.nface):
-            indices = self.coreSolver.getVertices(i)
+        weights = [0.375, 0.375, 0.125, 0.125] # Weights for interpolating forces from panels to vertices
+        for i in range(self.coreSolver.data.wing.nface): # For each panel
+            indices = self.coreSolver.getVertices(i) # Which vertices are in this panel?
             j = -1
             for index in indices:
                 j+=1
-                if index>=0:
+                if index>=0: # index represents a vertex that exists
                     force[index, :, j] = self.coreSolver.getForce(i, weights[j])
-        vertexForce = np.sum(force, axis=2)
-        #This is an example, you are free to do it your own way
+        vertexForce = np.sum(force, axis=2) # Sum contributions of each panel to each vertex
+        # Transform from vertexForce to nodalLoad_*
         for iVertex in range(self.nPhysicalNodes):
             self.nodalLoad_X[iVertex] = vertexForce[iVertex, 0]
             self.nodalLoad_Y[iVertex] = vertexForce[iVertex, 1]
             self.nodalLoad_Z[iVertex] = vertexForce[iVertex, 2]
 
     def getNodalInitialPositions(self):
-        """
-        Des.
-        """
-
         nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
         nodalInitialPos_Y = np.zeros(self.nPhysicalNodes)
         nodalInitialPos_Z = np.zeros(self.nPhysicalNodes)
@@ -106,7 +95,8 @@ class VLMSolver(FluidSolver):
 
     def getNodalIndex(self, iVertex):
         """
-        Des.
+        Obtain the nodal index of vertex iVertex. If on the wing index == iVertex, if on the flap 10000≤index<20000,
+        if on the aileron 20000≤index<30000
         """
         if iVertex>self.coreSolver.data.wing.nvert+self.coreSolver.data.flap.nvert:
             index = iVertex+20000-self.coreSolver.data.wing.nvert-self.coreSolver.data.flap.nvert
@@ -117,10 +107,6 @@ class VLMSolver(FluidSolver):
         return index
 
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
-        """
-        Des.
-        """
-
         for ii in range(self.coreSolver.m): # For each row of panels
             kk = ii*self.coreSolver.n
             # Current vertex
@@ -164,61 +150,27 @@ class VLMSolver(FluidSolver):
             self.coreSolver.dZv(kk, -0.2*dz[kk-1])
 
     def update(self, dt):
-        """
-        Des.
-        """
 
         FluidSolver.update(self, dt)
         self.coreSolver.update()
-        #overload here
-
-    def bgsUpdate(self):
-        """
-        Des.
-        """
-
-        #overload here
-
-        return
 
     def save(self, nt):
-        """
-        Des.
-        """
-
-        #overload here
         self.coreSolver.save()
         return
 
     def initRealTimeData(self):
-        """
-        Des.
-        """
-        
         solFile = open('VLMSolution.ascii', "w")
         solFile.write("Time\tnIter\tValue\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
-        
         solFile = open('VLMSolution.ascii', "a")
         solFile.write(str(time) + '\t' + str(nFSIIter) + str(1.0) + '\n')
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
-        
         toPrint = 'RES-FSI-' + 'VLMSolution' + ': ' + str(1.0) + '\n'
         print toPrint
     
     def exit(self):
-        """
-        Des.
-        """
-
         print("***************************** Exit VLM solver *****************************")

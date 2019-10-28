@@ -38,7 +38,7 @@ from cupydo.genericSolvers import FluidSolver
                
 class VLMSolver(FluidSolver):
     def __init__(self, _module):
-        print '\n***************************** Initializing VLM *****************************'
+        print "\n***************************** Initializing VLM *****************************"
         
         module = __import__(_module)
         pars = module.getParams()
@@ -197,7 +197,6 @@ class VLMSolver(FluidSolver):
             self.coreSolver.dZv(kk, -0.2*dz[kk-1])
 
     def update(self, dt):
-
         FluidSolver.update(self, dt)
         self.coreSolver.update()
 
@@ -206,18 +205,15 @@ class VLMSolver(FluidSolver):
         return
 
     def initRealTimeData(self):
-        solFile = open('VLMSolution.ascii', "w")
-        solFile.write("Time\tnIter\tValue\n")
+        solFile = open("VLMSolution.ascii", "w")
+        solFile.write("Time\tnIter\tC_L\tC_D\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        solFile = open('VLMSolution.ascii', "a")
-        solFile.write(str(time) + '\t' + str(nFSIIter) + str(1.0) + '\n')
+        solFile = open("VLMSolution.ascii", "a")
+        toWrite = "{}\t{}\t{:.5f}\t{:.5f}\n".format(time, nFSIIter, self.coreSolver.getCl(), self.coreSolver.getCd())
+        solFile.write(toWrite)
         solFile.close()
-
-    def printRealTimeData(self, time, nFSIIter):
-        toPrint = 'RES-FSI-' + 'VLMSolution' + ': ' + str(1.0) + '\n'
-        print toPrint
     
     def exit(self):
         print("***************************** Exit VLM solver *****************************")

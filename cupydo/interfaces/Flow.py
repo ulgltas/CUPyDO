@@ -77,19 +77,22 @@ class Flow(FluidSolver):
 
         # mesh the geometry
         self.msh = gmsh.MeshLoader(p['File'],__file__).execute(**p['Pars'])
-        gmshWriter = tbox.GmshExport(self.msh)
         if p['Dim'] == 2:
             mshCrck = tbox.MshCrack(self.msh, p['Dim'])
-            mshCrck.addCrack(p['Wake'])
-            mshCrck.addBoundaries([p['Fluid'], p['Farfield'][-1], p['Body']])
-            mshCrck.run(gmshWriter)
+            mshCrck.setCrack(p['Wake'])
+            mshCrck.addBoundaries([p['Fluid'], p['Farfield'][-1], p['Wing']])
+            mshCrck.run()
         else:
-            mshCrck = tbox.MshCrack(self.msh, p['Dim'])
-            mshCrck.addCrack(p['Wake'])
-            mshCrck.addBoundaries([p['Fluid'], p['Symmetry'], p['Farfield'][-1]] + p['Body'])
-            mshCrck.addExcluded(p['WakeTip'])
-            mshCrck.run(gmshWriter)
-        del gmshWriter
+            for i in range(0, len(p['Wakes'])):
+                mshCrck = tbox.MshCrack(self.msh, p['Dim'])
+                mshCrck.setCrack(p['Wakes'][i])
+                if 'Fuselage' in p:
+                    mshCrck.addBoundaries([p['Fluid'], p['Symmetry'], p['Farfield'][-1], p['Fuselage'], p['Wings'][i]])
+                else:
+                    mshCrck.addBoundaries([p['Fluid'], p['Symmetry'], p['Farfield'][-1], p['Wings'][i]])
+                mshCrck.setExcluded(p['WakeTips'][i])
+                mshCrck.run()
+        tbox.GmshExport(self.msh).save(self.msh.name)
         del mshCrck
         self.mshWriter = Writer(self.msh)
 
@@ -97,15 +100,25 @@ class Flow(FluidSolver):
         self.mshDef = tbox.MshDeform(self.msh, p['Dim'])
         self.mshDef.nthreads = _nthreads
         self.mshDef.setField(p['Fluid'])
-        self.mshDef.setFixed(p['Farfield'])
-        self.mshDef.setMoving([p['Fsi']])
-        if p['Dim'] == 3:
-            self.mshDef.setSymmetry([p['Symmetry']], 1)
-        self.mshDef.setInternal([p['Wake'], p['Wake']+'_'])
+        self.mshDef.addFixed(p['Farfield'])
+        if p['Dim'] == 2:
+            self.mshDef.addMoving([p['Wing']])
+            self.mshDef.addInternal([p['Wake'], p['Wake']+'_'])
+        else:
+            if 'Fuselage' in p:
+                self.mshDef.addFixed(p['Fuselage'])
+            self.mshDef.setSymmetry(p['Symmetry'], 1)
+            for i in range(0, len(p['Wings'])):
+                if p['Wings'][i] == p['Fsi']:
+                    self.mshDef.addMoving([p['Wings'][i]])
+                else:
+                    self.mshDef.addFixed([p['Wings'][i]])
+                self.mshDef.addInternal([p['Wakes'][i], p['Wakes'][i]+'_'])
+        self.mshDef.initialize()
 
         # initialize the problem
         p['AoA'] = p['AoA']*np.pi/180 # convert to radians
-        phiInfFun = flow.Fun0PosPhiInf(p['Dim'], p['AoA'])
+        phiInfFun = flow.F0PsPhiInf(p['Dim'], p['AoA'])
         if p['Dim'] == 2:
             velInfFun = tbox.Fct1C(-np.cos(p['AoA']), -np.sin(p['AoA']), 0.)
         else:
@@ -115,32 +128,34 @@ class Flow(FluidSolver):
 
         # add medium
         if p['M_inf'] == 0:
-            self.fCp = flow.Fun0EleCpL()
-            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRhoL(), flow.Fun0EleMachL(), self.fCp, phiInfFun))
+            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.F0ElRhoL(), flow.F0ElMachL(), flow.F0ElCpL(), phiInfFun))
         else:
-            self.fCp = flow.Fun0EleCp(p['M_inf'])
-            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.Fun0EleRho(p['M_inf'], p['M_crit']), flow.Fun0EleMach(p['M_inf']), self.fCp, phiInfFun))
+            pbl.set(flow.Medium(self.msh, p['Fluid'], flow.F0ElRho(p['M_inf'], p['M_crit']), flow.F0ElMach(p['M_inf']), flow.F0ElCp(p['M_inf']), phiInfFun))
         # add initial condition
         pbl.add(flow.Initial(self.msh, p['Fluid'], phiInfFun))
-        # add farfield and symmetry boundary conditions
-        for bd in p['Farfield']:
-            pbl.add(flow.Freestream(self.msh, bd, velInfFun))
+        # add farfield boundary conditions
+        pbl.add(flow.Dirichlet(self.msh, p['Farfield'][0], phiInfFun))
+        for i in range (1, len(p['Farfield'])):
+            pbl.add(flow.Freestream(self.msh, p['Farfield'][i], velInfFun))
         # add solid boundaries and identify f/s boundary
         if p['Dim'] == 2:
-            self.boundary = flow.Boundary(self.msh, [p['Body'], p['Fluid']])
+            self.boundary = flow.Boundary(self.msh, [p['Wing'], p['Fluid']])
             pbl.add(self.boundary)
         else:
-            for bd in p['Body']:
+            for bd in p['Wings']:
                 bnd = flow.Boundary(self.msh, [bd, p['Fluid']])
                 pbl.add(bnd)
                 if bd == p['Fsi']:
                     self.boundary = bnd
+            if 'Fuselage' in p:
+                pbl.add(flow.Boundary(self.msh, [p['Fuselage'], p['Fluid']]))
         # add wake/kutta condition
         if p['Dim'] == 2:
             pbl.add(flow.Wake(self.msh, [p['Wake'], p['Wake']+'_', p['Fluid']]))
-            pbl.add(flow.Kutta(self.msh, [p['Te'], p['Wake']+'_', p['Body'], p['Fluid']]))
+            pbl.add(flow.Kutta(self.msh, [p['Te'], p['Wake']+'_', p['Wing'], p['Fluid']]))
         else:
-            pbl.add(flow.Wake(self.msh, [p['Wake'], p['Wake']+'_', p['Fluid'], p['TeTip']]))
+            for i in range(0, len(p['Wakes'])):
+                pbl.add(flow.Wake(self.msh, [p['Wakes'][i], p['Wakes'][i]+'_', p['Fluid'], p['TeTips'][i]]))
 
         # initialize the solver
         if p['NSolver'] == 'Picard':
@@ -173,18 +188,14 @@ class Flow(FluidSolver):
         self.__setCurrentState()
     
     def __setCurrentState(self):
-        """Compute nodal forces from nodal Pressure coefficient
+        """Compute nodal forces from nodal normalized forces
         Adrien Crovato
         """
-        # integrate Cp at element
-        cpiE = self.boundary.integrate(self.solver.phi, self.fCp)
-        # transfer integrated Cp from elements to nodes
-        cfN = self.boundary.transfer(cpiE)
         i = 0
         for n in self.boundary.nodes:
-            self.nodalLoad_X[i] = -self.dynP * cfN[i][0]
-            self.nodalLoad_Y[i] = -self.dynP * cfN[i][1]
-            self.nodalLoad_Z[i] = -self.dynP * cfN[i][2]
+            self.nodalLoad_X[i] = -self.dynP * self.boundary.cLoadX[i]
+            self.nodalLoad_Y[i] = -self.dynP * self.boundary.cLoadY[i]
+            self.nodalLoad_Z[i] = -self.dynP * self.boundary.cLoadZ[i]
             i += 1
 
     def getNodalInitialPositions(self):
@@ -263,7 +274,6 @@ class Flow(FluidSolver):
         """
         Exit the Flow solver
         """
-        del self.fCp
         del self.solver
         del self.mshDef
         del self.msh

@@ -154,8 +154,8 @@ class VLMSolver(FluidSolver):
         return index
 
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
-        for ii in range(self.coreSolver.n): # For each row of panels
-            kk = ii*self.coreSolver.m # Starting index of row
+        for ii in range(self.coreSolver.m): # For each row of panels
+            kk = ii*self.coreSolver.n # Starting index of row
             # Current vertex: complete displacement
             self.coreSolver.dX(kk, dx[kk])
             self.coreSolver.dY(kk, dy[kk])
@@ -164,8 +164,8 @@ class VLMSolver(FluidSolver):
             self.coreSolver.setXv(kk, 0.75*dx[kk])
             self.coreSolver.setYv(kk, 0.75*dy[kk])
             self.coreSolver.setZv(kk, 0.75*dz[kk])
-            for jj in range(1,self.coreSolver.m-1): # For each panel in a row (except first and last ones)
-                kk = ii*self.coreSolver.m+jj
+            for jj in range(1,self.coreSolver.n-1): # For each panel in a row (except first and last ones)
+                kk = ii*self.coreSolver.n+jj
                 # Current vertex
                 self.coreSolver.dX(kk, dx[kk])
                 self.coreSolver.dY(kk, dy[kk])

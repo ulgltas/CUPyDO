@@ -154,26 +154,26 @@ class VLMSolver(FluidSolver):
         return index
 
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
-        for ii in range(self.coreSolver.m): # For each row of panels
-            kk = ii*self.coreSolver.n
-            # Current vertex
+        for ii in range(self.coreSolver.n): # For each row of panels
+            kk = ii*self.coreSolver.m # Starting index of row
+            # Current vertex: complete displacement
             self.coreSolver.dX(kk, dx[kk])
             self.coreSolver.dY(kk, dy[kk])
             self.coreSolver.dZ(kk, dz[kk])
-            # Current collocation point
-            self.coreSolver.dXv(kk, 0.75*dx[kk])
-            self.coreSolver.dYv(kk, 0.75*dy[kk])
-            self.coreSolver.dZv(kk, 0.75*dz[kk])
-            for jj in range(1,self.coreSolver.n-1): # For each panel in a row (except first and last ones)
-                kk = ii*self.coreSolver.n+jj
+            # Current collocation point: function of both vertices of vortex line, "lever rule"
+            self.coreSolver.setXv(kk, 0.75*dx[kk])
+            self.coreSolver.setYv(kk, 0.75*dy[kk])
+            self.coreSolver.setZv(kk, 0.75*dz[kk])
+            for jj in range(1,self.coreSolver.m-1): # For each panel in a row (except first and last ones)
+                kk = ii*self.coreSolver.m+jj
                 # Current vertex
                 self.coreSolver.dX(kk, dx[kk])
                 self.coreSolver.dY(kk, dy[kk])
                 self.coreSolver.dZ(kk, dz[kk])
                 # Current collocation point
-                self.coreSolver.dXv(kk, 0.75*dx[kk])
-                self.coreSolver.dYv(kk, 0.75*dy[kk])
-                self.coreSolver.dZv(kk, 0.75*dz[kk])
+                self.coreSolver.setXv(kk, 0.75*dx[kk])
+                self.coreSolver.setYv(kk, 0.75*dy[kk])
+                self.coreSolver.setZv(kk, 0.75*dz[kk])
                 # Previous collocation point
                 self.coreSolver.dXv(kk-1, 0.25*dx[kk])
                 self.coreSolver.dYv(kk-1, 0.25*dy[kk])
@@ -187,10 +187,10 @@ class VLMSolver(FluidSolver):
             self.coreSolver.dXv(kk-1, 0.25*dx[kk])
             self.coreSolver.dYv(kk-1, 0.25*dy[kk])
             self.coreSolver.dZv(kk-1, 0.25*dz[kk])
-            # Current collocation point
-            self.coreSolver.dXv(kk, 1.2*dx[kk])
-            self.coreSolver.dYv(kk, 1.2*dy[kk])
-            self.coreSolver.dZv(kk, 1.2*dz[kk])
+            # Current collocation point: trailing edge, extrapolation with current vortex line
+            self.coreSolver.setXv(kk, 1.2*dx[kk])
+            self.coreSolver.setYv(kk, 1.2*dy[kk])
+            self.coreSolver.setZv(kk, 1.2*dz[kk])
             # Current collocation point, previous vortex
             self.coreSolver.dXv(kk, -0.2*dx[kk-1])
             self.coreSolver.dYv(kk, -0.2*dy[kk-1])

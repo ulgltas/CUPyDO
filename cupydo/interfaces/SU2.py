@@ -156,15 +156,10 @@ class SU2(FluidSolver):
         """
 
         self.SU2.ResetConvergence()
-        Iter = 0
-        while Iter < 1: # Ugly and HAS to be changed
-            self.SU2.Preprocess(Iter)
-            self.SU2.Run()
-            StopIntegration = self.SU2.Monitor(Iter)
-            self.SU2.Output(Iter)
-            if StopIntegration:
-                break;
-            Iter += 1
+        self.SU2.Preprocess(0)
+        self.SU2.Run()
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Output(0)
 
     def __setCurrentState(self):
         """

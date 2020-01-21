@@ -38,7 +38,7 @@ IF(NOT PYTHON_EXECUTABLE)
 
 ELSE(NOT PYTHON_EXECUTABLE)
     EXECUTE_PROCESS(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; print cg.get_python_lib(1,0)"
+        COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; from __future__ import print_function; print(cg.get_python_lib(1,0))"
         OUTPUT_VARIABLE PYTHON_SITEDIR
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -55,7 +55,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
 
     IF(PETSC4PY_FOUND)
         EXECUTE_PROCESS(
-            COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; print petsc4py.__version__"
+            COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; from __future__ import print_function; print(petsc4py.__version__)"
             OUTPUT_VARIABLE PETSC4PY_VERSION
             RESULT_VARIABLE PETSC4PY_NOT_FOUND
             OUTPUT_STRIP_TRAILING_WHITESPACE

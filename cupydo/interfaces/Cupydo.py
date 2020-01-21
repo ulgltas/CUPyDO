@@ -22,14 +22,17 @@ Drive (create and run) an FSI computation
 Authors: Adrien CROVATO
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
-import cupydo.utilities as cupyutil
-import cupydo.manager as cupyman
-import cupydo.interpolator as cupyinterp
-import cupydo.criterion as cupycrit
-import cupydo.algorithm as cupyalgo
+from builtins import object
+from .. import utilities as cupyutil
+from .. import manager as cupyman
+from .. import interpolator as cupyinterp
+from .. import criterion as cupycrit
+from .. import algorithm as cupyalgo
 
-class CUPyDO():
+class CUPyDO(object):
     def __init__(self, p):
         # --- Set up MPI --- #
         withMPI, comm, myId, numberPart = cupyutil.getMpi()
@@ -62,7 +65,7 @@ class CUPyDO():
 
         # --- Initialize the FSI criterion --- #
         if p['algorithm'] == 'Explicit':
-            print 'Explicit simulations requested, criterion redefined to None.'
+            print('Explicit simulations requested, criterion redefined to None.')
         if p['criterion'] == 'Displacements':
             criterion = cupycrit.DispNormCriterion(p['tol'])
         else:
@@ -98,19 +101,19 @@ class CUPyDO():
         """
         args = cupyutil.parseArgs()
         if p['fluidSolver'] == 'SU2':
-            import cupydo.interfaces.SU2 as fItf
+            from . import SU2 as fItf
             if comm != None:
                 fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
             else:
                 fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
         elif p['fluidSolver'] == 'Pfem':
-            import cupydo.interfaces.Pfem as fItf
+            from . import Pfem as fItf
             fluidSolver = fItf.Pfem(p['cfdFile'], args.n, args.nogui, p['dt'])
         elif p['fluidSolver'] == 'Flow':
-            import cupydo.interfaces.Flow as fItf
+            from . import Flow as fItf
             fluidSolver = fItf.Flow(p['cfdFile'], args.n)
         elif p['fluidSolver'] == 'VLM':
-            import cupydo.interfaces.VLM as fItf
+            from . import VLM as fItf
             fluidSolver = fItf.VLMSolver(p['cfdFile'])
         else:
             raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
@@ -123,16 +126,16 @@ class CUPyDO():
         solidSolver = None
         if myId == 0: # only master can instantiate the solid solver
             if p['solidSolver'] == 'Metafor':
-                import cupydo.interfaces.Metafor as sItf
+                from . import Metafor as sItf
                 solidSolver = sItf.Metafor(p['csdFile'], p['compType'])
             elif p['solidSolver'] == 'RBMI':
-                import cupydo.interfaces.RBMI as sItf
+                from . import RBMI as sItf
                 solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
             elif p['solidSolver'] == 'Modal':
-                import cupydo.interfaces.Modal as sItf
+                from . import Modal as sItf
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
             elif p['solidSolver'] == 'GetDP':
-                import cupydo.interfaces.GetDP as sItf
+                from . import GetDP as sItf
                 raise RuntimeError('GetDP interface not up-to-date!\n')
             else:
                 raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')

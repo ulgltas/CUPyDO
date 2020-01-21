@@ -27,6 +27,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import object
 import numpy as np
 import sys
 
@@ -36,7 +37,7 @@ np.set_printoptions(threshold=sys.maxsize)
 #  Generic solid solver class
 # ----------------------------------------------------------------------
 
-class SolidSolver:
+class SolidSolver(object):
     """
     Des.
     """
@@ -161,7 +162,7 @@ class SolidSolver:
 #  Generic fluid solver class
 # ----------------------------------------------------------------------
 
-class FluidSolver:
+class FluidSolver(object):
     """Generic fluid solver class
     """
 

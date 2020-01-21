@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -28,8 +30,9 @@ limitations under the License.
 # import math
 
 # Those are mandatory
+from builtins import str
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  ExampSolver class
@@ -41,7 +44,7 @@ class ExampSolver(FluidSolver):
         Des.
         """
         
-        print '\n***************************** Initializing Example *****************************'
+        print('\n***************************** Initializing Example *****************************')
         
 
         #self.nNodes =                              # number of nodes (physical + ghost) at the f/s boundary
@@ -161,7 +164,7 @@ class ExampSolver(FluidSolver):
         """
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print toPrint
+        print(toPrint)
     
     def exit(self):
         """

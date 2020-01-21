@@ -22,13 +22,17 @@ Python interface between a modal solver and CUPyDO.
 Adrien Crovato, Mariano Sanchez Martinez
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Modal solver interface class
@@ -152,7 +156,7 @@ class Modal(SolidSolver):
         # Nodal displacements
         solFile = open('NodalDisplacement.dat', "a")
         solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
-        for lidx in self.solver.extractor.values():
+        for lidx in list(self.solver.extractor.values()):
             solFile.write('   {0:12.6f}   {1:12.6f}   {2:12.6f}'.format(self.nodalDisp_X[lidx], self.nodalDisp_Y[lidx], self.nodalDisp_Z[lidx]))
         solFile.write('\n')
         solFile.close()

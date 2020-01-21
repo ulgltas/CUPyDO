@@ -6,6 +6,9 @@
 # External solver dir should place next to CUPyDO dir
 # Romain Boman and Adrien Crovato
 
+from __future__ import print_function
+from past.builtins import execfile
+from builtins import object
 import os
 import sys
 
@@ -43,10 +46,10 @@ def addPath(p):
         p = pathw
     # add folder to path if it exists
     if os.path.isdir(p):
-        print 'INFO: adding %s to PYTHONPATH' % p
+        print('INFO: adding %s to PYTHONPATH' % p)
         sys.path.append(p)
     else:
-        print 'INFO: %s not found!' % p
+        print('INFO: %s not found!' % p)
 
 
 def setPath():
@@ -63,7 +66,7 @@ def setPath():
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
     addPath(os.path.join(topdir, 'VLM'))
-    print 'PYTHONPATH = %s\n' % sys.path
+    print('PYTHONPATH = %s\n' % sys.path)
 
 def main():
     # Global variables
@@ -86,14 +89,14 @@ def main():
             cupyutil.setDirs(file)
             # split streams
             __file__ = file
-            print "[run.py] __file__", __file__
+            print("[run.py] __file__", __file__)
             tee = Tee('stdout.txt')
             # run
             import time, platform
-            print '-' * 80
-            print 'Starting test:', file
-            print 'Time:', time.strftime('%c')
-            print 'Hostname:', platform.node()
+            print('-' * 80)
+            print('Starting test:', file)
+            print('Time:', time.strftime('%c'))
+            print('Hostname:', platform.node())
             execfile(file, globals(), globals())
 
 if __name__ == '__main__':

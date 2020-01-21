@@ -22,11 +22,18 @@ Defines the coupling algorithms of CUPyDO.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from math import *
 import numpy as np
 import scipy as sp
@@ -35,8 +42,8 @@ import copy
 import sys
 
 import ccupydo
-from utilities import *
-from interfaceData import FlexInterfaceData
+from .utilities import *
+from .interfaceData import FlexInterfaceData
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -44,7 +51,7 @@ np.set_printoptions(threshold=sys.maxsize)
 #    Algorithm class
 # ----------------------------------------------------------------------
 
-class Algorithm:
+class Algorithm(object):
     """
     Des.
     """
@@ -237,7 +244,7 @@ class AlgorithmExplicit(Algorithm):
         """
 
         #If no restart
-        nbTimeIter = int((self.totTime/self.deltaT)-1)
+        nbTimeIter = int((old_div(self.totTime,self.deltaT))-1)
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -510,7 +517,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         """
 
         #If no restart
-        nbTimeIter = int((self.totTime/self.deltaT)-1)
+        nbTimeIter = int((old_div(self.totTime,self.deltaT))-1)
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -904,7 +911,7 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
             deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
 
             if deltaResNormSquare != 0.:
-                self.omegaMecha *= -prodScalRes/deltaResNormSquare
+                self.omegaMecha *= old_div(-prodScalRes,deltaResNormSquare)
             else:
                 self.omegaMecha = self.omegaMinMecha
 
@@ -949,7 +956,7 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
                 deltaResNormSquare = deltaTemperatureResidual_Norm**2
 
             if deltaResNormSquare != 0.:
-                self.omegaThermal *= -prodScalRes/deltaResNormSquare
+                self.omegaThermal *= old_div(-prodScalRes,deltaResNormSquare)
             else:
                 self.omegaThermal = self.omegaMinThermal
 
@@ -1244,7 +1251,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             mpiPrint('\n*************** IQN-ILS is converged ***************', self.mpiComm)
 
 # --- Solid test algorithm ---
-class FsiSolidTestAlgorithm:
+class FsiSolidTestAlgorithm(object):
     def __init__(self, _solid):
         self.solid = _solid
 
@@ -1268,16 +1275,16 @@ class FsiSolidTestAlgorithm:
                 self.solid.fakeFluidSolver(t2)  # creates some dummy loads for time=t2
 
                 # run solid solver
-                print '='*80
-                print "running from %f to %f: try #%d" % (t1,t2,i+1)
-                print '='*80
+                print('='*80)
+                print("running from %f to %f: try #%d" % (t1,t2,i+1))
+                print('='*80)
                 self.solid.run(t1,t2)
 
                 # gets the deformed interface
                 dx, dy, dz = self.solid.getNodalDisplacements()
-                print dx
-                print dy
-                print dz
+                print(dx)
+                print(dy)
+                print(dz)
 
             self.solid.update()
             self.solid.save()

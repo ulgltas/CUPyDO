@@ -22,15 +22,19 @@ Python interface between the wrapper of SU2 and CUPyDO.
 Authors D. THOMAS
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
 import pysu2
 import math
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver interface class
@@ -52,9 +56,9 @@ class SU2(FluidSolver):
         # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
         # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
         try:
-            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, False, MPIComm)
+            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
         except TypeError as exception:
-            print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
+            print(('A TypeError occured in pysu2.CFluidDriver : ',exception))
             if have_MPI == True:
                 print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
             else:
@@ -68,14 +72,14 @@ class SU2(FluidSolver):
             #raise Exception('No interface for FSI was defined.')
             self.fluidInterfaceID = None
         elif allMovingMarkersTags and not allCHTMarkersTags:
-            if allMovingMarkersTags[0] in allMarkersID.keys():
+            if allMovingMarkersTags[0] in list(allMarkersID.keys()):
                 self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
         elif not allMovingMarkersTags and allCHTMarkersTags:
-            if allCHTMarkersTags[0] in allMarkersID.keys():
+            if allCHTMarkersTags[0] in list(allMarkersID.keys()):
                 self.fluidInterfaceID = allMarkersID[allCHTMarkersTags[0]]
         elif allMovingMarkersTags and allCHTMarkersTags:
             if allMovingMarkersTags[0] == allCHTMarkersTags[0]:
-                if allMovingMarkersTags[0] in allMarkersID.keys():
+                if allMovingMarkersTags[0] in list(allMarkersID.keys()):
                     self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
             else:
                 raise Exception("Moving and CHT markers have to be the same!\n")
@@ -152,10 +156,9 @@ class SU2(FluidSolver):
         """
 
         self.SU2.ResetConvergence()
-        NbIter = self.SU2.GetnExtIter()
         Iter = 0
-        while Iter < NbIter:
-            self.SU2.PreprocessExtIter(Iter)
+        while Iter < 1: # Ugly and HAS to be changed
+            self.SU2.Preprocess(Iter)
             self.SU2.Run()
             StopIntegration = self.SU2.Monitor(Iter)
             self.SU2.Output(Iter)
@@ -220,20 +223,24 @@ class SU2(FluidSolver):
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
             # in case of halo node, use haloNodesDisplacements with global fluid indexing
-            if GlobalIndex in self.haloNodeList.keys():
+            if GlobalIndex in list(self.haloNodeList.keys()):
                 dispX, dispY, dispZ = haloNodesDisplacements[GlobalIndex]
                 posX0, posY0, posZ0 = self.haloNodesPositionsInit[GlobalIndex]
                 newPosX = posX0 + dispX
                 newPosY = posY0 + dispY
                 newPosZ = posZ0 + dispZ
             else:
-                newPosX = disp_X[PhysicalIndex] + self.nodalInitialPos_X[PhysicalIndex]
-                newPosY = disp_Y[PhysicalIndex] + self.nodalInitialPos_Y[PhysicalIndex]
-                newPosZ = disp_Z[PhysicalIndex] + self.nodalInitialPos_Z[PhysicalIndex]
+                dispX = disp_X[PhysicalIndex]
+                dispY = disp_Y[PhysicalIndex]
+                dispZ = disp_Z[PhysicalIndex]
+                newPosX = dispX + self.nodalInitialPos_X[PhysicalIndex]
+                newPosY = dispY + self.nodalInitialPos_Y[PhysicalIndex]
+                newPosZ = dispZ + self.nodalInitialPos_Z[PhysicalIndex]
                 PhysicalIndex += 1
-            self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
-            self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
-            self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
+            self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
+            # self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
+            # self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
+            # self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
             self.SU2.SetVertexVarCoord(self.fluidInterfaceID, iVertex)
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
@@ -362,7 +369,7 @@ class SU2(FluidSolver):
         Preprocessing routine before each time step.
         """
 
-        self.SU2.PreprocessExtIter(timeIter)
+        self.SU2.Preprocess(timeIter)
 
     def remeshing(self):
         """

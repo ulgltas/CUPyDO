@@ -22,19 +22,24 @@ Interface interpolator and communicator.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import sys
 
 import ccupydo
-from utilities import *
-from interfaceData import FlexInterfaceData
-from interfaceData import InterfaceMatrix
-from linearSolver import LinearSolver
+from .utilities import *
+from .interfaceData import FlexInterfaceData
+from .interfaceData import InterfaceMatrix
+from .linearSolver import LinearSolver
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -189,7 +194,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceNormalHeatFlux = self.FluidSolver.getNodalNormalHeatFlux()
             localFluidInterfaceTemperature = self.FluidSolver.getNodalTemperatures()
-            localFluidInterfaceRobinTemperature = localFluidInterfaceTemperature - (localFluidInterfaceNormalHeatFlux/self.heatTransferCoeff)
+            localFluidInterfaceRobinTemperature = localFluidInterfaceTemperature - (old_div(localFluidInterfaceNormalHeatFlux,self.heatTransferCoeff))
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
                 self.fluidInterfaceRobinTemperature[iGlobalVertex] = [localFluidInterfaceRobinTemperature[iVertex]]
@@ -244,7 +249,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                         globalIndex += 1
                     fluidHaloNodesList = self.manager.getFluidHaloNodesList()
                     fluidIndexing = self.manager.getFluidIndexing()
-                    for key in fluidHaloNodesList[iProc].keys():
+                    for key in list(fluidHaloNodesList[iProc].keys()):
                         globalIndex = fluidIndexing[key]
                         sendBuffHalo[key] = []
                         for iDim in range(fluidInterfaceData.nDim):
@@ -254,7 +259,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                         self.mpiComm.Isend(sendBuff[iDim], dest=iProc, tag = iTagSend)
                         iTagSend += 1
                     #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
-                    sendBuffHalo_key = np.array(sendBuffHalo.keys())
+                    sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
                     sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
                     for ii in range(sendBuffHalo_key.size):
                         sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
@@ -319,7 +324,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                         globalIndex += 1
                     solidHaloNodesList = self.manager.getSolidHaloNodesList()
                     solidIndexing = self.manager.getSolidIndexing()
-                    for key in solidHaloNodesList[iProc].keys():
+                    for key in list(solidHaloNodesList[iProc].keys()):
                         globalIndex = solidIndexing[key]
                         sendBuffHalo[key] = []
                         for iDim in range(solidInterfaceData.nDim):
@@ -329,7 +334,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                         self.mpiComm.Isend(sendBuff[iDim], dest=iProc, tag = iTagSend)
                         iTagSend += 1
                     #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
-                    sendBuffHalo_key = np.array(sendBuffHalo.keys())
+                    sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
                     sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
                     for ii in range(sendBuffHalo_key.size):
                         sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])

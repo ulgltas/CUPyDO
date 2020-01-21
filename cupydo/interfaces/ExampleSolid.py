@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -27,8 +29,9 @@ limitations under the License.
 # import solidWrapper
 
 # Those are mandatory
+from builtins import str
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 
 # ----------------------------------------------------------------------
@@ -41,7 +44,7 @@ class ExampSolver(SolidSolver):
         Des.
         """
         
-        print '\n***************************** Initializing Example *****************************'
+        print('\n***************************** Initializing Example *****************************')
         
 
         #self.nNodes =                              # number of nodes (physical + ghost) at the f/s boundary
@@ -176,7 +179,7 @@ class ExampSolver(SolidSolver):
         """
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print toPrint
+        print(toPrint)
     
     def exit(self):
         """

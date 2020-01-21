@@ -22,15 +22,18 @@ Interface general manager.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import range
 import numpy as np
 
 import ccupydo
-from utilities import *
+from .utilities import *
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -216,7 +219,7 @@ class Manager(ccupydo.CManager):
         localIndex = 0
         for iVertex in range(self.nLocalFluidInterfaceNodes):
             nodeIndex = FluidSolver.getNodalIndex(iVertex)
-            if nodeIndex in self.fluidHaloNodesList[myid].keys():
+            if nodeIndex in list(self.fluidHaloNodesList[myid].keys()):
                 pass
             else:
                 fluidIndexing_temp[nodeIndex] = self.getGlobalIndex('fluid', myid, localIndex)
@@ -226,7 +229,7 @@ class Manager(ccupydo.CManager):
         localIndex = 0
         for jVertex in range(self.nLocalSolidInterfaceNodes):
             nodeIndex = SolidSolver.getNodalIndex(jVertex)
-            if nodeIndex in self.solidHaloNodesList[myid].keys():
+            if nodeIndex in list(self.solidHaloNodesList[myid].keys()):
                 pass
             else:
                 solidIndexing_temp[nodeIndex] = self.getGlobalIndex('solid', myid, localIndex)
@@ -236,10 +239,10 @@ class Manager(ccupydo.CManager):
             fluidIndexing_temp = self.mpiComm.allgather(fluidIndexing_temp)
             solidIndexing_temp = self.mpiComm.allgather(solidIndexing_temp)
             for ii in range(len(solidIndexing_temp)):
-                for key, value in solidIndexing_temp[ii].items():
+                for key, value in list(solidIndexing_temp[ii].items()):
                     self.solidIndexing[key] = value
             for ii in range(len(fluidIndexing_temp)):
-                for key, value in fluidIndexing_temp[ii].items():
+                for key, value in list(fluidIndexing_temp[ii].items()):
                     self.fluidIndexing[key] = value
         else:
             self.fluidIndexing = fluidIndexing_temp.copy()

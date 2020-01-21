@@ -22,16 +22,19 @@ Python interface between the wrapper of NativeSolid and CUPyDO.
 Authors D. THOMAS
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import range
 import NativeSolid
 
 import math
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  RBMI solver interface class

@@ -22,11 +22,14 @@ Python utilities.
 Authors: L. PAPELEUX
 
 '''
+from __future__ import print_function
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from future import standard_library
+standard_library.install_aliases()
 import os, os.path, sys, platform
 import tempfile
 
@@ -42,10 +45,10 @@ def fileToModule(file, verb=True):
     convert a path/file to a module name (e.g. apps/qs/cont2.py => apps.qs.cont2)
     """
     file=os.path.abspath(file)
-    if verb: print 'file=',file
+    if verb: print('file=',file)
     for dirname in sys.path:
         dirname = os.path.abspath(dirname)
-        if verb: print 'module in', dirname, '?'
+        if verb: print('module in', dirname, '?')
 
         if isUnix(): 
             common = os.path.commonprefix( (file, dirname) )
@@ -72,12 +75,12 @@ def fileToModule(file, verb=True):
                     touchFile = open(init_py, 'w')
                     touchFile.close()
             if verb: 
-                print 'YES'
-                print 'module=', strip
+                print('YES')
+                print('module=', strip)
             return strip
             break
         else:
-            if verb: print 'NO'
+            if verb: print('NO')
     return ''
 
 def isUnix():
@@ -134,16 +137,16 @@ def canCreateFolder(folder_path):
 
 def printMem(indent=""):    
     if isUnix():
-        import commands
+        import subprocess
         #
         procId = os.getpid()
-        res = commands.getoutput('cat /proc/%s/status' % procId).split('\n')
+        res = subprocess.getoutput('cat /proc/%s/status' % procId).split('\n')
         status = dict()
         for i in res:
             if i != '':
                 res2 = i.split(":\t")                
                 status[res2[0]]=res2[1]    
-        print indent+"VmSize: %s  VmRSS: %s  VmData: %s " % (status['VmSize'], status['VmRSS'], status['VmData'])
+        print(indent+"VmSize: %s  VmRSS: %s  VmData: %s " % (status['VmSize'], status['VmRSS'], status['VmData']))
     else:
         try:
             import win32process
@@ -156,7 +159,7 @@ def printMem(indent=""):
             peakWork     = (procmeminfo["PeakWorkingSetSize"]/1024.)
             pageFile     = (procmeminfo["PagefileUsage"]/1024.)
             peakPageFile = (procmeminfo["PeakPagefileUsage"]/1024.)
-            print indent+"WorkMem: %sK  PeakMem: %sK  PageFile: %sK  PeakPageFile: %sK" % (workMem,peakWork,pageFile,peakPageFile)
+            print(indent+"WorkMem: %sK  PeakMem: %sK  PageFile: %sK  PeakPageFile: %sK" % (workMem,peakWork,pageFile,peakPageFile))
         except:
-            print "install pywin32 to be able to compute process memory"
+            print("install pywin32 to be able to compute process memory")
     

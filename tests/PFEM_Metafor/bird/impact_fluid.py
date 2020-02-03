@@ -19,7 +19,9 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
+from __future__ import print_function
 
+from builtins import object
 import sys
 import os
 
@@ -33,7 +35,7 @@ import pfem.tools.pfemtools as wt
 w = None
 
 
-class Module:
+class Module(object):
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
                  convCriterion, bird, loadingset, scheme,
                  extManager, gui, bndno):
@@ -59,7 +61,7 @@ def getPfem():
 
     mshFile = runPath+os.sep+'impact.msh'
 
-    print 'mshFile: ', mshFile
+    print('mshFile: ', mshFile)
 
     rho0 = 1000.
     mu = 0.001
@@ -77,7 +79,7 @@ def getPfem():
 
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
 
     toll = 1e-6
     nItMax = 10

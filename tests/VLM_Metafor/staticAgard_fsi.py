@@ -5,6 +5,8 @@
 # Agard445 wing
 # Adrien Crovato & Mariano Sánchez Martínez
 
+from __future__ import print_function
+from builtins import str
 def test(cupydo, tol):
     res = cupydo.algorithm.errValue
     import numpy as np
@@ -21,7 +23,7 @@ def test(cupydo, tol):
 
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', cl, 0.0460, 1e-2, True)) # abs. tol
@@ -66,7 +68,7 @@ def main():
     test(cupydo, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

@@ -22,15 +22,21 @@ Python interface between the wrapper of PFEM solver and CUPyDO.
 Authors M.L. CERQUAGLIA
 
 '''
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import os, os.path, sys, time, string
 
 import math
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  Pfem solver interface class
@@ -39,7 +45,7 @@ from cupydo.genericSolvers import FluidSolver
 class Pfem(FluidSolver):
     def __init__(self, testname, nthreads, nogui, dt):
         
-        print '\n***************************** Initializing Pfem *****************************'
+        print('\n***************************** Initializing Pfem *****************************')
         
         self.testname = testname  # string (name of the module of the fluid model)
         
@@ -154,7 +160,7 @@ class Pfem(FluidSolver):
         """
         
         out = {}
-        for no in self.vnods.iterkeys():
+        for no in self.vnods.keys():
             node = self.vnods[no]                 
             vx = -0.5 # current vx          
             vy = 0. # current vy
@@ -173,8 +179,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/self.pfem.scheme.dt
-            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/self.pfem.scheme.dt
+            node.imposedU = old_div((dx[i] - self.displ_x_Nm1[i]),self.pfem.scheme.dt)
+            node.imposedV = old_div((dy[i] - self.displ_y_Nm1[i]),self.pfem.scheme.dt)
         
     def update(self, dt):
         self.pfem.scheme.t+=dt
@@ -238,7 +244,7 @@ class Pfem(FluidSolver):
             for d in data:
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
-            print toPrint
+            print(toPrint)
     
     def remeshing(self):
         self.pfem.scheme.remeshing(self.V,self.V0,self.p)

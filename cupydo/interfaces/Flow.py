@@ -17,13 +17,19 @@ Flow.py
 Python interface between Flow and CUPyDO.
 Authors A. Crovato
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  FlowSolver class
@@ -55,7 +61,7 @@ class Flow(FluidSolver):
         """Initilize flow classes
         Adrien Crovato
         """
-        import flow
+        from . import flow
         import tbox
         import tbox.gmsh as gmsh
 
@@ -67,13 +73,13 @@ class Flow(FluidSolver):
             try:   
                import tboxVtk
                Writer = tboxVtk.VtkExport
-               print "Found VTK libraries! Results will be saved in VTK format.\n"
+               print("Found VTK libraries! Results will be saved in VTK format.\n")
             except:
                Writer = tbox.GmshExport
-               print "VTK libraries not found! Results will be saved in gmsh format.\n"
+               print("VTK libraries not found! Results will be saved in gmsh format.\n")
         else:
             Writer = tbox.GmshExport
-            print "Results will be saved in gmsh format.\n"
+            print("Results will be saved in gmsh format.\n")
 
         # mesh the geometry
         self.msh = gmsh.MeshLoader(p['File'],__file__).execute(**p['Pars'])
@@ -172,11 +178,11 @@ class Flow(FluidSolver):
         self.solver.relTol = p['Rel_tol']
         self.solver.absTol = p['Abs_tol']
         self.solver.maxIt = p['Max_it']
-        print "Number of threads: ", self.solver.nthreads
-        print "Maximum number of iterations: ", self.solver.maxIt
-        print "Objective relative residual: ", self.solver.relTol
-        print "Objective absolute residual: ", self.solver.absTol
-        print '\n'
+        print("Number of threads: ", self.solver.nthreads)
+        print("Maximum number of iterations: ", self.solver.maxIt)
+        print("Objective relative residual: ", self.solver.relTol)
+        print("Objective absolute residual: ", self.solver.absTol)
+        print('\n')
         
     def run(self, t1, t2):
         """Run the solver for one steady (time) iteration.
@@ -261,14 +267,14 @@ class Flow(FluidSolver):
         histFile.close()
         # full solution at user-defined frequency
         if np.mod(nFSIIter+1, self.saveFreq) == 0:
-            self.solver.save(1000000+int(nFSIIter+1)/int(self.saveFreq), self.mshWriter)
+            self.solver.save(1000000+old_div(int(nFSIIter+1),int(self.saveFreq)), self.mshWriter)
 
     def printRealTimeData(self, time, nFSIIter):
         """Print data on screen at the end of fsi simulation
         Adrien Crovato
         """
-        print '[Flow lift, drag, moment]: {0:6.3f}, {1:6.4f}, {2:6.3f}'.format(self.solver.Cl, self.solver.Cd, self.solver.Cm)
-        print ''
+        print('[Flow lift, drag, moment]: {0:6.3f}, {1:6.4f}, {2:6.3f}'.format(self.solver.Cl, self.solver.Cd, self.solver.Cm))
+        print('')
     
     def exit(self):
         """

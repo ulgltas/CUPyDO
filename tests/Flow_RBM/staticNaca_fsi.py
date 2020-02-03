@@ -5,6 +5,9 @@
 # Naca0012 airfoil
 # Adrien Crovato
 
+from __future__ import division
+from __future__ import print_function
+from builtins import str
 def test(res, tol):
     import numpy as np
     from cupydo.testing import *
@@ -29,10 +32,10 @@ def test(res, tol):
     x = np.linalg.solve(A, b)
 
     # Display the solution
-    print "Ref. lift coefficient: " + str(cl_alpha*x[1])
-    print "Ref. vertical displacement: " + str(x[0])
-    print "Ref. new angle of attack: " + str(np.degrees(x[1]))
-    print "Ref. rotational displacement : " + str(np.degrees(x[1]-alpha0))
+    print("Ref. lift coefficient: " + str(cl_alpha*x[1]))
+    print("Ref. vertical displacement: " + str(x[0]))
+    print("Ref. new angle of attack: " + str(np.degrees(x[1])))
+    print("Ref. rotational displacement : " + str(np.degrees(x[1]-alpha0)))
 
     # Read results from file
     resultS = np.genfromtxt("NativeHistory.dat", delimiter=None, skip_header=1)
@@ -42,7 +45,7 @@ def test(res, tol):
 
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], cl_alpha*x[1], 2*1e-1, False)) # rel. tol. of 10%
@@ -86,7 +89,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

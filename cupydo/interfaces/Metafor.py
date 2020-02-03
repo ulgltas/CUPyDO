@@ -22,10 +22,17 @@ Python interface between the wrapper of Metafor and CUPyDO.
 Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 
 '''
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import os, os.path, sys, time, string
 
 import math
@@ -33,13 +40,13 @@ from toolbox.utilities import *
 import toolbox.fac as fac
 from wrap import *
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Nodal Load class
 # ----------------------------------------------------------------------
 
-class NLoad:
+class NLoad(object):
     """
     Nodal load
     """
@@ -49,7 +56,7 @@ class NLoad:
         self.val2 = val2
         self.t2 = t2
     def __call__(self, time):
-        theValue = self.val1 + (time-self.t1)/(self.t2-self.t1)*(self.val2-self.val1)
+        theValue = self.val1 + old_div((time-self.t1),(self.t2-self.t1))*(self.val2-self.val1)
         return theValue
     def nextstep(self):
         self.t1 = self.t2
@@ -65,7 +72,7 @@ class Metafor(SolidSolver):
         des.
         """
         
-        print '\n***************************** Initializing Metafor *****************************'
+        print('\n***************************** Initializing Metafor *****************************')
         
         # --- Load the Python module --- #
         self.testname = testname            # string (name of the module of the solid model)
@@ -327,13 +334,13 @@ class Metafor(SolidSolver):
         Des.
         """
         
-        for no in self.fnods.iterkeys():
+        for no in self.fnods.keys():
             node, fx, fy, fz = self.fnods[no]
             fx.nextstep()
             fy.nextstep()
             fz.nextstep()
 
-        for no in self.Tnods.iterkeys():
+        for no in self.Tnods.keys():
             node, Temp = self.Tnods[no]
             Temp.nextstep()
 
@@ -396,7 +403,7 @@ class Metafor(SolidSolver):
             for d in data:
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
-            print toPrint
+            print(toPrint)
     
     def exit(self):
         """

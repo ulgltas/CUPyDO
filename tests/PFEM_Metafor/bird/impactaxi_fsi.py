@@ -1,14 +1,17 @@
+from __future__ import division
+from __future__ import print_function
 
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # original name: birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym_fsi.py
 
+from builtins import str
 def test(res, tol, it):
     import numpy as np
     from cupydo.testing import *
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
@@ -59,7 +62,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

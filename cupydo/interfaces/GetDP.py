@@ -22,16 +22,20 @@ Python interface between the wrapper of GetDP and CUPyDO.
 Authors C. GEUZAINE, D. THOMAS
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
 import math
 import os
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
-from getdp import *
+from ..genericSolvers import SolidSolver
+from .getdp import *
 
 # ----------------------------------------------------------------------
 #  GetDP solver interface class
@@ -438,7 +442,7 @@ class GetDP(SolidSolver):
         """
 
         self.extractNode = 7        #should be decided by the user outside of the function
-        self.iVertexExtract = self.nodalInterfIndex.keys()[self.nodalInterfIndex.values().index(self.extractNode)]
+        self.iVertexExtract = list(self.nodalInterfIndex.keys())[list(self.nodalInterfIndex.values()).index(self.extractNode)]
         solFile = open('extractPhysicalNode' + str(self.extractNode) + '.ascii', "w")
         solFile.write("Time\tnIter\tDx\tDy\tDz\tVx\tVy\tVz\tT\tQx\tQy\tQz\n")
         solFile.close()

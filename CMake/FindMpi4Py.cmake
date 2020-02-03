@@ -38,7 +38,7 @@ IF(NOT PYTHON_EXECUTABLE)
   
 ELSE(NOT PYTHON_EXECUTABLE)
     EXECUTE_PROCESS(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; from __future__ import print_function;  print(cg.get_python_lib(1,0))"
+        COMMAND ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import distutils.sysconfig as cg; print(cg.get_python_lib(1,0))"
         OUTPUT_VARIABLE PYTHON_SITEDIR
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -55,7 +55,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
   
     IF(MPI4PY_FOUND)  
         EXECUTE_PROCESS(  
-            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; from __future__ import print_function; print(mpi4py.__version__)"
+            COMMAND ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import mpi4py; print(mpi4py.__version__)"
             OUTPUT_VARIABLE MPI4PY_VERSION  
             RESULT_VARIABLE  MPI4PY_NOT_FOUND  
             OUTPUT_STRIP_TRAILING_WHITESPACE  

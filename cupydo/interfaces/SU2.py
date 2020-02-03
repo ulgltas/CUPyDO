@@ -136,13 +136,14 @@ class SU2(FluidSolver):
         """
 
         if self.computationType == 'unsteady':
-            self.__unsteadyRun(t1, t2)
+            nt = int(t2/(t2-t1))
+            self.__unsteadyRun(nt)
         else:
             self.__steadyRun()
 
         self.__setCurrentState()
 
-    def __unsteadyRun(self, t1, t2):
+    def __unsteadyRun(self, nt):
         """
         Run SU2 on one time step.
         """
@@ -156,10 +157,10 @@ class SU2(FluidSolver):
         """
 
         self.SU2.ResetConvergence()
-        self.SU2.Preprocess(0)
+        self.SU2.Preprocess(1)
         self.SU2.Run()
-        StopIntegration = self.SU2.Monitor(0)
-        self.SU2.Output(0)
+        StopIntegration = self.SU2.Monitor(1)
+        self.SU2.Output(1)
 
     def __setCurrentState(self):
         """
@@ -340,9 +341,10 @@ class SU2(FluidSolver):
         Perform the mesh morphing.
         """
 
-        if self.computationType == 'unsteady':
+        if self.computationType == 'unsteady' and nt>0:
+            print("iter: {}".format(nt))
             self.SU2.DynamicMeshUpdate(nt)
-        else:
+        elif self.computationType == 'steady':
             self.SU2.StaticMeshUpdate()
 
     def boundaryConditionsUpdate(self):
@@ -364,7 +366,8 @@ class SU2(FluidSolver):
         Preprocessing routine before each time step.
         """
 
-        self.SU2.Preprocess(timeIter)
+        if timeIter > 0:
+            self.SU2.Preprocess(timeIter)
 
     def remeshing(self):
         """

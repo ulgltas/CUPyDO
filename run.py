@@ -62,6 +62,7 @@ def setPath():
     addPath(os.path.join(topdir, 'waves'))
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
+    addPath(os.path.join(topdir, 'VLM'))
     print 'PYTHONPATH = %s\n' % sys.path
 
 def main():

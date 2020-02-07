@@ -94,7 +94,7 @@ class Manager(ccupydo.CManager):
         if FluidSolver != None:
             print('Fluid solver is initialized on process {}'.format(myid))
             self.haveFluidSolver = True
-            self.nLocalFluidInterfaceNodes = FluidSolver.nNodes
+            self.nLocalFluidInterfaceNodes = sum(FluidSolver.nNodes)
             if self.nLocalFluidInterfaceNodes != 0:
                 self.haveFluidInterface = True
                 print('Number of interface fluid nodes (halo nodes included) on proccess {} : {}'.format(myid,self.nLocalFluidInterfaceNodes))
@@ -156,7 +156,7 @@ class Manager(ccupydo.CManager):
             self.solidHaloNodesList = [{}]
 
         # --- Get the number of physical (= not halo) nodes on the f/s interface --- #
-        self.nLocalFluidInterfacePhysicalNodes = FluidSolver.nPhysicalNodes
+        self.nLocalFluidInterfacePhysicalNodes = sum(FluidSolver.nPhysicalNodes)
         if myid in self.solidSolverProcessors:
             self.nLocalSolidInterfacePhysicalNodes = SolidSolver.nPhysicalNodes
 

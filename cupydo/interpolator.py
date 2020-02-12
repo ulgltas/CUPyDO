@@ -34,7 +34,6 @@ from builtins import range
 from past.utils import old_div
 import numpy as np
 import sys
-
 import ccupydo
 from .utilities import *
 from .interfaceData import FlexInterfaceData
@@ -77,10 +76,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.mappingTimer = Timer()
 
-        self.nf = self.manager.getNumberOfFluidInterfaceNodes()
-        self.ns = self.manager.getNumberOfSolidInterfaceNodes()
-        self.nf_loc = self.manager.getNumberOfLocalFluidInterfaceNodes()
-        self.ns_loc = self.manager.getNumberOfLocalSolidInterfaceNodes()
+        self.nf = int(self.manager.getNumberOfFluidInterfaceNodes())
+        self.ns = int(self.manager.getNumberOfSolidInterfaceNodes())
+        self.nf_loc = int(self.manager.getNumberOfLocalFluidInterfaceNodes())
+        self.ns_loc = int(self.manager.getNumberOfLocalSolidInterfaceNodes())
         self.nDim = self.manager.getnDim()
 
         self.d = 0

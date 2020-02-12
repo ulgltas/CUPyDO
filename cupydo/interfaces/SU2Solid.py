@@ -23,18 +23,22 @@ Python interface between the wrapper of SU2 for solid mechanics and CUPyDO.
 Authors R. Sanchez - TU Kaiserslautern
 
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
 import pysu2ad as pysu2
 import math
 import numpy as np
 
 # Those are mandatory
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 
 # ----------------------------------------------------------------------
@@ -57,7 +61,7 @@ class SU2SolidSolver(SolidSolver):
             pysu2.CGeneralDriver(confFile, 1, nDim, False, MPIComm)
             print("Goes through")
         except TypeError as exception:
-            print('A TypeError occured in pysu2.CSingleZoneDriver : ', exception)
+            print(('A TypeError occured in pysu2.CSingleZoneDriver : ', exception))
             if have_MPI == True:
                 print(
                     'ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
@@ -72,7 +76,7 @@ class SU2SolidSolver(SolidSolver):
             # raise Exception('No interface for FSI was defined.')
             self.fluidInterfaceID = None
         elif allMovingMarkersTags:
-            if allMovingMarkersTags[0] in allMarkersID.keys():
+            if allMovingMarkersTags[0] in list(allMarkersID.keys()):
                 self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
             else:
                 raise Exception("Moving and CHT markes have to be the same.")
@@ -128,9 +132,9 @@ class SU2SolidSolver(SolidSolver):
         self.initRealTimeData()
 
         print("\n -------------------------- SOLID NODES ------------------------------ \n")
-        print("There is a total of", self.nNodes, "nodes\n")
+        print(("There is a total of", self.nNodes, "nodes\n"))
         for iIndex in range(self.nPhysicalNodes):
-            print(self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex])
+            print((self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex]))
 
     def run(self, t1, t2):
         """
@@ -223,7 +227,7 @@ class SU2SolidSolver(SolidSolver):
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
             # in case of halo node, use haloNodesDisplacements with global fluid indexing
-            if GlobalIndex in self.haloNodeList.keys():
+            if GlobalIndex in list(self.haloNodeList.keys()):
                 # Temporarily support only single core
                 LoadX = 0.0
                 LoadY = 0.0
@@ -286,7 +290,7 @@ class SU2SolidSolver(SolidSolver):
         """
 
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print
+        print()
         toPrint
 
     def exit(self):

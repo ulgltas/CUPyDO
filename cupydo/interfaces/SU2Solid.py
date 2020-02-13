@@ -3,7 +3,7 @@
 
 '''
 
-Copyright 2018 University of Li�ge
+Copyright 2018 University of Liège
 Copyright 2018 TU Kaiserslautern
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import range
-import pysu2ad as pysu2
+import pysu2
 import math
 import numpy as np
 
@@ -50,16 +50,14 @@ class SU2SolidSolver(SolidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, bndno, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
+    def __init__(self, confFile, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
 
         # --- Instantiate the structural driver of SU2 --- #
         try:
-            print("CGeneralDriver")
-            pysu2.CGeneralDriver(confFile, 1, nDim, False, MPIComm)
-            print("Goes through")
+            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
         except TypeError as exception:
             print(('A TypeError occured in pysu2.CSingleZoneDriver : ', exception))
             if have_MPI == True:

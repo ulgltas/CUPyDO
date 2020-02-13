@@ -41,7 +41,7 @@ class CUPyDO(object):
         # --- Initialize the fluid and solid solvers --- #
         fluidSolver = self.__initFluid(p, withMPI, comm)
         cupyutil.mpiBarrier(comm)
-        solidSolver = self.__initSolid(p, myId)
+        solidSolver = self.__initSolid(p, myId, withMPI, comm)
         cupyutil.mpiBarrier(comm)
 
         # --- Initialize the FSI manager --- #
@@ -119,8 +119,8 @@ class CUPyDO(object):
             raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
         return fluidSolver
 
-    def __initSolid(self, p, myId):
-        """Initialize fluid solver interface
+    def __initSolid(self, p, myId, withMPI, comm):
+        """Initialize solid solver interface
         Adrien Crovato
         """
         solidSolver = None
@@ -134,6 +134,12 @@ class CUPyDO(object):
             elif p['solidSolver'] == 'Modal':
                 from . import Modal as sItf
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
+            elif p['solidSolver'] == 'SU2':
+                from . import SU2Solid as sItf
+                if comm != None:
+                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                else:
+                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
             elif p['solidSolver'] == 'GetDP':
                 from . import GetDP as sItf
                 raise RuntimeError('GetDP interface not up-to-date!\n')
@@ -146,7 +152,7 @@ class CUPyDO(object):
 
 # Solvers
 # - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM
-# - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP
+# - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 
 # - p['csdFile'], path to solid cfg file'

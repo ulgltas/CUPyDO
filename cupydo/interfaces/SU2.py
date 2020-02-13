@@ -105,8 +105,6 @@ class SU2(FluidSolver):
         self.nodalInitialPos_X = np.zeros(np.sum(self.nPhysicalNodes))
         self.nodalInitialPos_Y = np.zeros(np.sum(self.nPhysicalNodes))
         self.nodalInitialPos_Z = np.zeros(np.sum(self.nPhysicalNodes))
-            self.nNodes = self.SU2.GetNumberVertices(self.fluidInterfaceID)           # numbers of nodes at the f/s interface (halo+physical)
-            self.nHaloNode = self.SU2.GetNumberHaloVertices(self.fluidInterfaceID)    # numbers of nodes at the f/s interface (halo)
         self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
         self.haloNodesPositionsInit = {}
 
@@ -124,7 +122,7 @@ class SU2(FluidSolver):
                     self.haloNodeList[GlobalIndex] = jVertex
                     self.haloNodesPositionsInit[GlobalIndex] = (posX, posY, posZ)
                 else:
-                    GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+                    GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID[iInterface], jVertex)
                     self.pointIndexList[PhysicalIndex] = GlobalIndex
                     self.SU2.ComputeVertexForces(self.fluidInterfaceID[iInterface], jVertex)
                     Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID[iInterface], jVertex)
@@ -142,10 +140,10 @@ class SU2(FluidSolver):
 
         self.initRealTimeData()
 
-        print("\n -------------------------- FLUID NODES ------------------------------ \n")
-        print("There is a total of", self.nNodes, "nodes\n")
-        for iIndex in range(self.nPhysicalNodes):
-            print(self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex])
+        # print("\n -------------------------- FLUID NODES ------------------------------ \n")
+        # print("There is a total of", self.nNodes, "nodes\n")
+        # for iIndex in range(self.nPhysicalNodes):
+        #     print(self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex])
 
     def run(self, t1, t2):
         """

@@ -85,7 +85,7 @@ def getPfem():
     convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 
-    scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
+    scheme = w.TimeIntegration(msh, pbl, nonLinAlgo)
 
     bndno = 15 # fsi boundary
 
@@ -121,7 +121,7 @@ def getPfem():
     extManager.add(7,wt.ViscousEnergyExtractor(msh,pbl,scheme,"Body"))'''
 
     import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, True)
+    gui = v.Link2VTK(msh, scheme, False, True)
 
     return Module(w, msh, pbl, solScheme, nonLinAlgo,
                   convCriterion, bird, loadingset,

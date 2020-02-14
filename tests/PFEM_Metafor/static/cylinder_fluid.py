@@ -78,7 +78,7 @@ def getPfem():
     convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 
-    scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
+    scheme = w.TimeIntegration(msh, pbl, nonLinAlgo)
 
     bndno = 9
     msh.ptags[9].name = "Cylinder"
@@ -106,7 +106,7 @@ def getPfem():
     extManager.add(21, wt.TotalIntForceExtractor(msh, "Cylinder"))
 
     import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, True)
+    gui = v.Link2VTK(msh, scheme, False, True)
 
     return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
 

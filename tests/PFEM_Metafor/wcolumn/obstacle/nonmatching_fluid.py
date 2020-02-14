@@ -81,7 +81,7 @@ def getPfem():
     convCriterion = w.PositionIncrementCriterion(msh, pbl, toll)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 
-    scheme = w.BackwardEuler(msh, pbl, nonLinAlgo)
+    scheme = w.TimeIntegration(msh, pbl, nonLinAlgo)
 
     bndno = 17 # fsi boundary
 
@@ -124,7 +124,7 @@ def getPfem():
     extManager.add(12,wt.ViscousEnergyExtractor(msh,pbl,scheme,"Water"))'''
 
     import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, True)
+    gui = v.Link2VTK(msh, scheme, False, True)
 
     return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
 

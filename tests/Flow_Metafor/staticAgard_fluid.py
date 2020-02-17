@@ -23,12 +23,12 @@ def getParams():
     # Markers
     p['Fluid'] = 'field' # Name of physical group containing the fluid
     p['Symmetry'] = 'symmetry' # Name of physical group containing the (slip) symmetry boundary
-    p['Farfield'] = ['farfield', 'downstream'] # LIST of names of physical groups containing the farfield boundaries (downstream should be last element)
-    p['Body'] = ['wing'] # LIST of names of physical group containing the (solid) body boundary
+    p['Farfield'] = ['upstream', 'farfield', 'downstream'] # LIST of names of physical groups containing the farfield boundaries (upstream/downstream should be first/last element)
+    p['Wings'] = ['wing'] # LIST of names of physical group containing the lifting surface boundary
     p['Fsi'] = 'wing' # Name of the physical group containing the FSI boundary
-    p['Wake'] = 'wake' # Name of physical group containing the wake
-    p['WakeTip'] = 'wakeTip' # Name of physical group containing the edge of the wake
-    p['TeTip'] = 'teTip' # Name of physical group containing the edge of the wake and the trailing edge
+    p['Wakes'] = ['wake'] # LIST of names of physical groups containing the wake
+    p['WakeTips'] = ['wakeTip'] # LIST of names of physical groups containing the edge of the wake
+    p['TeTips'] = ['teTip'] # LIST of names of physical groups containing the edge of the wake and the trailing edge
     # Freestream
     p['M_inf'] = 0.8 # Freestream Mach number
     p['AoA'] = 1. # Freestream angle of attack

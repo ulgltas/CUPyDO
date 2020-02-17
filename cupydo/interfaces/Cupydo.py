@@ -109,6 +109,9 @@ class CUPyDO():
         elif p['fluidSolver'] == 'Flow':
             import cupydo.interfaces.Flow as fItf
             fluidSolver = fItf.Flow(p['cfdFile'], args.n)
+        elif p['fluidSolver'] == 'VLM':
+            import cupydo.interfaces.VLM as fItf
+            fluidSolver = fItf.VLMSolver(p['cfdFile'])
         else:
             raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
         return fluidSolver
@@ -139,7 +142,7 @@ class CUPyDO():
 # Sample parameters list
 
 # Solvers
-# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow
+# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM
 # - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 

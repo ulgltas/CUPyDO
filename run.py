@@ -62,6 +62,7 @@ def setPath():
     addPath(os.path.join(topdir, 'waves'))
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
+    addPath(os.path.join(topdir, 'VLM'))
     print 'PYTHONPATH = %s\n' % sys.path
 
 def main():
@@ -72,8 +73,8 @@ def main():
     setPath()
 
     # Parse arguments
-    import cupydo.utilities as cupyutils
-    args = cupyutils.parseArgs()
+    import cupydo.utilities as cupyutil
+    args = cupyutil.parseArgs()
 
     # Process
     for file in args.file:
@@ -82,8 +83,7 @@ def main():
         else:
             file = os.path.abspath(file)
             # change dir
-            import cupydo.utilities as cutil
-            cutil.setDirs(file)
+            cupyutil.setDirs(file)
             # split streams
             __file__ = file
             print "[run.py] __file__", __file__

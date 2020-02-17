@@ -180,7 +180,7 @@ class Pfem(FluidSolver):
     def update(self, dt):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
-        self.pfem.scheme.updateSolutionVectors(self.V,self.V0,self.u,self.v,self.p,self.velocity),self.matID
+        self.pfem.scheme.updateSolutionVectors(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         self.pfem.scheme.updateMatIDVector(self.matID)
         
         

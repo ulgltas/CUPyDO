@@ -128,7 +128,7 @@ def parseArgs():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs=1, help='Python input file')
-    parser.add_argument('-n', dest='n', help='Number of threads or processes', default=1, type=int)
+    parser.add_argument('-n', dest='n', help='Number of threads', default=1, type=int)
     parser.add_argument('--nogui', action='store_true', help='Disable GUI', default=False)
     return parser.parse_args()
 
@@ -136,16 +136,28 @@ def setDirs(fpath):
     """Add file dir to python path and setup the working directory
     """
     import os, sys
-    # append to python path
+    # get MPI status
+    haveMpi, comm, rank, size = getMpi()
+    # create workspace path
     sys.path.append(os.path.dirname(fpath)) # [RB] !this folder is can be a subfolder of one of the folders in the pythonpath
     base = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ' ')) # find base directory
     print base
     common = os.path.commonprefix((fpath, base)) # find common part of testname ad base name
     resdir = os.path.splitext(fpath[len(common):].replace(os.sep,"_"))[0] # common part, change seprator to underscore and remove ".py"
     wdir=os.path.join('workspace', resdir) # that is our workspace!
-    if not os.path.isdir(wdir):
-        print "creating", wdir
-        os.makedirs(wdir)
+    # create workspace (master process)
+    if rank == 0:
+        if not os.path.isdir(wdir):
+            print "creating", wdir
+            os.makedirs(wdir)
+
+        if size > 1: # send sync to slaves
+                for i in range(1, size):
+                    comm.send(1, dest=i, tag=11)
+    # block slave processes
+    else:
+        comm.barrier()
+    # change to workspace
     print 'changing to', wdir
     os.chdir(wdir)
 

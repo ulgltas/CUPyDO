@@ -69,13 +69,13 @@ class SU2SolidSolver(SolidSolver):
 
         allMovingMarkersTags = self.SU2.GetAllMovingMarkersTag()  # list containing the tags of all moving markers
         allMarkersID = self.SU2.GetAllBoundaryMarkers()  # dic : allMarkersID['marker_tag'] = marker_ID
-        self.fluidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
+        self.solidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
         if not allMovingMarkersTags:
             # raise Exception('No interface for FSI was defined.')
-            self.fluidInterfaceID = None
+            self.solidInterfaceID = None
         elif allMovingMarkersTags:
             if allMovingMarkersTags[0] in list(allMarkersID.keys()):
-                self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
+                self.solidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
             else:
                 raise Exception("Moving and CHT markes have to be the same.")
 
@@ -86,11 +86,11 @@ class SU2SolidSolver(SolidSolver):
         self.nNodes = 0
         self.nHaloNode = 0
         self.nPhysicalNodes = 0
-        if self.fluidInterfaceID != None:
+        if self.solidInterfaceID != None:
             self.nNodes = self.SU2.GetNumberVertices(
-                self.fluidInterfaceID)  # numbers of nodes at the f/s interface (halo+physical)
+                self.solidInterfaceID)  # numbers of nodes at the f/s interface (halo+physical)
             self.nHaloNode = self.SU2.GetNumberHaloVertices(
-                self.fluidInterfaceID)  # numbers of nodes at the f/s interface (halo)
+                self.solidInterfaceID)  # numbers of nodes at the f/s interface (halo)
         self.nPhysicalNodes = self.nNodes - self.nHaloNode  # numbers of nodes at the f/s interface (physical)
 
         self.nodalInitialPos_X = np.zeros((self.nPhysicalNodes))  # initial position of the f/s interface
@@ -106,21 +106,21 @@ class SU2SolidSolver(SolidSolver):
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
-            posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
-            posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
-            if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
-                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+            posX = self.SU2.GetVertexCoordX(self.solidInterfaceID, iVertex)
+            posY = self.SU2.GetVertexCoordY(self.solidInterfaceID, iVertex)
+            posZ = self.SU2.GetVertexCoordZ(self.solidInterfaceID, iVertex)
+            if self.SU2.IsAHaloNode(self.solidInterfaceID, iVertex):
+                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
                 self.haloNodeList[GlobalIndex] = iVertex
                 self.haloNodesPositionsInit[GlobalIndex] = (posX, posY, posZ)
             else:
-                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
                 self.pointIndexList[PhysicalIndex] = GlobalIndex
-                self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
-                Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
-                Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
-                Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
-                Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
+                self.SU2.ComputeVertexForces(self.solidInterfaceID, iVertex)
+                Fx = self.SU2.GetVertexForceX(self.solidInterfaceID, iVertex)
+                Fy = self.SU2.GetVertexForceY(self.solidInterfaceID, iVertex)
+                Fz = self.SU2.GetVertexForceZ(self.solidInterfaceID, iVertex)
+                Temp = self.SU2.GetVertexTemperature(self.solidInterfaceID, iVertex)
                 self.nodalInitialPos_X[PhysicalIndex] = posX
                 self.nodalInitialPos_Y[PhysicalIndex] = posY
                 self.nodalInitialPos_Z[PhysicalIndex] = posZ
@@ -129,10 +129,10 @@ class SU2SolidSolver(SolidSolver):
 
         self.initRealTimeData()
 
-        print("\n -------------------------- SOLID NODES ------------------------------ \n")
-        print(("There is a total of", self.nNodes, "nodes\n"))
-        for iIndex in range(self.nPhysicalNodes):
-            print((self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex]))
+        # print("\n -------------------------- SOLID NODES ------------------------------ \n")
+        # print(("There is a total of", self.nNodes, "nodes\n"))
+        # for iIndex in range(self.nPhysicalNodes):
+        #     print((self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex]))
 
     def run(self, t1, t2):
         """
@@ -159,8 +159,11 @@ class SU2SolidSolver(SolidSolver):
         Run SU2 up to a converged steady state.
         """
 
-        #self.SU2.ResetConvergence()
+        self.SU2.ResetConvergence()
+        self.SU2.Preprocess(1)
         self.SU2.Run()
+        StopIntegration = self.SU2.Monitor(1)
+        self.SU2.Output(1)
 
     def __setCurrentState(self):
         """
@@ -170,13 +173,13 @@ class SU2SolidSolver(SolidSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             # identify the halo nodes and ignore their nodal loads
-            halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
-            self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
+            halo = self.SU2.ComputeVertexForces(self.solidInterfaceID, iVertex)
+            self.SU2.ComputeVertexHeatFluxes(self.solidInterfaceID, iVertex)
             if halo == False:
 
-                disp = self.SU2.GetDisplacements(self.fluidInterfaceID, iVertex)
-                vel = self.SU2.GetVelocity(self.fluidInterfaceID, iVertex)
-                vel_n = self.SU2.GetVelocity_n(self.fluidInterfaceID, iVertex)
+                disp = self.SU2.GetFEA_Displacements(self.solidInterfaceID, iVertex)
+                vel = self.SU2.GetFEA_Velocity(self.solidInterfaceID, iVertex)
+                vel_n = self.SU2.GetFEA_Velocity_n(self.solidInterfaceID, iVertex)
 
                 self.nodalDisp_X[PhysicalIndex] = disp[0]
                 self.nodalDisp_Y[PhysicalIndex] = disp[1]
@@ -204,9 +207,7 @@ class SU2SolidSolver(SolidSolver):
         Returns the index (identifier) of the iVertex^th interface node.
         """
 
-        # no =
-
-        # return no
+        return self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, int(iVertex))
 
     def getNodalDisplacements(self):
         """
@@ -223,7 +224,7 @@ class SU2SolidSolver(SolidSolver):
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+            GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
             # in case of halo node, use haloNodesDisplacements with global fluid indexing
             if GlobalIndex in list(self.haloNodeList.keys()):
                 # Temporarily support only single core
@@ -235,14 +236,14 @@ class SU2SolidSolver(SolidSolver):
                 LoadY = load_Y[PhysicalIndex]
                 LoadZ = load_Z[PhysicalIndex]
                 PhysicalIndex += 1
-            self.SU2.SetLoads(self.fluidInterfaceID, iVertex, GlobalIndex, LoadX, LoadY, LoadZ)
+            self.SU2.SetFEA_Loads(self.solidInterfaceID, iVertex, LoadX, LoadY, LoadZ)
 
     def update(self):
         """
         Pushes back the current state in the past (previous state) before going to the next time step.
         """
 
-        SolidSolver.update(self)
+        self.SU2.Update()
 
         # overload here
 
@@ -260,17 +261,18 @@ class SU2SolidSolver(SolidSolver):
         Des.
         """
 
-        # overload here
+        stopComp = self.SU2.Monitor(1)
+        self.SU2.Output(1)
 
-        return
+        return stopComp
 
     def initRealTimeData(self):
         """
         Des.
         """
 
-        solFile = open('ExampleSolution.ascii', "w")
-        solFile.write("Time\tnIter\tValue\n")
+        solFile = open('SolidSolution.ascii', "w")
+        solFile.write("Time\tnIter\tY_LE\tY_TE\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
@@ -278,8 +280,8 @@ class SU2SolidSolver(SolidSolver):
         Des.
         """
 
-        solFile = open('ExampleSolution.ascii', "a")
-        solFile.write(str(time) + '\t' + str(nFSIIter) + str(1.0) + '\n')
+        solFile = open('SolidSolution.ascii', "a")
+        solFile.write("{}\t{}\t{}\t{}\n".format(time, nFSIIter, self.nodalDisp_Y[-1], self.nodalDisp_Y[2]))
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
@@ -287,14 +289,13 @@ class SU2SolidSolver(SolidSolver):
         Des.
         """
 
-        toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print()
-        toPrint
+        toPrint = 'RES-FSI-' + 'SU2SolidSolution' + ': ' + str(1.0) + '\n'
+        print(toPrint)
 
     def exit(self):
         """
         Des.
         """
-        self.SU2.Output(2) # Temporary hack
+        self.SU2.Output(1) # Temporary hack
         self.SU2.Postprocessing()
-        print("***************************** Exit Example solver *****************************")
+        print("***************************** Exit SU2 Solid solver *****************************")

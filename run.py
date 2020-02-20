@@ -62,6 +62,7 @@ def setPath():
     addPath(os.path.join(topdir, 'Metafor', 'linuxbin'))
     addPath(os.path.join(topdir, 'NativeSolid', 'bin'))
     addPath(os.path.join(topdir, 'modali'))
+    addPath(os.path.join(topdir, 'pyBeam', 'bin'))
     addPath(os.path.join(topdir, 'waves'))
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))

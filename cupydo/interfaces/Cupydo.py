@@ -134,6 +134,12 @@ class CUPyDO(object):
             elif p['solidSolver'] == 'Modal':
                 from . import Modal as sItf
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
+            elif p['solidSolver'] == 'pyBeam':
+                from . import Beam as sItf
+                if comm != None:
+                    solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                else:
+                    solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:

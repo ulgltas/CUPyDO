@@ -80,10 +80,11 @@ class Pfem(FluidSolver):
         self.v = self.pfem.w.DoubleVector()
         self.p = self.pfem.w.DoubleVector()
         self.velocity = self.pfem.w.DoubleVector()
+        self.matID = self.pfem.w.IntVector()
         
         self.pfem.scheme.t = 0.
         self.pfem.scheme.dt = dt
-        self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity)
+        self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity,self.matID)
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
         if nogui:
@@ -102,7 +103,7 @@ class Pfem(FluidSolver):
         calculates one increment from t1 to t2.
         """
         
-        self.pfem.scheme.setNextStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
+        self.pfem.scheme.setNextStep(self.V,self.V0,self.u,self.v,self.p,self.velocity,self.matID)
         self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
         
         self.__setCurrentState()
@@ -180,6 +181,7 @@ class Pfem(FluidSolver):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
         self.pfem.scheme.updateSolutionVectors(self.V,self.V0,self.u,self.v,self.p,self.velocity)
+        self.pfem.scheme.updateMatIDVector(self.matID)
         
         
         #---
@@ -194,7 +196,7 @@ class Pfem(FluidSolver):
         if nt%self.pfem.scheme.savefreq==0:
             self.pfem.scheme.archive()
         if not self.pfem.gui==None:
-            self.pfem.scheme.vizu(self.u,self.v,self.p)
+            self.pfem.scheme.vizu(self.u,self.v,self.p,self.matID)
         
     def initRealTimeData(self):
         """
@@ -241,7 +243,7 @@ class Pfem(FluidSolver):
             print toPrint
     
     def remeshing(self):
-        self.pfem.scheme.remeshing(self.V,self.V0,self.p)
+        self.pfem.scheme.remeshing()
         self.pfem.scheme.updateData()
     
     def exit(self):

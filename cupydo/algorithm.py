@@ -1133,17 +1133,16 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     
                     # --- Start gathering on root process --- #
                     res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)
-                    res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
-                    res_Y_Gat_C = res_Y_Gat[:ns]
-                    res_Z_Gat_C = res_Z_Gat[:ns]
                     solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns+d, self.mpiComm, 0)
-                    solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
-                    solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
-                    solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
                     solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
                     solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
-                    
                     if self.myid == 0:
+                        res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                        res_Y_Gat_C = res_Y_Gat[:ns]
+                        res_Z_Gat_C = res_Z_Gat[:ns]
+                        solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                        solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
+                        solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
                         if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
                             if self.manager.nDim == 3:
                                 delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)

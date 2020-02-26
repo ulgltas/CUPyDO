@@ -170,17 +170,17 @@ class FluidSolver(object):
 
         self.haloNodeList = {}
 
-        self.nodalLoad_X = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nodalLoad_Y = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nodalLoad_Z = np.zeros(np.sum(self.nPhysicalNodes))
+        self.nodalLoad_X = np.zeros((self.nPhysicalNodes))
+        self.nodalLoad_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalLoad_Z = np.zeros((self.nPhysicalNodes))
 
-        self.nodalTemperature = np.zeros(np.sum(self.nPhysicalNodes))
+        self.nodalTemperature = np.zeros((self.nPhysicalNodes))
 
-        self.nodalNormalHeatFlux = np.zeros(np.sum(self.nPhysicalNodes))
+        self.nodalNormalHeatFlux = np.zeros(self.nPhysicalNodes)
 
-        self.nodalHeatFlux_X = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nodalHeatFlux_Y = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nodalHeatFlux_Z = np.zeros(np.sum(self.nPhysicalNodes))
+        self.nodalHeatFlux_X = np.zeros((self.nPhysicalNodes))
+        self.nodalHeatFlux_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes))
 
         self.QWallInit = 0
         self.TWallInit = 288.0

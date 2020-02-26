@@ -72,10 +72,8 @@ class SU2(FluidSolver):
             #raise Exception('No interface for FSI was defined.')
             self.fluidInterfaceID = None
         elif allMovingMarkersTags and not allCHTMarkersTags:
-            self.fluidInterfaceID = []
-            for MovingMarkerTag in list(allMovingMarkersTags):
-                if MovingMarkerTag in list(allMarkersID.keys()):
-                    self.fluidInterfaceID.append(allMarkersID[MovingMarkerTag])
+            if allMovingMarkersTags[0] in list(allMarkersID.keys()):
+                self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
         elif not allMovingMarkersTags and allCHTMarkersTags:
             if allCHTMarkersTags[0] in list(allMarkersID.keys()):
                 self.fluidInterfaceID = allMarkersID[allCHTMarkersTags[0]]
@@ -90,53 +88,50 @@ class SU2(FluidSolver):
         self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
-        self.nNodes = np.array([], dtype=np.int32)
-        self.nHaloNode = np.array([], dtype=np.int32)
-        self.nPhysicalNodes = np.array([], dtype=np.int32)
+        self.nNodes = 0
+        self.nHaloNode = 0
+        self.nPhysicalNodes = 0
         if self.fluidInterfaceID != None:
-            for fluidID in list(self.fluidInterfaceID):
-                self.nNodes = np.append(self.nNodes, self.SU2.GetNumberVertices(fluidID))           # numbers of nodes at the f/s interface (halo+physical)
-                self.nHaloNode = np.append(self.nHaloNode, self.SU2.GetNumberHaloVertices(fluidID))    # numbers of nodes at the f/s interface (halo)
-        self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface(s) (physical)
+            self.nNodes = self.SU2.GetNumberVertices(self.fluidInterfaceID)           # numbers of nodes at the f/s interface (halo+physical)
+            self.nHaloNode = self.SU2.GetNumberHaloVertices(self.fluidInterfaceID)    # numbers of nodes at the f/s interface (halo)
+        self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
         # Initialize list to store point indices
         self.pointIndexList = np.zeros(self.nPhysicalNodes, dtype=int)
 
         # --- initial position of the f/s interface(s) --- #
-        self.nodalInitialPos_X = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nodalInitialPos_Y = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nodalInitialPos_Z = np.zeros(np.sum(self.nPhysicalNodes))
-        self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
+        self.nodalInitialPos_X = np.zeros((self.nPhysicalNodes))             # initial position of the f/s interface
+        self.nodalInitialPos_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalInitialPos_Z = np.zeros((self.nPhysicalNodes))
         self.haloNodesPositionsInit = {}
 
         FluidSolver.__init__(self)
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
-        for iInterface in range(len(self.fluidInterfaceID)):
-            for jVertex in range(self.nNodes[iInterface]):
-                posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID[iInterface], jVertex)
-                posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID[iInterface], jVertex)
-                posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID[iInterface], jVertex)
-                if self.SU2.IsAHaloNode(self.fluidInterfaceID[iInterface], jVertex):
-                    GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID[iInterface], jVertex)
-                    self.haloNodeList[GlobalIndex] = jVertex
-                    self.haloNodesPositionsInit[GlobalIndex] = (posX, posY, posZ)
-                else:
-                    GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID[iInterface], jVertex)
-                    self.pointIndexList[PhysicalIndex] = GlobalIndex
-                    self.SU2.ComputeVertexForces(self.fluidInterfaceID[iInterface], jVertex)
-                    Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID[iInterface], jVertex)
-                    Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID[iInterface], jVertex)
-                    Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID[iInterface], jVertex)
-                    Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID[iInterface], jVertex)
-                    self.nodalInitialPos_X[PhysicalIndex] = posX
-                    self.nodalInitialPos_Y[PhysicalIndex] = posY
-                    self.nodalInitialPos_Z[PhysicalIndex] = posZ
-                    self.nodalLoad_X[PhysicalIndex] = Fx
-                    self.nodalLoad_Y[PhysicalIndex] = Fy
-                    self.nodalLoad_Z[PhysicalIndex] = Fz
-                    self.nodalTemperature[PhysicalIndex] = Temp
-                    PhysicalIndex += 1
+        for iVertex in range(self.nNodes):
+            posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
+            posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
+            posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
+            if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
+                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+                self.haloNodeList[GlobalIndex] = iVertex
+                self.haloNodesPositionsInit[GlobalIndex] = (posX, posY, posZ)
+            else:
+                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+                self.pointIndexList[PhysicalIndex] = GlobalIndex
+                self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+                Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
+                Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
+                Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
+                self.nodalInitialPos_X[PhysicalIndex] = posX
+                self.nodalInitialPos_Y[PhysicalIndex] = posY
+                self.nodalInitialPos_Z[PhysicalIndex] = posZ
+                self.nodalLoad_X[PhysicalIndex] = Fx
+                self.nodalLoad_Y[PhysicalIndex] = Fy
+                self.nodalLoad_Z[PhysicalIndex] = Fz
+                self.nodalTemperature[PhysicalIndex] = Temp
+                PhysicalIndex += 1
 
         self.initRealTimeData()
 
@@ -183,42 +178,40 @@ class SU2(FluidSolver):
         """
 
         PhysicalIndex = 0
-        for iInterface in range(len(self.fluidInterfaceID)):
-            for jVertex in range(self.nNodes[iInterface]):
-                # identify the halo nodes and ignore their nodal loads
-                halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID[iInterface], jVertex)
-                self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID[iInterface], jVertex)
-                if halo == False:
-                    if self.nodalLoadsType == 'pressure':
-                        Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID[iInterface], jVertex)
-                        Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID[iInterface], jVertex)
-                        Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID[iInterface], jVertex)
-                    else:
-                        Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID[iInterface], jVertex)
-                        Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID[iInterface], jVertex)
-                        Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID[iInterface], jVertex)
-                    Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID[iInterface], jVertex)
-                    WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID[iInterface], jVertex)
-                    Qx = self.SU2.GetVertexHeatFluxX(self.fluidInterfaceID[iInterface], jVertex)
-                    Qy = self.SU2.GetVertexHeatFluxY(self.fluidInterfaceID[iInterface], jVertex)
-                    Qz = self.SU2.GetVertexHeatFluxZ(self.fluidInterfaceID[iInterface], jVertex)
-                    self.nodalLoad_X[PhysicalIndex] = Fx
-                    self.nodalLoad_Y[PhysicalIndex] = Fy
-                    self.nodalLoad_Z[PhysicalIndex] = Fz
-                    self.nodalTemperature[PhysicalIndex] = Temp
-                    self.nodalNormalHeatFlux[PhysicalIndex] = WallHF
-                    self.nodalHeatFlux_X[PhysicalIndex] = Qx
-                    self.nodalHeatFlux_Y[PhysicalIndex] = Qy
-                    self.nodalHeatFlux_Z[PhysicalIndex] = Qz
-                    PhysicalIndex += 1
+        for iVertex in range(self.nNodes):
+            # identify the halo nodes and ignore their nodal loads
+            halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
+            if halo == False:
+                if self.nodalLoadsType == 'pressure':
+                    Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID, iVertex)
+                    Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID, iVertex)
+                    Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID, iVertex)
+                else:
+                    Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
+                    Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
+                    Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
+                WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
+                Qx = self.SU2.GetVertexHeatFluxX(self.fluidInterfaceID, iVertex)
+                Qy = self.SU2.GetVertexHeatFluxY(self.fluidInterfaceID, iVertex)
+                Qz = self.SU2.GetVertexHeatFluxZ(self.fluidInterfaceID, iVertex)
+                self.nodalLoad_X[PhysicalIndex] = Fx
+                self.nodalLoad_Y[PhysicalIndex] = Fy
+                self.nodalLoad_Z[PhysicalIndex] = Fz
+                self.nodalTemperature[PhysicalIndex] = Temp
+                self.nodalNormalHeatFlux[PhysicalIndex] = WallHF
+                self.nodalHeatFlux_X[PhysicalIndex] = Qx
+                self.nodalHeatFlux_Y[PhysicalIndex] = Qy
+                self.nodalHeatFlux_Z[PhysicalIndex] = Qz
+                PhysicalIndex += 1
 
     def getNodalIndex(self, iVertex):
         """
         Return the global index (fluid solver index) of a node.
         """
-        iInterface = np.searchsorted(np.cumsum(self.nNodes), iVertex, side="right")
-        iVertex = iVertex-np.sum(self.nNodes[:iInterface])
-        return self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID[iInterface], int(iVertex))
+
+        return self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
 
     def getNodalInitialPositions(self):
         """
@@ -233,29 +226,28 @@ class SU2(FluidSolver):
         """
 
         PhysicalIndex = 0
-        for iInterface in range(len(self.fluidInterfaceID)):
-            for jVertex in range(self.nNodes[iInterface]):
-                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID[iInterface], jVertex)
-                # in case of halo node, use haloNodesDisplacements with global fluid indexing
-                if GlobalIndex in list(self.haloNodeList.keys()):
-                    dispX, dispY, dispZ = haloNodesDisplacements[GlobalIndex]
-                    posX0, posY0, posZ0 = self.haloNodesPositionsInit[GlobalIndex]
-                    newPosX = posX0 + dispX
-                    newPosY = posY0 + dispY
-                    newPosZ = posZ0 + dispZ
-                else:
-                    dispX = disp_X[PhysicalIndex]
-                    dispY = disp_Y[PhysicalIndex]
-                    dispZ = disp_Z[PhysicalIndex]
-                    newPosX = dispX + self.nodalInitialPos_X[PhysicalIndex]
-                    newPosY = dispY + self.nodalInitialPos_Y[PhysicalIndex]
-                    newPosZ = dispZ + self.nodalInitialPos_Z[PhysicalIndex]
-                    PhysicalIndex += 1
-                self.SU2.SetMeshDisplacement(self.fluidInterfaceID[iInterface], jVertex, dispX, dispY, dispZ)
-                # self.SU2.SetVertexCoordX(self.fluidInterfaceID[iInterface], jVertex, newPosX)
-                # self.SU2.SetVertexCoordY(self.fluidInterfaceID[iInterface], jVertex, newPosY)
-                # self.SU2.SetVertexCoordZ(self.fluidInterfaceID[iInterface], jVertex, newPosZ)
-                self.SU2.SetVertexVarCoord(self.fluidInterfaceID[iInterface], jVertex)
+        for iVertex in range(self.nNodes):
+            GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+            # in case of halo node, use haloNodesDisplacements with global fluid indexing
+            if GlobalIndex in list(self.haloNodeList.keys()):
+                dispX, dispY, dispZ = haloNodesDisplacements[GlobalIndex]
+                posX0, posY0, posZ0 = self.haloNodesPositionsInit[GlobalIndex]
+                newPosX = posX0 + dispX
+                newPosY = posY0 + dispY
+                newPosZ = posZ0 + dispZ
+            else:
+                dispX = disp_X[PhysicalIndex]
+                dispY = disp_Y[PhysicalIndex]
+                dispZ = disp_Z[PhysicalIndex]
+                newPosX = dispX + self.nodalInitialPos_X[PhysicalIndex]
+                newPosY = dispY + self.nodalInitialPos_Y[PhysicalIndex]
+                newPosZ = dispZ + self.nodalInitialPos_Z[PhysicalIndex]
+                PhysicalIndex += 1
+            self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
+            # self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
+            # self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
+            # self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
+            self.SU2.SetVertexVarCoord(self.fluidInterfaceID, iVertex)
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
         """

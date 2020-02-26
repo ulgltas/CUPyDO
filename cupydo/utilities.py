@@ -145,7 +145,7 @@ def setDirs(fpath):
     # create workspace path
     sys.path.append(os.path.dirname(fpath)) # [RB] !this folder is can be a subfolder of one of the folders in the pythonpath
     base = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ' ')) # find base directory
-    print(base)
+    mpiPrint(base, comm)
     common = os.path.commonprefix((fpath, base)) # find common part of testname ad base name
     resdir = os.path.splitext(fpath[len(common):].replace(os.sep,"_"))[0] # common part, change seprator to underscore and remove ".py"
     wdir=os.path.join('workspace', resdir) # that is our workspace!
@@ -163,7 +163,7 @@ def setDirs(fpath):
     else:
         comm.barrier()
     # change to workspace
-    print('changing to', wdir)
+    mpiPrint('changing to ' + wdir, comm)
     os.chdir(wdir)
 
 def getMpi():

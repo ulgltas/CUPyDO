@@ -352,7 +352,6 @@ class SU2(FluidSolver):
         """
 
         if self.computationType == 'unsteady' and nt>0:
-            print("iter: {}".format(nt))
             self.SU2.DynamicMeshUpdate(nt)
         elif self.computationType == 'steady':
             self.SU2.StaticMeshUpdate()

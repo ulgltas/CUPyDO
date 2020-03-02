@@ -262,7 +262,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                     sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
                     for ii in range(sendBuffHalo_key.size):
                         sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
-                    self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                    self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
                     self.mpiComm.Isend(sendBuffHalo_key, dest=iProc, tag=102)
                     self.mpiComm.Isend(sendBuffHalo_values, dest=iProc, tag=103)
             if self.myid in self.manager.getFluidInterfaceProcessors():
@@ -276,8 +276,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                     iTagRec += 1
                 #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
                 nHaloNodesRcv = np.empty(1, dtype=int)
-                req = self.mpiComm.Irecv(nHaloNodesRcv, source=0, tag=101)
-                req.Wait()
+                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=startTag)
                 rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
                 req = self.mpiComm.Irecv(rcvBuffHalo_keyBuff, source=0, tag=102)
                 req.Wait()

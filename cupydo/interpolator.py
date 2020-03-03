@@ -276,7 +276,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                     iTagRec += 1
                 #haloNodesData = self.mpiComm.recv(source=0, tag=iTagRec)
                 nHaloNodesRcv = np.empty(1, dtype=int)
-                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=startTag)
+                self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
                 rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
                 req = self.mpiComm.Irecv(rcvBuffHalo_keyBuff, source=0, tag=102)
                 req.Wait()

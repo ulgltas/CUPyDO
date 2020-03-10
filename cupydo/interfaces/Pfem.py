@@ -74,17 +74,15 @@ class Pfem(FluidSolver):
         self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
         
         # Pfem scheme initialization
-        self.V = self.pfem.w.DoubleVector()
-        self.V0 = self.pfem.w.DoubleVector()
-        self.u = self.pfem.w.DoubleVector()
-        self.v = self.pfem.w.DoubleVector()
-        self.p = self.pfem.w.DoubleVector()
-        self.velocity = self.pfem.w.DoubleVector()
-        self.matID = self.pfem.w.IntVector()
+        #self.u = self.pfem.w.DoubleVector()
+        #self.v = self.pfem.w.DoubleVector()
+        #self.p = self.pfem.w.DoubleVector()
+        #self.velocity = self.pfem.w.DoubleVector()
+        #self.matID = self.pfem.w.IntVector()
         
         self.pfem.scheme.t = 0.
         self.pfem.scheme.dt = dt
-        self.pfem.scheme.init(self.V,self.V0,self.u,self.v,self.p,self.velocity,self.matID)
+        self.pfem.scheme.init()
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
         if nogui:
@@ -103,8 +101,8 @@ class Pfem(FluidSolver):
         calculates one increment from t1 to t2.
         """
         
-        self.pfem.scheme.setNextStep(self.V,self.V0,self.u,self.v,self.p,self.velocity,self.matID)
-        self.runOK = self.pfem.scheme.runOneTimeStep(self.V,self.V0,self.u,self.v,self.p,self.velocity)
+        self.pfem.scheme.setNextStep()
+        self.runOK = self.pfem.scheme.runOneTimeStep()
         
         self.__setCurrentState()
     
@@ -180,14 +178,15 @@ class Pfem(FluidSolver):
     def update(self, dt):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
-        self.pfem.scheme.updateSolutionVectors(self.V,self.V0,self.u,self.v,self.p,self.velocity)
-        self.pfem.scheme.updateMatIDVector(self.matID)
-        
+        self.pfem.scheme.updateSolutionVectors()
+        self.pfem.scheme.updateMatIDVector()
+        #self.u = self.pfem.scheme.u
+        #self.v = self.pfem.scheme.v
         
         #---
         for i in range(len(self.vnods)):
-            displ_x = self.displ_x_Nm1[i] + self.u[self.vnods[i].rowU]*dt
-            displ_y = self.displ_y_Nm1[i] + self.v[self.vnods[i].rowU]*dt
+            displ_x = self.displ_x_Nm1[i] + self.pfem.scheme.u[self.vnods[i].rowU]*dt
+            displ_y = self.displ_y_Nm1[i] + self.pfem.scheme.v[self.vnods[i].rowU]*dt
             self.displ_x_Nm1[i] = displ_x
             self.displ_y_Nm1[i] = displ_y
         # ---
@@ -196,7 +195,7 @@ class Pfem(FluidSolver):
         if nt%self.pfem.scheme.savefreq==0:
             self.pfem.scheme.archive()
         if not self.pfem.gui==None:
-            self.pfem.scheme.vizu(self.u,self.v,self.p,self.matID)
+            self.pfem.scheme.vizu(self.pfem.scheme.u,self.pfem.scheme.v,self.pfem.scheme.p,self.pfem.scheme.matID)
         
     def initRealTimeData(self):
         """
@@ -244,7 +243,7 @@ class Pfem(FluidSolver):
     
     def remeshing(self):
         self.pfem.scheme.remeshing()
-        self.pfem.scheme.updateData()
+        self.pfem.scheme.updateNodalRefValues()
     
     def exit(self):
         """

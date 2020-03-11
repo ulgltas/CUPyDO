@@ -195,7 +195,7 @@ class Pfem(FluidSolver):
         if nt%self.pfem.scheme.savefreq==0:
             self.pfem.scheme.archive()
         if not self.pfem.gui==None:
-            self.pfem.scheme.vizu(self.pfem.scheme.u,self.pfem.scheme.v,self.pfem.scheme.p,self.pfem.scheme.matID)
+            self.pfem.scheme.vizu()
         
     def initRealTimeData(self):
         """

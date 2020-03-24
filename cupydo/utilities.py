@@ -154,7 +154,7 @@ def setDirs(fpath):
         if size > 1: # send sync to slaves
                 for i in range(1, size):
                     comm.send(1, dest=i, tag=11)
-        comm.barrier()
+                comm.barrier()
     # block slave processes
     else:
         comm.barrier()

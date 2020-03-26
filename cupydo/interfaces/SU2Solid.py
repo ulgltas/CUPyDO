@@ -67,15 +67,15 @@ class SU2SolidSolver(SolidSolver):
                 print(
                     'ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
 
-        allMovingMarkersTags = self.SU2.GetAllMovingMarkersTag()  # list containing the tags of all moving markers
+        allFluidLoadMarkersTags = self.SU2.GetAllFluidLoadMarkersTag()  # list containing the tags of all fluid load markers
         allMarkersID = self.SU2.GetAllBoundaryMarkers()  # dic : allMarkersID['marker_tag'] = marker_ID
-        self.solidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
-        if not allMovingMarkersTags:
+        self.solidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allFluidLoadMarkersTags
+        if not allFluidLoadMarkersTags:
             # raise Exception('No interface for FSI was defined.')
             self.solidInterfaceID = None
-        elif allMovingMarkersTags:
-            if allMovingMarkersTags[0] in list(allMarkersID.keys()):
-                self.solidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
+        elif allFluidLoadMarkersTags:
+            if allFluidLoadMarkersTags[0] in list(allMarkersID.keys()):
+                self.solidInterfaceID = allMarkersID[allFluidLoadMarkersTags[0]]
             else:
                 raise Exception("Moving and CHT markes have to be the same.")
 

@@ -80,7 +80,7 @@ def getPfem():
     convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 
-    scheme = w.TimeIntegration(msh, pbl, nonLinAlgo)
+    scheme = w.TimeIntegration(msh, pbl, solScheme)
 
     bndno = 17 # fsi boundary
 

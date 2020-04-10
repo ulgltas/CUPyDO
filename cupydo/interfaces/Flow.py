@@ -58,6 +58,7 @@ class Flow(FluidSolver):
         import flow
         import tbox
         import tbox.gmsh as gmsh
+        from tbox.solvers import LinearSolver
 
         # basic checks
         if p['Dim'] != 2 and p['Dim'] != 3:
@@ -157,21 +158,36 @@ class Flow(FluidSolver):
             for i in range(0, len(p['Wakes'])):
                 pbl.add(flow.Wake(self.msh, [p['Wakes'][i], p['Wakes'][i]+'_', p['Fluid'], p['TeTips'][i]]))
 
-        # initialize the solver
+        # initialize the linear (inner) solver
+        if p['LSolver'] == 'Pardiso':
+            linsol = LinearSolver().pardiso()
+        elif p['LSolver'] == 'GMRES':
+            linsol = tbox.Gmres()
+            linsol.setFillFactor(p['G_fill'])
+            linsol.setRestart(p['G_restart'])
+            linsol.setTolerance(p['G_tol'])
+        elif p['LSolver'] == 'MUMPS':
+            linsol = LinearSolver().mumps()
+        elif p['LSolver'] == 'SparseLU':
+            linsol = tbox.SparseLu()
+        else:
+            raise RuntimeError('Available linear solvers: Pardiso, GMRES, MUMPS or SparseLU, but ' + p['LSolver'] + ' was given!\n')
+        # initialize the nonlinear (outer) solver
         if p['NSolver'] == 'Picard':
-            self.solver = flow.Picard(pbl)
+            self.solver = flow.Picard(pbl, linsol)
             self.solver.relax = p['Relaxation']
         elif p['NSolver'] == 'Newton':
-            self.solver = flow.Newton(pbl)
+            self.solver = flow.Newton(pbl, linsol)
             self.solver.lsTol = p['LS_tol']
             self.solver.maxLsIt = p['Max_it_LS']
             self.solver.avThrsh = p['AV_thrsh']
         else:
-            raise RuntimeError('Available nonlinear solver type: Picard or Newton, but ' + p['NSolver'] + ' was given!\n')
+            raise RuntimeError('Available nonlinear solvers: Picard or Newton, but ' + p['NSolver'] + ' was given!\n')
         self.solver.nthreads = _nthreads
         self.solver.relTol = p['Rel_tol']
         self.solver.absTol = p['Abs_tol']
         self.solver.maxIt = p['Max_it']
+        print 'Linear solver: ', linsol
         print "Number of threads: ", self.solver.nthreads
         print "Maximum number of iterations: ", self.solver.maxIt
         print "Objective relative residual: ", self.solver.relTol
@@ -207,9 +223,9 @@ class Flow(FluidSolver):
         z0 = np.zeros(self.nPhysicalNodes)
         for i in range(self.boundary.nodes.size()):
             n = self.boundary.nodes[i]               
-            x0[i] = n.pos.x[0]
-            y0[i] = n.pos.x[1]
-            z0[i] = n.pos.x[2]
+            x0[i] = n.pos[0]
+            y0[i] = n.pos[1]
+            z0[i] = n.pos[2]
 
         return (x0, y0, z0)
 
@@ -226,9 +242,9 @@ class Flow(FluidSolver):
         """
         self.mshDef.savePos()
         for i in range(self.boundary.nodes.size()):
-            self.boundary.nodes[i].pos.x[0] = self.nodalInitPosX[i] + dx[i]
-            self.boundary.nodes[i].pos.x[1] = self.nodalInitPosY[i] + dy[i]
-            self.boundary.nodes[i].pos.x[2] = self.nodalInitPosZ[i] + dz[i]
+            self.boundary.nodes[i].pos[0] = self.nodalInitPosX[i] + dx[i]
+            self.boundary.nodes[i].pos[1] = self.nodalInitPosY[i] + dy[i]
+            self.boundary.nodes[i].pos[2] = self.nodalInitPosZ[i] + dz[i]
 
     def meshUpdate(self, nt):
         """Deform the mesh using linear elasticity equations

@@ -40,6 +40,10 @@ def getParams():
     p['y_ref'] = 0. # Reference point for moment computation (y)
     p['z_ref'] = 0. # Reference point for moment computation (z)
     # Numerical
+    p['LSolver'] = 'GMRES' # Linear solver (Pardiso, GMRES, MUMPS or SparseLU)
+    p['G_fill'] = 2 # Fill-in factor for GMRES preconditioner
+    p['G_tol'] = 1e-5 # Tolerance for GMRES
+    p['G_restart'] = 50 # Restart for GMRES
     p['NSolver'] = 'Newton' # Noninear solver type (Picard or Newton)
     p['Rel_tol'] = 1e-6 # Relative tolerance on solver residual
     p['Abs_tol'] = 1e-8 # Absolute tolerance on solver residual

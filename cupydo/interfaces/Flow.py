@@ -62,7 +62,15 @@ class Flow(FluidSolver):
 
         # basic checks
         if p['Dim'] != 2 and p['Dim'] != 3:
-            raise Exception('Problem dimension should be 2 or 3, but ' + p['Dim'] + ' was given!\n')
+            raise RuntimeError('Problem dimension should be 2 or 3, but ' + p['Dim'] + ' was given!\n')
+        if p['Dim'] == 2:
+            if 'AoS' in p and p['AoS'] != 0:
+                raise RuntimeError('Angle of sideslip (AoS) should be zero for 2D problems!\n')
+            if 'Symmetry' in p:
+                raise RuntimeError('Symmetry boundary condition cannot be used for 2D problems!\n')
+        else:
+            if 'AoS' in p and p['AoS'] != 0 and 'Symmetry' in p:
+                raise RuntimeError('Symmetry boundary condition cannot be used with nonzero angle of sideslip (AoS)!\n')
         # basic config
         if p['Format'] == 'vtk':
             try:   
@@ -87,10 +95,11 @@ class Flow(FluidSolver):
             for i in range(0, len(p['Wakes'])):
                 mshCrck = tbox.MshCrack(self.msh, p['Dim'])
                 mshCrck.setCrack(p['Wakes'][i])
+                mshCrck.addBoundaries([p['Fluid'], p['Farfield'][-1], p['Wings'][i]])
                 if 'Fuselage' in p:
-                    mshCrck.addBoundaries([p['Fluid'], p['Symmetry'], p['Farfield'][-1], p['Fuselage'], p['Wings'][i]])
-                else:
-                    mshCrck.addBoundaries([p['Fluid'], p['Symmetry'], p['Farfield'][-1], p['Wings'][i]])
+                    mshCrck.addBoundaries([p['Fuselage']])
+                if 'Symmetry' in p:
+                    mshCrck.addBoundaries([p['Symmetry']])
                 mshCrck.setExcluded(p['WakeTips'][i])
                 mshCrck.run()
         tbox.GmshExport(self.msh).save(self.msh.name)
@@ -119,13 +128,14 @@ class Flow(FluidSolver):
 
         # initialize the problem
         p['AoA'] = p['AoA']*np.pi/180 # convert to radians
-        phiInfFun = flow.F0PsPhiInf(p['Dim'], p['AoA'])
-        if p['Dim'] == 2:
-            velInfFun = tbox.Fct1C(-np.cos(p['AoA']), -np.sin(p['AoA']), 0.)
+        if 'AoS' in p:
+            p['AoS'] = p['AoS']*np.pi/180
         else:
-            velInfFun = tbox.Fct1C(-np.cos(p['AoA']), 0., -np.sin(p['AoA']))
+            p['AoS'] = 0.
+        phiInfFun = flow.F0PsPhiInf(p['Dim'], p['AoA'], p['AoS'])
+        velInfFun = flow.F1ElVi(p['Dim'], p['AoA'], p['AoS'])
         self.dynP = p['P_dyn']    
-        pbl = flow.Problem(self.msh, p['Dim'], p['AoA'], p['M_inf'], p['S_ref'], p['c_ref'], p['x_ref'], p['y_ref'], p['z_ref'])
+        pbl = flow.Problem(self.msh, p['Dim'], p['AoA'], p['AoS'], p['M_inf'], p['S_ref'], p['c_ref'], p['x_ref'], p['y_ref'], p['z_ref'])
 
         # add medium
         if p['M_inf'] == 0:

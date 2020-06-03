@@ -31,10 +31,10 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import range
-import pysu2
+import pysu2ad as pysu2
 import math
 import numpy as np
-from ..genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver, FluidAdjointSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver interface class
@@ -306,7 +306,7 @@ class SU2(FluidSolver):
         """
         Update the solution after each time step (converged) for an unsteady computation.
         """
-
+        
         self.SU2.Update()
 
     def save(self, nt):
@@ -374,7 +374,7 @@ class SU2(FluidSolver):
         """
 
         if self.computationType == 'unsteady':
-        self.SU2.SetInitialMesh()
+            self.SU2.SetInitialMesh()
         elif self.computationType == 'steady':
             self.SU2.StaticMeshUpdate()
 
@@ -406,3 +406,67 @@ class SU2(FluidSolver):
         """
 
         return
+
+class SU2Adjoint(SU2, FluidAdjointSolver):
+    """
+    SU2 adjoint solver interface.
+    """
+    def initializeSolver(self, confFile, have_MPI, MPIComm):
+        # --- Instantiate the single zone driver of SU2 --- #
+        try:
+            self.SU2 = pysu2.CDiscAdjSinglezoneDriver(confFile, 1, MPIComm)
+        except TypeError as exception:
+            print(('A TypeError occured in pysu2.CDiscAdjSinglezoneDriver : ',exception))
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+    
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        FluidAdjointSolver.__init__(self)
+
+    def __setCurrentState(self):
+        SU2._SU2__setCurrentState(self) # Using SU2 original __setCurrentState
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            # identify the halo nodes and ignore their nodal loads
+            halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            if halo == False:
+                self.nodalAdjDisp_X[PhysicalIndex], self.nodalAdjDisp_Y[PhysicalIndex], self.nodalAdjDisp_Z[PhysicalIndex]  = self.SU2.GetMeshDisp_Sensitivity(self.fluidInterfaceID, iVertex)
+                PhysicalIndex += 1
+
+    def run(self, t1, t2):
+        """
+        Run one computation of SU2.
+        """
+        self.__steadyRun()
+
+        self.__setCurrentState()
+
+    def __steadyRun(self):
+        """
+        Run SU2 up to a converged steady state.
+        """
+
+        self.SU2.ResetConvergence()
+        self.SU2.Preprocess(0)
+        self.SU2.Run()
+        self.SU2.Postprocess()
+        self.SU2.Update()
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Output(0)
+    
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+            # in case of halo node, use haloNodesDisplacements with global fluid indexing
+            if not GlobalIndex in list(self.haloNodeList.keys()):
+                loadX = load_adj_X[PhysicalIndex]
+                loadY = load_adj_Y[PhysicalIndex]
+                loadZ = load_adj_Z[PhysicalIndex]
+                PhysicalIndex += 1
+                self.SU2.SetFlowLoad_Adjoint(self.fluidInterfaceID, iVertex, loadX, loadY, loadZ)

@@ -32,13 +32,13 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import range
-import pysu2
+import pysu2ad as pysu2
 import math
 import numpy as np
 
 # Those are mandatory
 import numpy as np
-from ..genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver, SolidAdjointSolver
 
 
 # ----------------------------------------------------------------------
@@ -315,3 +315,92 @@ class SU2SolidSolver(SolidSolver):
         self.SU2.Output(1) # Temporary hack
         self.SU2.Postprocessing()
         print("***************************** Exit SU2 Solid solver *****************************")
+
+class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
+    """
+    SU2 adjoint solver interface.
+    """
+    def initializeSolver(self, confFile, have_MPI, MPIComm):
+        # --- Instantiate the single zone driver of SU2 --- #
+        try:
+            self.SU2 = pysu2.CDiscAdjSinglezoneDriver(confFile, 1, MPIComm)
+        except TypeError as exception:
+            print(('A TypeError occured in pysu2.CDiscAdjSinglezoneDriver : ',exception))
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+    
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        SolidAdjointSolver.__init__(self)
+
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
+            # in case of halo node, use haloNodesDisplacements with global fluid indexing
+            if not GlobalIndex in list(self.haloNodeList.keys()):
+                dispX = disp_adj_X[PhysicalIndex]
+                dispY = disp_adj_Y[PhysicalIndex]
+                dispZ = disp_adj_Z[PhysicalIndex]
+                PhysicalIndex += 1
+                self.SU2.SetSourceTerm_DispAdjoint(self.solidInterfaceID, iVertex, dispX, dispY, dispZ)
+
+    def run(self, t1, t2):
+        """
+        Run one computation of SU2.
+        """
+        self.__steadyRun()
+
+        self.__setCurrentState()
+
+    def __setCurrentState(self):
+        """
+        Get the nodal (physical) displacements and velocities from SU2 structural solver.
+        """
+
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            # identify the halo nodes and ignore their nodal loads
+            halo = self.SU2.ComputeVertexForces(self.solidInterfaceID, iVertex)
+            self.SU2.ComputeVertexHeatFluxes(self.solidInterfaceID, iVertex)
+            if halo == False:
+
+                disp = self.SU2.GetFEA_Displacements(self.solidInterfaceID, iVertex)
+                vel = self.SU2.GetFEA_Velocity(self.solidInterfaceID, iVertex)
+                vel_n = self.SU2.GetFEA_Velocity_n(self.solidInterfaceID, iVertex)
+
+                self.nodalDisp_X[PhysicalIndex] = disp[0]
+                self.nodalDisp_Y[PhysicalIndex] = disp[1]
+                self.nodalDisp_Z[PhysicalIndex] = disp[2]
+
+                self.nodalVel_X[PhysicalIndex] = vel[0]
+                self.nodalVel_Y[PhysicalIndex] = vel[1]
+                self.nodalVel_Z[PhysicalIndex] = vel[2]
+
+                self.nodalVel_XNm1[PhysicalIndex] = vel_n[0]
+                self.nodalVel_YNm1[PhysicalIndex] = vel_n[1]
+                self.nodalVel_ZNm1[PhysicalIndex] = vel_n[2]
+
+                load = self.SU2.GetFlowLoad_Sensitivity(self.solidInterfaceID, iVertex)
+
+                self.nodalAdjLoad_X[PhysicalIndex] = load[0]
+                self.nodalAdjLoad_Y[PhysicalIndex] = load[1]
+                self.nodalAdjLoad_Z[PhysicalIndex] = load[2]
+
+                PhysicalIndex += 1
+
+    def __steadyRun(self):
+        """
+        Run SU2 up to a converged steady state.
+        """
+        self.SU2.ResetConvergence()
+        self.SU2.Preprocess(0)
+        self.SU2.Run()
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Postprocess()
+        self.SU2.Update()
+        self.SU2.Output(0)

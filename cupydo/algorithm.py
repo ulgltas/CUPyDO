@@ -110,7 +110,12 @@ class Algorithm(object):
                 self.interfaceInterpolator.setDisplacementToFluidSolver(self.time)
                 self.FluidSolver.setInitialMeshDeformation()
             else:
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.setInitialDisplacements()
                 self.interfaceInterpolator.getDisplacementFromSolidSolver()
+                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+                self.interfaceInterpolator.setDisplacementToFluidSolver(self.time)
+                self.FluidSolver.setInitialMeshDeformation()
 
         if self.manager.thermal:
             if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':

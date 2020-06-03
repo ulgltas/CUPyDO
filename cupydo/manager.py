@@ -72,6 +72,7 @@ class Manager(ccupydo.CManager):
         self.nDim = nDim
         self.computationType = computationType
         self.mechanical = True
+        self.adjoint = False
         self.thermal = False
 
         self.haveFluidSolver = False

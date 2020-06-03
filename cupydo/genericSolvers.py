@@ -260,3 +260,51 @@ class FluidSolver(object):
 
     def exit(self):
         return
+
+# ----------------------------------------------------------------------
+#  Generic solid adjoint solver class
+# ----------------------------------------------------------------------
+
+class SolidAdjointSolver(SolidSolver):
+    """
+    Generic solid adjoint solver class
+    """
+    def __init__(self):
+        SolidSolver.__init__(self)
+        self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes))
+
+        self.nodalAdjLoad_X = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
+
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+        return
+    
+    def getNodalAdjointLoads(self):
+        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjDisp_Z)
+
+# ----------------------------------------------------------------------
+#  Generic fluid adjoint solver class
+# ----------------------------------------------------------------------
+
+class FluidAdjointSolver(FluidSolver):
+    """
+    Generic fluid adjoint solver class
+    """
+    def __init__(self):
+        FluidSolver.__init__(self)
+        self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes))
+
+        self.nodalAdjLoad_X = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
+
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+        return
+    
+    def getNodalAdjointDisplacement(self):
+        return (self.nodalAdjDisp_X, self.nodalAdjDisp_Y, self.nodalAdjDisp_Z)

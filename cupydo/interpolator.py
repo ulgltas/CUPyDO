@@ -120,6 +120,11 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceRobinTemperature = None
         self.solidInterfaceRobinTemperature = None
 
+        self.solidInterfaceAdjointDisplacement = None
+        self.fluidInterfaceAdjointDisplacement = None
+        self.solidInterfaceAdjointLoads = None
+        self.fluidInterfaceAdjointLoads = None
+
     def checkTotalLoad(self):
         """
         Des.
@@ -622,6 +627,11 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
             self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
             self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            if self.manager.mechanical:
+                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':
@@ -974,6 +984,11 @@ class ConsistentInterpolator(InterfaceInterpolator):
             self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
             self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
+            if self.manager.adjoint:
+                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
+                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':

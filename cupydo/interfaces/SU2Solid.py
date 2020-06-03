@@ -55,18 +55,7 @@ class SU2SolidSolver(SolidSolver):
         Initialize the SU2 solver and all the required interface variables.
         """
 
-        # --- Instantiate the structural driver of SU2 --- #
-        try:
-            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
-        except TypeError as exception:
-            print(('A TypeError occured in pysu2.CSingleZoneDriver : ', exception))
-            if have_MPI == True:
-                print(
-                    'ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
-            else:
-                print(
-                    'ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
-
+        self.initializeSolver(confFile, have_MPI, MPIComm)
         allFluidLoadMarkersTags = self.SU2.GetAllFluidLoadMarkersTag()  # list containing the tags of all fluid load markers
         allMarkersID = self.SU2.GetAllBoundaryMarkers()  # dic : allMarkersID['marker_tag'] = marker_ID
         self.solidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allFluidLoadMarkersTags
@@ -101,7 +90,7 @@ class SU2SolidSolver(SolidSolver):
         self.pointIndexList = np.zeros(self.nPhysicalNodes, dtype=int)
         self.haloNodesPositionsInit = {}
 
-        SolidSolver.__init__(self)
+        self.initializeVariables()
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
@@ -134,6 +123,27 @@ class SU2SolidSolver(SolidSolver):
         # for iIndex in range(self.nPhysicalNodes):
         #     print((self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex]))
 
+    def initializeSolver(self, confFile, have_MPI, MPIComm):
+        # --- Instantiate the single zone driver of SU2 --- #
+        # @todo [Adrien Crovato ]Change CFluidDriver constructor
+        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
+        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
+        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
+        try:
+            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
+        except TypeError as exception:
+            print(('A TypeError occured in pysu2.CFluidDriver : ',exception))
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+            
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        SolidSolver.__init__(self)
+
     def run(self, t1, t2):
         """
         Run one computation of SU2.
@@ -160,10 +170,16 @@ class SU2SolidSolver(SolidSolver):
         """
 
         self.SU2.ResetConvergence()
-        self.SU2.Preprocess(1)
+        self.SU2.Preprocess(0)
         self.SU2.Run()
-        StopIntegration = self.SU2.Monitor(1)
-        self.SU2.Output(1)
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Output(0)
+
+    def setInitialDisplacements(self):
+        """
+        Set initial displacements
+        """
+        self.__setCurrentState()
 
     def __setCurrentState(self):
         """

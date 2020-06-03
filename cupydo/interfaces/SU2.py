@@ -50,21 +50,8 @@ class SU2(FluidSolver):
         Initialize the SU2 solver and all the required interface variables.
         """
 
-        # --- Instantiate the single zone driver of SU2 --- #
-        # @todo [Adrien Crovato ]Change CFluidDriver constructor
-        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
-        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
-        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
-        try:
-            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
-        except TypeError as exception:
-            print(('A TypeError occured in pysu2.CFluidDriver : ',exception))
-            if have_MPI == True:
-                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
-            else:
-                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
-
-        allMovingMarkersTags = self.SU2.GetAllMovingMarkersTag()                    # list containing the tags of all moving markers
+        self.initializeSolver(confFile, have_MPI, MPIComm)
+        allMovingMarkersTags = self.SU2.GetAllDeformMeshMarkersTag()                    # list containing the tags of all moving markers
         allCHTMarkersTags = self.SU2.GetAllCHTMarkersTag()
         allMarkersID = self.SU2.GetAllBoundaryMarkers()                             # dic : allMarkersID['marker_tag'] = marker_ID
         self.fluidInterfaceID = None                                                # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
@@ -104,14 +91,12 @@ class SU2(FluidSolver):
         self.nodalInitialPos_Z = np.zeros((self.nPhysicalNodes))
         self.haloNodesPositionsInit = {}
 
-        FluidSolver.__init__(self)
+        self.initializeVariables()
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
-            posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
-            posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
+            posX, posY, posZ = self.SU2.GetVertex_UndeformedCoord(self.fluidInterfaceID, iVertex)
             if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
                 self.haloNodeList[GlobalIndex] = iVertex
@@ -140,6 +125,27 @@ class SU2(FluidSolver):
         # for iIndex in range(self.nPhysicalNodes):
         #     print(self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex])
 
+    def initializeSolver(self, confFile, have_MPI, MPIComm):
+        # --- Instantiate the single zone driver of SU2 --- #
+        # @todo [Adrien Crovato ]Change CFluidDriver constructor
+        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
+        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
+        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
+        try:
+            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
+        except TypeError as exception:
+            print(('A TypeError occured in pysu2.CFluidDriver : ',exception))
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        FluidSolver.__init__(self)
+
     def run(self, t1, t2):
         """
         Run one computation of SU2.
@@ -167,10 +173,11 @@ class SU2(FluidSolver):
         """
 
         self.SU2.ResetConvergence()
-        self.SU2.Preprocess(1)
+        self.SU2.Preprocess(0)
         self.SU2.Run()
-        StopIntegration = self.SU2.Monitor(1)
-        self.SU2.Output(1)
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Postprocess()
+        self.SU2.Output(0)
 
     def __setCurrentState(self):
         """
@@ -188,9 +195,7 @@ class SU2(FluidSolver):
                     Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID, iVertex)
                     Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID, iVertex)
                 else:
-                    Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
-                    Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
-                    Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                    Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
                 Qx = self.SU2.GetVertexHeatFluxX(self.fluidInterfaceID, iVertex)
@@ -368,7 +373,10 @@ class SU2(FluidSolver):
         Perform the mesh morphing for FSI initial conditions.
         """
 
+        if self.computationType == 'unsteady':
         self.SU2.SetInitialMesh()
+        elif self.computationType == 'steady':
+            self.SU2.StaticMeshUpdate()
 
     def preprocessTimeIter(self, timeIter):
         """

@@ -40,6 +40,7 @@ def getParams():
     p['y_ref'] = 0. # Reference point for moment computation (y)
     p['z_ref'] = 0. # Reference point for moment computation (z)
     # Numerical
+    p['LSolver'] = 'Pardiso' # Linear solver (Pardiso, GMRES, MUMPS or SparseLU)
     p['NSolver'] = 'Newton' # Noninear solver type (Picard or Newton)
     p['Rel_tol'] = 1e-6 # Relative tolerance on solver residual
     p['Abs_tol'] = 1e-8 # Absolute tolerance on solver residual

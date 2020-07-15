@@ -164,6 +164,19 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.solidInterfaceHeatFlux.assemble()
 
+    def getAdjointLoadsFromSolidSolver(self):
+        """
+        Des.
+        """
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointLoads()
+            for iVertex in range(self.ns_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                self.solidInterfaceAdjointLoads[iGlobalVertex] = [localSolidInterfaceAdjointLoad_X[iVertex], localSolidInterfaceAdjointLoad_Y[iVertex], localSolidInterfaceAdjointLoad_Z[iVertex]]
+
+        self.solidInterfaceAdjointLoads.assemble()
+
     def getLoadsFromFluidSolver(self):
         """
         Des.
@@ -220,6 +233,19 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.fluidInterfaceHeatFlux.assemble()
         self.fluidInterfaceNormalHeatFlux.assemble()
+
+    def getAdjointDisplacementFromFluidSolver(self):
+        """
+        Des.
+        """
+
+        if self.myid in self.manager.getFluidInterfaceProcessors():
+            localFluidInterfaceAdjDisp_X, localFluidInterfaceAdjDisp_Y, localFluidInterfaceAdjDisp_Z = self.FluidSolver.getNodalAdjointDisplacement()
+            for iVertex in range(self.nf_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+                self.fluidInterfaceAdjointDisplacement[iGlobalVertex] = [localFluidInterfaceAdjDisp_X[iVertex], localFluidInterfaceAdjDisp_Y[iVertex], localFluidInterfaceAdjDisp_Z[iVertex]]
+
+        self.fluidInterfaceAdjointDisplacement.assemble()
 
     def redistributeDataToFluidSolver(self, fluidInterfaceData):
         """
@@ -431,6 +457,22 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         mpiPrint('Solid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FXT, FYT, FZT), self.mpiComm)
         mpiPrint('Fluid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FFX, FFY, FFZ), self.mpiComm)
 
+    def setAdjointDisplacementToSolidSolver(self, time):
+        """
+        Des.
+        """
+
+        # self.checkConservation()
+
+        if self.mpiComm != None:
+            (localSolidInterfaceAdjointDisplacement, haloNodesDisplacements) = self.redistributeDataToSolidSolver(self.solidInterfaceAdjointDisplacement)
+#            mpiBarrier(self.mpiComm)
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                self.SolidSolver.applyNodalAdjointDisplacement(localSolidInterfaceAdjointDisplacement[0], localSolidInterfaceAdjointDisplacement[1], localSolidInterfaceAdjointDisplacement[2], haloNodesDisplacements, time)
+        else:
+            self.SolidSolver.applyNodalAdjointDisplacement(self.solidInterfaceAdjointDisplacement.getDataArray(0), self.solidInterfaceAdjointDisplacement.getDataArray(1), self.solidInterfaceAdjointDisplacement.getDataArray(2), {}, time)
+
+
     def setDisplacementToFluidSolver(self, time):
         """
         Des.
@@ -469,6 +511,22 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                 self.FluidSolver.applyNodalTemperatures(localFluidInterfaceTemperature[0], time)
         else:
             self.FluidSolver.applyNodalTemperatures(self.fluidInterfaceTemperature.getDataArray(0), time)
+
+    def setAdjointLoadsToFluidSolver(self, time):
+        """
+        Des.
+        """
+
+        # self.checkConservation()
+
+        if self.mpiComm != None:
+            (localFluidInterfaceAdjointLoad, haloNodesAdjointLoads) = self.redistributeDataToFluidSolver(self.fluidInterfaceAdjointLoads)
+#            mpiBarrier(self.mpiComm)
+            if self.myid in self.manager.getFluidInterfaceProcessors():
+                self.FluidSolver.applyNodalAdjointLoads(localFluidInterfaceAdjointLoad[0], localFluidInterfaceAdjointLoad[1], localFluidInterfaceAdjointLoad[2], haloNodesAdjointLoads, time)
+        else:
+            self.FluidSolver.applyNodalAdjointLoads(self.fluidInterfaceAdjointLoads.getDataArray(0), self.fluidInterfaceAdjointLoads.getDataArray(1), self.fluidInterfaceAdjointLoads.getDataArray(2), {}, time)
+
 
     def setTemperatureToSolidSolver(self, time):
         """
@@ -539,6 +597,13 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.interpolateSolidToFluid(self.solidInterfaceTemperature, self.fluidInterfaceTemperature)
 
+    def interpolateSolidAdjointLoadsOnFluidMesh(self):
+        """
+        Description.
+        """
+
+        self.interpolateSolidToFluid(self.solidInterfaceAdjointLoads, self.fluidInterfaceAdjointLoads)
+
     def interpolateFluidHeatFluxOnSolidMesh(self):
         """
         Description.
@@ -560,6 +625,14 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         """
 
         self.interpolateFluidToSolid(self.fluidInterfaceRobinTemperature, self.solidInterfaceRobinTemperature)
+
+    def interpolateFluidAdjointDisplacementOnSolidMesh(self):
+        """
+        Des.
+        """
+
+        self.interpolateFluidToSolid(self.fluidInterfaceAdjointDisplacement, self.solidInterfaceAdjointDisplacement)
+
 
     def getNs(self):
         """

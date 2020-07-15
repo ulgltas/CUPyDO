@@ -11,9 +11,9 @@ CUPyDO currently features interfaces for the following solvers:
   - modali -> A static/dynamic modal solver developed at the University of Liège (https://github.com/ulgltas/modali)
   - GetDP --> A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liège (http://getdp.info/)
 - Fluid:
-  - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liège (https://github.com/ulgltas/PFEM)
+  - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liège (https://gitlab.uliege.be/am-dept/PFEM)
   - SU2 --> Open-source CFD code developed at Stanford University (https://su2code.github.io/)
-  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège (https://github.com/ulgltas/waves)
+  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège (https://gitlab.uliege.be/am-dept/waves)
   - VLM --> A Vortex Lattice Method, developed at the University of Liège (https://github.com/ulgltas/VLM)
 
 Furthermore, CUPyDO features two interpolation alogrithms:

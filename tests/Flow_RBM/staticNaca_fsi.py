@@ -10,7 +10,7 @@ from __future__ import print_function
 from builtins import str
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Flow constant (defined in case_fluid)
     dynP = 0.5*100 # dynamic pressure
     alpha0 = np.radians(3) # initial angle of attack
@@ -70,6 +70,7 @@ def getFsiP():
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.0
     p['tTot'] = 0.0

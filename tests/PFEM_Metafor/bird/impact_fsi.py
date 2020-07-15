@@ -8,7 +8,7 @@ from __future__ import print_function
 from builtins import str
 def test(res, tol, it):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
@@ -45,6 +45,7 @@ def getFsiP():
     p['algorithm'] = 'AitkenBGS'
     # FSI parameters
     p['compType'] = 'unsteady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 2e-6
     p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)

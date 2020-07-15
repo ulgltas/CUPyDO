@@ -9,7 +9,7 @@ from __future__ import print_function
 from builtins import str
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Read results from file
     with open("FlowHistory.dat", 'rb') as f:
         lines = f.readlines()
@@ -43,6 +43,7 @@ def getFsiP():
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.1
     p['tTot'] = 0.1

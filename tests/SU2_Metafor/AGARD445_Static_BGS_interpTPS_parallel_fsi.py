@@ -18,10 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
+from __future__ import print_function
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -61,6 +62,7 @@ def getFsiP():
     p['algorithm'] = 'StaticBGS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'direct'
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.05
@@ -80,7 +82,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

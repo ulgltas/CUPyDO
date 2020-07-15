@@ -19,13 +19,15 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
+from __future__ import print_function
 
+from builtins import str
 def test(res, tol, it):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
@@ -55,6 +57,7 @@ def getFsiP():
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.001
     p['tTot'] = 0.05
@@ -74,7 +77,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

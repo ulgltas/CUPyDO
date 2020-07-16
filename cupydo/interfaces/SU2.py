@@ -373,10 +373,7 @@ class SU2(FluidSolver):
         Perform the mesh morphing for FSI initial conditions.
         """
 
-        if self.computationType == 'unsteady':
-            self.SU2.SetInitialMesh()
-        elif self.computationType == 'steady':
-            self.SU2.StaticMeshUpdate()
+        self.SU2.StaticMeshUpdate()
 
     def preprocessTimeIter(self, timeIter):
         """

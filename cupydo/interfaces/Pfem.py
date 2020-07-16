@@ -56,8 +56,8 @@ class Pfem(FluidSolver):
                  
         # loads the python module
         #load(self.testname)         # use toolbox.utilities
-        exec("import %s" % self.testname)
-        exec("module = %s" % self.testname) # link to Pfem object
+        exec("import %s" % self.testname, globals())
+        exec("module = %s" % self.testname, globals()) # link to Pfem object
 
         # create an instance of Pfem
         self.pfem = module.getPfem()

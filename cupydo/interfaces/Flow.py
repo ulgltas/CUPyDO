@@ -61,7 +61,7 @@ class Flow(FluidSolver):
         """Initilize flow classes
         Adrien Crovato
         """
-        from . import flow
+        import flow
         import tbox
         import tbox.gmsh as gmsh
         from tbox.solvers import LinearSolver

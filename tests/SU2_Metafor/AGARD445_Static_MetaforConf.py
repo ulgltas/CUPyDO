@@ -20,8 +20,8 @@ limitations under the License.
 '''
 
 from wrap import *
-from wrap.mtComposites import *
-from  math import *
+from wrap.mtCompositesw import *
+from math import *
 
 metafor = None
 

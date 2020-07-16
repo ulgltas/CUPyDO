@@ -77,8 +77,8 @@ class Metafor(SolidSolver):
         # --- Load the Python module --- #
         self.testname = testname            # string (name of the module of the solid model)
         #load(self.testname)                # loads the python module and creates mtf/workspace
-        exec("import %s" % self.testname)
-        exec("module = %s" % self.testname)
+        exec("import %s" % self.testname, globals())
+        exec("module = %s" % self.testname, globals())
 
         # --- Create an instance of Metafor --- #
         self.metafor = None                   # link to Metafor objet

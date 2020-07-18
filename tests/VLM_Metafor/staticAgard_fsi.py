@@ -10,7 +10,7 @@ from builtins import str
 def test(cupydo, tol):
     res = cupydo.algorithm.errValue
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Read results from data
     cl = cupydo.algorithm.FluidSolver.coreSolver.getCl()
     cd = cupydo.algorithm.FluidSolver.coreSolver.getCd()
@@ -48,6 +48,7 @@ def getFsiP():
     p['algorithm'] = 'StaticBGS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'Direct'
     p['nDim'] = 3
     p['dt'] = 0.1
     p['tTot'] = 0.1

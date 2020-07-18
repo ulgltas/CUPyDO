@@ -166,6 +166,7 @@ class SU2(FluidSolver):
 
         self.SU2.ResetConvergence()
         self.SU2.Run()
+        self.SU2.Postprocess()
 
     def __steadyRun(self):
         """

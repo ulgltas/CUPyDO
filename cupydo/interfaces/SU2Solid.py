@@ -42,7 +42,7 @@ from ..genericSolvers import SolidSolver, SolidAdjointSolver
 
 
 # ----------------------------------------------------------------------
-#  ExampSolver class
+#  SU2SolidSolver class
 # ----------------------------------------------------------------------
 
 class SU2SolidSolver(SolidSolver):
@@ -50,7 +50,7 @@ class SU2SolidSolver(SolidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
+    def __init__(self, confFile, nDim, computationType, nodalLoadsType, extractors, have_MPI, MPIComm=None):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
@@ -116,6 +116,7 @@ class SU2SolidSolver(SolidSolver):
                 self.nodalTemperature[PhysicalIndex] = Temp
                 PhysicalIndex += 1
 
+        self.extractors = extractors # List of points to extract 
         self.initRealTimeData()
 
         # print("\n -------------------------- SOLID NODES ------------------------------ \n")
@@ -288,7 +289,10 @@ class SU2SolidSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "w")
-        solFile.write("Time\tnIter\tY_LE\tY_TE\n")
+        solFile.write("Time\tnIter")
+        for gidx in self.extractors:
+            solFile.write('\t{}\t{}\t{}'.format('x_'+str(gidx), 'y_'+str(gidx), 'z_'+str(gidx)))
+        solFile.write('\n')
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
@@ -297,7 +301,10 @@ class SU2SolidSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "a")
-        solFile.write("{}\t{}\t{}\t{}\n".format(time, nFSIIter, self.nodalDisp_Y[-1], self.nodalDisp_Y[2]))
+        solFile.write("{}\t{}".format(time, nFSIIter))
+        for gidx in self.extractors:
+            solFile.write('\t{}\t{}\t{}'.format(self.nodalDisp_X[gidx], self.nodalDisp_Y[gidx], self.nodalDisp_Z[gidx]))
+        solFile.write('\n')
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):

@@ -39,8 +39,8 @@ def test(res, tol):
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], -0.425, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Drag coefficient', resultA[3], 3.124, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (180, TZ)', resultS[3], -0.000581, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (181, TZ)', resultS[2], -0.000810, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (110, Y)', resultS[6], -0.000581, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (100, Y)', resultS[3], -0.000810, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getFsiP():
@@ -69,6 +69,7 @@ def getFsiP():
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['nodalLoadsType'] = 'force'
+    p['extractors'] = [100, 110]
     return p
 
 def main():

@@ -151,7 +151,7 @@ class CUPyDO(object):
                     else:
                         solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
                 else:
-                    raise RuntimeError('Adjoint nterface for', p['solidSolver'], 'not found!\n')
+                    raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
             else:
                 if p['solidSolver'] == 'Metafor':
                     from . import Metafor as sItf

@@ -69,6 +69,7 @@ def getFsiP():
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['nodalLoadsType'] = 'force'
+    # Solid parameters
     p['extractors'] = [100, 110]
     return p
 

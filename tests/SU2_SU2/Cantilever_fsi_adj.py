@@ -71,11 +71,12 @@ def getAdjP():
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['nodalLoadsType'] = 'force'
+    # Solid parameters
     p['extractors'] = [100, 110]
     return p
 
 def main():
-    file = "/Users/mariano/CUPyDO/tests/SU2_SU2/Cantilever_fsi.py"
+    file = "../../tests/SU2_SU2/Cantilever_fsi.py"
     execfile(file, globals(), globals()) # Run direct
     import cupydo.interfaces.Cupydo as cupy
     p = getAdjP() # get parameters

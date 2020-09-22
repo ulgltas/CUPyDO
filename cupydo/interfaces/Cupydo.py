@@ -147,9 +147,9 @@ class CUPyDO(object):
                 if p['solidSolver'] == 'SU2':
                     from . import SU2Solid as sItf
                     if comm != None:
-                        solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                        solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
                     else:
-                        solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                        solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
                 else:
                     raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
             else:

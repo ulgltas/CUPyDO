@@ -401,9 +401,9 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                     for ii in range(sendBuffHalo_key.size):
                         sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
                     if iProc == 0:
-                    self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
-                    self.mpiComm.Isend(sendBuffHalo_key, dest=iProc, tag=102)
-                    self.mpiComm.Isend(sendBuffHalo_values, dest=iProc, tag=103)
+                        self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                        self.mpiComm.Isend(sendBuffHalo_key, dest=iProc, tag=102)
+                        self.mpiComm.Isend(sendBuffHalo_values, dest=iProc, tag=103)
                         nHaloNodesRcv = np.empty(1, dtype=int)
                         self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
                         rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)

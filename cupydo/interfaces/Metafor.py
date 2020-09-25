@@ -301,7 +301,7 @@ class Metafor(SolidSolver):
         
         self.applyNodalLoads(valx, valy, valz, time)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = None):
         """
         Des.
         """

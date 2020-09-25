@@ -142,43 +142,43 @@ class CUPyDO(object):
         Adrien Crovato
         """
         solidSolver = None
-        if myId == 0: # only master can instantiate the solid solver
-            if p['computation'] == 'Adjoint':
-                if p['solidSolver'] == 'SU2':
-                    from . import SU2Solid as sItf
-                    if comm != None:
-                        solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
-                    else:
-                        solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
+        # IMPORTANT! only master can instantiate the solid solver except SU2Solid and pyBeam. GetDP is to be updated
+        if p['computation'] == 'Adjoint': # Adjoint calculations only support SU2Solid
+            if p['solidSolver'] == 'SU2':
+                from . import SU2Solid as sItf
+                if comm != None:
+                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
                 else:
-                    raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
+                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
             else:
-                if p['solidSolver'] == 'Metafor':
-                    from . import Metafor as sItf
-                    solidSolver = sItf.Metafor(p['csdFile'], p['compType'])
-                elif p['solidSolver'] == 'RBMI':
-                    from . import RBMI as sItf
-                    solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
-                elif p['solidSolver'] == 'Modal':
-                    from . import Modal as sItf
-                    solidSolver = sItf.Modal(p['csdFile'], p['compType'])
-                elif p['solidSolver'] == 'pyBeam':
-                    from . import Beam as sItf
-                    if comm != None:
-                        solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
-                    else:
-                        solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
-                elif p['solidSolver'] == 'SU2':
-                    from . import SU2Solid as sItf
-                    if comm != None:
-                        solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
-                    else:
-                        solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
-                elif p['solidSolver'] == 'GetDP':
-                    from . import GetDP as sItf
-                    raise RuntimeError('GetDP interface not up-to-date!\n')
+                raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
+        else:
+            if myId == 0 and p['solidSolver'] == 'Metafor':
+                from . import Metafor as sItf
+                solidSolver = sItf.Metafor(p['csdFile'], p['compType'])
+            elif myId == 0 and p['solidSolver'] == 'RBMI':
+                from . import RBMI as sItf
+                solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
+            elif myId == 0 and p['solidSolver'] == 'Modal':
+                from . import Modal as sItf
+                solidSolver = sItf.Modal(p['csdFile'], p['compType'])
+            elif p['solidSolver'] == 'pyBeam':
+                from . import Beam as sItf
+                if comm != None:
+                    solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
                 else:
-                    raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')
+                    solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+            elif p['solidSolver'] == 'SU2':
+                from . import SU2Solid as sItf
+                if comm != None:
+                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
+                else:
+                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
+            elif p['solidSolver'] == 'GetDP':
+                from . import GetDP as sItf
+                raise RuntimeError('GetDP interface not up-to-date!\n')
+            elif myId == 0:
+                raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')
         return solidSolver
 
 # ---------------------------------------------------------------------- #
@@ -217,4 +217,5 @@ class CUPyDO(object):
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['nodalLoadsType'], SU2
+# - p['extractors'], SU2Solid
 # ---------------------------------------------------------------------- #

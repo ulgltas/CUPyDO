@@ -366,6 +366,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                 solidInterfaceData_array_recon.append(array_recon)
             haloNodesData = {}
             if self.myid == 0:
+                localSolidInterfaceData_array = []
                 for iProc in self.manager.getSolidInterfaceProcessors():
                     solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
                     solidGlobalIndexRange = self.manager.getSolidGlobalIndexRange()
@@ -389,16 +390,34 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                     iTagSend = 1
                     for iDim in range(solidInterfaceData.nDim):
                         self.mpiComm.Isend(sendBuff[iDim], dest=iProc, tag = iTagSend)
+                        if iProc == 0:
+                            local_array = np.zeros(self.ns_loc)
+                            self.mpiComm.Recv(local_array, source=0, tag = iTagSend)
+                            localSolidInterfaceData_array.append(local_array)
                         iTagSend += 1
                     #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
                     sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
                     sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
                     for ii in range(sendBuffHalo_key.size):
                         sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
+                    if iProc == 0:
                     self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
                     self.mpiComm.Isend(sendBuffHalo_key, dest=iProc, tag=102)
                     self.mpiComm.Isend(sendBuffHalo_values, dest=iProc, tag=103)
-            if self.myid in self.manager.getSolidInterfaceProcessors():
+                        nHaloNodesRcv = np.empty(1, dtype=int)
+                        self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
+                        rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
+                        self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
+                        rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                        self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
+                        for ii in range(len(rcvBuffHalo_keyBuff)):
+                            haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
+                        haloNodesData = haloNodesData_bis
+                    else:
+                        self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
+                        self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
+                        self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
+            elif self.myid in self.manager.getSolidInterfaceProcessors():
                 localSolidInterfaceData_array = []
                 iTagRec = 1
                 for iDim in range(solidInterfaceData.nDim):
@@ -442,7 +461,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.mpiComm != None:
             (localSolidLoads_array, haloNodesSolidLoads) = self.redistributeDataToSolidSolver(self.solidInterfaceLoads)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                self.SolidSolver.applyNodalLoads(localSolidLoads_array[0], localSolidLoads_array[1], localSolidLoads_array[2], time)
+                self.SolidSolver.applyNodalLoads(localSolidLoads_array[0], localSolidLoads_array[1], localSolidLoads_array[2], time, haloNodesSolidLoads)
                 FX = localSolidLoads_array[0].sum()
                 FY = localSolidLoads_array[1].sum()
                 FZ = localSolidLoads_array[2].sum()

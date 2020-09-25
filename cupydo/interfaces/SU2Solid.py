@@ -286,9 +286,9 @@ class SU2SolidSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "w")
-        solFile.write("Time\tnIter")
+        solFile.write('{:>12s}   {:>12s}'.format('Time', 'Iteration'))
         for gidx in self.extractors:
-            solFile.write('\t{}\t{}\t{}'.format('x_'+str(gidx), 'y_'+str(gidx), 'z_'+str(gidx)))
+            solFile.write('   {:>12s}   {:>12s}   {:>12s}'.format('x_'+str(gidx), 'y_'+str(gidx), 'z_'+str(gidx)))
         solFile.write('\n')
         solFile.close()
 
@@ -298,9 +298,9 @@ class SU2SolidSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "a")
-        solFile.write("{}\t{}".format(time, nFSIIter))
+        solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
         for gidx in self.extractors:
-            solFile.write('\t{}\t{}\t{}'.format(self.nodalDisp_X[gidx], self.nodalDisp_Y[gidx], self.nodalDisp_Z[gidx]))
+            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.SU2.GetFEA_Displacements(self.solidInterfaceID, gidx)))
         solFile.write('\n')
         solFile.close()
 

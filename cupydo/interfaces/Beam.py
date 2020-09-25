@@ -176,7 +176,7 @@ class pyBeamSolver(SolidSolver):
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
         """
         Des.
         """
@@ -226,7 +226,7 @@ class pyBeamSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "w")
-        solFile.write("Time\tnIter\tValue\n")
+        solFile.write("Time\tnIter\tPos X\tPos Y\tPos Z\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
@@ -235,7 +235,8 @@ class pyBeamSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "a")
-        solFile.write("{}\t{}\t{}\t{}\n".format(time, nFSIIter, self.nodalDisp_Y[-1], self.nodalDisp_Y[-1]))
+        #posX, posY, posZ = primal.PrintSolution(19)
+        solFile.write("{}\t{}\t{}\t{}\t{}\n".format(time, nFSIIter, self.nodalDisp_X[19], self.nodalDisp_Y[19], self.nodalDisp_Z[19]))
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
@@ -243,9 +244,8 @@ class pyBeamSolver(SolidSolver):
         Des.
         """
 
-        toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print()
-        toPrint
+        toPrint = 'RES-FSI-' + 'pyBeam' + ': ' + str(1.0) + '\n'
+        print(toPrint)
 
     def exit(self):
         """

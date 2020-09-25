@@ -119,7 +119,7 @@ class SolidSolver(object):
     def fakeFluidSolver(self, time):
         return
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
         return
 
     def applyNodalTemperatures(self, Temperature, time):

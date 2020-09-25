@@ -461,10 +461,12 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
-            # in case of halo node, use haloNodesDisplacements with global fluid indexing
-            if not GlobalIndex in list(self.haloNodeList.keys()):
+            # in case of halo node, use haloNodesLoads with global fluid indexing
+            if GlobalIndex in list(self.haloNodeList.keys()):
+                loadX, loadY, loadZ = haloNodesLoads[GlobalIndex]
+            else:
                 loadX = load_adj_X[PhysicalIndex]
                 loadY = load_adj_Y[PhysicalIndex]
                 loadZ = load_adj_Z[PhysicalIndex]
                 PhysicalIndex += 1
-                self.SU2.SetFlowLoad_Adjoint(self.fluidInterfaceID, iVertex, loadX, loadY, loadZ)
+            self.SU2.SetFlowLoad_Adjoint(self.fluidInterfaceID, iVertex, loadX, loadY, loadZ)

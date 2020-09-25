@@ -233,7 +233,7 @@ class SU2SolidSolver(SolidSolver):
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
         """
         Des.
         """
@@ -244,10 +244,7 @@ class SU2SolidSolver(SolidSolver):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
             # in case of halo node, use haloNodesDisplacements with global fluid indexing
             if GlobalIndex in list(self.haloNodeList.keys()):
-                # Temporarily support only single core
-                LoadX = 0.0
-                LoadY = 0.0
-                LoadZ = 0.0
+                LoadX, LoadY, LoadZ = haloNodesLoads[GlobalIndex]
             else:
                 LoadX = load_X[PhysicalIndex]
                 LoadY = load_Y[PhysicalIndex]
@@ -349,7 +346,9 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
             # in case of halo node, use haloNodesDisplacements with global fluid indexing
-            if not GlobalIndex in list(self.haloNodeList.keys()):
+            if GlobalIndex in list(self.haloNodeList.keys()):
+                dispX, dispY, dispZ = haloNodesDisplacements[GlobalIndex]
+            else:
                 dispX = disp_adj_X[PhysicalIndex]
                 dispY = disp_adj_Y[PhysicalIndex]
                 dispZ = disp_adj_Z[PhysicalIndex]

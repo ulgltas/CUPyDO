@@ -111,7 +111,7 @@ class ExampSolver(SolidSolver):
     
         #return no
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
         """
         Des.
         """

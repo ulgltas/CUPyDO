@@ -300,7 +300,7 @@ class SU2SolidSolver(SolidSolver):
         solFile = open('SolidSolution.ascii', "a")
         solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
         for gidx in self.extractors:
-            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.SU2.GetFEA_Displacements(self.solidInterfaceID, gidx)))
+            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.nodalDisp_X[gidx], self.nodalDisp_Y[gidx], self.nodalDisp_Z[gidx]))
         solFile.write('\n')
         solFile.close()
 

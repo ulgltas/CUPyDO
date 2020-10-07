@@ -31,7 +31,12 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import range
-import pysu2ad as pysu2
+try: # Try to import the AD-capable SU2 module first
+    import pysu2ad as pysu2
+    adjoint = True
+except ModuleNotFoundError as error:
+    import pysu2
+    adjoint = False
 import math
 import numpy as np
 from ..genericSolvers import FluidSolver, FluidAdjointSolver
@@ -411,6 +416,9 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
     """
     def initializeSolver(self, confFile, have_MPI, MPIComm):
         # --- Instantiate the single zone driver of SU2 --- #
+        if not adjoint:
+            print('ERROR: You are trying to launch an adjoint calculation with an AD-incapable build of the SU2 wrapper. Please, add the -Denable-pywrapper=true to meson options.')
+            return
         try:
             self.SU2 = pysu2.CDiscAdjSinglezoneDriver(confFile, 1, MPIComm)
         except TypeError as exception:

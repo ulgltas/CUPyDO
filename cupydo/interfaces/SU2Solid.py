@@ -35,6 +35,11 @@ from builtins import range
 import pysu2ad as pysu2
 import math
 import numpy as np
+try: # Try to import the optional vtk module. If unavailable, send a warning
+    import vtk
+except ModuleNotFoundError as error:
+    vtk = None
+    UserWarning('vtk module not found! SU2Solid solution output will not work\n')
 
 # Those are mandatory
 import numpy as np
@@ -285,6 +290,14 @@ class SU2SolidSolver(SolidSolver):
         Des.
         """
 
+        if not vtk is None:
+            fileName = self.SU2.GetSurface_Filename()
+            fileExtension = 'vtu'
+            self.dataReader = vtk.vtkXMLUnstructuredGridReader()
+            self.dataReader.SetFileName(fileName + '.' + fileExtension)
+        else:
+            self.dataReader = None
+        
         solFile = open('SolidSolution.ascii', "w")
         solFile.write('{:>12s}   {:>12s}'.format('Time', 'Iteration'))
         for gidx in self.extractors:
@@ -299,8 +312,14 @@ class SU2SolidSolver(SolidSolver):
 
         solFile = open('SolidSolution.ascii', "a")
         solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
+        if not self.dataReader is None:
+            self.dataReader.Modified() # Update the dataReader with the new VTK file
+            self.dataReader.Update()
+            nodalDisp = np.array(self.dataReader.GetOutput().GetPointData().GetArray('Displacement'))
+        else:
+            nodalDisp = np.zeros((self.nNodes, 3)) # If no vtk module use zeros
         for gidx in self.extractors:
-            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.nodalDisp_X[gidx], self.nodalDisp_Y[gidx], self.nodalDisp_Z[gidx]))
+            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(nodalDisp[gidx, 0], nodalDisp[gidx, 1], nodalDisp[gidx, 2]))
         solFile.write('\n')
         solFile.close()
 

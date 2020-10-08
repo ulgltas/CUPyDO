@@ -22,16 +22,10 @@ Python interface between the wrapper of PFEM solver and CUPyDO.
 Authors M.L. CERQUAGLIA
 
 '''
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import os, os.path, sys, time, string
 
 import math
@@ -178,8 +172,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = old_div((dx[i] - self.displ_x_Nm1[i]),self.pfem.scheme.dt)
-            node.imposedV = old_div((dy[i] - self.displ_y_Nm1[i]),self.pfem.scheme.dt)
+            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/self.pfem.scheme.dt
+            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/self.pfem.scheme.dt
         
     def update(self, dt):
         self.pfem.scheme.t+=dt

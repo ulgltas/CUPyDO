@@ -18,8 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -30,7 +28,6 @@ from __future__ import absolute_import
 # import math
 
 # Those are mandatory
-from builtins import str
 import numpy as np
 from ..genericSolvers import FluidSolver
 

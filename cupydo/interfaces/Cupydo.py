@@ -22,10 +22,7 @@ Drive (create and run) an FSI computation
 Authors: Adrien CROVATO
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
-from builtins import object
 from .. import utilities as cupyutil
 from .. import manager as cupyman
 from .. import interpolator as cupyinterp

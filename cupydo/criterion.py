@@ -27,8 +27,6 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import range
-from builtins import object
 from math import *
 
 # ----------------------------------------------------------------------

@@ -22,18 +22,11 @@ Defines the coupling algorithms of CUPyDO.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
 from math import *
 import numpy as np
 import scipy as sp
@@ -250,7 +243,7 @@ class AlgorithmExplicit(Algorithm):
         """
 
         #If no restart
-        nbTimeIter = int((old_div(self.totTime,self.deltaT))-1)
+        nbTimeIter = int(self.totTime/self.deltaT-1)
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -523,7 +516,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         """
 
         #If no restart
-        nbTimeIter = int((old_div(self.totTime,self.deltaT))-1)
+        nbTimeIter = int(self.totTime/self.deltaT-1)
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -917,7 +910,7 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
             deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
 
             if deltaResNormSquare != 0.:
-                self.omegaMecha *= old_div(-prodScalRes,deltaResNormSquare)
+                self.omegaMecha *= -prodScalRes/deltaResNormSquare
             else:
                 self.omegaMecha = self.omegaMinMecha
 
@@ -962,7 +955,7 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
                 deltaResNormSquare = deltaTemperatureResidual_Norm**2
 
             if deltaResNormSquare != 0.:
-                self.omegaThermal *= old_div(-prodScalRes,deltaResNormSquare)
+                self.omegaThermal *= -prodScalRes/deltaResNormSquare
             else:
                 self.omegaThermal = self.omegaMinThermal
 

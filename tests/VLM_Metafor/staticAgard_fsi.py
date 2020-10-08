@@ -5,8 +5,6 @@
 # Agard445 wing
 # Adrien Crovato & Mariano Sánchez Martínez
 
-from __future__ import print_function
-from builtins import str
 def test(cupydo, tol):
     res = cupydo.algorithm.errValue
     import numpy as np

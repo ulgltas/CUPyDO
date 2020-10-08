@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 # original name: fsi_StaticCylinder_Mtf_Pfem.py
 
-from __future__ import division
-from __future__ import print_function
-from builtins import str
-from past.utils import old_div
 def test(res, tol, it):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors
@@ -37,7 +33,7 @@ def getFsiP():
     U0 = 100
     N = 10
     R = 0.01
-    d = old_div(2.5*R,N)
+    d = 2.5*R/N
     # Solvers and config files
     p['fluidSolver'] = 'Pfem'
     p['solidSolver'] = 'Metafor'

@@ -27,7 +27,6 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import object
 import numpy as np
 import sys
 

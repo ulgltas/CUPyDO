@@ -22,16 +22,10 @@ Python interface between the wrapper of Metafor and CUPyDO.
 Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 
 '''
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
-from builtins import str
-from builtins import range
-from builtins import object
 from past.utils import old_div
 import os, os.path, sys, time, string
 

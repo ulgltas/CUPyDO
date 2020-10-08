@@ -22,7 +22,6 @@ Python utilities.
 Authors: L. PAPELEUX
 
 '''
-from __future__ import print_function
 
 # ----------------------------------------------------------------------
 #  Imports

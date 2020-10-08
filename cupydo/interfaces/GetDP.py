@@ -22,15 +22,11 @@ Python interface between the wrapper of GetDP and CUPyDO.
 Authors C. GEUZAINE, D. THOMAS
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import str
-from builtins import range
 import math
 import os
 import numpy as np

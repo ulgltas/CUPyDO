@@ -22,14 +22,11 @@ Interface general manager.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import range
 import numpy as np
 
 import ccupydo

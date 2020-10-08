@@ -5,8 +5,6 @@
 # Agard445 wing
 # Adrien Crovato
 
-from __future__ import print_function
-from builtins import str
 def test(res, tol):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors

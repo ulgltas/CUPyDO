@@ -22,15 +22,11 @@ Python interface between the wrapper of SU2 and CUPyDO.
 Authors D. THOMAS
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import str
-from builtins import range
 try: # Try to import the AD-capable SU2 module first
     import pysu2ad as pysu2
     adjoint = True

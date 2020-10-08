@@ -6,9 +6,6 @@
 # External solver dir should place next to CUPyDO dir
 # Romain Boman and Adrien Crovato
 
-from __future__ import print_function
-from past.builtins import execfile
-from builtins import object
 import os
 import sys
 import cupydo.utilities as cupyutil
@@ -103,7 +100,7 @@ def main():
             cupyutil.mpiPrint('Starting test:' + file, comm)
             cupyutil.mpiPrint('Time:' + time.strftime('%c'), comm)
             cupyutil.mpiPrint('Hostname:' + platform.node(), comm)
-            execfile(file, globals(), globals())
+            exec(open(file, 'r', encoding='utf8').read(), globals())
 
 if __name__ == '__main__':
     main()

@@ -18,8 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-from __future__ import print_function
-from past.builtins import execfile
+
 import os
 
 def test(res, tol):
@@ -76,8 +75,8 @@ def getAdjP():
     return p
 
 def main():
-    file = "../../tests/SU2_SU2/Cantilever_fsi.py"
-    execfile(file, globals(), globals()) # Run direct
+    direct_case = "../../tests/SU2_SU2/Cantilever_fsi.py"
+    exec(open(direct_case, 'r', encoding='utf8').read(), globals()) # Run direct
     import cupydo.interfaces.Cupydo as cupy
     p = getAdjP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver

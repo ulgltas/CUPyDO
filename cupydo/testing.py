@@ -22,11 +22,7 @@ Test classes to use CTest in CUPyDO.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 
 '''
-from __future__ import division
-from __future__ import print_function
 
-from past.utils import old_div
-from builtins import object
 class ccolors(object):
     ANSI_RED    = '\x1b[1;31m'
     ANSI_GREEN  = '\x1b[1;32m'
@@ -47,7 +43,7 @@ class CTest(object):
         adiff = abs(self.val-self.expected) # absolute diff
         
         if not self.forceabs:
-            diff = old_div(adiff,abs(self.expected)) # relative diff
+            diff = adiff/abs(self.expected) # relative diff
             typ='rel'
             percent = '%3.1f%%' % (self.maxdiff*100)
         else:

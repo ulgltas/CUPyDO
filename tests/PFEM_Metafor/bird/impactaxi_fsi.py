@@ -1,11 +1,7 @@
-from __future__ import division
-from __future__ import print_function
-
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # original name: birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym_fsi.py
 
-from builtins import str
 def test(res, tol, it):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors

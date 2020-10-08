@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-from __future__ import print_function
+
 
 def test(res, tol):
     import numpy as np

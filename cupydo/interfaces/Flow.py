@@ -17,16 +17,10 @@ Flow.py
 Python interface between Flow and CUPyDO.
 Authors A. Crovato
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import sys
 import numpy as np
 from ..genericSolvers import FluidSolver
@@ -293,7 +287,7 @@ class Flow(FluidSolver):
         histFile.close()
         # full solution at user-defined frequency
         if np.mod(nFSIIter+1, self.saveFreq) == 0:
-            self.solver.save(1000000+old_div(int(nFSIIter+1),int(self.saveFreq)), self.mshWriter)
+            self.solver.save(1000000+int(nFSIIter+1)//int(self.saveFreq), self.mshWriter)
 
     def printRealTimeData(self, time, nFSIIter):
         """Print data on screen at the end of fsi simulation

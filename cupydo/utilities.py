@@ -22,15 +22,11 @@ Common utilities (MPI functions, timer, ...) for CUPyDO.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import range
-from builtins import object
 from math import *
 import numpy as np
 import scipy as sp

@@ -23,15 +23,11 @@ Python interface between the wrapper of SU2 for solid mechanics and CUPyDO.
 Authors R. Sanchez - TU Kaiserslautern
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import str
-from builtins import range
 try: # Try to import the AD-capable SU2 module first
     import pysu2ad as pysu2
     adjoint = True

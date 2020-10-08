@@ -22,15 +22,11 @@ Python interface between a modal solver and CUPyDO.
 Adrien Crovato, Mariano Sanchez Martinez
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import str
-from builtins import range
 import numpy as np
 from ..genericSolvers import SolidSolver
 

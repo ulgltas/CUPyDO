@@ -18,15 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
 # Import VLM driver:
-from builtins import range
 import pythonVLM.VLM_driver as VLM_driver
 import pythonVLM.VLM_inputs as inputs
 import os

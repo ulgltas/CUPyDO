@@ -23,15 +23,11 @@ Python interface between the wrapper of pyBeam and CUPyDO.
 Authors R. Sanchez - TU Kaiserslautern
 
 '''
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import str
-from builtins import range
 import pyBeamInterface as pyBeam
 import math
 import numpy as np

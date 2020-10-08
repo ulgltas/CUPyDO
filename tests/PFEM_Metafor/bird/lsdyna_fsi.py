@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # original name: birdStrike_lsDyna_benchmark_bird
 
-from __future__ import print_function
-from builtins import str
 def test(res, tol, it):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors

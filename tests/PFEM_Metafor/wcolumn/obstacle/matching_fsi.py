@@ -19,9 +19,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 '''
-from __future__ import print_function
 
-from builtins import str
 def test(res, tol, it):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors

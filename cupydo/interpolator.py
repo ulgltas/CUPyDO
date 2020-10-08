@@ -22,16 +22,11 @@ Interface interpolator and communicator.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 '''
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
 
-from builtins import range
-from past.utils import old_div
 import numpy as np
 import sys
 import ccupydo
@@ -211,7 +206,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceNormalHeatFlux = self.FluidSolver.getNodalNormalHeatFlux()
             localFluidInterfaceTemperature = self.FluidSolver.getNodalTemperatures()
-            localFluidInterfaceRobinTemperature = localFluidInterfaceTemperature - (old_div(localFluidInterfaceNormalHeatFlux,self.heatTransferCoeff))
+            localFluidInterfaceRobinTemperature = localFluidInterfaceTemperature - localFluidInterfaceNormalHeatFlux/self.heatTransferCoeff
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
                 self.fluidInterfaceRobinTemperature[iGlobalVertex] = [localFluidInterfaceRobinTemperature[iVertex]]

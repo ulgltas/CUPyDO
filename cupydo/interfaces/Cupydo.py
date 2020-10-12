@@ -139,7 +139,7 @@ class CUPyDO(object):
         Adrien Crovato
         """
         solidSolver = None
-        # IMPORTANT! only master can instantiate the solid solver except SU2Solid and pyBeam. GetDP is to be updated
+        # IMPORTANT! only master can instantiate the solid solver except SU2Solid. GetDP is to be updated
         if p['computation'] == 'Adjoint': # Adjoint calculations only support SU2Solid
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
@@ -159,7 +159,7 @@ class CUPyDO(object):
             elif myId == 0 and p['solidSolver'] == 'Modal':
                 from . import Modal as sItf
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
-            elif p['solidSolver'] == 'pyBeam':
+            elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 if comm != None:
                     solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)

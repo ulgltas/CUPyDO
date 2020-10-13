@@ -38,7 +38,7 @@ from ..genericSolvers import SolidSolver
 
 
 # ----------------------------------------------------------------------
-#  ExampSolver class
+#  pyBeamSolver class
 # ----------------------------------------------------------------------
 
 class pyBeamSolver(SolidSolver):
@@ -46,7 +46,7 @@ class pyBeamSolver(SolidSolver):
     pyBeam solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
+    def __init__(self, confFile, nDim, computationType, nodalLoadsType, extractors):
         """
         Initialize the pyBeam solver and all the required interface variables.
         """
@@ -90,6 +90,8 @@ class pyBeamSolver(SolidSolver):
             self.nodalInitialPos_Y[PhysicalIndex] = posY
             self.nodalInitialPos_Z[PhysicalIndex] = posZ
             PhysicalIndex += 1
+
+        self.extractors = extractors
 
         self.initRealTimeData()
 
@@ -222,7 +224,10 @@ class pyBeamSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "w")
-        solFile.write("Time\tnIter\tPos X\tPos Y\tPos Z\n")
+        solFile.write('{:>12s}   {:>12s}'.format('Time', 'Iteration'))
+        for gidx in self.extractors:
+            solFile.write('   {:>12s}   {:>12s}   {:>12s}'.format('x_'+str(gidx), 'y_'+str(gidx), 'z_'+str(gidx)))
+        solFile.write('\n')
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
@@ -231,8 +236,10 @@ class pyBeamSolver(SolidSolver):
         """
 
         solFile = open('SolidSolution.ascii', "a")
-        #posX, posY, posZ = primal.PrintSolution(19)
-        solFile.write("{}\t{}\t{}\t{}\t{}\n".format(time, nFSIIter, self.nodalDisp_X[19], self.nodalDisp_Y[19], self.nodalDisp_Z[19]))
+        solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
+        for gidx in self.extractors:
+            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.nodalDisp_X[gidx], self.nodalDisp_Y[gidx], self.nodalDisp_Z[gidx]))
+        solFile.write('\n')
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
@@ -248,4 +255,4 @@ class pyBeamSolver(SolidSolver):
         Des.
         """
 
-        print("***************************** Exit Example solver *****************************")
+        print("***************************** Exit pyBeam solver *****************************")

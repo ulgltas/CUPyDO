@@ -161,10 +161,7 @@ class CUPyDO(object):
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
-                if comm != None:
-                    solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
-                else:
-                    solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
@@ -214,5 +211,5 @@ class CUPyDO(object):
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['nodalLoadsType'], SU2
-# - p['extractors'], SU2Solid
+# - p['extractors'], SU2Solid, pyBeam
 # ---------------------------------------------------------------------- #

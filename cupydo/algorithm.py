@@ -1473,10 +1473,10 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         predictedAdjointLoad = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         if self.myid in self.manager.getSolidInterfaceProcessors():
-            localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalAdjointLoads()
+            localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointLoads()
             for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
+                predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceAdjointLoad_X[iVertex], localSolidInterfaceAdjointLoad_Y[iVertex], localSolidInterfaceAdjointLoad_Z[iVertex]]
 
         predictedAdjointLoad.assemble()
 

@@ -33,7 +33,7 @@ def test(res, tol):
 
     # Check convergence and results
     if (res > tol):
-       print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+       print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.221, 1e-1, False)) # rel. tol. of 10%

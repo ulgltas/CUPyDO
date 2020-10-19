@@ -71,6 +71,8 @@ def getFsiP():
     p['nodalLoadsType'] = 'force'
     # Solid parameters
     p['extractors'] = [2, 3]
+    p['surfaceFilename'] = 'surface_solid'
+    p['surfaceExtension'] = 'vtu'
     return p
 
 def main():

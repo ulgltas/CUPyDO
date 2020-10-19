@@ -56,7 +56,7 @@ class SU2SolidSolver(SolidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, extractors, have_MPI, MPIComm=None):
+    def __init__(self, confFile, nDim, computationType, nodalLoadsType, extractors, surfaceFilename, surfaceExtension, have_MPI, MPIComm=None):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
@@ -123,6 +123,8 @@ class SU2SolidSolver(SolidSolver):
                 PhysicalIndex += 1
 
         self.extractors = extractors # List of points to extract 
+        self.filename = surfaceFilename # Filename (no extension) of surface output file
+        self.extension = surfaceExtension # Extension of surface output file
         self.initRealTimeData()
 
         # print("\n -------------------------- SOLID NODES ------------------------------ \n")
@@ -292,10 +294,22 @@ class SU2SolidSolver(SolidSolver):
         """
 
         if not vtk is None:
-            fileName = self.SU2.GetSurface_Filename()
-            fileExtension = 'vtu'
-            self.dataReader = vtk.vtkXMLUnstructuredGridReader()
-            self.dataReader.SetFileName(fileName + '.' + fileExtension)
+            if self.extension == 'vtu':
+                self.dataReader = vtk.vtkXMLUnstructuredGridReader()
+                self.dataReader.SetFileName(self.filename + '.' + self.extension)
+            elif self.extension == 'vtk':
+                self.dataReader = vtk.vtkUnstructuredGridReader()
+                self.dataReader.ReadAllScalarsOn()
+                self.dataReader.ReadAllVectorsOn()
+                self.dataReader.ReadAllTensorsOn()
+                self.dataReader.ReadAllFieldsOn()
+                self.dataReader.SetFileName(self.filename + '.' + self.extension)
+            elif self.extension == 'dat':
+                self.dataReader = vtk.vtkTecplotReader()
+                self.dataReader.SetFileName(self.filename + '.' + self.extension)
+            else:
+                UserWarning('Reader for extension {} not available. SU2Solid solution output will not work\n'.format(self.extension))
+                self.dataReader = None
         else:
             self.dataReader = None
         

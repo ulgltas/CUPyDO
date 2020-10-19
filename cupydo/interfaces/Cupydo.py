@@ -144,9 +144,9 @@ class CUPyDO(object):
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
-                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
+                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
                 else:
-                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
+                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 solidSolver = sItf.pyBeamAdjointSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
@@ -168,9 +168,9 @@ class CUPyDO(object):
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
-                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
+                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
                 else:
-                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
+                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
             elif p['solidSolver'] == 'GetDP':
                 from . import GetDP as sItf
                 raise RuntimeError('GetDP interface not up-to-date!\n')
@@ -215,4 +215,6 @@ class CUPyDO(object):
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['nodalLoadsType'], SU2
 # - p['extractors'], SU2Solid, pyBeam
+# - p['surfaceFilename'], SU2Solid, filename of the output surface file, as defined in the CFG file
+# - p['surfaceExtension'], SU2Solid, extension of the output surface file: vtu, vtk, dat
 # ---------------------------------------------------------------------- #

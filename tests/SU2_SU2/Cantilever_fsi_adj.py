@@ -21,7 +21,7 @@ limitations under the License.
 
 import os
 
-def test(res, tol):
+def test_adj(res, tol):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors
     # Read results from file
@@ -78,7 +78,7 @@ def main():
     p = getAdjP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test_adj(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
     print('')

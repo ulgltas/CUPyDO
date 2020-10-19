@@ -147,7 +147,10 @@ class CUPyDO(object):
                     solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, comm)
                 else:
                     solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], withMPI, 0)
-            else:
+            elif myId == 0 and p['solidSolver'] == 'pyBeam':
+                from . import Beam as sItf
+                solidSolver = sItf.pyBeamAdjointSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
+            elif myId == 0:
                 raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
         else:
             if myId == 0 and p['solidSolver'] == 'Metafor':

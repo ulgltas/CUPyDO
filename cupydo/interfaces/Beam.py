@@ -34,7 +34,7 @@ import numpy as np
 
 # Those are mandatory
 import numpy as np
-from ..genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver, SolidAdjointSolver
 
 
 # ----------------------------------------------------------------------
@@ -52,7 +52,7 @@ class pyBeamSolver(SolidSolver):
         """
 
         # Initialize pyBeam
-        self.pyBeam = pyBeam.pyBeamSolver(confFile)
+        self.initializeSolver(confFile)
 
         # Set thickness (Temporary, until we have a config file in place)
         #self.pyBeam.SetThickness(0.02)
@@ -77,7 +77,7 @@ class pyBeamSolver(SolidSolver):
         self.pointIndexList = np.zeros(self.nPhysicalNodes, dtype=int)
         self.haloNodesPositionsInit = {}
 
-        SolidSolver.__init__(self)
+        self.initializeVariables()
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
@@ -99,6 +99,15 @@ class pyBeamSolver(SolidSolver):
         # print(("There is a total of", self.nNodes, "nodes\n"))
         # for iIndex in range(self.nPhysicalNodes):
         #     print((self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex]))
+
+    def initializeSolver(self, confFile):
+        self.pyBeam = pyBeam.pyBeamSolver(confFile)
+
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        SolidSolver.__init__(self)
 
     def run(self, t1, t2):
         """
@@ -126,6 +135,12 @@ class pyBeamSolver(SolidSolver):
         """
 
         self.pyBeam.run()
+
+    def setInitialDisplacements(self):
+        """
+        Set initial displacements
+        """
+        self.__setCurrentState()
 
     def __setCurrentState(self):
         """
@@ -186,7 +201,6 @@ class pyBeamSolver(SolidSolver):
             LoadX = load_X[PhysicalIndex]
             LoadY = load_Y[PhysicalIndex]
             LoadZ = load_Z[PhysicalIndex]
-            print((LoadX, LoadY, LoadZ))
             PhysicalIndex += 1
 
             self.pyBeam.SetLoads(iVertex, LoadX, LoadY, LoadZ)
@@ -256,3 +270,42 @@ class pyBeamSolver(SolidSolver):
         """
 
         print("***************************** Exit pyBeam solver *****************************")
+
+# ----------------------------------------------------------------------
+#  pyBeamAdjointSolver class
+# ----------------------------------------------------------------------
+
+class pyBeamAdjointSolver(pyBeamSolver, SolidAdjointSolver):
+    def initializeSolver(self, confFile):
+        self.pyBeam = pyBeam.pyBeamADSolver(confFile)
+        self.pyBeam.beam.ReadRestart() # Read restart file and apply displacements
+
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        SolidAdjointSolver.__init__(self)
+
+    def run(self, t1, t2):
+        """
+        Run one computation of pyBeam.
+        """
+        self.__steadyRun()
+        self.__setCurrentState()
+
+    def __steadyRun(self):
+        self.pyBeam.RecordSolver()
+        self.pyBeam.RunAdjoint()
+
+    def __setCurrentState(self):
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            self.nodalDisp_X[PhysicalIndex], self.nodalDisp_Y[PhysicalIndex], self.nodalDisp_Z[PhysicalIndex] = self.pyBeam.ExtractDisplacements(iVertex)
+            self.nodalAdjLoad_X[PhysicalIndex], self.nodalAdjLoad_Y[PhysicalIndex], self.nodalAdjLoad_Z[PhysicalIndex] = self.pyBeam.GetLoadAdjoint(iVertex)
+            PhysicalIndex += 1
+
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            self.pyBeam.SetDisplacementAdjoint(PhysicalIndex, disp_adj_X[PhysicalIndex], disp_adj_Y[PhysicalIndex], disp_adj_Z[PhysicalIndex])
+            PhysicalIndex += 1

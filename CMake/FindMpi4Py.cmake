@@ -54,7 +54,12 @@ ELSE(NOT PYTHON_EXECUTABLE)
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(Mpi4Py DEFAULT_MSG MPI4PY_INCLUDE_DIR  )
   
     IF(MPI4PY_FOUND)  
-        SET(MPI4PY_LIB_NAMES MPI.so MPI.cpython-37m-darwin.so MPI.cpython-37m-x86_64-linux-gnu.so) # MPI.so names
+        EXECUTE_PROCESS( # Find name of 
+            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; from sys import stdout; from os import path; stdout.write(path.basename(mpi4py.MPI.__file__))"
+            OUTPUT_VARIABLE MPI4PY_LIB_NAME
+            RESULT_VARIABLE MPI4PY_NOT_FOUND
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
         EXECUTE_PROCESS(  
             COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print(mpi4py.__version__)"
             OUTPUT_VARIABLE MPI4PY_VERSION  
@@ -72,7 +77,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
         IF(NOT MPI4PY_SWIG_FILE)  
             MESSAGE(STATUS "mpi4py.i not found !")  
         ENDIF(NOT MPI4PY_SWIG_FILE)  
-        FIND_FILE(MPI4PY_LIBRARIES NAMES ${MPI4PY_LIB_NAMES} HINTS ${MPI4PY_INCLUDE_DIR}/.. ${PYTHON_SITEDIR}/mpi4py)
+        FIND_FILE(MPI4PY_LIBRARIES NAMES ${MPI4PY_LIB_NAME} HINTS ${MPI4PY_INCLUDE_DIR}/.. ${PYTHON_SITEDIR}/mpi4py)
     ELSE(MPI4PY_FOUND)  
         IF(MPI4PY_FIND_REQUIRED)  
             MESSAGE(FATAL_ERROR "mpi4py not found !")  

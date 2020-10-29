@@ -54,7 +54,12 @@ ELSE(NOT PYTHON_EXECUTABLE)
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(PETSc4Py DEFAULT_MSG PETSC4PY_INCLUDE_DIR)
 
     IF(PETSC4PY_FOUND)
-        SET(PETSC4PY_LIB_NAMES PETSc.so PETSc.cpython-37m-darwin.so PETSc.cpython-37m-x86_64-linux-gnu.so) # Possible PETSc.so names
+        EXECUTE_PROCESS( # Find name of 
+            COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; from sys import stdout; from os import path; stdout.write(path.basename(petsc4py.PETSc.__file__))"
+            OUTPUT_VARIABLE PETSC4PY_LIB_NAME
+            RESULT_VARIABLE PETSC4PY_NOT_FOUND
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
         EXECUTE_PROCESS(
             COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; print(petsc4py.__version__)"
             OUTPUT_VARIABLE PETSC4PY_VERSION
@@ -72,7 +77,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
         IF(NOT PETSC4PY_SWIG_FILE)
             MESSAGE(STATUS "petsc4py.i not found !")
         ENDIF(NOT PETSC4PY_SWIG_FILE)
-        FIND_FILE(PETSC4PY_LIBRARIES NAMES ${PETSC4PY_LIB_NAMES} HINTS ${PETSC4PY_INCLUDE_DIR}/../lib ${PETSC4PY_INCLUDE_DIR}/../lib/$ENV{PETSC_ARCH} ${PYTHON_SITEDIR}/petsc4py/lib ${PYTHON_SITEDIR}/petsc4py/lib/$ENV{PETSC_ARCH})
+        FIND_FILE(PETSC4PY_LIBRARIES NAMES ${PETSC4PY_LIB_NAME} HINTS ${PETSC4PY_INCLUDE_DIR}/../lib ${PETSC4PY_INCLUDE_DIR}/../lib/$ENV{PETSC_ARCH} ${PYTHON_SITEDIR}/petsc4py/lib ${PYTHON_SITEDIR}/petsc4py/lib/$ENV{PETSC_ARCH})
     ELSE(PETSC4PY_FOUND)
         IF(PETSC4PY_FIND_REQUIRED)
             MESSAGE(FATAL_ERROR "petsc4py headers missing")

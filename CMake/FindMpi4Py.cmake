@@ -54,8 +54,8 @@ ELSE(NOT PYTHON_EXECUTABLE)
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(Mpi4Py DEFAULT_MSG MPI4PY_INCLUDE_DIR  )
   
     IF(MPI4PY_FOUND)  
-        EXECUTE_PROCESS( # Find name of 
-            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; from sys import stdout; from os import path; stdout.write(path.basename(mpi4py.MPI.__file__))"
+        EXECUTE_PROCESS( # Find name of MPI .so
+            COMMAND ${PYTHON_EXECUTABLE} -c "from mpi4py import MPI; from sys import stdout; from os import path; stdout.write(path.basename(MPI.__file__))"
             OUTPUT_VARIABLE MPI4PY_LIB_NAME
             RESULT_VARIABLE MPI4PY_NOT_FOUND
             OUTPUT_STRIP_TRAILING_WHITESPACE

@@ -54,8 +54,8 @@ ELSE(NOT PYTHON_EXECUTABLE)
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(PETSc4Py DEFAULT_MSG PETSC4PY_INCLUDE_DIR)
 
     IF(PETSC4PY_FOUND)
-        EXECUTE_PROCESS( # Find name of 
-            COMMAND ${PYTHON_EXECUTABLE} -c "import petsc4py; from sys import stdout; from os import path; stdout.write(path.basename(petsc4py.PETSc.__file__))"
+        EXECUTE_PROCESS( # Find name of PETSc .so
+            COMMAND ${PYTHON_EXECUTABLE} -c "from petsc4py import PETSc; from sys import stdout; from os import path; stdout.write(path.basename(PETSc.__file__))"
             OUTPUT_VARIABLE PETSC4PY_LIB_NAME
             RESULT_VARIABLE PETSC4PY_NOT_FOUND
             OUTPUT_STRIP_TRAILING_WHITESPACE

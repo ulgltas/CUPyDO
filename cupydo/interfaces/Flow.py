@@ -266,7 +266,7 @@ class Flow(FluidSolver):
         """Save data on disk at each converged timestep
         Adrien Crovato
         """
-        self.solver.save(nt, self.mshWriter)
+        self.solver.save(self.mshWriter, nt)
         self.mshWriter.save(self.msh.name + "_" + str(nt))
 
     def initRealTimeData(self):
@@ -287,7 +287,7 @@ class Flow(FluidSolver):
         histFile.close()
         # full solution at user-defined frequency
         if np.mod(nFSIIter+1, self.saveFreq) == 0:
-            self.solver.save(1000000+int(nFSIIter+1)//int(self.saveFreq), self.mshWriter)
+            self.solver.save(self.mshWriter, 1000000+int(nFSIIter+1)//int(self.saveFreq))
 
     def printRealTimeData(self, time, nFSIIter):
         """Print data on screen at the end of fsi simulation

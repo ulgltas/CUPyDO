@@ -264,7 +264,7 @@ Physical Surface(176) = {51,52,53,54,55,56}; // clamp
 
 Physical Point(180) = {52}; // tip te
 Physical Point(181) = {77}; // tip le
-Physical Line(183) = {125}; //Leading edge
+Physical Line(183) = {64}; //Leading edge
 Physical Line(184) = {61}; //Trailing edge
 
 Coherence;

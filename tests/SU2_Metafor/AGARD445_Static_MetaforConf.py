@@ -42,7 +42,7 @@ def params(q={}):
     #p['bctype']     = 'pydeadloads'  # variable loads
     #p['bctype']     = 'slave'     # variable loads (mpi)
 
-    p['bndno'] = 177
+    p['bndno'] = 111
     p['extractNode'] = 180
     p['unsteady'] = False
                                        
@@ -64,7 +64,7 @@ def getMetafor(p={}):
 
   # -- Import the geometry .geo and mesh it with GMSH ---
   from toolbox.gmsh import GmshImport
-  f = os.path.join(os.path.dirname(__file__), "models/AGARD445_solidMesh_bis_coarse_opti.geo")
+  f = os.path.join(os.path.dirname(__file__), "models/agard445_solid.geo")
   importer = GmshImport(f, domain)
   importer.execute()
 
@@ -74,7 +74,7 @@ def getMetafor(p={}):
   interactionset = domain.getInteractionSet()
 
   app1 = FieldApplicator(1)
-  app1.push( groupset(179) )	#physical group 179 = volumic mesh of the wing
+  app1.push( groupset(101) )	#physical group 179 = volumic mesh of the wing
   interactionset.add( app1 )
 
   materset = domain.getMaterialSet()

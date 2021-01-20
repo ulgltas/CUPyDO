@@ -1,6 +1,14 @@
 $MeshFormat
 2.2 0 8
 $EndMeshFormat
+$PhysicalNames
+5
+1 7 "Wall"
+1 8 "Free"
+1 9 "Cylinder"
+2 14 "Face1"
+2 15 "Face2"
+$EndPhysicalNames
 $Nodes
 1917
 1 0 0 0

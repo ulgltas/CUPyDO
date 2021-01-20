@@ -75,16 +75,14 @@ def getPfem():
     nItMax = 20
 
     solScheme = w.SchemeMonolithicPSPG(msh, pbl)
-    convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
+    convCriterion = w.ForceBalanceCriterion(msh, pbl, toll, 9.81*rho0)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
     bndno = 9
-    msh.ptags[9].name = "Cylinder"
-    msh.ntags["Cylinder"] = msh.ptags[9]
 
-    w.Medium(msh, 9, 0., 0., 3)
+    w.Medium(msh, 15, 0., 0., 3)
     w.Medium(msh, 14, mu, rho0, 1)
 
     # boundaries

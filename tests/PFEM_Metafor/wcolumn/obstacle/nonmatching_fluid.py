@@ -77,7 +77,7 @@ def getPfem():
     nItMax = 20
 
     solScheme = w.SchemeMonolithicPSPG(msh, pbl)
-    #convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
+    #convCriterion = w.ForceBalanceCriterion(msh, pbl, toll, 9.81*rho0)
     convCriterion = w.PositionIncrementCriterion(msh, pbl, toll)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 

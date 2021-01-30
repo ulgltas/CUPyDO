@@ -31,7 +31,7 @@ import math
 import os
 import numpy as np
 from cupydo.genericSolvers import SolidSolver
-from getdp import *
+#from getdp import *
 
 # ----------------------------------------------------------------------
 #  GetDP solver interface class
@@ -42,7 +42,7 @@ class GetDP(SolidSolver):
     Des.
     """
 
-    def __init__(self, testname, resolution, computationType, pythonFlag):
+    def __init__(self, testname, resolution, computationType, pythonFlag, extractNode):
         """
         Des
         """
@@ -52,10 +52,11 @@ class GetDP(SolidSolver):
         self.computationType = computationType
         self.resolution = resolution
         self.currentDT = 1.0
-        self.pathToGetDP = "/home/dthomas/InstalledSoftware/GetDP/bin/getdp"
+        self.pathToGetDP = "getdp"
+        self.extractNode = extractNode
 
         if self.pythonFlag:
-            #from getdp import *
+            from getdp import *
             GetDPSetNumber("Initialize", 1)
             GetDPSetNumber("OutputFiles", 1)
             GetDP(["getdp", self.testname, "-solve", self.resolution])
@@ -437,7 +438,6 @@ class GetDP(SolidSolver):
         des.
         """
 
-        self.extractNode = 7        #should be decided by the user outside of the function
         self.iVertexExtract = self.nodalInterfIndex.keys()[self.nodalInterfIndex.values().index(self.extractNode)]
         solFile = open('extractPhysicalNode' + str(self.extractNode) + '.ascii', "w")
         solFile.write("Time\tnIter\tDx\tDy\tDz\tVx\tVy\tVz\tT\tQx\tQy\tQz\n")

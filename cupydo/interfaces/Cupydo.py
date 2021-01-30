@@ -35,23 +35,50 @@ class CUPyDO():
         withMPI, comm, myId, numberPart = cupyutil.getMpi()
         rootProcess = 0
 
+        # --- Manage CHT options (to be improved) ---
+        mechanicalCoupling = True
+        thermalCoupling = False
+        chtScheme = 'None'
+        tolCHT = 1e12
+        fluidTWallInit = 288
+        fluidQWallInit = 0.0
+        if 'thermalcoupling' in p:
+            thermalCoupling = p['thermalcoupling']
+        if thermalCoupling:
+            chtScheme = p['chtScheme']
+            tolCHT = p['tolCHT']
+            if chtScheme in ['FFTB','hFTB']:
+                fluidTWallInit = p['fluidTWallInit']
+            elif chtScheme in ['TFFB','hFFB']:
+                fluidQWallInit = p['fluidQWallInit']
+            else:
+                raise RuntimeError('CHT scheme not recognized! Available options are TFFB, hFFB, FFTB and hFTB.\n')
+        if 'mechanicalCoupling' in p:
+            mechanicalCoupling = p['mechanicalCoupling']
+        #--------------
+
         # --- Initialize the fluid and solid solvers --- #
         fluidSolver = self.__initFluid(p, withMPI, comm)
+        if(thermalCoupling):
+            fluidSolver.TWallInit = fluidTWallInit
+            fluidSolver.QWallInit = fluidQWallInit
         cupyutil.mpiBarrier(comm)
         solidSolver = self.__initSolid(p, myId)
         cupyutil.mpiBarrier(comm)
 
         # --- Initialize the FSI manager --- #
         manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], comm)
+        manager.mechanical = mechanicalCoupling
+        manager.thermal = thermalCoupling
         cupyutil.mpiBarrier()
 
         # --- Initialize the interpolator --- #
         if p['interpolator'] == 'Matching':
-            interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+            interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm, chtScheme)
         elif p['interpolator'] == 'RBF':
-            interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+            interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm, chtScheme)
         elif p['interpolator'] == 'TPS':
-            interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
+            interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm, chtScheme)
         else:
             raise RuntimeError(p['interpolator'], 'not available! (avail: "Matching", "RBF" or "TPS").\n')
         # if petsc is used, then some options can be set
@@ -64,7 +91,7 @@ class CUPyDO():
         if p['algorithm'] == 'Explicit':
             print 'Explicit simulations requested, criterion redefined to None.'
         if p['criterion'] == 'Displacements':
-            criterion = cupycrit.DispNormCriterion(p['tol'])
+            criterion = cupycrit.DispNormCriterion(p['tol'], tolCHT)
         else:
             raise RuntimeError(p['criterion'], 'not available! (avail: "Displacements").\n')
         cupyutil.mpiBarrier()
@@ -133,7 +160,7 @@ class CUPyDO():
                 solidSolver = sItf.Modal(p['csdFile'], p['compType'])
             elif p['solidSolver'] == 'GetDP':
                 import cupydo.interfaces.GetDP as sItf
-                raise RuntimeError('GetDP interface not up-to-date!\n')
+                solidSolver = sItf.GetDP(p['csdFile'], p['GetDPResolution'], p['compType'], False, p['getDPExtractNode'])
             else:
                 raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')
         return solidSolver

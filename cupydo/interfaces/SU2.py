@@ -250,10 +250,10 @@ class SU2(FluidSolver):
                 newPosY = dispY + self.nodalInitialPos_Y[PhysicalIndex]
                 newPosZ = dispZ + self.nodalInitialPos_Z[PhysicalIndex]
                 PhysicalIndex += 1
-            self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
-            # self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
-            # self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
-            # self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
+            # self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
+            self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
+            self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
+            self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
             self.SU2.SetVertexVarCoord(self.fluidInterfaceID, iVertex)
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):

@@ -143,10 +143,9 @@ class Flow(FluidSolver):
         else:
             pbl.set(flow.Medium(self.msh, p['Fluid'], flow.F0ElRho(p['M_inf'], p['M_crit']), flow.F0ElMach(p['M_inf']), flow.F0ElCp(p['M_inf']), phiInfFun))
         # add initial condition
-        pbl.add(flow.Initial(self.msh, p['Fluid'], phiInfFun))
-        # add farfield boundary conditions
-        pbl.add(flow.Dirichlet(self.msh, p['Farfield'][0], phiInfFun))
-        for i in range (1, len(p['Farfield'])):
+        pbl.set(flow.Initial(self.msh, p['Fluid'], phiInfFun))
+        # add farfield boundary conditions (Neumann only, a DOF will be pinned automatically)
+        for i in range (0, len(p['Farfield'])):
             pbl.add(flow.Freestream(self.msh, p['Farfield'][i], velInfFun))
         # add solid boundaries and identify f/s boundary
         if p['Dim'] == 2:

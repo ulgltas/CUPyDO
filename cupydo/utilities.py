@@ -34,7 +34,6 @@ import os, os.path, sys, string
 import time as tm
 
 import socket, fnmatch
-from . import fsi_pyutils
 
 np.set_printoptions(threshold=sys.maxsize)
 

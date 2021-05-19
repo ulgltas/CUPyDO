@@ -128,8 +128,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]
-            fx[i] = -(node.Fine.x[0] + node.Fint.x[0] - node.Fext.x[0])
-            fy[i] = -(node.Fine.x[1] + node.Fint.x[1] - node.Fext.x[1])
+            fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
+            fy[i] = -(node.fIne.x[1] + node.fInt.x[1] - node.fExt.x[1])
             fz[i] = 0.
         
         self.nodalLoad_X = fx

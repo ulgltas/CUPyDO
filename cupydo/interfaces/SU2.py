@@ -97,7 +97,7 @@ class SU2(FluidSolver):
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            posX, posY, posZ = self.SU2.GetVertex_UndeformedCoord(self.fluidInterfaceID, iVertex)
+            posX, posY, posZ = self.SU2.GetInitialMeshCoord(self.fluidInterfaceID, iVertex)
             if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
                 self.haloNodeList[GlobalIndex] = iVertex
@@ -105,10 +105,8 @@ class SU2(FluidSolver):
             else:
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
                 self.pointIndexList[PhysicalIndex] = GlobalIndex
-                self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
-                Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
-                Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
-                Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                # self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+                Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 self.nodalInitialPos_X[PhysicalIndex] = posX
                 self.nodalInitialPos_Y[PhysicalIndex] = posY
@@ -189,8 +187,9 @@ class SU2(FluidSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             # identify the halo nodes and ignore their nodal loads
-            halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
-            self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
+            # halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            halo = self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex)
+            # self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
             if halo == False:
                 if self.nodalLoadsType == 'pressure':
                     Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID, iVertex)
@@ -200,9 +199,7 @@ class SU2(FluidSolver):
                     Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
-                Qx = self.SU2.GetVertexHeatFluxX(self.fluidInterfaceID, iVertex)
-                Qy = self.SU2.GetVertexHeatFluxY(self.fluidInterfaceID, iVertex)
-                Qz = self.SU2.GetVertexHeatFluxZ(self.fluidInterfaceID, iVertex)
+                Qx, Qy, Qz = self.SU2.GetVertexHeatFluxes(self.fluidInterfaceID, iVertex)
                 self.nodalLoad_X[PhysicalIndex] = Fx
                 self.nodalLoad_Y[PhysicalIndex] = Fy
                 self.nodalLoad_Z[PhysicalIndex] = Fz
@@ -250,11 +247,7 @@ class SU2(FluidSolver):
                 newPosY = dispY + self.nodalInitialPos_Y[PhysicalIndex]
                 newPosZ = dispZ + self.nodalInitialPos_Z[PhysicalIndex]
                 PhysicalIndex += 1
-            # self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
-            self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
-            self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
-            self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
-            self.SU2.SetVertexVarCoord(self.fluidInterfaceID, iVertex)
+            self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
         """
@@ -435,7 +428,8 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             # identify the halo nodes and ignore their nodal loads
-            halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            # halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            halo = self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex)
             if halo == False:
                 self.nodalAdjDisp_X[PhysicalIndex], self.nodalAdjDisp_Y[PhysicalIndex], self.nodalAdjDisp_Z[PhysicalIndex]  = self.SU2.GetMeshDisp_Sensitivity(self.fluidInterfaceID, iVertex)
                 PhysicalIndex += 1

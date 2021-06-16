@@ -218,9 +218,9 @@ class Flow(FluidSolver):
         """
         i = 0
         for n in self.boundary.nodes:
-            self.nodalLoad_X[i] = -self.dynP * self.boundary.cLoadX[i]
-            self.nodalLoad_Y[i] = -self.dynP * self.boundary.cLoadY[i]
-            self.nodalLoad_Z[i] = -self.dynP * self.boundary.cLoadZ[i]
+            self.nodalLoad_X[i] = self.dynP * self.boundary.nLoads[i][0]
+            self.nodalLoad_Y[i] = self.dynP * self.boundary.nLoads[i][1]
+            self.nodalLoad_Z[i] = self.dynP * self.boundary.nLoads[i][2]
             i += 1
 
     def getNodalInitialPositions(self):

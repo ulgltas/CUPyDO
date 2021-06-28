@@ -51,8 +51,20 @@ class RBMI(SolidSolver):
         self.nNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
         self.nHaloNode = 0
         self.nPhysicalNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
+        if computationType == "harmonic":
+            self.nInst = 2*self.NativeSolid.getNumberHarmonics()+1
+        else:
+            self.nInst = 1
 
-        SolidSolver.__init__(self)
+        self.haloNodeList = {}
+
+        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step) --- #
+        self.nodalDisp_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalDisp_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalDisp_Z = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalVel_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalVel_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalVel_Z = np.zeros((self.nPhysicalNodes, self.nInst))
 
         self.__setCurrentState()
         self.nodalVel_XNm1 = self.nodalVel_X.copy()
@@ -83,6 +95,8 @@ class RBMI(SolidSolver):
 
         if self.computationType == 'unsteady':
             self.NativeSolid.timeIteration(t1, t2)
+        elif self.computationType == 'harmonic':
+            self.NativeSolid.harmonicComputation()
         else:
             self.NativeSolid.staticComputation()
 
@@ -93,13 +107,15 @@ class RBMI(SolidSolver):
         Des.
         """
 
-        for iVertex in range(self.nPhysicalNodes):
-            self.nodalDisp_X[iVertex] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
-            self.nodalDisp_Y[iVertex] = self.NativeSolid.getInterfaceNodeDispY(self.interfaceID, iVertex)
-            self.nodalDisp_Z[iVertex] = self.NativeSolid.getInterfaceNodeDispZ(self.interfaceID, iVertex)
-            self.nodalVel_X[iVertex] = self.NativeSolid.getInterfaceNodeVelX(self.interfaceID, iVertex)
-            self.nodalVel_Y[iVertex] = self.NativeSolid.getInterfaceNodeVelY(self.interfaceID, iVertex)
-            self.nodalVel_Z[iVertex] = self.NativeSolid.getInterfaceNodeVelZ(self.interfaceID, iVertex)
+        for jInst in range(self.nInst):
+            self.NativeSolid.computeInterfacePosVel(False, jInst)
+            for iVertex in range(self.nPhysicalNodes):
+                self.nodalDisp_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
+                self.nodalDisp_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispY(self.interfaceID, iVertex)
+                self.nodalDisp_Z[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispZ(self.interfaceID, iVertex)
+                self.nodalVel_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeVelX(self.interfaceID, iVertex)
+                self.nodalVel_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeVelY(self.interfaceID, iVertex)
+                self.nodalVel_Z[iVertex, jInst] = self.NativeSolid.getInterfaceNodeVelZ(self.interfaceID, iVertex)
 
     def getNodalInitialPositions(self):
         """
@@ -129,11 +145,16 @@ class RBMI(SolidSolver):
         Des.
         """
 
-        for iVertex in range(self.nPhysicalNodes):
-            self.NativeSolid.applyload(iVertex, load_X[iVertex], load_Y[iVertex], load_Z[iVertex])
+        for jInst in range(self.nInst):
+            total_Y_load = 0.
+            for iVertex in range(self.nPhysicalNodes):
+                total_Y_load += load_Y[jInst][iVertex]
+                self.NativeSolid.applyload(iVertex, load_X[jInst][iVertex], load_Y[jInst][iVertex], load_Z[jInst][iVertex])
 
-        self.NativeSolid.setGeneralisedForce()
-        self.NativeSolid.setGeneralisedMoment()
+            self.NativeSolid.setGeneralisedForce()
+            self.NativeSolid.setGeneralisedMoment()
+            if self.computationType == 'harmonic':
+                self.NativeSolid.applyload(jInst, total_Y_load)
 
     def update(self):
         """

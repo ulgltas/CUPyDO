@@ -84,7 +84,7 @@ class DispNormCriterion(Criterion):
         Des.
         """
 
-        normX, normY, normZ = res.norm()
+        normX, normY, normZ = res.norm()[:3]
 
         norm = sqrt(normX**2 + normY**2 + normZ**2)
 

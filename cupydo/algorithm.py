@@ -445,7 +445,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         # --- Initialize coupling residuals --- #
         if self.manager.mechanical:
-            self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+            self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
         if self.manager.thermal:
             self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
             self.solidTemperatureResidual = FlexInterfaceData(ns+d, 1, self.mpiComm)
@@ -747,13 +747,16 @@ class AlgorithmBGSStaticRelax(Algorithm):
         d = self.interfaceInterpolator.getd()
 
         # --- Get the predicted (computed) solid interface displacement from the solid solver --- #
-        predictedDisplacement = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        predictedDisplacement = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
 
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
             for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localSolidInterfaceDisp_X[iVertex,jInst], localSolidInterfaceDisp_Y[iVertex,jInst], localSolidInterfaceDisp_Z[iVertex,jInst]])
+                predictedDisplacement[iGlobalVertex] = temp
 
         predictedDisplacement.assemble()
 

@@ -42,7 +42,11 @@ class CUPyDO(object):
         cupyutil.mpiBarrier(comm)
 
         # --- Initialize the FSI manager --- #
-        manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], comm)
+        if p['compType'] == 'harmonic':
+            nInst = p['nInst']
+        else:
+            nInst = 1
+        manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], comm, nInst)
         cupyutil.mpiBarrier()
 
         # --- Initialize the interpolator --- #
@@ -117,10 +121,16 @@ class CUPyDO(object):
         else:
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
-                if comm != None:
-                    fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                if p['compType'] == "harmonic":
+                    if comm != None:
+                        fluidSolver = fItf.SU2HarmonicBalance(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                    else:
+                        fluidSolver = fItf.SU2HarmonicBalance(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
                 else:
-                    fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                    if comm != None:
+                        fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                    else:
+                        fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
                 fluidSolver = fItf.Pfem(p['cfdFile'], args.n, args.nogui, p['dt'])

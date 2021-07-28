@@ -129,7 +129,7 @@ IF(${CMAKE_VERSION} VERSION_LESS "3.8.0")
 ELSE()
     SWIG_ADD_LIBRARY(CCupydo
                      LANGUAGE python
-                     SOURCES ${ISRCS} ${SRCS})
+                     SOURCES ${PROJECT_SOURCE_DIR}/_src/CCupydo.i ${SRCS})
 ENDIF()
 
 SWIG_LINK_LIBRARIES(CCupydo ${PYTHON_LIBRARIES} ${MPI_LIBRARIES} ${PETSC_LIBRARIES})

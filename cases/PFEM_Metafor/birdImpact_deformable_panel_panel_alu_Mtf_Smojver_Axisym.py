@@ -36,7 +36,7 @@ def getMetafor(p={}):
     geometry.setDimAxisymmetric()
 
     # import .geo
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "birdImpact_deformable_panel_Mtf_Pfem_Smojver_Axisym.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()

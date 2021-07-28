@@ -63,7 +63,7 @@ def getMetafor(p={}):
     geometry.setDim3D()
 
     # -- Import the geometry .geo and mesh it with GMSH ---
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "models/agard445_solid.geo")
     importer = GmshImport(f, domain)
     importer.execute()

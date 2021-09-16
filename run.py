@@ -56,6 +56,7 @@ def setPath():
     topdir = os.path.abspath(os.path.dirname(cupdir))
 
     haveMPI, comm, myid, numberPart = cupyutil.getMpi()
+    addPath(os.path.join(topdir, 'Metafor', 'build', 'bin'))
     addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
     addPath(os.path.join(topdir, 'Metafor', 'oo_meta'))
     addPath(os.path.join(topdir, 'Metafor', 'linuxbin'))
@@ -66,6 +67,7 @@ def setPath():
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
     addPath(os.path.join(topdir, 'VLM'))
+    addPath(os.path.join(topdir, 'PFEM3D', 'build', 'bin'))
     if myid == 0:
         print('PYTHONPATH = %s\n' % sys.path)
     cupyutil.mpiBarrier(comm)

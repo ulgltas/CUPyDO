@@ -130,6 +130,9 @@ class CUPyDO(object):
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p['cfdFile'])
+            elif p['fluidSolver'] == 'Pfem3D':
+                from . import Pfem3D as fItf
+                fluidSolver = fItf.Pfem3D(p)
             else:
                 raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
         return fluidSolver
@@ -182,11 +185,11 @@ class CUPyDO(object):
 # Sample parameters list
 
 # Solvers
-# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM
+# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM, Pfem3D
 # - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 
-# - p['csdFile'], path to solid cfg file'
+# - p['csdFile'], path to solid cfg file
 
 # FSI objects
 # - p['interpolator'], interpolator type available: Matching, RBF, TPS
@@ -202,7 +205,7 @@ class CUPyDO(object):
 # - p['timeItTresh'], ??????
 # needed by BGS
 # - p['tol'], tolerance on displacements
-# - p['maxIt'], maximu number of iterations
+# - p['maxIt'], maximum number of iterations
 # - p['omega'], relaxation parameter
 # needed by IQN-ILS
 # - p['firstItTgtMat'], compute the Tangent matrix based on first iteration (True or False)

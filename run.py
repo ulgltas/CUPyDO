@@ -62,7 +62,14 @@ def setPath():
     addPath(os.path.join(topdir, 'NativeSolid', 'bin'))
     addPath(os.path.join(topdir, 'modali'))
     addPath(os.path.join(topdir, 'pyBeam', 'bin'))
-    addPath(os.path.join(topdir, 'waves'))
+    # Use the installed version of DART, otherwise get the devlopment version
+    try:
+        import dartflo
+        print('INFO: dartflo (DART) is already in the PYTHONPATH')
+    except:
+        addPath(os.path.join(topdir, 'dartflo')) # to get dart
+        addPath(os.path.join(topdir, 'dartflo', 'ext', 'amfe')) # to get fwk and tbox
+    #
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
     addPath(os.path.join(topdir, 'VLM'))

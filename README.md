@@ -13,7 +13,7 @@ CUPyDO currently features interfaces for the following solvers:
 - Fluid:
   - PFEM --> Particle Finite Element Method fluid solver developed at the University of Liège (https://gitlab.uliege.be/am-dept/PFEM)
   - SU2 --> Open-source CFD code developed at Stanford University (https://su2code.github.io/)
-  - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège (https://gitlab.uliege.be/am-dept/waves)
+  - DART --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège (https://gitlab.uliege.be/am-dept/dartflo)
   - VLM --> A Vortex Lattice Method, developed at the University of Liège (https://github.com/ulgltas/VLM)
 
 Furthermore, CUPyDO features two interpolation alogrithms:

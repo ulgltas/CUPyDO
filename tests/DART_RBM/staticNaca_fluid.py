@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# CUPyDO configuration file for Flow
+# CUPyDO configuration file for DART
 # Naca0012 airfoil
 # Adrien Crovato
 #
@@ -25,7 +25,7 @@ def getParams():
     # Freestream
     p['M_inf'] = 0. # Freestream Mach number
     p['AoA'] = 3. # Freestream angle of attack
-    p['P_dyn'] = 0.5*100 # Dynamic pressure
+    p['Q_inf'] = 0.5*100 # Dynamic pressure
     # Geometry
     p['S_ref'] = 1. # Reference surface length (c_ref for 2D)
     p['c_ref'] = 1. # Reference chord length
@@ -33,13 +33,8 @@ def getParams():
     p['y_ref'] = 0. # Reference point for moment computation (y)
     p['z_ref'] = 0. # Reference point for moment computation (z)
     # Numerical
-    p['LSolver'] = 'Pardiso' # Linear solver (Pardiso, GMRES, MUMPS or SparseLU)
-    p['NSolver'] = 'Newton' # Noninear solver type (Picard or Newton)
+    p['LSolver'] = 'PARDISO' # Linear solver (PARDISO, GMRES, or MUMPS)
     p['Rel_tol'] = 1e-6 # Relative tolerance on solver residual
     p['Abs_tol'] = 1e-8 # Absolute tolerance on solver residual
     p['Max_it'] = 10 # Solver maximum number of iterations
-    p['LS_tol'] = 1e-6 # Tolerance on linesearch residual
-    p['Max_it_LS'] = 10 # Linesearch maximum number of iterations
-    p['AV_thrsh'] = 1e-2 # Residual threshold below which the artificial viscosity is decreased
-    p['M_crit'] = 5. # Critical Mach number above which density is damped
     return p

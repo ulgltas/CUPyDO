@@ -9,7 +9,7 @@ def test(res, tol):
     import numpy as np
     from cupydo.testing import CTest, CTests, ccolors
     # Read results from file
-    with open("FlowHistory.dat", 'rb') as f:
+    with open("DartHistory.dat", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
     with open("NodalDisplacement.dat", 'rb') as f:
@@ -33,7 +33,7 @@ def getFsiP():
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
     # Solvers and config files
-    p['fluidSolver'] = 'Flow'
+    p['fluidSolver'] = 'DART'
     p['solidSolver'] = 'Modal'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'

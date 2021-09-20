@@ -47,6 +47,7 @@ class Pfem3D(FluidSolver):
 
         # Initializes the fluid solver
 
+        self.load = wraper.VectorArrayDouble3(1)
         self.dx = np.zeros(self.nPhysicalNodes)
         self.dy = np.zeros(self.nPhysicalNodes)
         self.dz = np.zeros(self.nPhysicalNodes)
@@ -63,7 +64,7 @@ class Pfem3D(FluidSolver):
             self.applyNodalDisplacements(self.dx,self.dy,self.dz,0,0,0,0,0)
 
         # Solve and reverse the simulation time
-        
+
         self.time = t1
         self.problem.updateTime(t1-t2)
         ok = self.solver.solveOneTimeStep()
@@ -93,7 +94,7 @@ class Pfem3D(FluidSolver):
 
     def setCurrentState(self):
 
-        load = self.solver.computeLoads()
+        self.solver.computeLoads(self.load)
         self.nodalLoad_X = np.zeros(self.nPhysicalNodes)
         self.nodalLoad_Y = np.zeros(self.nPhysicalNodes)
         self.nodalLoad_Z = np.zeros(self.nPhysicalNodes)
@@ -101,9 +102,9 @@ class Pfem3D(FluidSolver):
         for i in range(self.nPhysicalNodes):
             
             idx = self.nodeID[i]
-            self.nodalLoad_X[i] = load[idx][0]
-            self.nodalLoad_Y[i] = load[idx][1]
-            self.nodalLoad_Z[i] = load[idx][2]
+            self.nodalLoad_X[i] = self.load[idx][0]
+            self.nodalLoad_Y[i] = self.load[idx][1]
+            self.nodalLoad_Z[i] = self.load[idx][2]
 
     # Returns the index of the iVertex-th interface node
 
@@ -152,12 +153,12 @@ class Pfem3D(FluidSolver):
 
     def save(self,nt):
 
-        self.problem.dump(False)
+        self.problem.writeExtractors()
         return
 
     def initRealTimeData(self):
 
-        self.problem.dump(False)
+        self.problem.dump()
         self.problem.displayParams()
         dx,dy,dz = self.getNodalInitialPositions()
 

@@ -42,7 +42,7 @@ Problem = {
 	
 	Solver = {
 	    id = "CDS_dpdt",
-		remesh = false,
+		autoRemeshing = false,
 		adaptDT = false,
 		securityCoeff = 0,
 		initialDT = 0,

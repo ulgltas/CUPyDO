@@ -40,7 +40,7 @@ Problem = {
 	
 	Solver = {
 	    id = "PSPG",
-		remesh = false,
+		autoRemeshing = false,
 		adaptDT = false,
 		coeffDTincrease = 1,
 		coeffDTDecrease = 1,

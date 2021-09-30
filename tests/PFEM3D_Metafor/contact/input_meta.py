@@ -1,38 +1,36 @@
-from wrap import FieldApplicator,ElementProperties,Field1D,AlphaGeneralizedTimeIntegration
-from wrap import MATERIAL,CAUCHYMECHVOLINTMETH,VES_CMVIM_STD,TX,TY,RE
-from wrap import MASS_DENSITY,ELASTIC_MODULUS,POISSON_RATIO
-from wrap import ElastHypoMaterial,Volume2DElement
 from toolbox.gmsh import GmshImport
-from wrap import Metafor
+import wrap as w
 import os
 
-# %% Parameter Function
+# %% Physical group 105 = FSInterface
 
-def params(q={}):
+def params(param={}):
 
-    p = {}
-    p['tend'] = 0
-    p['dtmax'] = 0
-    p['bndno'] = 15
-    p['tolNR'] = 1e-6
-    p['saveAllFacs'] = False
-    p['bctype'] = 'pydeadloads'
-
-    p.update(q)
-    return p
+    param['tend'] = 0
+    param['bndno'] = 105
+    param['dtmax'] = 0.01
+    param['tolNR'] = 1e-6
+    param['saveAllFacs'] = False
+    param['bctype'] = 'pydeadloads'
+    return param
 
 # %% Main Function
 
-def getMetafor(p={}):
+def getMetafor(param={}):
     
     global metafor
-    metafor = Metafor()
-    p = params(p)
+    metafor = w.Metafor()
+    param = params(param)
     
-    # Problem parameters
+    # Group and interaction sets
 
     domain = metafor.getDomain()
     geometry = domain.getGeometry()
+    groupset = geometry.getGroupSet()
+    materset = domain.getMaterialSet()
+    loadingset = domain.getLoadingSet()
+    interactionset = domain.getInteractionSet()
+    mim = metafor.getMechanicalIterationManager()
     geometry.setDimPlaneStrain(1)
     
     # Imports the mesh
@@ -41,45 +39,39 @@ def getMetafor(p={}):
     importer = GmshImport(f,domain)
     importer.execute()
     
-    # Group and interaction sets
+    # Physical group 101 + 102 + 103 = Solid
 
-    groupset = domain.getGeometry().getGroupSet()
-    interactionset = domain.getInteractionSet()
-    
-    # Physical group 11 = SolidL
-
-    app = FieldApplicator(1)
-    app.push(groupset(11))
+    app = w.FieldApplicator(1)
+    app.push(groupset(101))
+    app.push(groupset(102))
+    app.push(groupset(103))
     interactionset.add(app)
     
     # Material parameters
 
-    materset = domain.getMaterialSet()
-    materset.define(1,ElastHypoMaterial)
+    materset.define(1,w.ElastHypoMaterial)
     mater1 = materset(1)
-    mater1.put(MASS_DENSITY,2500)
-    mater1.put(ELASTIC_MODULUS,1e6)
-    mater1.put(POISSON_RATIO,0)
+    mater1.put(w.MASS_DENSITY,2500)
+    mater1.put(w.ELASTIC_MODULUS,1e5)
+    mater1.put(w.POISSON_RATIO,0)
     
     # FEM properties
 
-    prp = ElementProperties(Volume2DElement)
+    prp = w.ElementProperties(w.TriangleVolume2DElement)
     app.addProperty(prp)
-    prp.put (MATERIAL,1)
-    prp.put(CAUCHYMECHVOLINTMETH,VES_CMVIM_STD)
+    prp.put (w.MATERIAL,1)
+    prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
     
-    # Boundary conditions 17 = SolidBaseL
+    # Boundary conditions 107 = SolidBase
     
-    loadingset = domain.getLoadingSet()
-    loadingset.define(groupset(17),Field1D(TX,RE))
-    loadingset.define(groupset(17),Field1D(TY,RE))
+    loadingset.define(groupset(107),w.Field1D(w.TX,w.RE))
+    loadingset.define(groupset(107),w.Field1D(w.TY,w.RE))
 
     # Algorithm parameters
 
-    mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(25)
-    mim.setResidualTolerance(p['tolNR'])
-    ti = AlphaGeneralizedTimeIntegration(metafor)
+    mim.setResidualTolerance(param['tolNR'])
+    ti = w.AlphaGeneralizedTimeIntegration(metafor)
     metafor.setTimeIntegration(ti)
     
     return metafor

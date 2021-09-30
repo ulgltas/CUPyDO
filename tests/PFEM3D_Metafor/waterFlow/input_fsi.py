@@ -5,7 +5,7 @@ import os
 def test(mean):
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations',mean,7.084168,1e-5,True))
+    tests.add(CTest('Mean nb of FSI iterations',mean,7.388778,0.1,True))
     tests.run()
 
 # %% Input Parameters

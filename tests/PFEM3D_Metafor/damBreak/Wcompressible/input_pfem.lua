@@ -43,10 +43,10 @@ Problem = {
 	Solver = {
 	    id = "CDS_dpdt",
 		autoRemeshing = false,
-		adaptDT = false,
-		securityCoeff = 0,
-		initialDT = 0,
-		maxDT = 0,
+		adaptDT = true,
+		securityCoeff = 0.1,
+		initialDT = 0.001,
+		maxDT = 0.001,
 
         MomEq = {
             bodyForce = {0,-9.81},
@@ -75,9 +75,5 @@ function Problem.Solver.MomEq.BC:ReservoirV(pos,t)
 end
 
 function Problem.Solver.MomEq.BC:FSInterfaceV(pos,t)
-	return {0,0}
-end
-
-function Problem.Solver.MomEq.BC:SolidBaseV(pos,t)
 	return {0,0}
 end

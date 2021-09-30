@@ -4,15 +4,15 @@ Problem = {
 	verboseOutput = false,
 	
 	Mesh = {
-		hchar = 0.01,
+		hchar = 0.005,
 		alpha = 1.2,
 		omega = 0.5,
 		gamma = 0.6,
 		addOnFS = false,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,
-		boundingBox = {-0.01,-0.01,0.61,100},
-		ignoreGroups = {"SolidBase","Solid"},
+		boundingBox = {-0.111,-0.151,0.111,0.211},
+		ignoreGroups = {"SolidBaseR","SolidBaseL","SolidR","SolidL","Ball"},
 		exclusionZones = {},
 		mshFile = "geometry.msh"
 	},
@@ -34,13 +34,17 @@ Problem = {
 	},
 	
 	IC = {
-		ReservoirFixed = true,
-		FSInterfaceFixed = false
+		InletFixed = true,
+		OutletFixed = true,
+		ReservoirFixed = false,
+		FSInterfaceFixed = false,
+
+		FSInterfaceRFixed = false,
+		FSInterfaceBFixed = false
 	},
-	
+
 	Solver = {
 	    id = "PSPG",
-		autoRemeshing = false,
 		adaptDT = false,
 		coeffDTincrease = 1,
 		coeffDTDecrease = 1,
@@ -50,7 +54,7 @@ Problem = {
 		MomContEq = {
 			minRes = 1e-6,
 			maxIter = 25,
-			bodyForce = {0,-9.81},
+			bodyForce = {0,0},
 			residual = "Ax_f",
 			BC = {
 
@@ -60,7 +64,7 @@ Problem = {
 }
 
 function Problem.IC:initStates(pos)
-	return {0,0,0,0,0}
+	return {0,0,0}
 end
 
 function Problem.Solver.MomContEq.BC:ReservoirV(pos,t)
@@ -71,6 +75,18 @@ function Problem.Solver.MomContEq.BC:FSInterfaceV(pos,t)
 	return {0,0}
 end
 
-function Problem.Solver.MomContEq.BC:SolidBaseV(pos,t)
+function Problem.Solver.MomContEq.BC:FSInterfaceRV(pos,t)
 	return {0,0}
+end
+
+function Problem.Solver.MomContEq.BC:FSInterfaceBV(pos,t)
+	return {0,0}
+end
+
+function Problem.Solver.MomContEq.BC:InletV(pos,t)
+	return {0,-0.01}
+end
+
+function Problem.Solver.MomContEq.BC:OutletV(pos,t)
+	return {0,-0.01}
 end

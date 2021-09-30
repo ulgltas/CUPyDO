@@ -2,7 +2,7 @@ from wrap import FieldApplicator,ElementProperties,Field1D,AlphaGeneralizedTimeI
 from wrap import MATERIAL,CAUCHYMECHVOLINTMETH,VES_CMVIM_STD,TX,TY,RE
 from wrap import MASS_DENSITY,ELASTIC_MODULUS,POISSON_RATIO
 from wrap import ElastHypoMaterial,Volume2DElement
-from toolbox.gmshOld import GmshImport
+from toolbox.gmsh import GmshImport
 from wrap import Metafor
 import os
 
@@ -39,7 +39,7 @@ def getMetafor(p={}):
 
     f = os.path.join(os.path.dirname(__file__),"geometry.msh")
     importer = GmshImport(f,domain)
-    importer.execute2D()
+    importer.execute()
     
     # Group and interaction sets
 
@@ -77,7 +77,7 @@ def getMetafor(p={}):
     # Algorithm parameters
 
     mim = metafor.getMechanicalIterationManager()
-    mim.setMaxNbOfIterations(4)
+    mim.setMaxNbOfIterations(25)
     mim.setResidualTolerance(p['tolNR'])
     ti = AlphaGeneralizedTimeIntegration(metafor)
     metafor.setTimeIntegration(ti)

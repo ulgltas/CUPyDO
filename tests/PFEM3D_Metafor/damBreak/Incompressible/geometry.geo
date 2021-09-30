@@ -32,7 +32,7 @@ Curve Loop(1) = {2,3,4,5};
 Plane Surface(1) = {1};
 Transfinite Surface{1};
 
-Curve Loop(2) = {7,8,9,-12};
+Curve Loop(2) = {-9,-8,-7,12};
 Plane Surface(2) = {2};
 Transfinite Surface{2};
 Recombine Surface{2};
@@ -44,6 +44,5 @@ Physical Curve("SolidBase",19) = {12};
 
 Physical Surface("Fluid",20) = {1};
 Physical Surface("Solid",21) = {2};
-Physical Surface("SSContact",100) = {};
 
 Mesh 2;

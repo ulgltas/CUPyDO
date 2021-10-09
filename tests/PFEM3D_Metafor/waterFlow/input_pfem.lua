@@ -20,7 +20,7 @@ Problem = {
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "results.msh",
+			outputFile = "fluid.msh",
 			timeBetweenWriting = 0.1,
 			whatToWrite = {"p","velocity"},
 			writeAs = "NodesElements" 
@@ -49,7 +49,7 @@ Problem = {
 		maxDT = 0.01,
 		
 		MomContEq = {
-			minRes = 1e-6,
+			minRes = 1e-8,
 			maxIter = 25,
 			bodyForce = {0,0},
 			residual = "Ax_f",

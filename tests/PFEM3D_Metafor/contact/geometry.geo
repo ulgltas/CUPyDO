@@ -5,7 +5,7 @@ d = 0.005;
 L1 = 3*R;
 L2 = R;
 
-L = 1.5*R;
+L = 1.8*R;
 H = -R/2;
 
 D1 = 2*R;
@@ -58,8 +58,7 @@ Line(12) = {17,1};
 
 Curve Loop(1) = {-12,11,-10,-9,-8,7,-6,-5,-4,3,-2,-1};
 Plane Surface(1) = {1};
-Physical Surface("SolidL",11) = {1};
-Recombine Surface{1};
+Physical Surface("SolidL",101) = {1};
 
 // Right Points
 
@@ -105,8 +104,7 @@ Line(24) = {34,18};
 
 Curve Loop(2) = {13,14,15,16,-17,18,19,20,-21,22,23,24};
 Plane Surface(2) = {2};
-Physical Surface("SolidR",12) = {2};
-Recombine Surface{2};
+Physical Surface("SolidR",102) = {2};
 
 // Ball Points
 
@@ -123,8 +121,7 @@ Circle(26) = {37,36,35};
 
 Curve Loop(3) = {26,25};
 Plane Surface(3) = {3};
-Physical Surface("Ball",13) = {3};
-Recombine Surface{3};
+Physical Surface("Ball",103) = {3};
 
 // Fluid Points
 
@@ -146,30 +143,17 @@ Line(32) = {41,38};
 
 Curve Loop(4) = {27,1,28,29,30,-13,31,32};
 Plane Surface(4) = {4,-1,-2,-3};
-Physical Surface("Fluid",14) = {4};
+Physical Surface("Fluid",104) = {4};
 
 // Boundaries
 
-Physical Curve("FSInterface",15) =
-{2,3,4,5,6,7,8,9,10,11,12};
+Physical Curve("FSInterface",105) =
+{14,15,16,17,18,19,20,21,22,23,24,2,3,4,5,6,7,8,9,10,11,12,25,26};
 
-Physical Curve("FSInterfaceR",31) =
-{14,15,16,17,18,19,20,21,22,23,24};
-
-Physical Curve("FSInterfaceB",32) =
-{25,26};
-
-//Physical Curve("FSInterface",15) =
-//{14,15,16,17,18,19,20,21,22,23,24,2,3,4,5,6,7,8,9,10,11,12,25,26};
-
-Physical Surface("SSContact",100) = {};
-Physical Curve("Reservoir",16) = {27,28,30,31};
-
-Physical Curve("SolidBaseL",17) = {1};
-Physical Curve("SolidBaseR",18) = {13};
-
-Physical Curve("Outlet",19) = {32};
-Physical Curve("Inlet",20) = {29};
+Physical Curve("Reservoir",106) = {27,28,30,31};
+Physical Curve("SolidBase",107) = {1,13};
+Physical Curve("FreeSurface",108) = {32};
+Physical Curve("Inlet",109) = {29};
 
 // Builds 2D Mesh
 

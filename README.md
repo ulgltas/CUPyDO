@@ -15,6 +15,7 @@ CUPyDO currently features interfaces for the following solvers:
   - SU2 --> Open-source CFD code developed at Stanford University (https://su2code.github.io/)
   - Flow --> A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège (https://gitlab.uliege.be/am-dept/waves)
   - VLM --> A Vortex Lattice Method, developed at the University of Liège (https://github.com/ulgltas/VLM)
+  - PFEM3D --> 3D Particle Finite Element Method fluid solver developed at the University of Liège
 
 Furthermore, CUPyDO features two interpolation alogrithms:
 - Radial Basis Functions (RBF)

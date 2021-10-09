@@ -9,7 +9,7 @@ def params(param={}):
     param['tend'] = 0
     param['bndno'] = 105
     param['dtmax'] = 0.01
-    param['tolNR'] = 1e-6
+    param['tolNR'] = 1e-8
     param['saveAllFacs'] = False
     param['bctype'] = 'pydeadloads'
     return param

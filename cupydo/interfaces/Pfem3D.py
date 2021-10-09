@@ -10,7 +10,7 @@ class Pfem3D(FluidSolver):
     def __init__(self,param):
 
         name = param['cfdFile']+'.lua'
-        print(f"\nInitializing PFEM3D\n")
+        print('\n***************************** Initializing PFEM3D *****************************')
 
         # Reads the Lua table into a dict
 
@@ -45,6 +45,11 @@ class Pfem3D(FluidSolver):
         self.nNodes = len(self.nodeID)
         self.nPhysicalNodes = self.nNodes
 
+        # Checks if autoRemeshing is false
+
+        if self.solver.getAutoRemeshing():
+            raise Exception('Auto remeshing must be disabled')
+
         # Initializes the loads and displacements
 
         self.load = wraper.VectorArrayDouble3(1)
@@ -52,14 +57,14 @@ class Pfem3D(FluidSolver):
         self.dy = np.zeros(self.nPhysicalNodes)
         self.dz = np.zeros(self.nPhysicalNodes)
 
-        # Checks if autoRemeshing is false
+        # Initializes the node list copy
 
-        if self.solver.getAutoRemeshing():
-            raise Exception('Auto remeshing must be disabled')
+        self.saveNode = wraper.VectorNode(1)
+        self.mesh.copyNodesList(self.saveNode)
 
         # Initializes the fluid solver
 
-        self.saveNode = self.mesh.copyNodesList()
+        self.problem.setTime(-param['dt'])
         FluidSolver.__init__(self)
         self.initRealTimeData()
         
@@ -71,8 +76,7 @@ class Pfem3D(FluidSolver):
         self.applyNodalDisplacements(self.dx,self.dy,self.dz,0,0,0,0,0)
 
         # Initialization of the simulation
-        
-        self.problem.updateTime(t1-t2)
+
         time = self.problem.getCurrentSimTime()
         dt = self.solver.getTimeStep()
         progress = True
@@ -81,9 +85,9 @@ class Pfem3D(FluidSolver):
         # Solves without remeshing until t2
 
         while progress:
-            if (dt+time-t2)/dt > -0.1:
+            if (dt+time-t2)/dt > -0.2:
                     
-                self.solver.forceTimeStep(t2-time)
+                self.solver.setTimeStep(t2-time)
                 ok = self.solver.solveOneTimeStep()
                 time = self.problem.getCurrentSimTime()
                 dt = self.solver.getTimeStep()
@@ -103,9 +107,9 @@ class Pfem3D(FluidSolver):
 
         # Computes nodal fluid loads
 
+        self.problem.setTime(t1)
         self.setCurrentState()
         return
-
 
 # %% Get and Set Nodal Values
 
@@ -164,7 +168,7 @@ class Pfem3D(FluidSolver):
     def update(self,dt):
 
         self.mesh.remesh(self.problem.isOutputVerbose())
-        self.saveNode = self.mesh.copyNodesList()
+        self.mesh.copyNodesList(self.saveNode)
         self.updateID()
 
         self.problem.updateTime(dt)
@@ -189,7 +193,6 @@ class Pfem3D(FluidSolver):
 
     def initRealTimeData(self):
 
-        self.problem.dump()
         self.problem.displayParams()
         dx,dy,dz = self.getNodalInitialPositions()
 
@@ -206,5 +209,5 @@ class Pfem3D(FluidSolver):
         print('======================================')
         self.problem.displayTimeStats()
         print('======================================')
-        print('\nExit PFEM3D')
+        print('\n***************************** Exit PFEM3D *****************************')
         return

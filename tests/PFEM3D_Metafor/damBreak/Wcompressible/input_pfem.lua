@@ -20,7 +20,7 @@ Problem = {
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "results.msh",
+			outputFile = "fluid.msh",
 			timeBetweenWriting = 0.01,
 			whatToWrite = {"p","velocity"},
 			writeAs = "NodesElements" 

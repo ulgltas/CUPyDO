@@ -28,9 +28,9 @@ def getFsiP():
     param['computation'] = 'direct'
     param['timeItTresh'] = 0
     param['nDim'] = 2
-    param['dt'] = 1e-4
+    param['dt'] = 1e-3
     param['tTot'] = 0.3
-    param['tol'] = 1e-6
+    param['tol'] = 1e-8
     param['maxIt'] = 25
     param['omega'] = 0.5
     

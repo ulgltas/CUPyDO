@@ -1,66 +1,66 @@
 Problem = {
     id = "IncompNewtonNoT",
-	simulationTime = 0,
+	simulationTime = math.huge,
 	verboseOutput = false,
+	useCupydo = true,
 	
 	Mesh = {
-		hchar = 0.01,
 		alpha = 1.2,
 		omega = 0.5,
 		gamma = 0.6,
+		hchar = 0.01,
 		addOnFS = false,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,
 		boundingBox = {-0.01,-0.01,0.61,100},
 		ignoreGroups = {"SolidBase","Solid"},
-		exclusionZones = {},
-		mshFile = "geometry.msh"
+		mshFile = "geometry.msh",
+		exclusionZones = {}
 	},
 	
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "fluid.msh",
+			writeAs = "NodesElements",
 			timeBetweenWriting = 0.01,
 			whatToWrite = {"p","velocity"},
-			writeAs = "NodesElements" 
+			outputFile = "fluid.msh"
 		}
 	},
-	
+
 	Material = {
 		mu = 1e-3,
 		rho = 1000,
 		gamma = 0
 	},
-	
+
 	IC = {
 		ReservoirFixed = true,
 		FSInterfaceFixed = false
 	},
-	
+
 	Solver = {
 	    id = "PSPG",
-		autoRemeshing = false,
 		adaptDT = true,
 		coeffDTincrease = 1.5,
 		coeffDTDecrease = 2,
-		initialDT = 0.01,
-		maxDT = 0.01,
+		initialDT = 0.1,
+		maxDT = 0.1,
 		
 		MomContEq = {
-			minRes = 1e-8,
 			maxIter = 25,
+			minRes = 1e-8,
 			bodyForce = {0,-9.81},
 			residual = "Ax_f",
+			nlAlgo = "Picard",
 			BC = {
-
 			}
 		}
 	}
 }
 
 function Problem.IC:initStates(pos)
-	return {0,0,0}
+	return {0,0,0,0,0}
 end
 
 function Problem.Solver.MomContEq.BC:ReservoirV(pos,t)

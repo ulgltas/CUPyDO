@@ -15,9 +15,9 @@ def test(mean):
     coord,_ = gmsh.model.mesh.getNode(2)
 
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations',mean,1.587806,0.1,True))
-    tests.add(CTest('Solid tip coordinate X',coord[0],0.311647,1e-4,True))
-    tests.add(CTest('Solid tip coordinate Y',coord[1],0.070426,1e-4,True))
+    tests.add(CTest('Mean nb of FSI iterations',mean,1.586139,0.1,True))
+    tests.add(CTest('Solid tip coordinate X',coord[0],0.311551,1e-3,True))
+    tests.add(CTest('Solid tip coordinate Y',coord[1],0.070568,1e-4,True))
     tests.run()
 
 # %% Input Parameters
@@ -37,21 +37,21 @@ def getFsiP():
     
     # FSI objects
 
-    param['interpolator'] = 'Matching'
     param['criterion'] = 'Displacements'
+    param['interpolator'] = 'Matching'
     param['algorithm'] = 'AitkenBGS'
     
     # FSI parameters
 
-    param['compType'] = 'unsteady'
     param['computation'] = 'direct'
+    param['compType'] = 'unsteady'
     param['timeItTresh'] = 0
-    param['nDim'] = 2
-    param['dt'] = 1e-5
+    param['omega'] = 0.5
     param['tTot'] = 0.3
     param['tol'] = 1e-8
-    param['maxIt'] = 25
-    param['omega'] = 0.5
+    param['dt'] = 1e-5
+    param['maxIt'] = 5
+    param['nDim'] = 2
     
     return param
 

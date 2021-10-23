@@ -1,20 +1,21 @@
 Problem = {
     id = "WCompNewtonNoT",
-	simulationTime = 0,
+	simulationTime = math.huge,
 	verboseOutput = false,
+	useCupydo = true,
 	
 	Mesh = {
-        hchar = 0.0048,
         alpha = 1.2,
         omega = 0.7,
         gamma = 0.7,
+        hchar = 4.8e-3,
 		addOnFS = true,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,
 		boundingBox = {-0.01,-0.01,0.61,100},
 		ignoreGroups = {"SolidBase","Solid"},
-		exclusionZones = {},
-		mshFile = "geometry.msh"
+		mshFile = "geometry.msh",
+		exclusionZones = {}
 	},
 	
 	Extractors = {
@@ -42,7 +43,6 @@ Problem = {
 	
 	Solver = {
 	    id = "CDS_dpdt",
-		autoRemeshing = false,
 		adaptDT = true,
 		securityCoeff = 0.1,
 		initialDT = 0.001,
@@ -51,23 +51,19 @@ Problem = {
         MomEq = {
             bodyForce = {0,-9.81},
             BC = {
-
             }
         },
         
         ContEq = {
             stabilization = "Meduri",
             BC = {
-
             }
 		}
 	}
 }
 
 function Problem.IC:initStates(pos)
-
-	local rho = Problem.Material.rhoStar
-	return {0,0,0,rho,0,0}
+	return {0,0,0,Problem.Material.rhoStar,0,0}
 end
 
 function Problem.Solver.MomEq.BC:ReservoirV(pos,t)

@@ -44,16 +44,17 @@ class Pfem3D(FluidSolver):
         self.solver = self.problem.getSolver()
         self.mesh = self.problem.getMesh()
 
-        # Gets Physical nodes at the FS interface
-
-        self.updateFSID()
-        self.nNodes = self.FSID.size()
-        self.nPhysicalNodes = self.nNodes
-
         # Initializes the load and mesh copy
 
         self.meshSave = w.Mesh()
+        self.FSID = w.VectorInt()
         self.load = w.VectorArrayDouble3()
+
+        # Gets Physical nodes at the FS interface
+
+        self.mesh.getNodesIndexTag('FSInterface',self.FSID)
+        self.nPhysicalNodes = self.FSID.size()
+        self.nNodes = self.FSID.size()
 
         # Initializes the fluid solver
 
@@ -120,7 +121,7 @@ class Pfem3D(FluidSolver):
 
     def setCurrentState(self):
         
-        self.updateFSID()
+        self.mesh.getNodesIndexTag('FSInterface',self.FSID)
         self.solver.computeLoads(self.load)
         for i in range(self.nPhysicalNodes):
 
@@ -138,9 +139,9 @@ class Pfem3D(FluidSolver):
 
     def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
 
-        self.updateFSID()
         self.disp = [dx,dy,dz]
         disp = np.add(self.disp,self.disp0).T
+        self.mesh.getNodesIndexTag('FSInterface',self.FSID)
         position = w.VectorArrayDouble3(self.nPhysicalNodes)
         for i in range(self.nPhysicalNodes): position[i] = disp[i]
         self.mesh.setNodesPosition(position,self.FSID)
@@ -152,15 +153,6 @@ class Pfem3D(FluidSolver):
         self.reload = False
         self.problem.copyMesh(self.meshSave)
         FluidSolver.update(self,dt)
-
-    def updateFSID(self):
-
-        self.FSID = w.VectorInt()
-        for i in range(self.mesh.getNodesCount()):
-            if self.mesh.getNodeType(i)=='FSInterface':
-                self.FSID.append(i)
-
-# %% Prints and Save Temporary Outputs
 
     def save(self,nt):
         self.problem.writeExtractors()

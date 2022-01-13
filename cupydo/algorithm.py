@@ -50,7 +50,7 @@ class Algorithm(object):
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, dtWrite=0, mpiComm=None):
         """
         Des.
         """
@@ -75,7 +75,9 @@ class Algorithm(object):
         
         self.deltaT = deltaT
         self.totTime = totTime
+        self.dtWrite = dtWrite
         self.timeIterTreshold = timeIterTreshold
+
         
         self.time = 0.0
         self.timeIter = 0
@@ -181,12 +183,12 @@ class AlgorithmExplicit(Algorithm):
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, dtWrite=0, mpiComm=None):
         """
         Des.
         """
 
-        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, dtWrite, mpiComm)
 
     def run(self):
         """
@@ -244,6 +246,7 @@ class AlgorithmExplicit(Algorithm):
 
         #If no restart
         nbTimeIter = int(self.totTime/self.deltaT-1)
+        prevWrite = self.time
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -269,10 +272,12 @@ class AlgorithmExplicit(Algorithm):
             self.FluidSolver.update(self.deltaT)
 
             # --- Write fluid and solid solution, update FSI history  ---#
-            self.FluidSolver.save(self.timeIter)
+            if (self.time > 0) and (self.time-prevWrite > self.dtWrite):
 
-            if self.myid in self.manager.getSolidSolverProcessors():
-                self.SolidSolver.save()
+                prevWrite = self.time
+                self.FluidSolver.save(self.timeIter)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.save()
 
             self.writeRealTimeData()
 
@@ -391,12 +396,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList=[1.0,1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, dtWrite=0, omegaBoundList=[1.0,1.0], mpiComm=None):
         """
         Des.
         """
 
-        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, dtWrite, mpiComm)
 
         self.criterion = Criterion
 
@@ -517,6 +522,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         #If no restart
         nbTimeIter = int(self.totTime/self.deltaT-1)
+        prevWrite = self.time
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -545,10 +551,13 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FluidSolver.update(self.deltaT)
 
             # --- Write fluid and solid solution, update FSI history  ---#
-            self.FluidSolver.save(self.timeIter)
 
-            if self.myid in self.manager.getSolidSolverProcessors():
-                self.SolidSolver.save()
+            if (self.time > 0) and (self.time-prevWrite > self.dtWrite):
+
+                prevWrite = self.time
+                self.FluidSolver.save(self.timeIter)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.save()
 
             self.writeRealTimeData()
 
@@ -865,12 +874,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
 class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList=[1.0, 1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, dtWrite=0, omegaBoundList=[1.0, 1.0], mpiComm=None):
         """
         Des.
         """
 
-        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaBoundList, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, dtWrite, omegaBoundList, mpiComm)
 
 
         self.solidInterfaceResidualkM1 = None
@@ -973,19 +982,19 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
         # --- Update the value of the residual for the next FSI iteration --- #
         self.solidHeatFluxResidual.copy(self.solidInterfaceResidualkM1)
-        self.solidTemperatureResidual.copy(solidTemperatureResidualkM1)
+        self.solidTemperatureResidual.copy(self.solidTemperatureResidualkM1)
 
 class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
     """
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, dtWrite=0, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
         """
         Des.
         """
 
-        AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaBoundList, mpiComm)
+        AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, dtWrite, omegaBoundList, mpiComm)
 
         # --- Number of previous time steps used in the approximation of the tangent matrix --- #
         self.nbTimeToKeep = nbTimeToKeep

@@ -101,6 +101,10 @@ class Metafor(SolidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
 
+        # --- Stores the file exporter if it exists --- #
+
+        if 'exporter' in p: self.exporter = p['exporter']
+        else: self.exporter = None
 
         # --- Builds a list (dict) of interface nodes and creates the nodal prescribed loads --- #
         loadingset = self.metafor.getDomain().getLoadingSet()
@@ -398,6 +402,9 @@ class Metafor(SolidSolver):
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
             print(toPrint)
+
+    def save(self):
+        if self.exporter is not None: self.exporter.execute()
     
     def exit(self):
         """

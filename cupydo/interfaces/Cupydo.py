@@ -80,16 +80,16 @@ class CUPyDO(object):
         else:
             if p['algorithm'] == 'Explicit':
                 self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator,
-                    p['dt'], p['tTot'], p['timeItTresh'], comm)
+                    p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], comm)
             elif p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], p['omega'], comm)
             elif p['algorithm'] == 'AitkenBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], p['omega'], comm)
             elif p ['algorithm'] == 'IQN_ILS':
                 self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS" or "IQN_ILS").\n')
         cupyutil.mpiBarrier()
@@ -130,6 +130,9 @@ class CUPyDO(object):
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p['cfdFile'])
+            elif p['fluidSolver'] == 'Pfem3D':
+                from . import Pfem3D as fItf
+                fluidSolver = fItf.Pfem3D(p)
             else:
                 raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
         return fluidSolver
@@ -139,10 +142,11 @@ class CUPyDO(object):
         Adrien Crovato
         """
         solidSolver = None
-        # IMPORTANT! only master can instantiate the solid solver except SU2Solid. GetDP is to be updated
+        # IMPORTANT! only master can instantiate the solid solver except SU2Solid.
         if p['computation'] == 'Adjoint': # Adjoint calculations only support SU2Solid
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
+                raise RuntimeError('SU2Solid interface not up-to-date!')
                 if comm != None:
                     solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
                 else:
@@ -167,13 +171,14 @@ class CUPyDO(object):
                 solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
+                raise RuntimeError('SU2Solid interface not up-to-date!')
                 if comm != None:
                     solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
                 else:
                     solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
             elif p['solidSolver'] == 'GetDP':
                 from . import GetDP as sItf
-                raise RuntimeError('GetDP interface not up-to-date!\n')
+                raise RuntimeError('GetDP interface not up-to-date!')
             elif myId == 0:
                 raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')
         return solidSolver
@@ -182,11 +187,11 @@ class CUPyDO(object):
 # Sample parameters list
 
 # Solvers
-# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM
+# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM, Pfem3D
 # - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 
-# - p['csdFile'], path to solid cfg file'
+# - p['csdFile'], path to solid cfg file
 
 # FSI objects
 # - p['interpolator'], interpolator type available: Matching, RBF, TPS
@@ -199,10 +204,11 @@ class CUPyDO(object):
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
 # - p['tTot'], total time
+# - p['dtWrite'], time between each result save()
 # - p['timeItTresh'], ??????
 # needed by BGS
 # - p['tol'], tolerance on displacements
-# - p['maxIt'], maximu number of iterations
+# - p['maxIt'], maximum number of iterations
 # - p['omega'], relaxation parameter
 # needed by IQN-ILS
 # - p['firstItTgtMat'], compute the Tangent matrix based on first iteration (True or False)

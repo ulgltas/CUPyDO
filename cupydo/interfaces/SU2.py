@@ -97,6 +97,9 @@ class SU2(FluidSolver):
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
+            # posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
+            # posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
+            # posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
             posX, posY, posZ = self.SU2.GetInitialMeshCoord(self.fluidInterfaceID, iVertex)
             if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
@@ -199,6 +202,9 @@ class SU2(FluidSolver):
                     Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
+                # Qx = self.SU2.GetVertexHeatFluxX(self.fluidInterfaceID, iVertex)
+                # Qy = self.SU2.GetVertexHeatFluxY(self.fluidInterfaceID, iVertex)
+                # Qz = self.SU2.GetVertexHeatFluxZ(self.fluidInterfaceID, iVertex)
                 Qx, Qy, Qz = self.SU2.GetVertexHeatFluxes(self.fluidInterfaceID, iVertex)
                 self.nodalLoad_X[PhysicalIndex] = Fx
                 self.nodalLoad_Y[PhysicalIndex] = Fy
@@ -354,7 +360,7 @@ class SU2(FluidSolver):
         if self.computationType == 'unsteady' and nt>0:
             self.SU2.DynamicMeshUpdate(nt)
         elif self.computationType == 'steady':
-            self.SU2.StaticMeshUpdate()
+            self.SU2.DynamicMeshUpdate(0)
 
     def boundaryConditionsUpdate(self):
         """
@@ -368,7 +374,7 @@ class SU2(FluidSolver):
         Perform the mesh morphing for FSI initial conditions.
         """
 
-        self.SU2.StaticMeshUpdate()
+        self.SU2.DynamicMeshUpdate(0)
 
     def preprocessTimeIter(self, timeIter):
         """

@@ -46,6 +46,7 @@ def getFsiP():
     p['dt'] = 0.1
     p['tTot'] = 0.1
     p['timeItTresh'] = -1
+    p['dtWrite'] = 0
     p['tol'] = 1e-5
     p['maxIt'] = 50
     p['omega'] = 1.0

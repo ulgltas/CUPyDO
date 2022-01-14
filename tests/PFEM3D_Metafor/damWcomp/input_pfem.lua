@@ -9,7 +9,7 @@ Problem = {
 		alpha = 1.2,
 		omega = 0.5,
 		gamma = 0.6,
-		hchar = 0.01,
+		hchar = 0.02,
 		addOnFS = false,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,
@@ -47,7 +47,7 @@ Problem = {
 	
 	Solver = {
 	    id = "CDS_dpdt",
-		securityCoeff = 0.5,
+		securityCoeff = 0.2,
 		initialDT = math.huge,
 		maxDT = math.huge,
 		adaptDT = true,

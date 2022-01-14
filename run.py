@@ -3,11 +3,11 @@
 # test encoding: à-é-è-ô-ï-€
 
 # Run script for CUPyDO
-# External solver dir should place next to CUPyDO dir
 # Romain Boman and Adrien Crovato
 
 import os
 import sys
+import json
 import cupydo.utilities as cupyutil
 
 # These two classes will not redirect c++ output without the underlying c++ code (waves/fwk)
@@ -49,27 +49,34 @@ def addPath(p):
     else:
         print('INFO: %s not found!' % p)
 
-
 def setPath():
     # Set paths
     cupdir = os.path.abspath(os.path.split(__file__)[0])
     topdir = os.path.abspath(os.path.dirname(cupdir))
-
     haveMPI, comm, myid, numberPart = cupyutil.getMpi()
-    #addPath(os.path.join(topdir, 'Metafor', 'build', 'bin'))
-    #addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
-    #addPath(os.path.join(topdir, 'Metafor', 'oo_meta'))
-    #addPath(os.path.join(topdir, 'Metafor', 'linuxbin'))
-    #addPath(os.path.join(topdir, 'NativeSolid', 'bin'))
-    addPath(os.path.join(topdir, 'Modali'))
-    #addPath(os.path.join(topdir, 'pyBeam', 'bin'))
-    #addPath(os.path.join(topdir, 'PFEM'))
-    #addPath(os.path.join(topdir, 'SU2', 'bin'))
-    #addPath(os.path.join(topdir, 'SU2', 'build', 'bin'))
-    #addPath(os.path.join(topdir, 'VLM'))
-    #addPath(os.path.join(topdir, 'PFEM3D', 'build', 'bin'))
-    addPath(os.path.join(topdir, 'waves'))
-    addPath(os.path.join(topdir, 'waves', 'build', 'bin'))
+
+    try: file = open('solverPaths.json')
+    except: raise Exception('Could not find solverPaths.json')
+    solverPaths = json.load(file)
+
+    try: addPath(solverPaths['Metafor'])
+    except: pass
+    try: addPath(solverPaths['PFEM3D'])
+    except: pass
+    try: addPath(solverPaths['Modali'])
+    except: pass
+    try: addPath(solverPaths['VLM'])
+    except: pass
+    try: addPath(solverPaths['Waves'])
+    except: pass
+    try: addPath(solverPaths['PFEM'])
+    except: pass
+    try: addPath(solverPaths['SU2'])
+    except: pass
+    try: addPath(solverPaths['NativeSolid'])
+    except: pass
+    try: addPath(solverPaths['pyBeam'])
+    except: pass
 
     if myid == 0:
         print('PYTHONPATH = %s\n' % sys.path)

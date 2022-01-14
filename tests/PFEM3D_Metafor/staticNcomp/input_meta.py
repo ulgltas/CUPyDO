@@ -63,7 +63,7 @@ def getMetafor(input):
 
     # Finite element properties
 
-    prp = w.ElementProperties(w.TriangleVolume2DElement)
+    prp = w.ElementProperties(w.Volume2DElement)
     prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
     prp.put(w.MATERIAL,1)
     app.addProperty(prp)

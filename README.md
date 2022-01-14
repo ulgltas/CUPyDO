@@ -28,7 +28,7 @@ CUPyDO currently features interfaces for the following solvers:
   - PFEM **[v1.19]** (https://gitlab.uliege.be/am-dept/PFEM)
   - Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
-  - SU2 **[7.21]** (https://su2code.github.io/)
+  - SU2 **[7.11\*]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
   - Open-source CFD code developed at Stanford University.
   ---
   - Flow **[v2.2.1]** (https://gitlab.uliege.be/am-dept/waves)

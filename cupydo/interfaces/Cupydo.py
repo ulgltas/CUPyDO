@@ -80,16 +80,16 @@ class CUPyDO(object):
         else:
             if p['algorithm'] == 'Explicit':
                 self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator,
-                    p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], comm)
+                    p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], comm)
             elif p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], comm)
             elif p['algorithm'] == 'AitkenBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], comm)
             elif p ['algorithm'] == 'IQN_ILS':
                 self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtWrite'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS" or "IQN_ILS").\n')
         cupyutil.mpiBarrier()
@@ -146,7 +146,6 @@ class CUPyDO(object):
         if p['computation'] == 'Adjoint': # Adjoint calculations only support SU2Solid
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
-                raise RuntimeError('SU2Solid interface not up-to-date!')
                 if comm != None:
                     solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
                 else:
@@ -171,7 +170,6 @@ class CUPyDO(object):
                 solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
-                raise RuntimeError('SU2Solid interface not up-to-date!')
                 if comm != None:
                     solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
                 else:
@@ -204,8 +202,8 @@ class CUPyDO(object):
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
 # - p['tTot'], total time
-# - p['dtWrite'], time between each result save()
 # - p['timeItTresh'], ??????
+# - p['dtSave'], time between each result save()
 # needed by BGS
 # - p['tol'], tolerance on displacements
 # - p['maxIt'], maximum number of iterations

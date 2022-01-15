@@ -33,7 +33,13 @@ class CUPyDO(object):
     def __init__(self, p):
 
         # --- Reads the solverPaths json file --- #
-        path = cupyutil.solverPath()
+        
+        import os
+        pathFile = os.path.dirname(__file__)
+        pathFile = os.path.abspath(os.path.join(pathFile, os.pardir))
+        pathFile = os.path.abspath(os.path.join(pathFile, os.pardir))
+        pathFile = os.path.join(pathFile,'solverPaths.json')
+        path = cupyutil.solverPath(pathFile)
 
         # --- Set up MPI --- #
         withMPI, comm, myId, numberPart = cupyutil.getMpi()

@@ -348,9 +348,9 @@ class Timer(object):
 # ----------------------------------------------------------------------
 
 class solverPath(object):
-    def __init__(self):
+    def __init__(self,pathFile):
 
-        with open('C:\Local\Solvers\CUPyDO\solverPaths.json') as file:
+        with open(pathFile) as file:
             self.solverPaths = json.load(file)
 
     # Adds the path to the solver in sys.path

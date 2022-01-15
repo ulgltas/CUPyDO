@@ -37,18 +37,6 @@ class Tee(object):
         sys.stderr = self.stderrbak
         self.file.close()
 
-def addPath(p):
-    # windows binaries are located somewhere else
-    pathw = os.path.join(p, 'Release')
-    if os.path.isdir(pathw):
-        p = pathw
-    # add folder to path if it exists
-    if os.path.isdir(p):
-        print('INFO: adding %s to PYTHONPATH' % p)
-        sys.path.append(p)
-    else:
-        print('INFO: %s not found!' % p)
-
 def main():
     # Global variables
     global __file__

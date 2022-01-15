@@ -4,6 +4,6 @@
     "Modal": "C:/Local/Solvers/Modali",
     "VLM": "C:/Local/Solvers/VLM",
     "Flow": "C:/Local/Solvers/waves",
-    "Pfem": "C:/Local/Solvers/PFEM/build/bin/Release",
+    "Pfem": ["C:/Local/Solvers/PFEM","C:/Local/Solvers/waves"],
     "SU2": "C:/Local/Solvers/SU2/build/bin"
 }

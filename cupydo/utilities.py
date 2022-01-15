@@ -357,18 +357,23 @@ class solverPath(object):
 
     def add(self, solverName):
 
-        try: path = self.solverPaths[solverName]
+        try: pathList = self.solverPaths[solverName]
         except: raise Exception('%s is not in solverPaths.json' % solverName)
+        if not isinstance(pathList,list): pathList = [pathList]
 
-        if os.path.isdir(path):
-            sys.path.append(path)
-        else:
-            raise Exception('%s not found' % path)
+        for path in pathList:
+            if os.path.isdir(path):
+                sys.path.append(path)
+            else:
+                raise Exception('%s not found' % path)
 
     # Remove the path to the solver from sys.path
 
     def remove(self, solverName):
         
-        try: path = self.solverPaths[solverName]
+        try: pathList = self.solverPaths[solverName]
         except: raise Exception('%s is not in solverPaths.json' % solverName)
-        sys.path.remove(path)
+        if not isinstance(pathList,list): pathList = [pathList]
+
+        for path in pathList:
+            sys.path.remove(path)

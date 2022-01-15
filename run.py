@@ -49,51 +49,14 @@ def addPath(p):
     else:
         print('INFO: %s not found!' % p)
 
-def setPath():
-    # Set paths
-    cupdir = os.path.abspath(os.path.split(__file__)[0])
-    topdir = os.path.abspath(os.path.dirname(cupdir))
-    haveMPI, comm, myid, numberPart = cupyutil.getMpi()
-
-    try: file = open('solverPaths.json')
-    except: raise Exception('Could not find solverPaths.json')
-    solverPaths = json.load(file)
-
-    try: addPath(solverPaths['Metafor'])
-    except: pass
-    try: addPath(solverPaths['PFEM3D'])
-    except: pass
-    try: addPath(solverPaths['Modali'])
-    except: pass
-    try: addPath(solverPaths['VLM'])
-    except: pass
-    try: addPath(solverPaths['Waves'])
-    except: pass
-    try: addPath(solverPaths['PFEM'])
-    except: pass
-    try: addPath(solverPaths['SU2'])
-    except: pass
-    try: addPath(solverPaths['NativeSolid'])
-    except: pass
-    try: addPath(solverPaths['pyBeam'])
-    except: pass
-
-    if myid == 0:
-        print('PYTHONPATH = %s\n' % sys.path)
-    cupyutil.mpiBarrier(comm)
-
 def main():
     # Global variables
     global __file__
-
-    # Find solvers and set paths
-    setPath()
-
     # Parse arguments
     args = cupyutil.parseArgs()
-
     # MPI comm to avoid repetition
     haveMPI, comm, myid, numberPart = cupyutil.getMpi()
+
     # Process
     for file in args.file:
         if not os.path.isfile(file):

@@ -31,15 +31,24 @@ from .. import algorithm as cupyalgo
 
 class CUPyDO(object):
     def __init__(self, p):
+
+        # --- Reads the solverPaths json file --- #
+        path = cupyutil.solverPath()
+
         # --- Set up MPI --- #
         withMPI, comm, myId, numberPart = cupyutil.getMpi()
-        rootProcess = 0
 
-        # --- Initialize the fluid and solid solvers --- #
+        # --- Initialize the fluid solver --- #
+        path.add(p['fluidSolver'])
         fluidSolver = self.__initFluid(p, withMPI, comm)
+        path.remove(p['fluidSolver'])
+
+        # --- Initialize the solid solver --- #
+        path.add(p['solidSolver'])
         cupyutil.mpiBarrier(comm)
         solidSolver = self.__initSolid(p, myId, withMPI, comm)
         cupyutil.mpiBarrier(comm)
+        path.remove(p['solidSolver'])
 
         # --- Initialize the FSI manager --- #
         manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], comm)

@@ -30,8 +30,9 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 from math import *
 import numpy as np
 import scipy as sp
-import os, os.path, sys, string
+import os, os.path, sys
 import time as tm
+import json
 
 import socket, fnmatch
 
@@ -341,3 +342,33 @@ class Timer(object):
         """
 
         return self.cumulTime
+
+# ----------------------------------------------------------------------
+#   Solver path class
+# ----------------------------------------------------------------------
+
+class solverPath(object):
+    def __init__(self):
+
+        with open('C:\Local\Solvers\CUPyDO\solverPaths.json') as file:
+            self.solverPaths = json.load(file)
+
+    # Adds the path to the solver in sys.path
+
+    def add(self, solverName):
+
+        try: path = self.solverPaths[solverName]
+        except: raise Exception('%s is not in solverPaths.json' % solverName)
+
+        if os.path.isdir(path):
+            sys.path.append(path)
+        else:
+            raise Exception('%s not found' % path)
+
+    # Remove the path to the solver from sys.path
+
+    def remove(self, solverName):
+        
+        try: path = self.solverPaths[solverName]
+        except: raise Exception('%s is not in solverPaths.json' % solverName)
+        sys.path.remove(path)

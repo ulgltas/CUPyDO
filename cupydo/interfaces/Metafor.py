@@ -27,8 +27,6 @@ Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 #  Imports
 # ----------------------------------------------------------------------
 from past.utils import old_div
-import os, os.path, sys, time, string
-
 import math
 from toolbox.utilities import *
 import toolbox.fac as fac
@@ -63,7 +61,7 @@ class NLoad(object):
 class Metafor(SolidSolver):
     def __init__(self, testname, computationType):
         """
-        des.
+        Initialises Metafor class
         """
         
         print('\n***************************** Initializing Metafor *****************************')

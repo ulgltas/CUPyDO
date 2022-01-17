@@ -59,7 +59,7 @@ def getAdjP():
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
-    p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
+    p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever_AD.pyBeam'
     p['computation'] = 'Adjoint'
     # FSI objects
     p['interpolator'] = 'RBF'
@@ -72,7 +72,7 @@ def getAdjP():
     p['tTot'] = 0.05
     p['timeItTresh'] = -1
     p['tol'] = 1e-8
-    p['maxIt'] = 16
+    p['maxIt'] = 30
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['nodalLoadsType'] = 'force'

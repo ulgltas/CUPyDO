@@ -62,7 +62,7 @@ class SU2SolidSolver(SolidSolver):
         """
 
         self.initializeSolver(confFile, have_MPI, MPIComm)
-        allFluidLoadMarkersTags = self.SU2.GetAllFluidLoadMarkersTag()  # list containing the tags of all fluid load markers
+        allFluidLoadMarkersTags = self.SU2.GetAllDeformMeshMarkersTag()  # list containing the tags of all fluid load markers
         allMarkersID = self.SU2.GetAllBoundaryMarkers()  # dic : allMarkersID['marker_tag'] = marker_ID
         self.solidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allFluidLoadMarkersTags
         if not allFluidLoadMarkersTags:
@@ -101,9 +101,7 @@ class SU2SolidSolver(SolidSolver):
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            posX = self.SU2.GetVertexCoordX(self.solidInterfaceID, iVertex)
-            posY = self.SU2.GetVertexCoordY(self.solidInterfaceID, iVertex)
-            posZ = self.SU2.GetVertexCoordZ(self.solidInterfaceID, iVertex)
+            posX, posY, posZ = self.SU2.GetInitialMeshCoord(self.solidInterfaceID, iVertex)
             if self.SU2.IsAHaloNode(self.solidInterfaceID, iVertex):
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
                 self.haloNodeList[GlobalIndex] = iVertex
@@ -111,10 +109,6 @@ class SU2SolidSolver(SolidSolver):
             else:
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
                 self.pointIndexList[PhysicalIndex] = GlobalIndex
-                self.SU2.ComputeVertexForces(self.solidInterfaceID, iVertex)
-                Fx = self.SU2.GetVertexForceX(self.solidInterfaceID, iVertex)
-                Fy = self.SU2.GetVertexForceY(self.solidInterfaceID, iVertex)
-                Fz = self.SU2.GetVertexForceZ(self.solidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.solidInterfaceID, iVertex)
                 self.nodalInitialPos_X[PhysicalIndex] = posX
                 self.nodalInitialPos_Y[PhysicalIndex] = posY
@@ -141,7 +135,7 @@ class SU2SolidSolver(SolidSolver):
         try:
             self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
         except TypeError as exception:
-            print(('A TypeError occured in pysu2.CFluidDriver : ',exception))
+            print(('A TypeError occured in pysu2.CSinglezoneDriver : ',exception))
             if have_MPI == True:
                 print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
             else:
@@ -198,8 +192,7 @@ class SU2SolidSolver(SolidSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             # identify the halo nodes and ignore their nodal loads
-            halo = self.SU2.ComputeVertexForces(self.solidInterfaceID, iVertex)
-            self.SU2.ComputeVertexHeatFluxes(self.solidInterfaceID, iVertex)
+            halo = self.SU2.IsAHaloNode(self.solidInterfaceID, iVertex)
             if halo == False:
 
                 disp = self.SU2.GetFEA_Displacements(self.solidInterfaceID, iVertex)
@@ -408,8 +401,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             # identify the halo nodes and ignore their nodal loads
-            halo = self.SU2.ComputeVertexForces(self.solidInterfaceID, iVertex)
-            self.SU2.ComputeVertexHeatFluxes(self.solidInterfaceID, iVertex)
+            halo = self.SU2.IsAHaloNode(self.solidInterfaceID, iVertex)
             if halo == False:
 
                 disp = self.SU2.GetFEA_Displacements(self.solidInterfaceID, iVertex)

@@ -130,6 +130,9 @@ class CUPyDO(object):
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p['cfdFile'])
+            elif p['fluidSolver'] == 'Fpm':
+                from . import Fpm as fItf
+                fluidSolver = fItf.Fpm(p['cfdFile'])
             else:
                 raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
         return fluidSolver

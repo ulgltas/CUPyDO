@@ -1,9 +1,0 @@
-{
-    "Metafor": "C:/Local/Solvers/Metafor/Metafor",
-    "Pfem3D": "C:/Local/Solvers/PFEM3D/build/bin",
-    "Modal": "C:/Local/Solvers/Modali",
-    "VLM": "C:/Local/Solvers/VLM",
-    "Flow": "C:/Local/Solvers/waves",
-    "Pfem": ["C:/Local/Solvers/PFEM","C:/Local/Solvers/waves"],
-    "SU2": "C:/Local/Solvers/SU2/build/bin"
-}

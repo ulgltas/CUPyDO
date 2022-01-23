@@ -92,7 +92,6 @@ def getMetafor(input):
 
     # Parameters for CUPyDO
 
-    input['FSInterface'] = groups['FSInterface']
     input['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
     input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

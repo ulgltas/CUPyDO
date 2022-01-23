@@ -2,11 +2,11 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# %% Physical group 1 = FSInterface
+# %% Physical group 3 = FSInterface
 
 def params(input):
 
-    input['bndno'] = 1
+    input['bndno'] = 3
     input['saveAllFacs'] = False
     input['bctype'] = 'pydeadloads'
     return input
@@ -43,8 +43,9 @@ def getMetafor(input):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),"geometry.msh")
+    mshFile = os.path.join(os.path.dirname(__file__),'geometry.msh')
     importer = gmsh.GmshImport(mshFile,domain)
+    importer.writeLogs = False
     groups = importer.groups
     importer.execute()
 
@@ -57,14 +58,15 @@ def getMetafor(input):
     # Material parameters
 
     materset.define(1,w.ElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e6)
-    materset(1).put(w.MASS_DENSITY,8e3)
-    materset(1).put(w.POISSON_RATIO,0)
+    materset(1).put(w.ELASTIC_MODULUS,2.1e7)
+    materset(1).put(w.POISSON_RATIO,0.3)
+    materset(1).put(w.MASS_DENSITY,20)
     
     # Finite element properties
 
     prp = w.ElementProperties(w.Volume2DElement)
     prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
+    prp.put(w.GRAVITY_Y,-9.81)
     prp.put(w.MATERIAL,1)
     app.addProperty(prp)
     
@@ -81,7 +83,7 @@ def getMetafor(input):
     # Mechanical iterations
 
     mim.setMaxNbOfIterations(25)
-    mim.setResidualTolerance(1e-8)
+    mim.setResidualTolerance(1e-6)
 
     # Time step iterations
 

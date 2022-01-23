@@ -22,7 +22,7 @@ Drive (create and run) an FSI computation
 Authors: Adrien CROVATO
 
 '''
-
+import os
 from .. import utilities as cupyutil
 from .. import manager as cupyman
 from .. import interpolator as cupyinterp
@@ -33,12 +33,7 @@ class CUPyDO(object):
     def __init__(self, p):
 
         # --- Reads the solverPaths json file --- #
-        
-        import os
-        pathFile = os.path.dirname(__file__)
-        pathFile = os.path.abspath(os.path.join(pathFile, os.pardir))
-        pathFile = os.path.abspath(os.path.join(pathFile, os.pardir))
-        pathFile = os.path.join(pathFile,'solverPaths.json')
+        pathFile = os.path.join(os.path.expanduser('~'),'cupydoExtProgs.json')
         path = cupyutil.solverPath(pathFile)
 
         # --- Set up MPI --- #

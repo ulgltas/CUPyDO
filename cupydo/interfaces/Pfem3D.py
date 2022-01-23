@@ -94,10 +94,10 @@ class Pfem3D(FluidSolver):
                 
                 dt = t2-time
                 self.solver.setTimeStep(dt)
-                if self.solver.solveOneTimeStep(): self.remesh(); break
+                if self.solver.solveOneTimeStep(): break
 
             else:
-                if self.solver.solveOneTimeStep(): self.remesh()
+                if self.solver.solveOneTimeStep(): pass
 
         # Computes nodal fluid loads
 
@@ -165,6 +165,7 @@ class Pfem3D(FluidSolver):
 
     def update(self,dt):
 
+        self.remesh()
         self.prevMesh.deepCopy(self.mesh)
         self.prevTime = self.problem.getCurrentSimTime()
         self.disp = np.transpose(self.getNodalInitialPositions()-self.pos)

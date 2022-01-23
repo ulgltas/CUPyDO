@@ -29,7 +29,6 @@ Line(7) = {6,4};
 Curve Loop(1) = {1,2,3,4};
 Plane Surface(1) = {1};
 Physical Surface("Solid") = {1};
-Plane Surface(1) = {1};
 Transfinite Surface{1};
 Recombine Surface{1};
 

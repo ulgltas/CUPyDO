@@ -7,7 +7,7 @@ def getFsiP():
 
     p = dict()
     path = os.path.abspath(os.path.dirname(__file__))
-    p['cfdFile'] = path+'\input_pfem.lua'
+    p['cfdFile'] = path+'/input_pfem.lua'
 
     # Metafor and PFEM solvers
     
@@ -27,7 +27,7 @@ def getFsiP():
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
     p['timeItTresh'] = 0
-    p['dtSave'] = 0.001
+    p['dtSave'] = 0.01
     p['omega'] = 0.5
     p['nSteps'] = 20
     p['maxIt'] = 25

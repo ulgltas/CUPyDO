@@ -9,7 +9,7 @@ CUPyDO currently features interfaces for the following solvers:
   - Metafor **[v3491]** (http://metafor.ltas.ulg.ac.be/dokuwiki/)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
-  - RBM **[X]** (https://github.com/ulgltas/NativeSolid)
+  - RBMI **[X]** (https://github.com/ulgltas/NativeSolid)
   - A dynamic 2dof pitch/plunge solid solver developed at the University of Liège.
   ---
   - SU2 **[X]** (https://su2code.github.io/)
@@ -34,10 +34,10 @@ CUPyDO currently features interfaces for the following solvers:
   - Flow **[v2.2.1]** (https://gitlab.uliege.be/am-dept/waves)
   - A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège.
   ---
-  - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
+  - VLM **[v2.0\*]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
   ---
-  - PFEM3D **[Last]** (https://github.com/ImperatorS79/PFEM3D)
+  - PFEM3D **[dev]** (https://github.com/ImperatorS79/PFEM3D)
   - A 3D Particle Finite Element Method fluid solver developed at the University of Liège.
 
 ##  Features

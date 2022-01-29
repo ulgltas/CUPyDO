@@ -34,8 +34,6 @@ import os, os.path, sys
 import time as tm
 import json
 
-import socket, fnmatch
-
 np.set_printoptions(threshold=sys.maxsize)
 
 # global vars (underscore prevent them to be imported with "from module import *")
@@ -358,7 +356,7 @@ class solverPath(object):
     def add(self, solverName):
 
         try: pathList = self.solverPaths[solverName]
-        except: raise Exception('%s is not in solverPaths.json' % solverName)
+        except: raise Exception('%s is not in cupydoExtProgs.json' % solverName)
         if not isinstance(pathList,list): pathList = [pathList]
 
         for path in pathList:
@@ -372,7 +370,7 @@ class solverPath(object):
     def remove(self, solverName):
         
         try: pathList = self.solverPaths[solverName]
-        except: raise Exception('%s is not in solverPaths.json' % solverName)
+        except: raise Exception('%s is not in cupydoExtProgs.json' % solverName)
         if not isinstance(pathList,list): pathList = [pathList]
 
         for path in pathList:

@@ -7,7 +7,6 @@
 
 import os
 import sys
-import json
 import cupydo.utilities as cupyutil
 
 # These two classes will not redirect c++ output without the underlying c++ code (waves/fwk)

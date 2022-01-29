@@ -7,9 +7,9 @@ Problem = {
 	
 	Mesh = {
 		alpha = 1.2,
-		omega = 0.4,
-		gamma = 0.8,
-		hchar = 0.1,
+		omega = 0.7,
+		gamma = 0.7,
+		hchar = 0.05,
 		addOnFS = false,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,

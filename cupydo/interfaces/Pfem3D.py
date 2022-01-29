@@ -23,7 +23,7 @@ def read(path):
 class Pfem3D(FluidSolver):
     def __init__(self,param):
 
-        print('\n***************************** Initializing PFEM3D *****************************')
+        print('\nInitializing PFEM3D')
         path = param['cfdFile']
         input = read(path)
 
@@ -60,7 +60,6 @@ class Pfem3D(FluidSolver):
 
         # Initializes the simulation data
 
-        self.prevTime = self.problem.getCurrentSimTime()
         self.pos = self.getNodalInitialPositions()
         self.disp = np.zeros((self.nNodes,3))
         self.vel = np.zeros((self.nNodes,3))
@@ -73,16 +72,18 @@ class Pfem3D(FluidSolver):
 
         FluidSolver.__init__(self)
         self.problem.updateTime(-param['dt'])
-        self.solver.setTimeStep(param['dt'])
         self.problem.displayParams()
+        self.prevTime = -param['dt']
         self.dt = param['dt']
         
-# %% Calculates One Increment From t1 to t2
+# %% Computes one time increment
 
     def run(self,t1,t2):
-        print('PFEM3D: Run from {:.5e} to {:.5e}'.format(t1,t2))
 
-        # Solves with remeshing until t2
+        print('PFEM3D: Run from {:.5e} to {:.5e}'.format(t1,t2))
+        self.solver.setTimeStep(1e16)
+
+        # Solves the equations until t2
 
         while True:
             
@@ -182,7 +183,7 @@ class Pfem3D(FluidSolver):
         self.solver.setNodalBC(nodalBC)
 
     def remesh(self):
-        
+
         self.mesh.remesh(False)
         self.mesh.getNodesIndexOfTag(self.group,self.FSI)
         self.setNodalBC()
@@ -194,4 +195,4 @@ class Pfem3D(FluidSolver):
         print('======================================')
         self.problem.displayTimeStats()
         print('======================================')
-        print('\n***************************** Exit PFEM3D *****************************')
+        print('\nExit PFEM3D')

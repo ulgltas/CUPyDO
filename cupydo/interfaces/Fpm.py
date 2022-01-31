@@ -151,7 +151,7 @@ class Fpm(FluidSolver):
     def save(self, nt):
         """Save data on disk at each converged timestep
         """
-        self.solver.save(nt, self.mshWriter)
+        self.solver.save(self.mshWriter, nt)
         self.mshWriter.save(self.msh.name + "_" + str(nt))
 
     def initRealTimeData(self):

@@ -66,6 +66,7 @@ def setPath():
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
     addPath(os.path.join(topdir, 'VLM'))
+    addPath(os.path.join(topdir, 'fpm'))
     if myid == 0:
         print('PYTHONPATH = %s\n' % sys.path)
     cupyutil.mpiBarrier(comm)

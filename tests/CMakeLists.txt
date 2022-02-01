@@ -4,6 +4,7 @@ IF(NOT WIN32) # temporarily disabled on Windows
 ENDIF()
 MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/Flow_Modal)
 MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/Flow_Metafor)
+MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/Fpm_Modal)
 MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/PFEM_Metafor)
 IF(NOT WIN32)
     MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/SU2_Metafor)

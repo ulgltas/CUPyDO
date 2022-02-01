@@ -16,9 +16,9 @@ def test(meanFSIIt):
     coord = gmsh.model.mesh.getNode(2)[0]
 
     tests = CTests()
-    tests.add(CTest('Solid tip coordinate X',coord[0],0.324362,0.05,False))
-    tests.add(CTest('Solid tip coordinate Y',coord[1],0.069452,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,2.136068,0.05,False))
+    tests.add(CTest('Solid tip coordinate X',coord[0],0.323299,0.05,False))
+    tests.add(CTest('Solid tip coordinate Y',coord[1],0.069730,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,2.184092,0.05,False))
     tests.run()
 
 # %% Input Parameters

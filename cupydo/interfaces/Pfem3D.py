@@ -40,7 +40,6 @@ class Pfem3D(FluidSolver):
             self.typeBC = 'acceleration'
 
         else: raise Exception('Problem type not supported')
-        if not input['useCupydo']: raise Exception('UseCupydo must be True')
         self.group = input['FSInterface']
 
         # Gets some important objects and variables
@@ -51,6 +50,11 @@ class Pfem3D(FluidSolver):
         self.prevMesh = w.Mesh()
         self.FSI = w.VectorInt()
 
+        # Set the initial time step
+
+        self.solver.setTimeStep(1e16)
+        self.solver.computeNextDT()
+
         # Number of nodes at the FSInterface
     
         self.mesh.getNodesIndexOfTag(self.group,self.FSI)
@@ -60,13 +64,10 @@ class Pfem3D(FluidSolver):
 
         # Initializes the simulation data
 
-        self.pos = self.getNodalInitialPositions()
-        self.disp = np.zeros((self.nNodes,3))
-        self.vel = np.zeros((self.nNodes,3))
-        self.BC = np.zeros((self.nNodes,3))
+        self.pos0 = self.getPosition()
+        self.prevDisp = np.zeros((self.nNodes,3))
         self.prevMesh.deepCopy(self.mesh)
         self.reload = False
-        self.setNodalBC()
 
         # Prints and initializes the solver
 
@@ -81,44 +82,54 @@ class Pfem3D(FluidSolver):
     def run(self,t1,t2):
 
         print('PFEM3D: Run from {:.5e} to {:.5e}'.format(t1,t2))
-        self.solver.setTimeStep(1e16)
-
-        # Solves the equations until t2
+        self.reload = True
 
         while True:
-            
-            self.solver.computeNextDT()
+
             dt = self.solver.getTimeStep()
             time = self.problem.getCurrentSimTime()
 
             if (dt+time-t2)/dt > -0.2:
                 
-                dt = t2-time
-                self.solver.setTimeStep(dt)
-                if self.solver.solveOneTimeStep(): break
+                self.solver.setTimeStep(t2-time)
+                ok = self.solver.solveOneTimeStep()
+                self.solver.computeNextDT()
+                if ok: break
 
             else:
-                if self.solver.solveOneTimeStep(): pass
+                ok = self.solver.solveOneTimeStep()
+                self.solver.computeNextDT()
 
         # Computes nodal fluid loads
 
         self.setCurrentState()
-        self.reload = True
+        return True
 
 # %% Get and Set Nodal Values
 
-    def getNodalInitialPositions(self):
+    def getPosition(self):
+        
+        pos = np.zeros((self.nNodes,3))
+        self.mesh.getNodesIndexOfTag(self.group,self.FSI)
 
-        coord = np.zeros((self.nNodes,3))
         for i in range(self.nNodes):
+            node = self.mesh.getNode(self.FSI[i])
+            pos[i] = [node.getCoordinate(j) for j in range(3)]
 
-            idx = self.FSI[i]
-            node = self.mesh.getNode(idx)
-            coord[i] = [node.getCoordinate(j) for j in range(3)]
+        return pos
 
-        return np.transpose(coord)
+    def getVelocity(self):
 
-    # Sets current node states
+        vel = np.zeros((self.nNodes,3))
+        self.mesh.getNodesIndexOfTag(self.group,self.FSI)
+
+        for i in range(self.nNodes):
+            node = self.mesh.getNode(self.FSI[i])
+            for j in range(self.dim): vel[i,j] = node.getState(j)
+
+        return vel
+
+    # Sets current nodal loads on the FSI
 
     def setCurrentState(self):
 
@@ -129,64 +140,56 @@ class Pfem3D(FluidSolver):
             self.nodalLoad_Y[i] = -self.load[i][1]
             self.nodalLoad_Z[i] = -self.load[i][2]
 
-    # Returns the index of the index-th interface node
+    # Some other utilitary functions
 
     def getNodalIndex(self,index):
         return self.FSI[index]
 
-    # Prescribes nodal positions from solid solver
+    def getNodalInitialPositions(self):
+        return np.transpose(self.pos0)
+
+# %% Sets Boundary Conditions
 
     def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
+        
+        if self.reload: self.problem.loadMesh(self.prevMesh,self.prevTime)
+        dDisp = np.transpose([dx,dy,dz])-self.prevDisp
 
-        if self.reload:
-            self.problem.loadMesh(self.prevMesh,self.prevTime)
-            self.mesh.getNodesIndexOfTag(self.group,self.FSI)
-
-        # BC for incompressible fluids
+        # Computes the state according to Metafor
 
         if self.typeBC == 'velocity':
-
-            disp = np.transpose([dx,dy,dz])-self.disp
-            self.BC = disp/self.dt
-            self.setNodalBC()
-
-        # BC for weakly compressible fluids
+            
+            self.mesh.getNodesIndexOfTag(self.group,self.FSI)
+            BC = dDisp/self.dt
+            idx = lambda j : j
 
         elif self.typeBC == 'acceleration':
 
-            for i in range(self.nNodes):
-                for j in range(self.dim):
-                    self.vel[i,j] = self.mesh.getNode(self.FSI[i]).getState(j)
+            vel = self.getVelocity()
+            BC = 2*(dDisp-vel*self.dt)/(self.dt*self.dt)
+            idx = lambda j : self.dim+2+j
 
-            disp = np.transpose([dx,dy,dz])-self.disp
-            self.BC = 2*(disp-self.vel*self.dt)/(self.dt*self.dt)
-            self.setNodalBC()
+        else: raise Exception('Boundary conditions not supported')
+
+        # Update the FSI node states BC
+
+        for i in range(self.nNodes):
+            for j in range(self.dim):
+                self.mesh.setNodeState(self.FSI[i],idx(j),BC[i,j])
 
 # %% Update and Save Results
 
     def update(self,dt):
 
-        self.remesh()
-        self.prevMesh.deepCopy(self.mesh)
+        self.mesh.remesh(False)
         self.prevTime = self.problem.getCurrentSimTime()
-        self.disp = np.transpose(self.getNodalInitialPositions()-self.pos)
+        self.prevDisp = self.getPosition()-self.pos0
+        self.prevMesh.deepCopy(self.mesh)
         FluidSolver.update(self,dt)
         self.reload = False
 
     def save(self,nt):
         self.problem.dump()
-
-    def setNodalBC(self):
-
-        nodalBC = w.MapIntArrayDouble3()
-        for i in range(self.nNodes): nodalBC[self.FSI[i]] = self.BC[i]
-        self.solver.setNodalBC(nodalBC)
-
-    def remesh(self):
-
-        self.mesh.remesh(False)
-        self.mesh.getNodesIndexOfTag(self.group,self.FSI)
-        self.setNodalBC()
 
 # %% Exits the Solver
 

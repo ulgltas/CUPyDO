@@ -3,7 +3,7 @@ Problem = {
 	FSInterface = "FSInterface",
 	simulationTime = math.huge,
 	verboseOutput = false,
-	useCupydo = true,
+	autoRemeshing = false,
 	
 	Mesh = {
 		alpha = 1.2,

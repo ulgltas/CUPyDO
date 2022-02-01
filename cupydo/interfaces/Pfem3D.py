@@ -57,7 +57,7 @@ class Pfem3D(FluidSolver):
 
         # Number of nodes at the FSInterface
     
-        self.mesh.getNodesIndexOfTag(self.group,self.FSI)
+        self.mesh.getNodesIndex(self.group,self.FSI)
         self.nPhysicalNodes = self.FSI.size()
         self.nNodes = self.FSI.size()
         self.dim = self.mesh.getDim()
@@ -105,12 +105,11 @@ class Pfem3D(FluidSolver):
         self.setCurrentState()
         return True
 
+
 # %% Get and Set Nodal Values
 
     def getPosition(self):
-        
         pos = np.zeros((self.nNodes,3))
-        self.mesh.getNodesIndexOfTag(self.group,self.FSI)
 
         for i in range(self.nNodes):
             node = self.mesh.getNode(self.FSI[i])
@@ -119,9 +118,7 @@ class Pfem3D(FluidSolver):
         return pos
 
     def getVelocity(self):
-
         vel = np.zeros((self.nNodes,3))
-        self.mesh.getNodesIndexOfTag(self.group,self.FSI)
 
         for i in range(self.nNodes):
             node = self.mesh.getNode(self.FSI[i])
@@ -151,15 +148,16 @@ class Pfem3D(FluidSolver):
 # %% Sets Boundary Conditions
 
     def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
-        
-        if self.reload: self.problem.loadMesh(self.prevMesh,self.prevTime)
         dDisp = np.transpose([dx,dy,dz])-self.prevDisp
+        
+        if self.reload:
+            self.problem.loadMesh(self.prevMesh,self.prevTime)
+            self.mesh.getNodesIndex(self.group,self.FSI)
 
         # Computes the state according to Metafor
 
         if self.typeBC == 'velocity':
-            
-            self.mesh.getNodesIndexOfTag(self.group,self.FSI)
+
             BC = dDisp/self.dt
             idx = lambda j : j
 
@@ -182,6 +180,7 @@ class Pfem3D(FluidSolver):
     def update(self,dt):
 
         self.mesh.remesh(False)
+        self.mesh.getNodesIndex(self.group,self.FSI)
         self.prevTime = self.problem.getCurrentSimTime()
         self.prevDisp = self.getPosition()-self.pos0
         self.prevMesh.deepCopy(self.mesh)

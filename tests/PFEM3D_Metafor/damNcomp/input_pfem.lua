@@ -2,8 +2,8 @@ Problem = {
     id = "IncompNewtonNoT",
 	FSInterface = "FSInterface",
 	simulationTime = math.huge,
-	verboseOutput = true,
-	autoRemeshing = true,
+	verboseOutput = false,
+	autoRemeshing = false,
 	
 	Mesh = {
 		alpha = 1.2,

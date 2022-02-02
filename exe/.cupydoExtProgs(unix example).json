@@ -5,6 +5,7 @@
     "Flow": "/home/lacroix/battery_CUPyDO/waves",
     "SU2": "/home/lacroix/battery_CUPyDO/SU2/build/bin",
     "RBMI": "/home/lacroix/battery_CUPyDO/NativeSolid/bin",
+    "pyBeam": "/home/lacroix/battery_CUPyDO/pyBeam/bin",
 
     "Pfem": ["/home/lacroix/battery_CUPyDO/PFEM",
         "/home/lacroix/battery_CUPyDO/waves"],

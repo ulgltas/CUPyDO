@@ -53,7 +53,7 @@ def getMetafor(p={}):
     materset = domain.getMaterialSet()
     materset.define( 1, ElastHypoMaterial )
     mater1 = materset(1)
-    mater1.put(MASS_DENSITY,    1.2)  # [kg/m�]
+    mater1.put(MASS_DENSITY,    1.2)  # [kg/m3]
     mater1.put(ELASTIC_MODULUS, 1e9)  # [Pa] (Value given by Franci et al. (CMAME, 2016) --> to be verified)
     mater1.put(POISSON_RATIO,   0.49)   # [-]
 

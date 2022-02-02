@@ -346,22 +346,74 @@ class Timer(object):
 # ----------------------------------------------------------------------
 
 class solverPath(object):
-    def __init__(self,pathFile):
+    def __init__(self):
 
-        with open(pathFile) as file:
-            self.solverPaths = json.load(file)
+        # Path to the base folder of CUPyDO
+
+        baseFolder = __file__
+        for i in range(3): baseFolder = os.path.split(baseFolder)[0]
+        self.addedPaths = {}
+
+        # Look for cupydoExtProgs.json in CUPyDO folder
+
+        try:
+            with open(os.path.join(baseFolder,'.cupydoExtProgs.json')) as file:
+                self.solverPaths = json.load(file)
+
+        # LIf not found, looks for cupydoExtProgs.json in home folder
+        
+        except:
+            try:
+                with open(os.path.join(os.path.expanduser('~'),'.cupydoExtProgs.json')) as file:
+                    self.solverPaths = json.load(file)
+            except: self.solverPaths = {}
+
+        # Relative paths for solvers located next to CUPyDO
+
+        self.basePaths = {}
+        self.basePaths['Metafor'] = ['Metafor/oo_metaB/bin','Metafor/oo_meta','Metafor/linuxbin']
+        self.basePaths['RBMI'] = ['NativeSolid/bin']
+        self.basePaths['Modal'] = ['modali']
+        self.basePaths['Flow'] = ['waves']
+        self.basePaths['PFEM'] = ['PFEM','waves']
+        self.basePaths['SU2'] = ['SU2/bin']
+        self.basePaths['VLM'] = ['VLM']
+        self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']
+
+        # Makes the absolute paths for solvers next to CUPyDO
+
+        for key,value in self.basePaths.items():
+            for i in range(len(value)):
+
+                value[i] = os.path.join(baseFolder,value[i])
+                release = os.path.join(value[i],'Release')
+                if os.path.isdir(release): value[i] = release
 
     # Adds the path to the solver in sys.path
 
     def add(self, solverName):
 
+        # Check next to the solver first, then in the Json
+
         try: pathList = self.solverPaths[solverName]
-        except: raise Exception('%s is not in cupydoExtProgs.json' % solverName)
+        except:
+            try: pathList = self.basePaths[solverName]
+            except: raise Exception('%s is not found' % solverName)
+        
         if not isinstance(pathList,list): pathList = [pathList]
+
+        # Memorize the paths that have been added under that name
+
+        if solverName in self.addedPaths:
+            self.addedPaths[solverName] += pathList
+        else: self.addedPaths[solverName] = pathList
+
+        # Actually adds the paths to the system
 
         for path in pathList:
             if os.path.isdir(path):
                 sys.path.append(path)
+                print('Add to path :',path)
             else:
                 raise Exception('%s not found' % path)
 
@@ -369,9 +421,11 @@ class solverPath(object):
 
     def remove(self, solverName):
         
-        try: pathList = self.solverPaths[solverName]
-        except: raise Exception('%s is not in cupydoExtProgs.json' % solverName)
+        try: pathList = self.addedPaths[solverName]
+        except: raise Exception('%s has not been added' % solverName)
+
         if not isinstance(pathList,list): pathList = [pathList]
 
         for path in pathList:
             sys.path.remove(path)
+            print('Remove from path :',path)

@@ -32,9 +32,8 @@ from .. import algorithm as cupyalgo
 class CUPyDO(object):
     def __init__(self, p):
 
-        # --- Reads the solverPaths json file --- #
-        pathFile = os.path.join(os.path.expanduser('~'),'cupydoExtProgs.json')
-        path = cupyutil.solverPath(pathFile)
+        # --- Reads the solver paths --- #
+        path = cupyutil.solverPath()
 
         # --- Set up MPI --- #
         withMPI, comm, myId, numberPart = cupyutil.getMpi()

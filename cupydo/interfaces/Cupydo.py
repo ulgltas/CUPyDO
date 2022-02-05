@@ -82,7 +82,7 @@ class CUPyDO(object):
         if p['computation'] == 'Adjoint':
             if p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: "StaticBGS").\n')
 

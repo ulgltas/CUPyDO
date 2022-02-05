@@ -73,7 +73,7 @@ def getAdjP():
     p['timeItTresh'] = -1
     p['dtSave'] = 0
     p['tol'] = 1e-8
-    p['maxIt'] = 16
+    p['maxIt'] = 25
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['nodalLoadsType'] = 'force'

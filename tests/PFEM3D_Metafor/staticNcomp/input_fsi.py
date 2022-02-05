@@ -14,6 +14,7 @@ def test(meanFSIIt):
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
     coord = gmsh.model.mesh.getNode(21)[0]
+    gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X',coord[0],0.5,0.05,False))

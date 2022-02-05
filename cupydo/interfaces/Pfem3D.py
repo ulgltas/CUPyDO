@@ -47,7 +47,6 @@ class Pfem3D(FluidSolver):
         self.solver = self.problem.getSolver()
         self.mesh = self.problem.getMesh()
         self.load = w.VectorArrayDouble3()
-        self.prevMesh = w.Mesh()
         self.FSI = w.VectorInt()
 
         # Set the initial time step
@@ -61,12 +60,13 @@ class Pfem3D(FluidSolver):
         self.nPhysicalNodes = self.FSI.size()
         self.nNodes = self.FSI.size()
         self.dim = self.mesh.getDim()
+        self.meshData = w.MeshData()
 
         # Initializes the simulation data
 
         self.pos0 = self.getPosition()
         self.prevDisp = np.zeros((self.nNodes,3))
-        self.prevMesh.deepCopy(self.mesh)
+        self.meshData = w.MeshData()
         self.reload = False
 
         # Prints and initializes the solver
@@ -104,7 +104,6 @@ class Pfem3D(FluidSolver):
 
         self.setCurrentState()
         return True
-
 
 # %% Get and Set Nodal Values
 
@@ -151,7 +150,8 @@ class Pfem3D(FluidSolver):
         dDisp = np.transpose([dx,dy,dz])-self.prevDisp
         
         if self.reload:
-            self.problem.loadMesh(self.prevMesh,self.prevTime)
+            self.mesh.loadMeshData(self.meshData)
+            self.problem.setSurentSimTime(self.prevTime)
             self.mesh.getNodesIndex(self.group,self.FSI)
 
         # Computes the state according to Metafor
@@ -183,7 +183,7 @@ class Pfem3D(FluidSolver):
         self.mesh.getNodesIndex(self.group,self.FSI)
         self.prevTime = self.problem.getCurrentSimTime()
         self.prevDisp = self.getPosition()-self.pos0
-        self.prevMesh.deepCopy(self.mesh)
+        self.mesh.copyMeshData(self.meshData)
         FluidSolver.update(self,dt)
         self.reload = False
 

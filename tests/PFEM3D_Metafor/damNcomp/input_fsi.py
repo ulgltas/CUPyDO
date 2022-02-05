@@ -14,6 +14,7 @@ def test(meanFSIIt):
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
     coord = gmsh.model.mesh.getNode(2)[0]
+    gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Solid tip coordinate X',coord[0],0.321070,0.05,False))

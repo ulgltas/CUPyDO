@@ -14,9 +14,6 @@ def params(input):
 # %% Parallel Computing
 
 metafor = None
-w.StrVectorBase.useTBB()
-w.StrMatrixBase.useTBB()
-w.ContactInteraction.useTBB()
 
 # %% Main Function
 
@@ -58,7 +55,7 @@ def getMetafor(input):
 
     materset.define(1,w.ElastHypoMaterial)
     materset(1).put(w.ELASTIC_MODULUS,1e6)
-    materset(1).put(w.MASS_DENSITY,8e3)
+    materset(1).put(w.MASS_DENSITY,2500)
     materset(1).put(w.POISSON_RATIO,0)
     
     # Finite element properties
@@ -80,8 +77,8 @@ def getMetafor(input):
 
     # Mechanical iterations
 
-    mim.setMaxNbOfIterations(25)
-    mim.setResidualTolerance(1e-8)
+    mim.setMaxNbOfIterations(4)
+    mim.setResidualTolerance(1e-7)
 
     # Time step iterations
 
@@ -92,7 +89,7 @@ def getMetafor(input):
 
     # Parameters for CUPyDO
 
-    input['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
+    input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
     input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor
 

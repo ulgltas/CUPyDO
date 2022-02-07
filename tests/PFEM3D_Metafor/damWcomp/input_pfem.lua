@@ -9,7 +9,7 @@ Problem = {
 		alpha = 1.2,
 		omega = 0.5,
 		gamma = 0.6,
-		hchar = 0.02,
+		hchar = 0.015,
 		addOnFS = false,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,
@@ -25,19 +25,25 @@ Problem = {
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "fluid.msh",
 			writeAs = "NodesElements",
+			outputFile = "pfem/fluid.msh",
 			whatToWrite = {"p","velocity"},
 			timeBetweenWriting = math.huge
-		}
+		},
+        {
+            kind = "Global",
+            whatToWrite = "mass",
+            outputFile = "mass.txt",
+            timeBetweenWriting = math.huge
+        }
 	},
 	
 	Material = {
 		rhoStar = 1000,
         K0 = 2.2e+7,
         K0p = 7.6,
-		mu = 1e-3,
-		gamma = 0
+		gamma = 0,
+		mu = 1e-3
 	},
 	
 	IC = {

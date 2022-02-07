@@ -5,7 +5,7 @@ import os
 
 def test(meanFSIIt):
 
-    name = [file for file in os.listdir() if('fluid' in file)]
+    name = [file for file in os.listdir() if('solid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
 
@@ -13,13 +13,13 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(2)[0]
+    coord = gmsh.model.mesh.getNode(9)[0]
     gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Solid tip coordinate X',coord[0],0.323299,0.05,False))
-    tests.add(CTest('Solid tip coordinate Y',coord[1],0.069730,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,2.184092,0.05,False))
+    tests.add(CTest('Solid tip coordinate X',coord[0],0.306518,0.05,False))
+    tests.add(CTest('Solid tip coordinate Y',coord[1],0.079872,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,4.155172,0.05,False))
     tests.run()
 
 # %% Input Parameters
@@ -40,7 +40,7 @@ def getFsiP():
 
     p['criterion'] = 'Displacements'
     p['interpolator'] = 'Matching'
-    p['algorithm'] = 'IQN_ILS'
+    p['algorithm'] = 'AitkenBGS'
     
     # FSI parameters
 
@@ -48,13 +48,12 @@ def getFsiP():
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
     p['timeItTresh'] = 0
-    p['dtSave'] = 0.01
     p['omega'] = 0.5
-    p['nSteps'] = 0
-    p['maxIt'] = 25
-    p['tTot'] = 0.2
-    p['tol'] = 1e-8
-    p['dt'] = 1e-4
+    p['dtSave'] = 0
+    p['maxIt'] = 20
+    p['tTot'] = 0.35
+    p['tol'] = 1e-6
+    p['dt'] = 0.001
     p['nDim'] = 2
     
     return p

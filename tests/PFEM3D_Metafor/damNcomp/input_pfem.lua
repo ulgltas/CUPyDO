@@ -9,11 +9,11 @@ Problem = {
 		alpha = 1.2,
 		omega = 0.5,
 		gamma = 0.6,
-		hchar = 0.02,
+		hchar = 0.015,
 		addOnFS = false,
 		deleteFlyingNodes = false,
 		laplacianSmoothingBoundaries = false,
-		boundingBox = {-0.01,-0.01,0.61,100},
+		boundingBox = {-0.01,-0.01,0.6,100},
 
 		remeshAlgo = "GMSH",
 		mshFile = "geometry.msh",
@@ -25,11 +25,17 @@ Problem = {
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "fluid.msh",
+			outputFile = "pfem/fluid.msh",
 			writeAs = "NodesElements",
 			whatToWrite = {"p","velocity"},
 			timeBetweenWriting = math.huge
-		}
+		},
+        {
+            kind = "Global",
+            whatToWrite = "mass",
+            outputFile = "mass.txt",
+            timeBetweenWriting = math.huge
+        }
 	},
 
 	Material = {
@@ -55,8 +61,8 @@ Problem = {
 			nlAlgo = "Picard",
 			residual = "Ax_f",
 			bodyForce = {0,-9.81},
-			minRes = 1e-8,
-			maxIter = 25,
+			minRes = 1e-6,
+			maxIter = 20,
 			BC = {}
 		}
 	}

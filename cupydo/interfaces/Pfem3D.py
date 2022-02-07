@@ -156,24 +156,20 @@ class Pfem3D(FluidSolver):
 
         # Computes the state according to Metafor
 
-        if self.typeBC == 'velocity':
-
-            BC = dDisp/self.dt
-            idx = lambda j : j
-
+        if self.typeBC == 'velocity': BC = dDisp/self.dt
         elif self.typeBC == 'acceleration':
 
             vel = self.getVelocity()
             BC = 2*(dDisp-vel*self.dt)/(self.dt*self.dt)
-            idx = lambda j : self.dim+2+j
 
         else: raise Exception('Boundary conditions not supported')
 
         # Update the FSI node states BC
 
         for i in range(self.nNodes):
-            for j in range(self.dim):
-                self.mesh.setNodeState(self.FSI[i],idx(j),BC[i,j])
+            
+            default = w.ArrayDouble3(BC[i])
+            self.mesh.setNodeStateBC(self.FSI[i],default)
 
 # %% Update and Save Results
 

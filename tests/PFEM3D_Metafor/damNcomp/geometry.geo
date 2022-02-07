@@ -1,14 +1,15 @@
-L = 0.15;
-s = 0.015;
-h = 0.07;
-d = 0.02;
+L = 0.146;
+s = 0.012;
+h = 0.08;
+d = 0.015;
+N = 10;
 
 // Points List
 
 Point(1) = {0,0,0,d};
-Point(2) = {4*L,0,0,d};
-Point(3) = {4*L,4*L,0,d};
-Point(4) = {0,3*L,0,d};
+Point(2) = {4*L+s,0,0,d};
+Point(3) = {4*L,6*L,0,d};
+Point(4) = {0,6*L,0,d};
 Point(5) = {L,0,0,d};
 Point(6) = {L,2*L,0,d};
 Point(7) = {0,2*L,0,d};
@@ -36,12 +37,15 @@ Line(12) = {8,11};
 
 Curve Loop(1) = {2,3,4,5};
 Plane Surface(1) = {1};
-Transfinite Surface{1};
 
 // Solid Surface
 
+Transfinite Line{7} = N;
+Transfinite Line{9} = N;
+
 Curve Loop(2) = {-9,-8,-7,12};
 Plane Surface(2) = {2};
+
 Transfinite Surface{2};
 Recombine Surface{2};
 

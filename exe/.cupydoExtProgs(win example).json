@@ -6,5 +6,5 @@
     "Flow": "D:/Devs/Solvers/waves",
     "Pfem": ["D:/Devs/Solvers/PFEM","D:/Devs/Solvers/waves"],
     "SU2": "D:/Devs/Solvers/SU2/build/bin",
-    "pyBeam": "D:/Devs/Solvers/pyBeam/bin"
+    "pyBeam": "D:/Devs/Solvers/pyBeam/build/bin"
 }

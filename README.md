@@ -9,7 +9,7 @@ CUPyDO currently features interfaces for the following solvers:
   - Metafor **[v3491\*]** (http://metafor.ltas.ulg.ac.be/dokuwiki/)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
-  - RBMI **[X]** (https://github.com/ulgltas/NativeSolid)
+  - RBMI **[1.0]** (https://github.com/ulgltas/NativeSolid)
   - A dynamic 2dof pitch/plunge solid solver developed at the University of Liège.
   ---
   - SU2 **[X]** (https://su2code.github.io/)
@@ -21,7 +21,7 @@ CUPyDO currently features interfaces for the following solvers:
   - GetDP **[X]** (http://getdp.info/)
   - A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liège.
   ---
-  - pyBeam **[X]** (https://github.com/pyBeam/pyBeam)
+  - pyBeam **[0.1]** (https://github.com/pyBeam/pyBeam)
   - A nonlinear beam finite element solver developed for aeronautical design applications.
   ---
 - **Fluid**

@@ -25,11 +25,17 @@ Problem = {
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "fluid.msh",
 			writeAs = "NodesElements",
+			outputFile = "pfem/fluid.msh",
 			whatToWrite = {"p","velocity"},
 			timeBetweenWriting = math.huge
-		}
+		},
+        {
+            kind = "Global",
+            whatToWrite = "mass",
+            outputFile = "mass.txt",
+            timeBetweenWriting = math.huge
+        }
 	},
 
 	Material = {

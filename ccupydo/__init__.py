@@ -22,9 +22,9 @@ Authors : David THOMAS
 
 '''
 
-from CCupydo import CInterpolator
-from CCupydo import CManager
-from CCupydo import CInterfaceMatrix
-from CCupydo import CFlexInterfaceData
-from CCupydo import CLinearSolver
-from CCupydo import CMpi
+from .CCupydo import CInterpolator
+from .CCupydo import CManager
+from .CCupydo import CInterfaceMatrix
+from .CCupydo import CFlexInterfaceData
+from .CCupydo import CLinearSolver
+from .CCupydo import CMpi

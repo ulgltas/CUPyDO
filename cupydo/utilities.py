@@ -34,7 +34,6 @@ import os, os.path, sys, string
 import time as tm
 
 import socket, fnmatch
-import fsi_pyutils
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -141,25 +140,27 @@ def setDirs(fpath):
     # create workspace path
     sys.path.append(os.path.dirname(fpath)) # [RB] !this folder is can be a subfolder of one of the folders in the pythonpath
     base = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ' ')) # find base directory
-    print base
+    mpiPrint(base, comm)
     common = os.path.commonprefix((fpath, base)) # find common part of testname ad base name
     resdir = os.path.splitext(fpath[len(common):].replace(os.sep,"_"))[0] # common part, change seprator to underscore and remove ".py"
     wdir=os.path.join('workspace', resdir) # that is our workspace!
     # create workspace (master process)
     if rank == 0:
         if not os.path.isdir(wdir):
-            print "creating", wdir
+            print("creating", wdir)
             os.makedirs(wdir)
 
         if size > 1: # send sync to slaves
                 for i in range(1, size):
                     comm.send(1, dest=i, tag=11)
-                comm.barrier()
+
+        if comm:
+            comm.barrier()
     # block slave processes
     else:
         comm.barrier()
     # change to workspace
-    print 'changing to', wdir
+    mpiPrint('changing to ' + wdir, comm)
     os.chdir(wdir)
 
 def getMpi():
@@ -282,7 +283,7 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
 #   Timer class
 # ----------------------------------------------------------------------
 
-class Timer:
+class Timer(object):
     """
     Description
     """

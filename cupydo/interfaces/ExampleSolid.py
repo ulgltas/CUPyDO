@@ -28,7 +28,7 @@ limitations under the License.
 
 # Those are mandatory
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 
 # ----------------------------------------------------------------------
@@ -41,7 +41,7 @@ class ExampSolver(SolidSolver):
         Des.
         """
         
-        print '\n***************************** Initializing Example *****************************'
+        print('\n***************************** Initializing Example *****************************')
         
 
         #self.nNodes =                              # number of nodes (physical + ghost) at the f/s boundary
@@ -108,7 +108,7 @@ class ExampSolver(SolidSolver):
     
         #return no
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
         """
         Des.
         """
@@ -176,7 +176,7 @@ class ExampSolver(SolidSolver):
         """
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print toPrint
+        print(toPrint)
     
     def exit(self):
         """

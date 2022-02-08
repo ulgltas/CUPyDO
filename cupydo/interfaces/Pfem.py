@@ -30,7 +30,7 @@ import os, os.path, sys, time, string
 
 import math
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  Pfem solver interface class
@@ -39,7 +39,7 @@ from cupydo.genericSolvers import FluidSolver
 class Pfem(FluidSolver):
     def __init__(self, testname, nthreads, nogui, dt):
         
-        print '\n***************************** Initializing Pfem *****************************'
+        print('\n***************************** Initializing Pfem *****************************')
         
         self.testname = testname  # string (name of the module of the fluid model)
         
@@ -50,8 +50,8 @@ class Pfem(FluidSolver):
                  
         # loads the python module
         #load(self.testname)         # use toolbox.utilities
-        exec("import %s" % self.testname)
-        exec("module = %s" % self.testname) # link to Pfem object
+        exec("import %s" % self.testname, globals())
+        exec("module = %s" % self.testname, globals()) # link to Pfem object
 
         # create an instance of Pfem
         self.pfem = module.getPfem()
@@ -128,8 +128,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]
-            fx[i] = -(node.Fine.x[0] + node.Fint.x[0] - node.Fext.x[0])
-            fy[i] = -(node.Fine.x[1] + node.Fint.x[1] - node.Fext.x[1])
+            fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
+            fy[i] = -(node.fIne.x[1] + node.fInt.x[1] - node.fExt.x[1])
             fz[i] = 0.
         
         self.nodalLoad_X = fx
@@ -153,7 +153,7 @@ class Pfem(FluidSolver):
         """
         
         out = {}
-        for no in self.vnods.iterkeys():
+        for no in self.vnods.keys():
             node = self.vnods[no]                 
             vx = -0.5 # current vx          
             vy = 0. # current vy
@@ -239,7 +239,7 @@ class Pfem(FluidSolver):
             for d in data:
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
-            print toPrint
+            print(toPrint)
     
     def remeshing(self):
         self.pfem.scheme.remeshing()

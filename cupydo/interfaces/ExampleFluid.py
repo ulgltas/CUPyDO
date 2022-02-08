@@ -29,7 +29,7 @@ limitations under the License.
 
 # Those are mandatory
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
 #  ExampSolver class
@@ -41,7 +41,7 @@ class ExampSolver(FluidSolver):
         Des.
         """
         
-        print '\n***************************** Initializing Example *****************************'
+        print('\n***************************** Initializing Example *****************************')
         
 
         #self.nNodes =                              # number of nodes (physical + ghost) at the f/s boundary
@@ -161,7 +161,7 @@ class ExampSolver(FluidSolver):
         """
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
-        print toPrint
+        print(toPrint)
     
     def exit(self):
         """

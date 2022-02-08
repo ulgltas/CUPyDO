@@ -23,13 +23,13 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 
 '''
 
-class ccolors:
+class ccolors(object):
     ANSI_RED    = '\x1b[1;31m'
     ANSI_GREEN  = '\x1b[1;32m'
     ANSI_BLUE   = '\x1b[1;34m'
     ANSI_RESET  = '\x1b[0m'
 
-class CTest:
+class CTest(object):
     def __init__(self, name, val, expected, maxdiff=1e-10, forceabs=False):
         self.name     = name                  # name of the test
         self.val      = float(val)            # calculated value
@@ -51,8 +51,8 @@ class CTest:
             typ='abs'
             percent = '%f' % self.maxdiff            
  
-        print "[CTest] %s = %f (expected %f +/- %s)" % \
-            (self.name, self.val, self.expected, percent) 
+        print("[CTest] %s = %f (expected %f +/- %s)" % \
+            (self.name, self.val, self.expected, percent)) 
                    
         if diff<=self.maxdiff:
             sgn = '<='
@@ -61,10 +61,10 @@ class CTest:
             sgn = '>'
             ok = False
             info = "wrong!"
-        print "\t%s diff = %e %s %e [%s]" % (typ, diff, sgn, self.maxdiff, info)
+        print("\t%s diff = %e %s %e [%s]" % (typ, diff, sgn, self.maxdiff, info))
         return ok   
             
-class CTests:
+class CTests(object):
     def __init__(self):
         self.tests = []
     def add(self, t):

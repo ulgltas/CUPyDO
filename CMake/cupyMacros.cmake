@@ -9,7 +9,7 @@ MACRO(MACRO_AddTest srcDir)
     #message(STATUS "tfiles=${tfiles}")
     foreach(tfile ${tfiles})
         set(spath ${srcDir}/${tfile})
-        if(NOT IS_DIRECTORY ${spath} AND ${spath} MATCHES ".+\\fsi.py$")
+        if((NOT IS_DIRECTORY ${spath}) AND (${spath} MATCHES ".+\\fsi.py$" OR ${spath} MATCHES ".+\\fsi_adj.py$"))
             string(REPLACE "${PROJECT_SOURCE_DIR}/" "" strip ${spath}) 
             message(STATUS "Adding test ${strip}")
             add_test(NAME ${strip} 

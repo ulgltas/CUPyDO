@@ -33,7 +33,7 @@ import pfem.tools.pfemtools as wt
 w = None
 
 
-class Module:
+class Module(object):
     def __init__(self, w, msh, pbl, contactTag, solScheme,
                  nonLinAlgo, convCriterion, scheme,
                  extManager, gui, bndno):
@@ -71,13 +71,13 @@ def getPfem():
 
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
 
     toll = 1e-6
     nItMax = 20
 
     solScheme = w.SchemeMonolithicPSPG(msh, pbl)
-    convCriterion = w.ForcesBalanceNormedBodyForceCriterion(msh, pbl, toll)
+    convCriterion = w.ForceBalanceCriterion(msh, pbl, toll, 9.81*rho0)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)

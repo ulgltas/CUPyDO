@@ -8,6 +8,7 @@
 
 import os
 import sys
+import cupydo.utilities as cupyutil
 
 # These two classes will not redirect c++ output without the underlying c++ code (waves/fwk)
 class DupStream(object):
@@ -43,10 +44,10 @@ def addPath(p):
         p = pathw
     # add folder to path if it exists
     if os.path.isdir(p):
-        print 'INFO: adding %s to PYTHONPATH' % p
+        print('INFO: adding %s to PYTHONPATH' % p)
         sys.path.append(p)
     else:
-        print 'INFO: %s not found!' % p
+        print('INFO: %s not found!' % p)
 
 
 def setPath():
@@ -54,16 +55,20 @@ def setPath():
     cupdir = os.path.abspath(os.path.split(__file__)[0])
     topdir = os.path.abspath(os.path.dirname(cupdir))
 
+    haveMPI, comm, myid, numberPart = cupyutil.getMpi()
     addPath(os.path.join(topdir, 'Metafor', 'oo_metaB', 'bin'))
     addPath(os.path.join(topdir, 'Metafor', 'oo_meta'))
     addPath(os.path.join(topdir, 'Metafor', 'linuxbin'))
     addPath(os.path.join(topdir, 'NativeSolid', 'bin'))
     addPath(os.path.join(topdir, 'modali'))
+    addPath(os.path.join(topdir, 'pyBeam', 'bin'))
     addPath(os.path.join(topdir, 'waves'))
     addPath(os.path.join(topdir, 'PFEM'))
     addPath(os.path.join(topdir, 'SU2', 'bin'))
     addPath(os.path.join(topdir, 'VLM'))
-    print 'PYTHONPATH = %s\n' % sys.path
+    if myid == 0:
+        print('PYTHONPATH = %s\n' % sys.path)
+    cupyutil.mpiBarrier(comm)
 
 def main():
     # Global variables
@@ -73,9 +78,10 @@ def main():
     setPath()
 
     # Parse arguments
-    import cupydo.utilities as cupyutil
     args = cupyutil.parseArgs()
 
+    # MPI comm to avoid repetition
+    haveMPI, comm, myid, numberPart = cupyutil.getMpi()
     # Process
     for file in args.file:
         if not os.path.isfile(file):
@@ -86,15 +92,15 @@ def main():
             cupyutil.setDirs(file)
             # split streams
             __file__ = file
-            print "[run.py] __file__", __file__
+            cupyutil.mpiPrint("[run.py] __file__" + __file__, comm)
             tee = Tee('stdout.txt')
             # run
             import time, platform
-            print '-' * 80
-            print 'Starting test:', file
-            print 'Time:', time.strftime('%c')
-            print 'Hostname:', platform.node()
-            execfile(file, globals(), globals())
+            cupyutil.mpiPrint('-' * 80, comm)
+            cupyutil.mpiPrint('Starting test:' + file, comm)
+            cupyutil.mpiPrint('Time:' + time.strftime('%c'), comm)
+            cupyutil.mpiPrint('Hostname:' + platform.node(), comm)
+            exec(open(file, 'r', encoding='utf8').read(), globals())
 
 if __name__ == '__main__':
     main()

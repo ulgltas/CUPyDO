@@ -36,7 +36,7 @@ def test(res, tol):
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.00095, 5e-4, True)) # abs. tol.
-    tests.add(CTest('Drag coefficient', resultA[3], 2.64, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 3.640135, 1e-1, False)) # rel. tol. of 10% (was 2.64 before)
     tests.add(CTest('Displacement (104, TY)', resultS[2], 0., 1e-4, True)) # abs. tol.
     tests.run()
 

@@ -282,7 +282,7 @@ class SolidAdjointSolver(SolidSolver):
         return
     
     def getNodalAdjointLoads(self):
-        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjDisp_Z)
+        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjLoad_Z)
 
 # ----------------------------------------------------------------------
 #  Generic fluid adjoint solver class

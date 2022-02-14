@@ -40,7 +40,7 @@ Problem = {
 
 	Material = {
 		rho = 1000,
-		mu = 1e-3,
+		mu = 1000,
 		gamma = 0
 	},
 

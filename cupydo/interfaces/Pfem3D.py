@@ -1,5 +1,6 @@
 from ..genericSolvers import FluidSolver
 from slpp import slpp as lua
+from sys import stdout
 import pfem3Dw as w
 import numpy as np
 import os
@@ -27,32 +28,31 @@ class Pfem3D(FluidSolver):
         path = param['cfdFile']
         input = read(path)
 
+        # Read some input parameters
+
+        self.ID = input['id']
+        self.group = input['FSInterface']
+
         # Problem class initialization
 
-        if input['id'] == 'IncompNewtonNoT':
-
-            self.problem = w.ProbIncompNewton(path)
-            self.typeBC = 'velocity'
-
-        elif input['id'] == 'WCompNewtonNoT':
-
-            self.problem = w.ProbWCompNewton(path)
-            self.typeBC = 'acceleration'
-
+        if self.ID == 'IncompNewtonNoT': self.problem = w.ProbIncompNewton(path)
+        elif self.ID == 'WCompNewtonNoT': self.problem = w.ProbWCompNewton(path)
         else: raise Exception('Problem type not supported')
-        self.group = input['FSInterface']
 
         # Gets some important objects and variables
 
         self.solver = self.problem.getSolver()
+        self.prevSolution = w.SolutionData()
         self.mesh = self.problem.getMesh()
         self.load = w.VectorArrayDouble3()
         self.FSI = w.VectorInt()
 
         # Set the initial time step
 
+        self.problem.updateTime(-param['dt'])
         self.solver.setTimeStep(1e16)
         self.solver.computeNextDT()
+        self.dt = param['dt']
 
         # Number of nodes at the FSInterface
     
@@ -60,28 +60,22 @@ class Pfem3D(FluidSolver):
         self.nPhysicalNodes = self.FSI.size()
         self.nNodes = self.FSI.size()
         self.dim = self.mesh.getDim()
-        self.meshData = w.MeshData()
 
         # Initializes the simulation data
 
         self.pos0 = self.getPosition()
+        self.problem.copySolution(self.prevSolution)
         self.prevDisp = np.zeros((self.nNodes,3))
-        self.meshData = w.MeshData()
         self.reload = False
 
         # Prints and initializes the solver
 
         FluidSolver.__init__(self)
-        self.problem.updateTime(-param['dt'])
         self.problem.displayParams()
-        self.prevTime = -param['dt']
-        self.dt = param['dt']
         
 # %% Computes one time increment
 
     def run(self,t1,t2):
-
-        print('PFEM3D: Run from {:.5e} to {:.5e}'.format(t1,t2))
         self.reload = True
 
         while True:
@@ -93,17 +87,33 @@ class Pfem3D(FluidSolver):
                 
                 self.solver.setTimeStep(t2-time)
                 ok = self.solver.solveOneTimeStep()
+                self.printSolverTime(ok)
                 self.solver.computeNextDT()
                 if ok: break
 
             else:
                 ok = self.solver.solveOneTimeStep()
+                self.printSolverTime(ok)
                 self.solver.computeNextDT()
 
         # Computes nodal fluid loads
 
         self.setCurrentState()
         return True
+
+    # Prints and set next time step
+
+    def printSolverTime(self,ok):
+
+        dt = self.solver.getTimeStep()
+        time = self.problem.getCurrentSimTime()
+
+        if self.ID == 'IncompNewtonNoT':
+            print('PFEM3D [{:<1}] : t = {:.5e} - dt = {:.3e}'.format(ok,time,dt))
+
+        elif self.ID == 'WCompNewtonNoT':
+            stdout.write('\rPFEM3D : t = {:.5e} - dt = {:.3e}'.format(time,dt))
+            stdout.flush()
 
 # %% Get and Set Nodal Values
 
@@ -150,24 +160,22 @@ class Pfem3D(FluidSolver):
         dDisp = np.transpose([dx,dy,dz])-self.prevDisp
         
         if self.reload:
-            self.mesh.loadMeshData(self.meshData)
-            self.problem.setSurentSimTime(self.prevTime)
+
+            self.problem.loadSolution(self.prevSolution)
             self.mesh.getNodesIndex(self.group,self.FSI)
 
         # Computes the state according to Metafor
 
-        if self.typeBC == 'velocity':
+        if (self.ID == 'IncompNewtonNoT'):
 
-            index = 0
+            index = int(0)
             BC = dDisp/self.dt
 
-        elif self.typeBC == 'acceleration':
+        elif (self.ID == 'WCompNewtonNoT'):
 
-            index = self.dim+2
+            index = int(self.dim+2)
             vel = self.getVelocity()
             BC = 2*(dDisp-vel*self.dt)/(self.dt*self.dt)
-
-        else: raise Exception('Boundary conditions not supported')
 
         # Update the FSI node states BC
 
@@ -181,9 +189,8 @@ class Pfem3D(FluidSolver):
 
         self.mesh.remesh(False)
         self.mesh.getNodesIndex(self.group,self.FSI)
-        self.prevTime = self.problem.getCurrentSimTime()
         self.prevDisp = self.getPosition()-self.pos0
-        self.mesh.copyMeshData(self.meshData)
+        self.problem.copySolution(self.prevSolution)
         FluidSolver.update(self,dt)
         self.reload = False
 

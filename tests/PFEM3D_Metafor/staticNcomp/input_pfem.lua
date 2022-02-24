@@ -15,7 +15,7 @@ Problem = {
 		laplacianSmoothingBoundaries = false,
 		boundingBox = {-0.01,-1,1.01,1},
 
-		remeshAlgo = "GMSH",
+		remeshAlgo = "CGAL",
 		mshFile = "geometry.msh",
 		exclusionGroups = {"FSInterface"},
 		ignoreGroups = {"Solid"},

@@ -56,7 +56,7 @@ def solve_upper_triangular_mod(U, y, toll):
         if abs(U[i, i]) <= toll:
             x[i] = 0.
         else:
-            x[i] = y[i];
+            x[i] = y[i]
             for j in range (i + 1, n):
                   x[i] -= U[i, j] * x[j]
             x[i] /= U[i, i]
@@ -375,8 +375,8 @@ class solverPath(object):
         self.basePaths['RBMI'] = ['NativeSolid/bin']
         self.basePaths['Modal'] = ['modali']
         self.basePaths['Flow'] = ['waves']
-        self.basePaths['PFEM'] = ['PFEM','waves']
-        self.basePaths['SU2'] = ['SU2/bin']
+        self.basePaths['Pfem'] = ['PFEM','waves']
+        self.basePaths['SU2'] = ['SU2/build/bin']
         self.basePaths['VLM'] = ['VLM']
         self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']
         self.basePaths['pyBeam'] = ['pyBeam/bin']

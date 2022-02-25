@@ -31,7 +31,7 @@ CUPyDO currently features interfaces for the following solvers:
   - SU2 **[7.1.1\*]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
   - Open-source CFD code developed at Stanford University.
   ---
-  - Flow **[v2.2.1]** (https://gitlab.uliege.be/am-dept/waves)
+  - Flow **[v2.1.1]** (https://gitlab.uliege.be/am-dept/waves)
   - A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège.
   ---
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)

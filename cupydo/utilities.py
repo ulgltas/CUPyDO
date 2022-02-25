@@ -379,7 +379,7 @@ class solverPath(object):
         self.basePaths['SU2'] = ['SU2/build/bin']
         self.basePaths['VLM'] = ['VLM']
         self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']
-        self.basePaths['pyBeam'] = ['pyBeam/bin']
+        self.basePaths['pyBeam'] = ['pyBeam/build/bin']
         
         # Makes the absolute paths for solvers next to CUPyDO
 

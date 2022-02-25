@@ -26,7 +26,7 @@ Problem = {
 		{
 			kind = "GMSH",
 			writeAs = "NodesElements",
-			outputFile = "pfem/fluid.msh",
+			outputFile = "fluid.msh",
 			whatToWrite = {"p","velocity"},
 			timeBetweenWriting = math.huge
 		},

@@ -25,7 +25,7 @@ Problem = {
 	Extractors = {
 		{
 			kind = "GMSH",
-			outputFile = "pfem/fluid.msh",
+			outputFile = "fluid.msh",
 			writeAs = "NodesElements",
 			whatToWrite = {"p","velocity"},
 			timeBetweenWriting = math.huge

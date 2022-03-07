@@ -9,7 +9,7 @@ CUPyDO currently features interfaces for the following solvers:
   - Metafor **[v3492]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
-  - RBMI **[1.0]** (https://github.com/ulgltas/NativeSolid)
+  - RBMI **[1.1]** (https://github.com/ulgltas/NativeSolid)
   - A dynamic 2dof pitch/plunge solid solver developed at the University of Liège.
   ---
   - SU2 **[X]** (https://su2code.github.io/)

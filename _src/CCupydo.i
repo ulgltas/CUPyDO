@@ -35,6 +35,11 @@ threads="1"
 #include "cLinearSolver.h"
 %}
 
+// Problem with Swig & Python 3 for np.int64
+%begin %{
+#define SWIG_PYTHON_CAST_MODE
+%}
+
 // petite bidouille pour pouvoir compiler avec "threads=1" et iterer sur des std_vector
 // (sinon ca explose � la destruction de l'iterateur)
 %nothread swig::SwigPyIterator::~SwigPyIterator();

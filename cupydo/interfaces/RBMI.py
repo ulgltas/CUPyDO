@@ -31,7 +31,7 @@ import NativeSolid
 
 import math
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  RBMI solver interface class
@@ -124,7 +124,7 @@ class RBMI(SolidSolver):
 
         self.NativeSolid.getInterfaceNodeGlobalIndex(self.interfaceID, iVertex)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
         """
         Des.
         """

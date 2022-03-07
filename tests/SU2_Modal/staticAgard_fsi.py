@@ -7,7 +7,7 @@
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -18,11 +18,11 @@ def test(res, tol):
 
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 0.000032, 1e-1, False)) # rel. tol. of 10% (was 0.00035 before)
     tests.add(CTest('LE Displacement (16, z)', resultS[4], 0.0116, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('TE Displacement (13808, z)', resultS[7], 0.0132, 1e-1, False)) # rel. tol. of 10%
     tests.run()
@@ -43,10 +43,12 @@ def getFsiP():
     p['algorithm'] = 'StaticBGS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'direct'
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.
     p['timeItTresh'] = -1
+    p['dtSave'] = 0
     p['tol'] = 5e-3
     p['maxIt'] = 6
     p['omega'] = 1.0
@@ -62,7 +64,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

@@ -38,7 +38,7 @@ IF(NOT PYTHON_EXECUTABLE)
   
 ELSE(NOT PYTHON_EXECUTABLE)
     EXECUTE_PROCESS(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; print cg.get_python_lib(1,0)"
+        COMMAND ${PYTHON_EXECUTABLE} -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0))"
         OUTPUT_VARIABLE PYTHON_SITEDIR
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -54,8 +54,14 @@ ELSE(NOT PYTHON_EXECUTABLE)
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(Mpi4Py DEFAULT_MSG MPI4PY_INCLUDE_DIR  )
   
     IF(MPI4PY_FOUND)  
+        EXECUTE_PROCESS( # Find name of MPI .so
+            COMMAND ${PYTHON_EXECUTABLE} -c "from mpi4py import MPI; from sys import stdout; from os import path; stdout.write(path.basename(MPI.__file__))"
+            OUTPUT_VARIABLE MPI4PY_LIB_NAME
+            RESULT_VARIABLE MPI4PY_NOT_FOUND
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
         EXECUTE_PROCESS(  
-            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print mpi4py.__version__"
+            COMMAND ${PYTHON_EXECUTABLE} -c "import mpi4py; print(mpi4py.__version__)"
             OUTPUT_VARIABLE MPI4PY_VERSION  
             RESULT_VARIABLE  MPI4PY_NOT_FOUND  
             OUTPUT_STRIP_TRAILING_WHITESPACE  
@@ -71,7 +77,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
         IF(NOT MPI4PY_SWIG_FILE)  
             MESSAGE(STATUS "mpi4py.i not found !")  
         ENDIF(NOT MPI4PY_SWIG_FILE)  
-        FIND_FILE(MPI4PY_LIBRARIES MPI.so HINTS ${MPI4PY_INCLUDE_DIR}/.. ${PYTHON_SITEDIR}/mpi4py)
+        FIND_FILE(MPI4PY_LIBRARIES NAMES ${MPI4PY_LIB_NAME} HINTS ${MPI4PY_INCLUDE_DIR}/.. ${PYTHON_SITEDIR}/mpi4py)
     ELSE(MPI4PY_FOUND)  
         IF(MPI4PY_FIND_REQUIRED)  
             MESSAGE(FATAL_ERROR "mpi4py not found !")  

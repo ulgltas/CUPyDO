@@ -33,7 +33,7 @@ from math import *
 #    Criterion class
 # ----------------------------------------------------------------------
 
-class Criterion:
+class Criterion(object):
     """
     Description
     """

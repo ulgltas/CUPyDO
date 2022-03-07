@@ -28,7 +28,7 @@ Adrien Crovato, Mariano Sanchez Martinez
 # ----------------------------------------------------------------------
 
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Modal solver interface class
@@ -93,7 +93,7 @@ class Modal(SolidSolver):
         self.nodalDisp_Y = self.solver.dispY
         self.nodalDisp_Z = self.solver.dispZ
            
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
         """Update the loads
         Adrien Crovato
         """
@@ -152,7 +152,7 @@ class Modal(SolidSolver):
         # Nodal displacements
         solFile = open('NodalDisplacement.dat', "a")
         solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
-        for lidx in self.solver.extractor.values():
+        for lidx in list(self.solver.extractor.values()):
             solFile.write('   {0:12.6f}   {1:12.6f}   {2:12.6f}'.format(self.nodalDisp_X[lidx], self.nodalDisp_Y[lidx], self.nodalDisp_Z[lidx]))
         solFile.write('\n')
         solFile.close()

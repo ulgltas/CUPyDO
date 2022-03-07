@@ -8,7 +8,7 @@
 def test(cupydo, tol):
     res = cupydo.algorithm.errValue
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Read results from data
     cl = cupydo.algorithm.FluidSolver.coreSolver.getCl()
     cd = cupydo.algorithm.FluidSolver.coreSolver.getCd()
@@ -21,7 +21,7 @@ def test(cupydo, tol):
 
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', cl, 0.0460, 1e-2, True)) # abs. tol
@@ -46,10 +46,13 @@ def getFsiP():
     p['algorithm'] = 'StaticBGS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'Direct'
     p['nDim'] = 3
     p['dt'] = 0.1
     p['tTot'] = 0.1
     p['timeItTresh'] = -1
+    p['dtSave'] = 0
+    p['dtSave'] = 0
     p['tol'] = 1e-4
     p['maxIt'] = 50
     p['omega'] = 1.0
@@ -66,7 +69,7 @@ def main():
     test(cupydo, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

@@ -30,11 +30,9 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 from math import *
 import numpy as np
 import scipy as sp
-import os, os.path, sys, string
+import os, os.path, sys
 import time as tm
-
-import socket, fnmatch
-import fsi_pyutils
+import json
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -58,7 +56,7 @@ def solve_upper_triangular_mod(U, y, toll):
         if abs(U[i, i]) <= toll:
             x[i] = 0.
         else:
-            x[i] = y[i];
+            x[i] = y[i]
             for j in range (i + 1, n):
                   x[i] -= U[i, j] * x[j]
             x[i] /= U[i, i]
@@ -141,25 +139,27 @@ def setDirs(fpath):
     # create workspace path
     sys.path.append(os.path.dirname(fpath)) # [RB] !this folder is can be a subfolder of one of the folders in the pythonpath
     base = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ' ')) # find base directory
-    print base
+    mpiPrint(base, comm)
     common = os.path.commonprefix((fpath, base)) # find common part of testname ad base name
     resdir = os.path.splitext(fpath[len(common):].replace(os.sep,"_"))[0] # common part, change seprator to underscore and remove ".py"
     wdir=os.path.join('workspace', resdir) # that is our workspace!
     # create workspace (master process)
     if rank == 0:
         if not os.path.isdir(wdir):
-            print "creating", wdir
+            print("creating", wdir)
             os.makedirs(wdir)
 
         if size > 1: # send sync to slaves
                 for i in range(1, size):
                     comm.send(1, dest=i, tag=11)
-                comm.barrier()
+
+        if comm:
+            comm.barrier()
     # block slave processes
     else:
         comm.barrier()
     # change to workspace
-    print 'changing to', wdir
+    mpiPrint('changing to ' + wdir, comm)
     os.chdir(wdir)
 
 def getMpi():
@@ -282,7 +282,7 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
 #   Timer class
 # ----------------------------------------------------------------------
 
-class Timer:
+class Timer(object):
     """
     Description
     """
@@ -340,3 +340,93 @@ class Timer:
         """
 
         return self.cumulTime
+
+# ----------------------------------------------------------------------
+#   Solver path class
+# ----------------------------------------------------------------------
+
+class solverPath(object):
+    def __init__(self):
+
+        # Path to the base folder of CUPyDO
+
+        baseFolder = __file__
+        for i in range(3): baseFolder = os.path.split(baseFolder)[0]
+        self.addedPaths = {}
+
+        # Look for cupydoExtProgs.json in CUPyDO folder
+
+        try:
+            with open(os.path.join(baseFolder,'.cupydoExtProgs.json')) as file:
+                self.solverPaths = json.load(file)
+
+        # LIf not found, looks for cupydoExtProgs.json in home folder
+        
+        except:
+            try:
+                with open(os.path.join(os.path.expanduser('~'),'.cupydoExtProgs.json')) as file:
+                    self.solverPaths = json.load(file)
+            except: self.solverPaths = {}
+
+        # Relative paths for solvers located next to CUPyDO
+
+        self.basePaths = {}
+        self.basePaths['Metafor'] = ['Metafor/oo_metaB/bin','Metafor/oo_meta','Metafor/linuxbin']
+        self.basePaths['RBMI'] = ['NativeSolid/bin']
+        self.basePaths['Modal'] = ['modali']
+        self.basePaths['Flow'] = ['waves']
+        self.basePaths['Pfem'] = ['PFEM','waves']
+        self.basePaths['SU2'] = ['SU2/build/bin']
+        self.basePaths['VLM'] = ['VLM']
+        self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']
+        self.basePaths['pyBeam'] = ['pyBeam/build/bin']
+        
+        # Makes the absolute paths for solvers next to CUPyDO
+
+        for key,value in self.basePaths.items():
+            for i in range(len(value)):
+
+                value[i] = os.path.join(baseFolder,value[i])
+                release = os.path.join(value[i],'Release')
+                if os.path.isdir(release): value[i] = release
+
+    # Adds the path to the solver in sys.path
+
+    def add(self, solverName):
+
+        # Check next to the solver first, then in the Json
+
+        try: pathList = self.solverPaths[solverName]
+        except:
+            try: pathList = self.basePaths[solverName]
+            except: raise Exception('%s is not found' % solverName)
+        
+        if not isinstance(pathList,list): pathList = [pathList]
+
+        # Memorize the paths that have been added under that name
+
+        if solverName in self.addedPaths:
+            self.addedPaths[solverName] += pathList
+        else: self.addedPaths[solverName] = pathList
+
+        # Actually adds the paths to the system
+
+        for path in pathList:
+            if os.path.isdir(path):
+                sys.path.append(path)
+                print('Add to path :',path)
+            else:
+                raise Exception('%s not found' % path)
+
+    # Remove the path to the solver from sys.path
+
+    def remove(self, solverName):
+        
+        try: pathList = self.addedPaths[solverName]
+        except: raise Exception('%s has not been added' % solverName)
+
+        if not isinstance(pathList,list): pathList = [pathList]
+
+        for path in pathList:
+            sys.path.remove(path)
+            print('Remove from path :',path)

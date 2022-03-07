@@ -30,13 +30,14 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 from math import *
 import numpy as np
 import scipy as sp
+import sys
 import traceback
 import copy
 import sys
 
 import ccupydo
-from utilities import *
-from interfaceData import FlexInterfaceData
+from .utilities import *
+from .interfaceData import FlexInterfaceData
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -44,12 +45,12 @@ np.set_printoptions(threshold=sys.maxsize)
 #    Algorithm class
 # ----------------------------------------------------------------------
 
-class Algorithm:
+class Algorithm(object):
     """
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, dtSave=0, mpiComm=None):
         """
         Des.
         """
@@ -74,7 +75,9 @@ class Algorithm:
         
         self.deltaT = deltaT
         self.totTime = totTime
+        self.dtSave = dtSave
         self.timeIterTreshold = timeIterTreshold
+
         
         self.time = 0.0
         self.timeIter = 0
@@ -102,7 +105,12 @@ class Algorithm:
                 self.interfaceInterpolator.setDisplacementToFluidSolver(self.time)
                 self.FluidSolver.setInitialMeshDeformation()
             else:
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.setInitialDisplacements()
                 self.interfaceInterpolator.getDisplacementFromSolidSolver()
+                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+                self.interfaceInterpolator.setDisplacementToFluidSolver(self.time)
+                self.FluidSolver.setInitialMeshDeformation()
 
         if self.manager.thermal:
             if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
@@ -175,12 +183,12 @@ class AlgorithmExplicit(Algorithm):
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold=-1, dtSave=0, mpiComm=None):
         """
         Des.
         """
 
-        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, dtSave, mpiComm)
 
     def run(self):
         """
@@ -237,7 +245,8 @@ class AlgorithmExplicit(Algorithm):
         """
 
         #If no restart
-        nbTimeIter = int((self.totTime/self.deltaT)-1)
+        nbTimeIter = int(self.totTime/self.deltaT-1)
+        prevWrite = self.time
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -263,10 +272,12 @@ class AlgorithmExplicit(Algorithm):
             self.FluidSolver.update(self.deltaT)
 
             # --- Write fluid and solid solution, update FSI history  ---#
-            self.FluidSolver.save(self.timeIter)
+            if (self.time > 0) and (self.time-prevWrite > self.dtSave):
 
-            if self.myid in self.manager.getSolidSolverProcessors():
-                self.SolidSolver.save()
+                prevWrite = self.time
+                self.FluidSolver.save(self.timeIter)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.save()
 
             self.writeRealTimeData()
 
@@ -385,12 +396,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList=[1.0,1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, dtSave=0, omegaBoundList=[1.0,1.0], mpiComm=None):
         """
         Des.
         """
 
-        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, mpiComm)
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, timeIterTreshold, dtSave, mpiComm)
 
         self.criterion = Criterion
 
@@ -510,7 +521,8 @@ class AlgorithmBGSStaticRelax(Algorithm):
         """
 
         #If no restart
-        nbTimeIter = int((self.totTime/self.deltaT)-1)
+        nbTimeIter = int(self.totTime/self.deltaT-1)
+        prevWrite = self.time
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -539,10 +551,13 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FluidSolver.update(self.deltaT)
 
             # --- Write fluid and solid solution, update FSI history  ---#
-            self.FluidSolver.save(self.timeIter)
 
-            if self.myid in self.manager.getSolidSolverProcessors():
-                self.SolidSolver.save()
+            if (self.time > 0) and (self.time-prevWrite > self.dtSave):
+
+                prevWrite = self.time
+                self.FluidSolver.save(self.timeIter)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.save()
 
             self.writeRealTimeData()
 
@@ -859,12 +874,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
 class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList=[1.0, 1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, dtSave=0, omegaBoundList=[1.0, 1.0], mpiComm=None):
         """
         Des.
         """
 
-        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaBoundList, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, dtSave, omegaBoundList, mpiComm)
 
 
         self.solidInterfaceResidualkM1 = None
@@ -967,19 +982,19 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
         # --- Update the value of the residual for the next FSI iteration --- #
         self.solidHeatFluxResidual.copy(self.solidInterfaceResidualkM1)
-        self.solidTemperatureResidual.copy(solidTemperatureResidualkM1)
+        self.solidTemperatureResidual.copy(self.solidTemperatureResidualkM1)
 
 class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
     """
     Des.
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, dtSave=0, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
         """
         Des.
         """
 
-        AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaBoundList, mpiComm)
+        AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, dtSave, omegaBoundList, mpiComm)
 
         # --- Number of previous time steps used in the approximation of the tangent matrix --- #
         self.nbTimeToKeep = nbTimeToKeep
@@ -1125,17 +1140,16 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     
                     # --- Start gathering on root process --- #
                     res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)
-                    res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
-                    res_Y_Gat_C = res_Y_Gat[:ns]
-                    res_Z_Gat_C = res_Z_Gat[:ns]
                     solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns+d, self.mpiComm, 0)
-                    solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
-                    solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
-                    solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
                     solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
                     solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
-                    
                     if self.myid == 0:
+                        res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                        res_Y_Gat_C = res_Y_Gat[:ns]
+                        res_Z_Gat_C = res_Z_Gat[:ns]
+                        solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                        solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
+                        solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
                         if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
                             if self.manager.nDim == 3:
                                 delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
@@ -1244,7 +1258,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             mpiPrint('\n*************** IQN-ILS is converged ***************', self.mpiComm)
 
 # --- Solid test algorithm ---
-class FsiSolidTestAlgorithm:
+class FsiSolidTestAlgorithm(object):
     def __init__(self, _solid):
         self.solid = _solid
 
@@ -1268,16 +1282,16 @@ class FsiSolidTestAlgorithm:
                 self.solid.fakeFluidSolver(t2)  # creates some dummy loads for time=t2
 
                 # run solid solver
-                print '='*80
-                print "running from %f to %f: try #%d" % (t1,t2,i+1)
-                print '='*80
+                print('='*80)
+                print("running from %f to %f: try #%d" % (t1,t2,i+1))
+                print('='*80)
                 self.solid.run(t1,t2)
 
                 # gets the deformed interface
                 dx, dy, dz = self.solid.getNodalDisplacements()
-                print dx
-                print dy
-                print dz
+                print(dx)
+                print(dy)
+                print(dz)
 
             self.solid.update()
             self.solid.save()
@@ -1285,3 +1299,211 @@ class FsiSolidTestAlgorithm:
             t1=t2 # fsi loop has converged - time t2 is accepted
 
         # end.
+class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
+    def run(self):
+
+        # --- Initialize interface data --- #
+        self.initInterfaceData()
+        
+        # --- Initialize output manager --- #
+        self.iniRealTimeData()
+
+        mpiPrint('\n*****************************************', self.mpiComm)
+        mpiPrint('*     Begin FSI Adjoint computation     *', self.mpiComm)
+        mpiPrint('*****************************************\n', self.mpiComm)
+
+        self.globalTimer.start()
+
+        #If no restart
+        mpiPrint('Setting FSI initial conditions...', self.mpiComm)
+        self.setFSIInitialConditions()
+        mpiPrint('\nFSI initial conditions are set', self.mpiComm)
+        
+        try:
+            self.time = self.totTime
+            self.timeIter = 1
+            self.deltaT = self.totTime
+            self.writeInFSIloop = True
+            self.fsiCoupling()
+            self.FluidSolver.save(self.timeIter)
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.save()
+            self.totNbOfFSIIt = self.FSIIter
+        except:
+            mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            traceback.print_exc()
+        finally:
+            self.globalTimer.stop()
+            self.globalTimer.cumul()
+            
+            mpiBarrier(self.mpiComm)
+            
+            mpiPrint('\n*****************************************', self.mpiComm)
+            mpiPrint('*      End FSI Adjoint computation      *', self.mpiComm)
+            mpiPrint('*****************************************\n', self.mpiComm)
+            
+            self.printExitInfo()
+            
+            # --- Exit the solid solver --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.exit()
+
+            # --- Exit the fluid solver --- #
+            self.FluidSolver.exit()
+    
+            # --- Exit computation --- #
+            mpiBarrier(self.mpiComm)
+
+    def fsiCoupling(self):
+        """
+        Block Gauss Seidel (BGS) method for strong coupling FSI
+        """
+
+        if self.timeIter > self.timeIterTreshold:
+            nbFSIIter = self.nbFSIIterMax
+            mpiPrint('\n*************** Enter Block Gauss Seidel (BGS) method for strong coupling FSI ***************', self.mpiComm)
+        else:
+            nbFSIIter = 1
+
+        self.FSIIter = 0
+        self.FSIConv = False
+        self.errValue = 1e12
+        self.errValue_CHT = 1e6
+
+        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
+            mpiPrint("\n>>>> FSI Adjoint iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
+
+            if self.manager.mechanical:
+                # --- Solid to fluid mechanical transfer --- #
+                self.solidToFluidMechaTransfer()
+                self.solidToFluidAdjointTransfer()
+                # --- Fluid mesh morphing --- #
+                mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
+                self.meshDefTimer.start()
+                self.FluidSolver.meshUpdate(self.timeIter)
+                self.meshDefTimer.stop()
+                self.meshDefTimer.cumul()
+            self.FluidSolver.boundaryConditionsUpdate()
+
+            # --- Fluid solver call for FSI subiteration --- #
+            mpiPrint('\nLaunching adjoint fluid solver...', self.mpiComm)
+            self.fluidSolverTimer.start()
+            self.FluidSolver.run(self.time-self.deltaT, self.time)
+            self.fluidSolverTimer.stop()
+            self.fluidSolverTimer.cumul()
+            mpiBarrier(self.mpiComm)
+
+            if self.timeIter > self.timeIterTreshold:
+                if self.manager.mechanical:
+                    # --- Fluid to solid mechanical transfer --- #
+                    mpiPrint('\nProcessing interface fluid adjoint loads...\n', self.mpiComm)
+                    self.fluidToSolidMechaTransfer()
+                    self.fluidToSolidAdjointTransfer()
+                mpiBarrier(self.mpiComm)
+
+                # --- Solid solver call for FSI subiteration --- #
+                mpiPrint('\nLaunching adjoint solid solver...\n', self.mpiComm)
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.solidSolverTimer.start()
+                    self.SolidSolver.run(self.time-self.deltaT, self.time)
+                    self.solidSolverTimer.stop()
+                    self.solidSolverTimer.cumul()
+                self.solidHasRun = True
+
+                if self.manager.mechanical:
+                    # --- Compute the mechanical residual --- #
+                    res = self.computeSolidInterfaceAdjointResidual()
+                    self.errValue = self.criterion.update(res)
+                    mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
+                else:
+                    self.errValue = 0.0
+                
+                self.errValue_CHT = 0.0
+
+                # --- Monitor the coupling convergence --- #
+                self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
+
+                if self.manager.mechanical:
+                    # --- Relaxe the solid position --- #
+                    mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
+                    self.relaxSolidAdjointLoad()
+
+            if self.writeInFSIloop == True:
+                self.writeRealTimeData()
+
+            self.FSIIter += 1
+            if self.manager.computationType != 'unsteady':
+                self.time += self.deltaT
+
+            # --- Update the solvers for the next BGS iteration --- #
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.bgsUpdate()
+            self.FluidSolver.bgsUpdate()
+
+        if self.timeIter > self.timeIterTreshold:
+            mpiPrint('\n*************** BGS is converged ***************', self.mpiComm)
+
+    def fluidToSolidAdjointTransfer(self):
+        """
+        Des.
+        """
+
+        self.communicationTimer.start()
+        self.interfaceInterpolator.getAdjointDisplacementFromFluidSolver()
+        self.interfaceInterpolator.interpolateFluidAdjointDisplacementOnSolidMesh()
+        self.interfaceInterpolator.setAdjointDisplacementToSolidSolver(self.time)
+        self.communicationTimer.stop()
+        self.communicationTimer.cumul()
+
+    def solidToFluidAdjointTransfer(self):
+        """
+        Des.
+        """
+
+        self.communicationTimer.start()
+        self.interfaceInterpolator.getAdjointLoadsFromSolidSolver()
+        self.interfaceInterpolator.interpolateSolidAdjointLoadsOnFluidMesh()
+        self.interfaceInterpolator.setAdjointLoadsToFluidSolver(self.time)
+        self.communicationTimer.stop()
+        self.communicationTimer.cumul()
+
+    def __unsteadyRun(self):
+        RuntimeError("Unsteady adjoint not implemented")
+
+    def computeSolidInterfaceAdjointResidual(self):
+        """
+        Des.
+        """
+
+        ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
+
+        # --- Get the predicted (computed) solid interface adjoint loads from the solid solver --- #
+        predictedAdjointLoad = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointLoads()
+            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceAdjointLoad_X[iVertex], localSolidInterfaceAdjointLoad_Y[iVertex], localSolidInterfaceAdjointLoad_Z[iVertex]]
+
+        predictedAdjointLoad.assemble()
+
+        # --- Calculate the residual (vector and norm) --- #
+        mpiPrint("\nCompute FSI residual based on solid adjoint load displacement.", self.mpiComm)
+        self.solidInterfaceResidual.set(predictedAdjointLoad - self.interfaceInterpolator.solidInterfaceAdjointLoads)
+
+        return self.solidInterfaceResidual
+
+    def relaxSolidAdjointLoad(self):
+        """
+        Des.
+        """
+
+        # --- Set the relaxation parameter --- #
+        self.setOmegaMecha()
+
+        # --- Relax the solid interface position --- #
+        self.interfaceInterpolator.solidInterfaceAdjointLoads += (self.omegaMecha*self.solidInterfaceResidual)
+
+

@@ -1,14 +1,13 @@
-
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # original name: birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym_fsi.py
 
 def test(res, tol, it):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     
     # Read results from file
@@ -42,10 +41,12 @@ def getFsiP():
     p['algorithm'] = 'AitkenBGS'
     # FSI parameters
     p['compType'] = 'unsteady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 1.5e-6
     p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)
     p['timeItTresh'] = 0
+    p['dtSave'] = 0
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5
@@ -59,7 +60,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

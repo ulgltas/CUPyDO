@@ -26,20 +26,19 @@ Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
-import os, os.path, sys, time, string
-
+from past.utils import old_div
 import math
 from toolbox.utilities import *
 import toolbox.fac as fac
 from wrap import *
 import numpy as np
-from cupydo.genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
 #  Nodal Load class
 # ----------------------------------------------------------------------
 
-class NLoad:
+class NLoad(object):
     """
     Nodal load
     """
@@ -49,7 +48,7 @@ class NLoad:
         self.val2 = val2
         self.t2 = t2
     def __call__(self, time):
-        theValue = self.val1 + (time-self.t1)/(self.t2-self.t1)*(self.val2-self.val1)
+        theValue = self.val1 + old_div((time-self.t1),(self.t2-self.t1))*(self.val2-self.val1)
         return theValue
     def nextstep(self):
         self.t1 = self.t2
@@ -62,16 +61,16 @@ class NLoad:
 class Metafor(SolidSolver):
     def __init__(self, testname, computationType):
         """
-        des.
+        Initialises Metafor class
         """
         
-        print '\n***************************** Initializing Metafor *****************************'
+        print('\n***************************** Initializing Metafor *****************************')
         
         # --- Load the Python module --- #
         self.testname = testname            # string (name of the module of the solid model)
         #load(self.testname)                # loads the python module and creates mtf/workspace
-        exec("import %s" % self.testname)
-        exec("module = %s" % self.testname)
+        exec("import %s" % self.testname, globals())
+        exec("module = %s" % self.testname, globals())
 
         # --- Create an instance of Metafor --- #
         self.metafor = None                   # link to Metafor objet
@@ -100,6 +99,10 @@ class Metafor(SolidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
 
+        # --- Stores the file exporter if it exists --- #
+
+        if 'exporter' in p: self.exporter = p['exporter']
+        else: self.exporter = None
 
         # --- Builds a list (dict) of interface nodes and creates the nodal prescribed loads --- #
         loadingset = self.metafor.getDomain().getLoadingSet()
@@ -294,7 +297,7 @@ class Metafor(SolidSolver):
         
         self.applyNodalLoads(valx, valy, valz, time)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = None):
         """
         Des.
         """
@@ -327,13 +330,13 @@ class Metafor(SolidSolver):
         Des.
         """
         
-        for no in self.fnods.iterkeys():
+        for no in self.fnods.keys():
             node, fx, fy, fz = self.fnods[no]
             fx.nextstep()
             fy.nextstep()
             fz.nextstep()
 
-        for no in self.Tnods.iterkeys():
+        for no in self.Tnods.keys():
             node, Temp = self.Tnods[no]
             Temp.nextstep()
 
@@ -396,7 +399,10 @@ class Metafor(SolidSolver):
             for d in data:
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
-            print toPrint
+            print(toPrint)
+
+    def save(self):
+        if self.exporter is not None: self.exporter.execute()
     
     def exit(self):
         """

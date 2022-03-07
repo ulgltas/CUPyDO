@@ -1,0 +1,40 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+% pyBeam configuration file                                                    %
+% Case description: point load - adjoint                                       %
+% Author: Rocco Bombardieri, Ruben Sanchez___________________________________  %
+% Institution: UC3M, TU KL___________________________________________________  %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Young modulus [Pa]
+Y_MODULUS = 50000
+
+% Poisson Ratio
+POISSON = 0.35
+
+%  Beam Density [kg/m^3]
+RHO = 2700
+
+% Number of loadsteps used in the analysis (DEFAULT = 1)
+LOAD_STEPS = 2
+
+% Number of iterations used in the analysis  (DEFAULT = 1)
+N_STRUCT_ITER = 30
+
+% Convergence rate criterium (DEFAULT = 1e-4)
+CONV_CRITERIUM = 0.00000000001  
+
+% Tolerance of the linear solver
+TOLERANCE_LINSOL = 1e-7
+
+% Kind of linear solver (FullPivHouseholderQr, PartialPivLu, FullPivLu, HouseholderQr, ColPivHouseholderQr, LLT, LDLT)
+KIND_LINSOL = PartialPivLu
+
+% MESH file 
+MESH_FILE = ../../tests/SU2_pyBeam/models/mesh_cantilever.pyBeam
+
+% PROPERTY file 
+PROPERTY_FILE = ../../tests/SU2_pyBeam/models/property_cantilever.pyBeam
+
+

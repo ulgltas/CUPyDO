@@ -7,7 +7,7 @@
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Flow constant (defined in case_fluid)
     dynP = 0.5*100 # dynamic pressure
     alpha0 = np.radians(3) # initial angle of attack
@@ -29,10 +29,10 @@ def test(res, tol):
     x = np.linalg.solve(A, b)
 
     # Display the solution
-    print "Ref. lift coefficient: " + str(cl_alpha*x[1])
-    print "Ref. vertical displacement: " + str(x[0])
-    print "Ref. new angle of attack: " + str(np.degrees(x[1]))
-    print "Ref. rotational displacement : " + str(np.degrees(x[1]-alpha0))
+    print("Ref. lift coefficient: " + str(cl_alpha*x[1]))
+    print("Ref. vertical displacement: " + str(x[0]))
+    print("Ref. new angle of attack: " + str(np.degrees(x[1])))
+    print("Ref. rotational displacement : " + str(np.degrees(x[1]-alpha0)))
 
     # Read results from file
     resultS = np.genfromtxt("NativeHistory.dat", delimiter=None, skip_header=1)
@@ -42,7 +42,7 @@ def test(res, tol):
 
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], cl_alpha*x[1], 2*1e-1, False)) # rel. tol. of 10%
@@ -67,10 +67,12 @@ def getFsiP():
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.0
     p['tTot'] = 0.0
     p['timeItTresh'] = -1
+    p['dtSave'] = 0
     p['tol'] = 1e-4
     p['maxIt'] = 50
     p['omega'] = 1.0
@@ -86,7 +88,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

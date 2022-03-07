@@ -7,7 +7,7 @@
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import *
+    from cupydo.testing import CTest, CTests, ccolors
     # Read results from file
     with open("FlowHistory.dat", 'rb') as f:
         lines = f.readlines()
@@ -18,7 +18,7 @@ def test(res, tol):
 
     # Check convergence and results
     if (res > tol):
-        print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
+        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.22, 1e-1, False)) # rel. tol. of 10%, dummy value
@@ -41,10 +41,12 @@ def getFsiP():
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'steady'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.1
     p['tTot'] = 0.1
     p['timeItTresh'] = -1
+    p['dtSave'] = 0
     p['tol'] = 1e-5
     p['maxIt'] = 50
     p['omega'] = 1.0
@@ -61,7 +63,7 @@ def main():
     test(cupydo.algorithm.errValue, p['tol']) # check the results
     
     # eof
-    print ''
+    print('')
 
 # --- This is only accessed if running from command prompt --- #
 if __name__ == '__main__':

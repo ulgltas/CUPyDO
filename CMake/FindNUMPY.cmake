@@ -46,7 +46,7 @@ ELSE(NOT PYTHON_EXECUTABLE)
 
     IF(NUMPY_FOUND)
         EXECUTE_PROCESS(
-            COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print numpy.__version__"
+            COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.__version__)"
             OUTPUT_VARIABLE NUMPY_VERSION
             RESULT_VARIABLE  NUMPY_NOT_FOUND
             OUTPUT_STRIP_TRAILING_WHITESPACE

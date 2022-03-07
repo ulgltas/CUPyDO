@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from wrap import *
-from wrap.mtComposites import *
-from  math import *
+from wrap.mtCompositesw import *
+from math import *
 
 def params(_p):
     p={}
@@ -25,7 +25,7 @@ def getMetafor(p={}):
     geometry.setDim3D()
 
     # -- Import the geometry
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "models/agard445_solid.geo")
     importer = GmshImport(f, domain)
     importer.execute()    

@@ -1,0 +1,40 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                              %
+% pyBeam configuration file                                                    %
+% Case description: crossed-term flow adjoint                                  %
+% Author: Rocco Bombardieri, Ruben Sanchez___________________________________  %
+% Institution: UC3M, TU KL___________________________________________________  %
+%                                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Young modulus [Pa]
+Y_MODULUS = 4E10
+
+% Poisson Ratio
+POISSON = 0.33
+
+%  Beam Density [kg/m^3]
+RHO = 2700
+
+% Number of loadsteps used in the analysis (DEFAULT = 1) 25
+LOAD_STEPS = 10
+
+% Number of iterations used in the analysis  (DEFAULT = 1) 15
+N_STRUCT_ITER =10
+
+% Convergence rate criterium (DEFAULT = 1e-4)
+CONV_CRITERIUM = 0.000000001
+
+% Tolerance of the linear solver
+TOLERANCE_LINSOL = 1e-7
+
+% Kind of linear solver (FullPivHouseholderQr, PartialPivLu, FullPivLu, HouseholderQr, ColPivHouseholderQr, LLT, LDLT)
+KIND_LINSOL = FullPivLu
+
+% Mesh file 
+MESH_FILE =  ../../tests/SU2_pyBeam/models/OneraMesh.pyBeam
+
+% Property file 
+PROPERTY_FILE =  ../../tests/SU2_pyBeam/models/OneraProp.pyBeam
+

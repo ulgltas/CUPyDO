@@ -27,10 +27,15 @@ Authors D. THOMAS
 #  Imports
 # ----------------------------------------------------------------------
 
-import pysu2
+try: # Try to import the AD-capable SU2 module first
+    import pysu2ad as pysu2
+    adjoint = True
+except ModuleNotFoundError as error:
+    import pysu2
+    adjoint = False
 import math
 import numpy as np
-from cupydo.genericSolvers import FluidSolver
+from ..genericSolvers import FluidSolver, FluidAdjointSolver
 
 # ----------------------------------------------------------------------
 #  SU2 solver interface class
@@ -46,21 +51,8 @@ class SU2(FluidSolver):
         Initialize the SU2 solver and all the required interface variables.
         """
 
-        # --- Instantiate the single zone driver of SU2 --- #
-        # @todo [Adrien Crovato ]Change CFluidDriver constructor
-        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
-        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
-        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
-        try:
-            self.SU2 = pysu2.CFluidDriver(confFile, 1, nDim, False, MPIComm)
-        except TypeError as exception:
-            print('A TypeError occured in pysu2.CSingleZoneDriver : ',exception)
-            if have_MPI == True:
-                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
-            else:
-                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
-
-        allMovingMarkersTags = self.SU2.GetAllMovingMarkersTag()                    # list containing the tags of all moving markers
+        self.initializeSolver(confFile, have_MPI, MPIComm)
+        allMovingMarkersTags = self.SU2.GetAllDeformMeshMarkersTag()                    # list containing the tags of all moving markers
         allCHTMarkersTags = self.SU2.GetAllCHTMarkersTag()
         allMarkersID = self.SU2.GetAllBoundaryMarkers()                             # dic : allMarkersID['marker_tag'] = marker_ID
         self.fluidInterfaceID = None                                                # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allMovingMarkersTags
@@ -68,14 +60,14 @@ class SU2(FluidSolver):
             #raise Exception('No interface for FSI was defined.')
             self.fluidInterfaceID = None
         elif allMovingMarkersTags and not allCHTMarkersTags:
-            if allMovingMarkersTags[0] in allMarkersID.keys():
+            if allMovingMarkersTags[0] in list(allMarkersID.keys()):
                 self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
         elif not allMovingMarkersTags and allCHTMarkersTags:
-            if allCHTMarkersTags[0] in allMarkersID.keys():
+            if allCHTMarkersTags[0] in list(allMarkersID.keys()):
                 self.fluidInterfaceID = allMarkersID[allCHTMarkersTags[0]]
         elif allMovingMarkersTags and allCHTMarkersTags:
             if allMovingMarkersTags[0] == allCHTMarkersTags[0]:
-                if allMovingMarkersTags[0] in allMarkersID.keys():
+                if allMovingMarkersTags[0] in list(allMarkersID.keys()):
                     self.fluidInterfaceID = allMarkersID[allMovingMarkersTags[0]]
             else:
                 raise Exception("Moving and CHT markers have to be the same!\n")
@@ -91,29 +83,33 @@ class SU2(FluidSolver):
             self.nNodes = self.SU2.GetNumberVertices(self.fluidInterfaceID)           # numbers of nodes at the f/s interface (halo+physical)
             self.nHaloNode = self.SU2.GetNumberHaloVertices(self.fluidInterfaceID)    # numbers of nodes at the f/s interface (halo)
         self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
-    
+        # Initialize list to store point indices
+        self.pointIndexList = np.zeros(self.nPhysicalNodes, dtype=int)
+
+        # --- initial position of the f/s interface(s) --- #
         self.nodalInitialPos_X = np.zeros((self.nPhysicalNodes))             # initial position of the f/s interface
         self.nodalInitialPos_Y = np.zeros((self.nPhysicalNodes))
         self.nodalInitialPos_Z = np.zeros((self.nPhysicalNodes))
         self.haloNodesPositionsInit = {}
 
-        FluidSolver.__init__(self)
+        self.initializeVariables()
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
-            posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
-            posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
+            posX, posY, posZ = self.SU2.GetInitialMeshCoord(self.fluidInterfaceID, iVertex)
+            # posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
+            # posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
+            # posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
             if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
                 self.haloNodeList[GlobalIndex] = iVertex
                 self.haloNodesPositionsInit[GlobalIndex] = (posX, posY, posZ)
             else:
-                self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
-                Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
-                Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
-                Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+                self.pointIndexList[PhysicalIndex] = GlobalIndex
+                # self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+                Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 self.nodalInitialPos_X[PhysicalIndex] = posX
                 self.nodalInitialPos_Y[PhysicalIndex] = posY
@@ -126,25 +122,53 @@ class SU2(FluidSolver):
 
         self.initRealTimeData()
 
+        # print("\n -------------------------- FLUID NODES ------------------------------ \n")
+        # print("There is a total of", self.nNodes, "nodes\n")
+        # for iIndex in range(self.nPhysicalNodes):
+        #     print(self.pointIndexList[iIndex], self.nodalInitialPos_X[iIndex], self.nodalInitialPos_Y[iIndex], self.nodalInitialPos_Z[iIndex])
+
+    def initializeSolver(self, confFile, have_MPI, MPIComm):
+        # --- Instantiate the single zone driver of SU2 --- #
+        # @todo [Adrien Crovato ]Change CFluidDriver constructor
+        # as of SU2-6.1.0, a new way of handling periodic boundary conditon has been implemented
+        # Consequently CDriver(config, nZone, nDim, MPIComm) changed to CFluidDriver(config, nZone, nDim, val_periodic, MPIComm)
+        # Since periodic BC are not used yet in CUPyDO, I just adapted the constructor. This will have to be changed...
+        try:
+            self.SU2 = pysu2.CSinglezoneDriver(confFile, 1, MPIComm)
+        except TypeError as exception:
+            print(('A TypeError occured in pysu2.CFluidDriver : ',exception))
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        FluidSolver.__init__(self)
+
     def run(self, t1, t2):
         """
         Run one computation of SU2.
         """
 
         if self.computationType == 'unsteady':
-            self.__unsteadyRun(t1, t2)
+            nt = int(t2/(t2-t1))
+            self.__unsteadyRun(nt)
         else:
             self.__steadyRun()
 
         self.__setCurrentState()
 
-    def __unsteadyRun(self, t1, t2):
+    def __unsteadyRun(self, nt):
         """
         Run SU2 on one time step.
         """
 
         self.SU2.ResetConvergence()
         self.SU2.Run()
+        self.SU2.Postprocess()
 
     def __steadyRun(self):
         """
@@ -152,16 +176,11 @@ class SU2(FluidSolver):
         """
 
         self.SU2.ResetConvergence()
-        NbIter = self.SU2.GetnExtIter()
-        Iter = 0
-        while Iter < NbIter:
-            self.SU2.PreprocessExtIter(Iter)
-            self.SU2.Run()
-            StopIntegration = self.SU2.Monitor(Iter)
-            self.SU2.Output(Iter)
-            if StopIntegration:
-                break;
-            Iter += 1
+        self.SU2.Preprocess(0)
+        self.SU2.Run()
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Postprocess()
+        self.SU2.Output(0)
 
     def __setCurrentState(self):
         """
@@ -171,22 +190,19 @@ class SU2(FluidSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             # identify the halo nodes and ignore their nodal loads
-            halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
-            self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
+            # halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            halo = self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex)
+            # self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
             if halo == False:
                 if self.nodalLoadsType == 'pressure':
                     Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID, iVertex)
                     Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID, iVertex)
                     Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID, iVertex)
                 else:
-                    Fx = self.SU2.GetVertexForceX(self.fluidInterfaceID, iVertex)
-                    Fy = self.SU2.GetVertexForceY(self.fluidInterfaceID, iVertex)
-                    Fz = self.SU2.GetVertexForceZ(self.fluidInterfaceID, iVertex)
+                    Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
-                Qx = self.SU2.GetVertexHeatFluxX(self.fluidInterfaceID, iVertex)
-                Qy = self.SU2.GetVertexHeatFluxY(self.fluidInterfaceID, iVertex)
-                Qz = self.SU2.GetVertexHeatFluxZ(self.fluidInterfaceID, iVertex)
+                Qx, Qy, Qz = self.SU2.GetVertexHeatFluxes(self.fluidInterfaceID, iVertex)
                 self.nodalLoad_X[PhysicalIndex] = Fx
                 self.nodalLoad_Y[PhysicalIndex] = Fy
                 self.nodalLoad_Z[PhysicalIndex] = Fz
@@ -220,21 +236,21 @@ class SU2(FluidSolver):
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
             # in case of halo node, use haloNodesDisplacements with global fluid indexing
-            if GlobalIndex in self.haloNodeList.keys():
+            if GlobalIndex in list(self.haloNodeList.keys()):
                 dispX, dispY, dispZ = haloNodesDisplacements[GlobalIndex]
                 posX0, posY0, posZ0 = self.haloNodesPositionsInit[GlobalIndex]
                 newPosX = posX0 + dispX
                 newPosY = posY0 + dispY
                 newPosZ = posZ0 + dispZ
             else:
-                newPosX = disp_X[PhysicalIndex] + self.nodalInitialPos_X[PhysicalIndex]
-                newPosY = disp_Y[PhysicalIndex] + self.nodalInitialPos_Y[PhysicalIndex]
-                newPosZ = disp_Z[PhysicalIndex] + self.nodalInitialPos_Z[PhysicalIndex]
+                dispX = disp_X[PhysicalIndex]
+                dispY = disp_Y[PhysicalIndex]
+                dispZ = disp_Z[PhysicalIndex]
+                newPosX = dispX + self.nodalInitialPos_X[PhysicalIndex]
+                newPosY = dispY + self.nodalInitialPos_Y[PhysicalIndex]
+                newPosZ = dispZ + self.nodalInitialPos_Z[PhysicalIndex]
                 PhysicalIndex += 1
-            self.SU2.SetVertexCoordX(self.fluidInterfaceID, iVertex, newPosX)
-            self.SU2.SetVertexCoordY(self.fluidInterfaceID, iVertex, newPosY)
-            self.SU2.SetVertexCoordZ(self.fluidInterfaceID, iVertex, newPosZ)
-            self.SU2.SetVertexVarCoord(self.fluidInterfaceID, iVertex)
+            self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
         """
@@ -288,7 +304,7 @@ class SU2(FluidSolver):
         """
         Update the solution after each time step (converged) for an unsteady computation.
         """
-
+        
         self.SU2.Update()
 
     def save(self, nt):
@@ -338,9 +354,9 @@ class SU2(FluidSolver):
         Perform the mesh morphing.
         """
 
-        if self.computationType == 'unsteady':
+        if self.computationType == 'unsteady' and nt>0:
             self.SU2.DynamicMeshUpdate(nt)
-        else:
+        elif self.computationType == 'steady':
             self.SU2.StaticMeshUpdate()
 
     def boundaryConditionsUpdate(self):
@@ -355,14 +371,15 @@ class SU2(FluidSolver):
         Perform the mesh morphing for FSI initial conditions.
         """
 
-        self.SU2.SetInitialMesh()
+        self.SU2.StaticMeshUpdate()
 
     def preprocessTimeIter(self, timeIter):
         """
         Preprocessing routine before each time step.
         """
 
-        self.SU2.PreprocessExtIter(timeIter)
+        if timeIter > 0:
+            self.SU2.Preprocess(timeIter)
 
     def remeshing(self):
         """
@@ -384,3 +401,73 @@ class SU2(FluidSolver):
         """
 
         return
+
+class SU2Adjoint(SU2, FluidAdjointSolver):
+    """
+    SU2 adjoint solver interface.
+    """
+    def initializeSolver(self, confFile, have_MPI, MPIComm):
+        # --- Instantiate the single zone driver of SU2 --- #
+        if not adjoint:
+            print('ERROR: You are trying to launch an adjoint calculation with an AD-incapable build of the SU2 wrapper. Please, add the -Denable-pywrapper=true to meson options.')
+            return
+        try:
+            self.SU2 = pysu2.CDiscAdjSinglezoneDriver(confFile, 1, MPIComm)
+        except TypeError as exception:
+            print(('A TypeError occured in pysu2.CDiscAdjSinglezoneDriver : ',exception))
+            if have_MPI == True:
+                print('ERROR : You are trying to initialize MPI with a serial build of the wrapper. Please, remove the --parallel option that is incompatible with a serial build.')
+            else:
+                print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
+    
+    def initializeVariables(self):
+        """
+        Initialize variables required by the solver
+        """
+        FluidAdjointSolver.__init__(self)
+
+    def __setCurrentState(self):
+        SU2._SU2__setCurrentState(self) # Using SU2 original __setCurrentState
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            # identify the halo nodes and ignore their nodal loads
+            # halo = self.SU2.ComputeVertexForces(self.fluidInterfaceID, iVertex)
+            halo = self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex)
+            if halo == False:
+                self.nodalAdjDisp_X[PhysicalIndex], self.nodalAdjDisp_Y[PhysicalIndex], self.nodalAdjDisp_Z[PhysicalIndex]  = self.SU2.GetMeshDisp_Sensitivity(self.fluidInterfaceID, iVertex)
+                PhysicalIndex += 1
+
+    def run(self, t1, t2):
+        """
+        Run one computation of SU2.
+        """
+        self.__steadyRun()
+
+        self.__setCurrentState()
+
+    def __steadyRun(self):
+        """
+        Run SU2 up to a converged steady state.
+        """
+
+        self.SU2.ResetConvergence()
+        self.SU2.Preprocess(0)
+        self.SU2.Run()
+        self.SU2.Postprocess()
+        self.SU2.Update()
+        StopIntegration = self.SU2.Monitor(0)
+        self.SU2.Output(0)
+    
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+        PhysicalIndex = 0
+        for iVertex in range(self.nNodes):
+            GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
+            # in case of halo node, use haloNodesLoads with global fluid indexing
+            if GlobalIndex in list(self.haloNodeList.keys()):
+                loadX, loadY, loadZ = haloNodesLoads[GlobalIndex]
+            else:
+                loadX = load_adj_X[PhysicalIndex]
+                loadY = load_adj_Y[PhysicalIndex]
+                loadZ = load_adj_Z[PhysicalIndex]
+                PhysicalIndex += 1
+            self.SU2.SetFlowLoad_Adjoint(self.fluidInterfaceID, iVertex, loadX, loadY, loadZ)

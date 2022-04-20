@@ -59,7 +59,7 @@ def getMetafor(p={}):
     geometry.setDimPlaneStrain(1.0)
 
     # import .geo
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "cylinder.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()

@@ -36,7 +36,7 @@ def getMetafor(p={}):
     geometry.setDimPlaneStrain(1.0)
 
     # import .geo
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "PingPongCylinder_depth_1D.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()
@@ -53,7 +53,7 @@ def getMetafor(p={}):
     materset = domain.getMaterialSet()
     materset.define( 1, ElastHypoMaterial )
     mater1 = materset(1)
-    mater1.put(MASS_DENSITY,    80.0)  # [kg/m³]
+    mater1.put(MASS_DENSITY,    80.0)  # [kg/mï¿½]
     mater1.put(ELASTIC_MODULUS, 100.0e6)  # [Pa]
     mater1.put(POISSON_RATIO,   0.4)   # [-]
 

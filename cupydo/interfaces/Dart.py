@@ -56,7 +56,8 @@ class Dart(FluidSolver):
     def run(self, t1, t2):
         """Run the solver for one steady (time) iteration.
         """
-        if not self.solver.run():
+        status = self.solver.run()
+        if status > 1:
             raise RuntimeError('DART solver diverged!\n')
         self.__setCurrentState()
     

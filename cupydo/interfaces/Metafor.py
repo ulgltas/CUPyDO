@@ -27,8 +27,6 @@ Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 #  Imports
 # ----------------------------------------------------------------------
 from past.utils import old_div
-import os, os.path, sys, time, string
-
 import math
 from toolbox.utilities import *
 import toolbox.fac as fac
@@ -63,7 +61,7 @@ class NLoad(object):
 class Metafor(SolidSolver):
     def __init__(self, testname, computationType):
         """
-        des.
+        Initialises Metafor class
         """
         
         print('\n***************************** Initializing Metafor *****************************')
@@ -101,6 +99,10 @@ class Metafor(SolidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.gr.getNumberOfMeshPoints()                     # number of node at the f/s boundary
 
+        # --- Stores the file exporter if it exists --- #
+
+        if 'exporter' in p: self.exporter = p['exporter']
+        else: self.exporter = None
 
         # --- Builds a list (dict) of interface nodes and creates the nodal prescribed loads --- #
         loadingset = self.metafor.getDomain().getLoadingSet()
@@ -398,6 +400,9 @@ class Metafor(SolidSolver):
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff
             print(toPrint)
+
+    def save(self):
+        if self.exporter is not None: self.exporter.execute()
     
     def exit(self):
         """

@@ -27,7 +27,7 @@ def getParams():
     p['Wings'] = ['wing'] # LIST of names of physical group containing the lifting surface boundary (first element will be the FSI boundary)
     p['Wakes'] = ['wake'] # LIST of names of physical groups containing the wake
     p['WakeTips'] = ['wakeTip'] # LIST of names of physical groups containing the edge of the wake
-    p['TeTips'] = ['teTip'] # LIST of names of physical groups containing the edge of the wake and the trailing edge
+    p['Tes'] = ['te'] # LIST of names of physical groups containing the trailing edge
     # Freestream
     p['M_inf'] = 0.8 # Freestream Mach number
     p['AoA'] = 1. # Freestream angle of attack

@@ -18,3 +18,7 @@ ccupydo/*.so
 ccupydo/CCupydo*
 
 .vscode/
+
+run.bat
+compile.bat
+compile.sh

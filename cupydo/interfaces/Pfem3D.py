@@ -157,12 +157,9 @@ class Pfem3D(FluidSolver):
 # %% Sets Boundary Conditions
 
     def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
-        dDisp = np.transpose([dx,dy,dz])-self.prevDisp
         
-        if self.reload:
-
-            self.problem.loadSolution(self.prevSolution)
-            self.mesh.getNodesIndex(self.group,self.FSI)
+        dDisp = np.transpose([dx,dy,dz])-self.prevDisp
+        if self.reload: self.problem.loadSolution(self.prevSolution)
 
         # Computes the state according to Metafor
 
@@ -188,7 +185,7 @@ class Pfem3D(FluidSolver):
     def update(self,dt):
 
         self.mesh.remesh(False)
-        self.mesh.getNodesIndex(self.group,self.FSI)
+        if (self.ID == 'IncompNewtonNoT'): self.solver.precomputeMatrix()
         self.prevDisp = self.getPosition()-self.pos0
         self.problem.copySolution(self.prevSolution)
         FluidSolver.update(self,dt)

@@ -128,6 +128,7 @@ def parseArgs():
     parser.add_argument('file', nargs=1, help='Python input file')
     parser.add_argument('-n', dest='n', help='Number of threads', default=1, type=int)
     parser.add_argument('--nogui', action='store_true', help='Disable GUI', default=False)
+    parser.add_argument('-k', nargs=1, help='Number of threads')
     return parser.parse_args()
 
 def setDirs(fpath):

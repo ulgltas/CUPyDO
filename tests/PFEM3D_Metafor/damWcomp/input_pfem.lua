@@ -60,7 +60,7 @@ Problem = {
 
         MomEq = {
             bodyForce = {0,-9.81},
-            BC = {}
+            BC = {FSInterfaceVExt = true}
         },
         
         ContEq = {
@@ -76,8 +76,4 @@ end
 
 function Problem.Solver.MomEq.BC:ReservoirV(pos,t)
 	return {0,0}
-end
-
-function Problem.Solver.MomEq.BC:FSInterfaceV(pos,t)
-	return nil
 end

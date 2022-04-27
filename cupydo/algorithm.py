@@ -1630,7 +1630,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSAitkenRelax):
                     self.makeBGS = False
                 else:
                     # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
-                    mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
+                    mpiPrint('\nCorrect solid interface displacements using IQN-MVJ method...\n', self.mpiComm)
                     
                     # --- Start gathering on root process --- #
                     res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)

@@ -99,8 +99,11 @@ class CUPyDO(object):
             elif p ['algorithm'] == 'IQN_ILS':
                 self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+            elif p ['algorithm'] == 'IQN_MVJ':
+                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion,
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], p['firstItTgtMat'], comm)
             else:
-                raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS" or "IQN_ILS").\n')
+                raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS", "IQN_ILS" or "IQN_MVJ").\n')
         cupyutil.mpiBarrier()
 
     def run(self):

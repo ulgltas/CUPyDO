@@ -1555,7 +1555,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSAitkenRelax):
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
-        # --- Initialize all the quantities used in the IQN-ILS method --- #
+        # --- Initialize all the quantities used in the IQN-MVJ method --- #
         res = FlexInterfaceData(ns, 3, self.mpiComm)
         solidInterfaceResidual0 = FlexInterfaceData(ns+d, 3, self.mpiComm)
 

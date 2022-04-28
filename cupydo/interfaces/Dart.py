@@ -45,8 +45,8 @@ class Dart(FluidSolver):
         self.nodalInitPosX, self.nodalInitPosY, self.nodalInitPosZ = self.getNodalInitialPositions()
 
         # init save frequency (fsi)
-        if 'saveFreq' in params:
-            self.saveFreq = params['saveFreq']
+        if 'SaveFreq' in params:
+            self.saveFreq = params['SaveFreq']
         else:
             self.saveFreq = sys.maxsize
 
@@ -108,8 +108,8 @@ class Dart(FluidSolver):
     def save(self, nt):
         """Save data on disk at each converged timestep
         """
-        self.solver.save(self.writer, nt)
-        self.writer.save(self.msh.name + "_" + str(nt))
+        self.solver.save(self.writer, '_converged')
+        self.writer.save(self.msh.name + '_converged')
 
     def initRealTimeData(self):
         """Initialize history file
@@ -127,7 +127,7 @@ class Dart(FluidSolver):
         histFile.close()
         # full solution at user-defined frequency
         if np.mod(nFSIIter+1, self.saveFreq) == 0:
-            self.solver.save(self.writer, 1000000+int(nFSIIter+1)//int(self.saveFreq))
+            self.solver.save(self.writer, '_{:04d}'.format(int(nFSIIter+1)//int(self.saveFreq)))
 
     def printRealTimeData(self, time, nFSIIter):
         """Print data on screen at the end of fsi simulation

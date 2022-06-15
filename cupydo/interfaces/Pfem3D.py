@@ -1,23 +1,6 @@
 from ..genericSolvers import FluidSolver
-from slpp import slpp as lua
-from sys import stdout
 import pfem3Dw as w
 import numpy as np
-import os
-
-# %% Translate the Lua Table Into a Dict
-
-def read(path):
-
-    if(os.path.isfile(path)):
-        with open(path,'r') as file:
-
-            input = file.read().replace(' ','')
-            input = input.replace('Problem=','')
-            input = lua.decode(input)
-
-    else: raise Exception('Cannot open lua file '+path)
-    return input
 
 # %% Interface Between PFEM3D and CUPyDO
 
@@ -26,175 +9,216 @@ class Pfem3D(FluidSolver):
 
         print('\nInitializing PFEM3D')
         path = param['cfdFile']
-        input = read(path)
+        self.read(path)
 
-        # Read some input parameters
+        # Problem class and functions initialization
 
-        self.ID = input['id']
-        self.group = input['FSInterface']
+        if self.ID == 'IncompNewtonNoT':
 
-        # Problem class initialization
+            self.run = self.runIncomp
+            self.problem = w.ProbIncompNewton(path)
+            self.applyNodalDisplacements = self.applyDispIncomp
 
-        if self.ID == 'IncompNewtonNoT': self.problem = w.ProbIncompNewton(path)
-        elif self.ID == 'WCompNewtonNoT': self.problem = w.ProbWCompNewton(path)
+        elif self.ID == 'WCompNewtonNoT':
+
+            self.run = self.runWcomp
+            self.problem = w.ProbWCompNewton(path)
+            self.applyNodalDisplacements = self.applyDispWcomp
+
         else: raise Exception('Problem type not supported')
 
-        # Gets some important objects and variables
+        # Stores the important objects and variables
 
         self.solver = self.problem.getSolver()
         self.prevSolution = w.SolutionData()
         self.mesh = self.problem.getMesh()
-        self.load = w.VectorArrayDouble3()
+        self.dim = self.mesh.getDim()
         self.FSI = w.VectorInt()
+
+        # FSI data and stores the previous time step 
+
+        self.problem.copySolution(self.prevSolution)
+        self.mesh.getNodesIndex(self.group,self.FSI)
+        self.mesh.setComputeNormalCurvature(True)
+        self.nPhysicalNodes = self.FSI.size()
+        self.nNodes = self.FSI.size()
 
         # Set the initial time step
 
         self.problem.updateTime(-param['dt'])
-        self.solver.setTimeStep(1e16)
-        self.solver.computeNextDT()
         self.dt = param['dt']
-
-        # Number of nodes at the FSInterface
-    
-        self.mesh.getNodesIndex(self.group,self.FSI)
-        self.nPhysicalNodes = self.FSI.size()
-        self.nNodes = self.FSI.size()
-        self.dim = self.mesh.getDim()
 
         # Initializes the simulation data
 
-        self.pos0 = self.getPosition()
-        self.problem.copySolution(self.prevSolution)
         self.prevDisp = np.zeros((self.nNodes,3))
-        self.reload = False
+        self.disp = np.zeros((self.nNodes,3))
+        self.load = np.zeros((self.nNodes,3))
+        self.vel = np.zeros((self.nNodes,3))
+        self.pos = np.zeros((self.nNodes,3))
 
-        # Prints and initializes the solver
+        # Initializes some FSPC data
+
+        self.reload = False
+        self.factor = 1
+        self.ok = True
+        self.div = 2
+
+        # Prints the initial solution and stats
 
         FluidSolver.__init__(self)
         self.problem.displayParams()
-        
-# %% Computes one time increment
+        self.problem.dump()
 
-    def run(self,t1,t2):
+# %% Computes a Time Increment
+
+    def runIncomp(self,t1,t2):
+
+        if not (self.reload and self.ok): self.factor //= self.div
+        self.factor = max(1,self.factor)
         self.reload = True
+        iter = 0
 
-        while True:
+        # Main solving loop for the CUPyDO time step
 
-            dt = self.solver.getTimeStep()
-            time = self.problem.getCurrentSimTime()
+        while iter < self.factor:
 
-            if (dt+time-t2)/dt > -0.2:
-                
-                self.solver.setTimeStep(t2-time)
-                ok = self.solver.solveOneTimeStep()
-                self.printSolverTime(ok)
-                self.solver.computeNextDT()
-                if ok: break
+            iter += 1
+            dt = (t2-t1)/self.factor
+            self.solver.setTimeStep(dt)
+            self.timeStats(dt+self.problem.getCurrentSimTime(),dt)
+            self.ok = self.solver.solveOneTimeStep()
 
-            else:
-                ok = self.solver.solveOneTimeStep()
-                self.printSolverTime(ok)
-                self.solver.computeNextDT()
+            if not self.ok:
 
-        # Computes nodal fluid loads
+                self.applyNodalDisplacements(*self.disp.T)
+                self.factor *= self.div
+                iter = 0
 
         self.setCurrentState()
         return True
 
-    # Prints and set next time step
+    # For explicit weakly compressive flows
 
-    def printSolverTime(self,ok):
+    def runWcomp(self,t1,t2):
 
-        dt = self.solver.getTimeStep()
-        time = self.problem.getCurrentSimTime()
+        iter = 0
+        self.reload = True
+        self.solver.computeNextDT()
+        self.factor = int((t2-t1)/self.solver.getTimeStep())
+        dt = (t2-t1)/self.factor
+        self.timeStats(t2,dt)
 
-        if self.ID == 'IncompNewtonNoT':
-            print('PFEM3D [{:<1}] : t = {:.5e} - dt = {:.3e}'.format(ok,time,dt))
+        # Main solving loop for the CUPyDO time step
 
-        elif self.ID == 'WCompNewtonNoT':
-            stdout.write('\rPFEM3D : t = {:.5e} - dt = {:.3e}'.format(time,dt))
-            stdout.flush()
+        while iter < self.factor:
+    
+            iter += 1
+            self.solver.setTimeStep(dt)
+            self.solver.solveOneTimeStep()
 
-# %% Get and Set Nodal Values
-
-    def getPosition(self):
-        pos = np.zeros((self.nNodes,3))
-
-        for i in range(self.nNodes):
-            node = self.mesh.getNode(self.FSI[i])
-            pos[i] = [node.getCoordinate(j) for j in range(3)]
-
-        return pos
-
-    def getVelocity(self):
-        vel = np.zeros((self.nNodes,3))
-
-        for i in range(self.nNodes):
-            node = self.mesh.getNode(self.FSI[i])
-            for j in range(self.dim): vel[i,j] = node.getState(j)
-
-        return vel
-
-    # Sets current nodal loads on the FSI
-
-    def setCurrentState(self):
-
-        self.solver.computeLoads(self.group,self.FSI,self.load)
-        for i in range(self.nNodes):
-
-            self.nodalLoad_X[i] = -self.load[i][0]
-            self.nodalLoad_Y[i] = -self.load[i][1]
-            self.nodalLoad_Z[i] = -self.load[i][2]
-
-    # Some other utilitary functions
-
-    def getNodalIndex(self,index):
-        return self.FSI[index]
-
-    def getNodalInitialPositions(self):
-        return np.transpose(self.pos0)
+        self.setCurrentState()
+        return True
 
 # %% Sets Boundary Conditions
 
-    def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
-        
-        dDisp = np.transpose([dx,dy,dz])-self.prevDisp
+    def applyDispIncomp(self,dx,dy,dz,*_):
+
+        disp = np.transpose([dx,dy,dz])
         if self.reload: self.problem.loadSolution(self.prevSolution)
-
-        # Computes the state according to Metafor
-
-        if (self.ID == 'IncompNewtonNoT'):
-
-            index = int(0)
-            BC = dDisp/self.dt
-
-        elif (self.ID == 'WCompNewtonNoT'):
-
-            index = int(self.dim+2)
-            vel = self.getVelocity()
-            BC = 2*(dDisp-vel*self.dt)/(self.dt*self.dt)
+        BC = (disp-self.prevDisp)/self.dt
+        self.disp = disp.copy()
 
         # Update the FSI node states BC
 
         for i in range(self.nNodes):
             for j in range(self.dim):
-                self.mesh.setNodeState(self.FSI[i],index+j,BC[i,j])
+                self.mesh.setNodeState(self.FSI[i],j,BC[i,j])
 
-# %% Update and Save Results
+    # For explicit weakly compressive flows
+
+    def applyDispWcomp(self,dx,dy,dz,*_):
+
+        disp = np.transpose([dx,dy,dz])
+        if self.reload: self.problem.loadSolution(self.prevSolution)
+        BC = 2*(disp-self.prevDisp-self.getVelocity()*self.dt)/self.dt**2
+        self.disp = disp.copy()
+        idx = int(self.dim+2)
+
+        # Update the FSI node states BC
+
+        for i in range(self.nNodes):
+            for j in range(self.dim):
+                self.mesh.setNodeState(self.FSI[i],idx+j,BC[i,j])
+
+# %% Gets Nodal Values
+
+    def getPosition(self):
+
+        for i in range(self.nNodes):
+            node = self.mesh.getNode(self.FSI[i])
+            self.pos[i] = [node.getCoordinate(j) for j in range(3)]
+
+        return self.pos.copy()
+
+    def getVelocity(self):
+
+        for i in range(self.nNodes):
+            node = self.mesh.getNode(self.FSI[i])
+            self.vel[i] = [node.getState(j) for j in range(3)]
+
+        return self.vel.copy()
+
+    # Sets current nodal loads on the FSI
+
+    def setCurrentState(self):
+
+        load = w.VectorArrayDouble3()
+        self.solver.computeLoads(self.group,self.FSI,load)
+        for i in range(self.nNodes):
+
+            self.nodalLoad_X[i] = -load[i][0]
+            self.nodalLoad_Y[i] = -load[i][1]
+            self.nodalLoad_Z[i] = -load[i][2]
+
+# %% Other Functions
+
+    def getNodalIndex(self,index):
+        return self.FSI[index]
+
+    def getNodalInitialPositions(self):
+        return np.transpose(self.getPosition())
+
+# %% Reads From the Lua File
+
+    def read(self,path):
+
+        file = open(path,'r')
+        text = file.read().splitlines()
+        file.close()
+
+        for line in text:
+
+            line = line.replace(' ','').replace('"','').replace("'",'')
+            try: value = line.split('=')[1]
+            except: continue
+
+            if "Problem.id" in line: self.ID = value
+            if "Problem.interface" in line: self.group = value
+            if "Problem.maxFactor" in line: self.maxFactor = float(value)
+
+# %% Other Functions
 
     def update(self,dt):
 
         self.mesh.remesh(False)
         if (self.ID == 'IncompNewtonNoT'): self.solver.precomputeMatrix()
-        self.prevDisp = self.getPosition()-self.pos0
         self.problem.copySolution(self.prevSolution)
+        self.prevDisp = self.disp.copy()
         FluidSolver.update(self,dt)
         self.reload = False
 
-    def save(self,nt):
+    def save(self,_):
         self.problem.dump()
-
-# %% Exits the Solver
 
     def exit(self):
 
@@ -202,3 +226,10 @@ class Pfem3D(FluidSolver):
         self.problem.displayTimeStats()
         print('======================================')
         print('\nExit PFEM3D')
+
+    def timeStats(self,time,dt):
+
+        start = self.problem.getCurrentSimTime()
+        print('[PFEM-1] : t1 = {:.5e} - dt = {:.3e}'.format(start,dt))
+        print('[PFEM-2] : t2 = {:.5e} - factor = {:.0f}'.format(time,self.factor))
+        print('----------------------------')

@@ -5,7 +5,7 @@ import os
 
 def test(meanFSIIt):
 
-    name = [file for file in os.listdir() if('solid' in file)]
+    name = [file for file in os.listdir() if('fluid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
 
@@ -13,13 +13,13 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(57)[0]
+    coord = gmsh.model.mesh.getNode(19)[0]
     gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X',coord[0],0.5,0.05,False))
-    tests.add(CTest('Middle bar coordinate Y',coord[1],-0.049748,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.749875,0.05,False))
+    tests.add(CTest('Middle bar coordinate Y',coord[1],-0.053056,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.681341,0.05,False))
     tests.run()
 
 # %% Input Parameters

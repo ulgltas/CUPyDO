@@ -4,12 +4,13 @@ import os
 
 # %% Physical group 3 = FSInterface
 
-def params(input):
+def params(p):
 
-    input['bndno'] = 3
-    input['saveAllFacs'] = False
-    input['bctype'] = 'pydeadloads'
-    return input
+    p['bndno'] = 3
+    p['saveAllFacs'] = False
+    p['bctype'] = 'pydeadloads'
+    p['exporter'] = None
+    return p
 
 # %% Parallel Computing
 
@@ -20,7 +21,7 @@ w.ContactInteraction.useTBB()
 
 # %% Main Function
 
-def getMetafor(input):
+def getMetafor(p):
 
     global metafor
     if metafor: return metafor
@@ -91,10 +92,3 @@ def getMetafor(input):
     tscm.setNbOptiIte(25)
 
     return metafor
-
-# %% A Dummy Function
-
-def getRealTimeExtractorsList(mtf):
-    
-    extractorsList = []
-    return extractorsList

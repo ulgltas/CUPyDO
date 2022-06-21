@@ -17,7 +17,7 @@ def test(res, tol, it):
     
     tests = CTests()
     tests.add(CTest('Mean nb of FSI iterations', it, 4, 1, True))
-    tests.add(CTest('Y-displacement panel center', result_1[2], -0.002028, 1e-2, False))
+    tests.add(CTest('Y-displacement panel center', result_1[-1], -0.002028, 1e-2, False))
     tests.run()
 
 def getFsiP():

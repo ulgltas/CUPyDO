@@ -37,7 +37,7 @@ def test(res, tol):
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.00095, 5e-4, True)) # abs. tol.
     tests.add(CTest('Drag coefficient', resultA[3], 3.640135, 1e-1, False)) # rel. tol. of 10% (was 2.64 before)
-    tests.add(CTest('Displacement (104, TY)', resultS[2], 0., 1e-4, True)) # abs. tol.
+    tests.add(CTest('Displacement (104, TY)', resultS[-1], 0., 1e-4, True)) # abs. tol.
     tests.run()
 
 def getFsiP():

@@ -45,6 +45,8 @@ def params(q={}):
     p['bndno'] = 111
     p['extractNode'] = 180
     p['unsteady'] = False
+
+    p['exporter'] = Extractor()
                                        
     p.update(q)
     return p
@@ -143,18 +145,23 @@ def getMetafor(p={}):
     
     return metafor
 
-def getRealTimeExtractorsList(Mtf):
+class Extractor(object):
+    def __init__(self):
 
-    extractorsList = list()
-    domain = Mtf.getDomain()
-    groupset = domain.getGeometry().getGroupSet()  
+        self.metafor = metafor
+        
 
-    # --- Extractors list starts --- #
-    extractor1 = DbNodalValueExtractor(groupset(180), Field1D(TZ,RE))
-    extractorsList.append(extractor1)
-    extractor2 = DbNodalValueExtractor(groupset(181), Field1D(TZ,RE))
-    extractorsList.append(extractor2)
-    # --- Extractors list ends --- #
+    def write(self,extractor):
 
-    return extractorsList
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
+    def execute(self):
+
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.write(DbNodalValueExtractor(groupset(180), Field1D(TZ,RE)))
+        self.write(DbNodalValueExtractor(groupset(181), Field1D(TZ,RE)))
+        

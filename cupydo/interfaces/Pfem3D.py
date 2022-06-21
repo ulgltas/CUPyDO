@@ -1,4 +1,5 @@
 from ..genericSolvers import FluidSolver
+from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
 
@@ -7,7 +8,7 @@ import numpy as np
 class Pfem3D(FluidSolver):
     def __init__(self,param):
 
-        print('\nInitializing PFEM3D')
+        titlePrint('\nInitializing PFEM3D')
         path = param['cfdFile']
         self.read(path)
 
@@ -45,7 +46,6 @@ class Pfem3D(FluidSolver):
 
         # Set the initial time step
 
-        self.problem.updateTime(-param['dt'])
         self.dt = param['dt']
 
         # Initializes the simulation data
@@ -72,6 +72,9 @@ class Pfem3D(FluidSolver):
 # %% Computes a Time Increment
 
     def runIncomp(self,t1,t2):
+        """
+        Computes a time increment (implicit incompressible)
+        """
 
         if not (self.reload and self.ok): self.factor //= self.div
         self.factor = max(1,self.factor)
@@ -100,6 +103,9 @@ class Pfem3D(FluidSolver):
     # For explicit weakly compressive flows
 
     def runWcomp(self,t1,t2):
+        """
+        Computes a time increment (explicit weakly compressible)
+        """
 
         iter = 0
         self.reload = True
@@ -122,6 +128,9 @@ class Pfem3D(FluidSolver):
 # %% Sets Boundary Conditions
 
     def applyDispIncomp(self,dx,dy,dz,*_):
+        """
+        Apply the displacment boundary conditions (incompressible)
+        """
 
         disp = np.transpose([dx,dy,dz])
         if self.reload: self.problem.loadSolution(self.prevSolution)
@@ -137,6 +146,9 @@ class Pfem3D(FluidSolver):
     # For explicit weakly compressive flows
 
     def applyDispWcomp(self,dx,dy,dz,*_):
+        """
+        Apply the displacement boundary conditions (weakly compressible)
+        """
 
         disp = np.transpose([dx,dy,dz])
         if self.reload: self.problem.loadSolution(self.prevSolution)
@@ -153,6 +165,9 @@ class Pfem3D(FluidSolver):
 # %% Gets Nodal Values
 
     def getPosition(self):
+        """
+        Returns the nodal positions of the fluid interface
+        """
 
         for i in range(self.nNodes):
             node = self.mesh.getNode(self.FSI[i])
@@ -161,6 +176,9 @@ class Pfem3D(FluidSolver):
         return self.pos.copy()
 
     def getVelocity(self):
+        """
+        Returns the nodal velocity of the fluid interface
+        """
 
         for i in range(self.nNodes):
             node = self.mesh.getNode(self.FSI[i])
@@ -171,6 +189,9 @@ class Pfem3D(FluidSolver):
     # Sets current nodal loads on the FSI
 
     def setCurrentState(self):
+        """
+        Computes the nodal loads of the fluid interface
+        """
 
         load = w.VectorArrayDouble3()
         self.solver.computeLoads(self.group,self.FSI,load)
@@ -183,14 +204,26 @@ class Pfem3D(FluidSolver):
 # %% Other Functions
 
     def getNodalIndex(self,index):
-        return self.FSI[index]
+        """
+        Return the index of the index-th interface node in the load vector
+        """
+
+        #return self.FSI[index]
+        return index
 
     def getNodalInitialPositions(self):
+        """
+        Return the position vector of the solver interface
+        """
+
         return np.transpose(self.getPosition())
 
 # %% Reads From the Lua File
 
     def read(self,path):
+        """
+        Reads some data from the input Lua file 
+        """
 
         file = open(path,'r')
         text = file.read().splitlines()
@@ -209,6 +242,9 @@ class Pfem3D(FluidSolver):
 # %% Other Functions
 
     def update(self,dt):
+        """
+        Remesh and prepare the solver for the next time step
+        """
 
         self.mesh.remesh(False)
         if (self.ID == 'IncompNewtonNoT'): self.solver.precomputeMatrix()
@@ -218,16 +254,24 @@ class Pfem3D(FluidSolver):
         self.reload = False
 
     def save(self,_):
+        """
+        Save the curent state to the disk
+        """
+
         self.problem.dump()
 
     def exit(self):
+        """
+        Exit and print the final time stats
+        """
 
-        print('======================================')
         self.problem.displayTimeStats()
-        print('======================================')
-        print('\nExit PFEM3D')
+        titlePrint('\nExit PFEM3D')
 
     def timeStats(self,time,dt):
+        """
+        Print the curent time of the simulation
+        """
 
         start = self.problem.getCurrentSimTime()
         print('[PFEM-1] : t1 = {:.5e} - dt = {:.3e}'.format(start,dt))

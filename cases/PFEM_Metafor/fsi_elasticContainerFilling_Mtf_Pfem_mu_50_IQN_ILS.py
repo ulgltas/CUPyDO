@@ -30,6 +30,7 @@ def getParameters(_p):
     p['tollQR'] = 1.0e-1
     p['saveFreqPFEM'] = 1
     p['mtfSaveAllFacs'] = True
+    p['extractor'] = None
     p.update(_p)
     return p
 

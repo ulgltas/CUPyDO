@@ -28,6 +28,7 @@ def getParameters(_p):
     p['rbfRadius'] = 1
     p['saveFreqPFEM'] = 1
     p['mtfSaveAllFacs'] = True
+    p['extractor'] = None
     p.update(_p)
     return p
 

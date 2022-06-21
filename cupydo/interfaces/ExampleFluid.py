@@ -119,15 +119,6 @@ class ExampSolver(FluidSolver):
 
         #overload here
 
-    def bgsUpdate(self):
-        """
-        Des.
-        """
-
-        #overload here
-
-        return
-
     def save(self, nt):
         """
         Des.

@@ -26,8 +26,8 @@ def test(cupydo, tol):
     tests = CTests()
     tests.add(CTest('Lift coefficient', cl, 0.0460, 1e-2, True)) # abs. tol
     tests.add(CTest('Drag coefficient', cd, 0.00080, 1e-4, True))
-    tests.add(CTest('LE vertical displacement', resultS2[2], 0.009, 5e-3, True))
-    tests.add(CTest('TE vertical displacement', resultS1[2], 0.010, 5e-3, True))
+    tests.add(CTest('LE vertical displacement', resultS2[-1], 0.009, 5e-3, True))
+    tests.add(CTest('TE vertical displacement', resultS1[-1], 0.010, 5e-3, True))
     tests.run()
 
 def getFsiP():

@@ -11,11 +11,13 @@ def params(_p):
     p['maxIt'] = 20
     p['bndno'] = 111
     p['saveAllFacs'] = False
+    p['exporter'] = Extractor()
                        
     p.update(_p)
     return p
 
 def getMetafor(p={}):
+    global metafor
     metafor = Metafor()
     p = params(p)
 
@@ -107,17 +109,24 @@ def getMetafor(p={}):
         tsm.setNextTime(1.0, 1, 0.1)
   
     return metafor
+    
+class Extractor(object):
+    def __init__(self):
 
-def getRealTimeExtractorsList(Mtf):
+        self.metafor = metafor
+        
 
-    extractorsList = list()
-    groupset = Mtf.getDomain().getGeometry().getGroupSet()
+    def write(self,extractor):
 
-    # --- Extractors list starts --- #
-    extractor0 = DbNodalValueExtractor(groupset(121), Field1D(TZ,RE))
-    extractorsList.append(extractor0)
-    extractor1 = DbNodalValueExtractor(groupset(122), Field1D(TZ,RE))
-    extractorsList.append(extractor1)
-    # --- Extractors list ends --- #
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
-    return extractorsList
+    def execute(self):
+
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.write(DbNodalValueExtractor(groupset(121), Field1D(TZ,RE)))
+        self.write(DbNodalValueExtractor(groupset(122), Field1D(TZ,RE)))
+        

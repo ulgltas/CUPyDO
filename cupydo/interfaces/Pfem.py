@@ -30,6 +30,7 @@ import os, os.path, sys, time, string
 
 import math
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
@@ -39,7 +40,7 @@ from ..genericSolvers import FluidSolver
 class Pfem(FluidSolver):
     def __init__(self, testname, nthreads, nogui, dt):
         
-        print('\n***************************** Initializing Pfem *****************************')
+        titlePrint('Initializing Pfem')
         
         self.testname = testname  # string (name of the module of the fluid model)
         
@@ -253,4 +254,4 @@ class Pfem(FluidSolver):
         #    self.pfem.gui.save2vtk()
         self.pfem.scheme.exit()
         
-        print("\n***************************** Exit Pfem *****************************")
+        titlePrint("\nExit Pfem")

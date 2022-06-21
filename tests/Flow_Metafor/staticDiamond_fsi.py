@@ -22,7 +22,7 @@ def test(res, tol):
         raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.22, 1e-1, False)) # rel. tol. of 10%, dummy value
-    tests.add(CTest('TE. vertical displacement', resultS[2], 0.034, 1e-1, False)) # rel. tol. of 10%, dummy value
+    tests.add(CTest('TE. vertical displacement', resultS[-1], 0.034, 1e-1, False)) # rel. tol. of 10%, dummy value
     tests.run()
 
 def getFsiP():

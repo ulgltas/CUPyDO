@@ -61,7 +61,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         Description.
         """
 
-        mpiPrint('\n***************************** Initializing FSI interpolator *****************************', mpiComm)
+        mpiPrint("Initializing FSI Interpolator",mpiComm,titlePrint)
 
         ccupydo.CInterpolator.__init__(self, Manager)
 

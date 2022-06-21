@@ -54,7 +54,7 @@ class Manager(ccupydo.CManager):
 
         ccupydo.CManager.__init__(self)
 
-        mpiPrint('\n***************************** Initializing FSI interface *****************************', mpiComm)
+        mpiPrint("Initializing FSI Interface",mpiComm,titlePrint)
 
         if mpiComm != None:
             self.mpiComm = mpiComm

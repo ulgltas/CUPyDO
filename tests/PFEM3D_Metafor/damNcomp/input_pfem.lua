@@ -19,6 +19,7 @@ Problem.Mesh.omega = 0.5
 Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.015
 Problem.Mesh.addOnFS = false
+Problem.Mesh.minAspectRatio = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = false

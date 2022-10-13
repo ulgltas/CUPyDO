@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # original name: birdImpact_deformable_panel_bird_Pfem_Axisym
 

@@ -29,9 +29,8 @@ Authors D. THOMAS
 
 import NativeSolid
 
-import math
 import numpy as np
-from ..genericSolvers import SolidSolver
+from ..genericSolvers import SolidSolver, SolidAdjointSolver
 
 # ----------------------------------------------------------------------
 #  RBMI solver interface class
@@ -86,7 +85,7 @@ class RBMI(SolidSolver):
         """
 
         self.NativeSolid.setInitialDisplacements()
-        self.__setCurrentState()
+        self.__setInitialState()
         
     def run(self, t1, t2):
         """
@@ -109,6 +108,22 @@ class RBMI(SolidSolver):
 
         for jInst in range(self.nInst):
             self.NativeSolid.computeInterfacePosVel(False, jInst)
+            for iVertex in range(self.nPhysicalNodes):
+                self.nodalDisp_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
+                self.nodalDisp_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispY(self.interfaceID, iVertex)
+                self.nodalDisp_Z[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispZ(self.interfaceID, iVertex)
+                self.nodalVel_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeVelX(self.interfaceID, iVertex)
+                self.nodalVel_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeVelY(self.interfaceID, iVertex)
+                self.nodalVel_Z[iVertex, jInst] = self.NativeSolid.getInterfaceNodeVelZ(self.interfaceID, iVertex)
+    
+    def __setInitialState(self):
+        """
+        Des.
+        """
+
+        for jInst in range(self.nInst):
+            if self.nInst > 1:
+                self.NativeSolid.computeInterfacePosVel(False, jInst)
             for iVertex in range(self.nPhysicalNodes):
                 self.nodalDisp_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
                 self.nodalDisp_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispY(self.interfaceID, iVertex)
@@ -151,10 +166,19 @@ class RBMI(SolidSolver):
                 total_Y_load += load_Y[jInst][iVertex]
                 self.NativeSolid.applyload(iVertex, load_X[jInst][iVertex], load_Y[jInst][iVertex], load_Z[jInst][iVertex])
 
+            if self.computationType == 'harmonic':
+                self.NativeSolid.computeInterfacePosVel(False, jInst) # To update the position of the centre of rotation... inelegant
             self.NativeSolid.setGeneralisedForce()
             self.NativeSolid.setGeneralisedMoment()
             if self.computationType == 'harmonic':
                 self.NativeSolid.applyload(jInst, total_Y_load)
+
+    def getDeltaOmega(self):
+        return self.NativeSolid.getDeltaOmega()
+    
+    def setOmegaHB(self, omega):
+        if self.computationType == 'harmonic':
+            self.NativeSolid.setOmega(omega)
 
     def update(self):
         """
@@ -190,3 +214,98 @@ class RBMI(SolidSolver):
         """
 
         print("***************************** Exit RBM Integrator *****************************")
+
+
+class RBMIAdjoint(RBMI, SolidAdjointSolver):
+
+    def __init__(self, confFile, computationType):
+        """
+        Des.
+        """
+        self.NativeSolid = NativeSolid.NativeSolidSolver(confFile, True)
+        self.computationType = computationType
+
+        self.interfaceID = self.NativeSolid.getFSIMarkerID()
+        self.nNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
+        self.nHaloNode = 0
+        self.nPhysicalNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
+        if computationType == "harmonic":
+            self.nInst = 2*self.NativeSolid.getNumberHarmonics()+1
+        else:
+            self.nInst = 1
+
+        self.haloNodeList = {}
+
+        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step) --- #
+        self.nodalDisp_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalDisp_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalDisp_Z = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalVel_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalVel_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalVel_Z = np.zeros((self.nPhysicalNodes, self.nInst))
+
+        self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes, self.nInst))
+
+        self.nodalAdjLoad_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes, self.nInst))
+
+        self.__setCurrentState()
+        self.nodalVel_XNm1 = self.nodalVel_X.copy()
+        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
+        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
+
+        self.initRealTimeData()
+
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+        for jInst in range(self.nInst):
+            PhysicalIndex = 0
+            for iVertex in range(self.nNodes):
+                dispX = disp_adj_X[jInst][PhysicalIndex]
+                dispY = disp_adj_Y[jInst][PhysicalIndex]
+                dispZ = disp_adj_Z[jInst][PhysicalIndex]
+                PhysicalIndex += 1
+                self.NativeSolid.applyDisplacementAdjoint(iVertex, dispX, dispY, dispZ)
+            self.NativeSolid.setTotalAdjointDisplacement(jInst)
+
+    def applyFrequencyDerivative(self, omega_adj):
+        self.NativeSolid.setFrequencyDerivative(omega_adj)
+
+    def run(self, t1, t2):
+        """
+        Des.
+        """
+
+        if self.computationType == 'unsteady':
+            self.NativeSolid.timeIteration(t1, t2)
+        elif self.computationType == 'harmonic':
+            self.NativeSolid.harmonicComputation()
+        else:
+            self.NativeSolid.staticComputation()
+
+        self.__setCurrentState()
+
+    def __setCurrentState(self):
+        """
+        Des.
+        """
+
+        for jInst in range(self.nInst):
+            self.NativeSolid.computeInterfacePosVel(False, jInst)
+            self.NativeSolid.computeInterfaceAdjointLoads(jInst)
+            for iVertex in range(self.nPhysicalNodes):
+                self.nodalAdjLoad_X[iVertex, jInst] = self.NativeSolid.getLoadDerivativeX(iVertex)
+                self.nodalAdjLoad_Y[iVertex, jInst] = self.NativeSolid.getLoadDerivativeY(iVertex)
+                self.nodalAdjLoad_Z[iVertex, jInst] = self.NativeSolid.getLoadDerivativeZ(iVertex)
+    
+    def getNodalAdjointLoads(self):
+        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjLoad_Z)
+
+    def saveRealTimeData(self, time, nFSIIter):
+        """
+        Des.
+        """
+
+        self.NativeSolid.writeAdjointSolution(time, nFSIIter)

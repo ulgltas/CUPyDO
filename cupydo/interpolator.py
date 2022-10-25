@@ -106,6 +106,8 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceDisplacement = None
         self.solidInterfaceLoads = None
         self.fluidInterfaceLoads = None
+        self.deltaOmega = 0.0
+        self.OmegaHB = 0.0
 
         self.solidInterfaceHeatFlux = None
         self.fluidInterfaceHeatFlux = None
@@ -120,6 +122,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceAdjointDisplacement = None
         self.solidInterfaceAdjointLoads = None
         self.fluidInterfaceAdjointLoads = None
+        self.AdjointFrequency = 0.0
 
     def checkTotalLoad(self):
         """
@@ -172,7 +175,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointLoads()
             for iVertex in range(self.ns_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceAdjointLoads[iGlobalVertex] = [localSolidInterfaceAdjointLoad_X[iVertex], localSolidInterfaceAdjointLoad_Y[iVertex], localSolidInterfaceAdjointLoad_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localSolidInterfaceAdjointLoad_X[iVertex, jInst], localSolidInterfaceAdjointLoad_Y[iVertex, jInst], localSolidInterfaceAdjointLoad_Z[iVertex, jInst]])
+                self.solidInterfaceAdjointLoads[iGlobalVertex] = temp
 
         self.solidInterfaceAdjointLoads.assemble()
 
@@ -243,12 +249,16 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         """
         Des.
         """
-
+        if self.myid == 0:
+            self.AdjointFrequency = self.FluidSolver.getFrequencyDerivative()
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceAdjDisp_X, localFluidInterfaceAdjDisp_Y, localFluidInterfaceAdjDisp_Z = self.FluidSolver.getNodalAdjointDisplacement()
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
-                self.fluidInterfaceAdjointDisplacement[iGlobalVertex] = [localFluidInterfaceAdjDisp_X[iVertex], localFluidInterfaceAdjDisp_Y[iVertex], localFluidInterfaceAdjDisp_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localFluidInterfaceAdjDisp_X[iVertex, jInst], localFluidInterfaceAdjDisp_Y[iVertex, jInst], localFluidInterfaceAdjDisp_Z[iVertex, jInst]])
+                self.fluidInterfaceAdjointDisplacement[iGlobalVertex] = temp
 
         self.fluidInterfaceAdjointDisplacement.assemble()
 
@@ -259,6 +269,8 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         localFluidInterfaceData_array = None
         haloNodesData = {}
+        nInst = self.manager.nInst
+        nDim = fluidInterfaceData.nDim
 
         if self.mpiComm != None:
             localSize = fluidInterfaceData.getDataArray(0).shape[0]
@@ -269,6 +281,9 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             haloNodesData = {}
             haloNodesData_bis = {}
             if self.myid == 0:
+                localOmega = self.deltaOmega
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.OmegaHB += self.deltaOmega
                 for iProc in self.manager.getFluidInterfaceProcessors():
                     fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
                     fluidGlobalIndexRange = self.manager.getFluidGlobalIndexRange()
@@ -295,7 +310,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                             self.mpiComm.Isend(sendBuff[iDim], dest=iProc, tag = iTagSend)
                             iTagSend += 1
                         sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
-                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, nDim),dtype=float)
                         for ii in range(sendBuffHalo_key.size):
                             sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
                         self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
@@ -314,7 +329,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                         rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
                         req = self.mpiComm.Irecv(rcvBuffHalo_keyBuff, source=0, tag=102)
                         req.Wait()
-                        rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                        rcvBuffHalo_values = np.empty((nHaloNodesRcv[0], nDim), dtype=float)
                         req = self.mpiComm.Irecv(rcvBuffHalo_values, source=0, tag=103)
                         req.Wait()
                         for ii in range(len(rcvBuffHalo_keyBuff)):
@@ -326,13 +341,16 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                             iTagSend += 1
                         #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
                         sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
-                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, nDim),dtype=float)
                         for ii in range(sendBuffHalo_key.size):
                             sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
                         self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
                         self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
                         self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
             elif self.myid in self.manager.getFluidInterfaceProcessors():
+                localOmega = 0.0
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.OmegaHB += self.deltaOmega
                 localFluidInterfaceData_array = []
                 iTagRec = 1
                 for iDim in range(fluidInterfaceData.nDim):
@@ -345,11 +363,15 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                 self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
                 rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
                 self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
-                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0], nDim), dtype=float)
                 self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
                 for ii in range(len(rcvBuffHalo_keyBuff)):
                     haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
                 haloNodesData = haloNodesData_bis
+            else:
+                localOmega = 0.0
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.OmegaHB += self.deltaOmega
 
 
         return (localFluidInterfaceData_array, haloNodesData)
@@ -491,10 +513,13 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.mpiComm != None:
             (localSolidInterfaceAdjointDisplacement, haloNodesDisplacements) = self.redistributeDataToSolidSolver(self.solidInterfaceAdjointDisplacement)
 #            mpiBarrier(self.mpiComm)
+            if self.myid == 0:
+                self.SolidSolver.applyFrequencyDerivative(self.AdjointFrequency)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                self.SolidSolver.applyNodalAdjointDisplacement(localSolidInterfaceAdjointDisplacement[0], localSolidInterfaceAdjointDisplacement[1], localSolidInterfaceAdjointDisplacement[2], haloNodesDisplacements, time)
+                self.SolidSolver.applyNodalAdjointDisplacement(localSolidInterfaceAdjointDisplacement[0::3], localSolidInterfaceAdjointDisplacement[1::3], localSolidInterfaceAdjointDisplacement[2::3], haloNodesDisplacements, time)
         else:
             self.SolidSolver.applyNodalAdjointDisplacement(self.solidInterfaceAdjointDisplacement.getDataArray(0), self.solidInterfaceAdjointDisplacement.getDataArray(1), self.solidInterfaceAdjointDisplacement.getDataArray(2), {}, time)
+            self.SolidSolver.applyFrequencyDerivative(self.AdjointFrequency)
 
 
     def setDisplacementToFluidSolver(self, time):
@@ -506,11 +531,13 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         if self.mpiComm != None:
             (localFluidInterfaceDisplacement, haloNodesDisplacements) = self.redistributeDataToFluidSolver(self.fluidInterfaceDisplacement)
+            self.FluidSolver.setOmegaHB(self.OmegaHB)
 #            mpiBarrier(self.mpiComm)
             if self.myid in self.manager.getFluidInterfaceProcessors():
                 self.FluidSolver.applyNodalDisplacements(localFluidInterfaceDisplacement[0::3], localFluidInterfaceDisplacement[1::3], localFluidInterfaceDisplacement[2::3], localFluidInterfaceDisplacement[0], localFluidInterfaceDisplacement[1], localFluidInterfaceDisplacement[2], haloNodesDisplacements, time)
         else:
             self.FluidSolver.applyNodalDisplacements(self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), {}, time)
+            self.FluidSolver.setOmegaHB(self.OmegaHB)
 
     def setHeatFluxToFluidSolver(self, time):
         """
@@ -547,7 +574,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             (localFluidInterfaceAdjointLoad, haloNodesAdjointLoads) = self.redistributeDataToFluidSolver(self.fluidInterfaceAdjointLoads)
 #            mpiBarrier(self.mpiComm)
             if self.myid in self.manager.getFluidInterfaceProcessors():
-                self.FluidSolver.applyNodalAdjointLoads(localFluidInterfaceAdjointLoad[0], localFluidInterfaceAdjointLoad[1], localFluidInterfaceAdjointLoad[2], haloNodesAdjointLoads, time)
+                self.FluidSolver.applyNodalAdjointLoads(localFluidInterfaceAdjointLoad[0::3], localFluidInterfaceAdjointLoad[1::3], localFluidInterfaceAdjointLoad[2::3], haloNodesAdjointLoads, time)
         else:
             self.FluidSolver.applyNodalAdjointLoads(self.fluidInterfaceAdjointLoads.getDataArray(0), self.fluidInterfaceAdjointLoads.getDataArray(1), self.fluidInterfaceAdjointLoads.getDataArray(2), {}, time)
 
@@ -725,10 +752,10 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
             self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3*self.manager.nInst, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
             if self.manager.mechanical:
-                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
-                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
-                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':
@@ -901,10 +928,10 @@ class ConservativeInterpolator(InterfaceInterpolator):
             self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
             if self.manager.mechanical:
-                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':
@@ -1087,10 +1114,10 @@ class ConsistentInterpolator(InterfaceInterpolator):
             self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3*self.manager.nInst, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf + self.d, 3*self.manager.nInst, self.mpiComm)
             if self.manager.mechanical:
-                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
-                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
+                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf + self.d, 3*self.manager.nInst, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':

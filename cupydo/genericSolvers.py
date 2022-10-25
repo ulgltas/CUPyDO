@@ -157,6 +157,12 @@ class SolidSolver(object):
     def exit(self):
         return
 
+    def getDeltaOmega(self):
+        return 0.
+    
+    def setOmegaHB(self, omega):
+        return
+
 # ----------------------------------------------------------------------
 #  Generic fluid solver class
 # ----------------------------------------------------------------------
@@ -167,19 +173,22 @@ class FluidSolver(object):
 
     def __init__(self):
 
+        if not hasattr(self, 'nInst'):
+            self.nInst = 1
+
         self.haloNodeList = {}
 
-        self.nodalLoad_X = np.zeros((self.nPhysicalNodes))
-        self.nodalLoad_Y = np.zeros((self.nPhysicalNodes))
-        self.nodalLoad_Z = np.zeros((self.nPhysicalNodes))
+        self.nodalLoad_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalLoad_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalLoad_Z = np.zeros((self.nPhysicalNodes, self.nInst))
 
-        self.nodalTemperature = np.zeros((self.nPhysicalNodes))
+        self.nodalTemperature = np.zeros((self.nPhysicalNodes, self.nInst))
 
-        self.nodalNormalHeatFlux = np.zeros(self.nPhysicalNodes)
+        self.nodalNormalHeatFlux = np.zeros((self.nPhysicalNodes, self.nInst))
 
-        self.nodalHeatFlux_X = np.zeros((self.nPhysicalNodes))
-        self.nodalHeatFlux_Y = np.zeros((self.nPhysicalNodes))
-        self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes))
+        self.nodalHeatFlux_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalHeatFlux_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes, self.nInst))
 
         self.QWallInit = 0
         self.TWallInit = 288.0
@@ -259,6 +268,9 @@ class FluidSolver(object):
 
     def exit(self):
         return
+    
+    def setOmegaHB(self, omega):
+        return
 
 # ----------------------------------------------------------------------
 #  Generic solid adjoint solver class
@@ -280,9 +292,12 @@ class SolidAdjointSolver(SolidSolver):
 
     def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
         return
+
+    def applyFrequencyDerivative(self, omega_adj):
+        return
     
     def getNodalAdjointLoads(self):
-        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjDisp_Z)
+        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjLoad_Z)
 
 # ----------------------------------------------------------------------
 #  Generic fluid adjoint solver class
@@ -294,16 +309,19 @@ class FluidAdjointSolver(FluidSolver):
     """
     def __init__(self):
         FluidSolver.__init__(self)
-        self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes))
-        self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes))
-        self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes, self.nInst))
 
-        self.nodalAdjLoad_X = np.zeros((self.nPhysicalNodes))
-        self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
-        self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
+        self.nodalAdjLoad_X = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes, self.nInst))
+        self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes, self.nInst))
 
     def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
         return
     
     def getNodalAdjointDisplacement(self):
         return (self.nodalAdjDisp_X, self.nodalAdjDisp_Y, self.nodalAdjDisp_Z)
+
+    def getFrequencyDerivative(self):
+        return 0.0

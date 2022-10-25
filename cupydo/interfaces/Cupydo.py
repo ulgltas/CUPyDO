@@ -77,7 +77,7 @@ class CUPyDO(object):
         if p['computation'] == 'Adjoint':
             if p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['HBomega'], p['HBupdateIt'], comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: "StaticBGS").\n')
 
@@ -87,7 +87,7 @@ class CUPyDO(object):
                     p['dt'], p['tTot'], p['timeItTresh'], comm)
             elif p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['HBomega'], p['HBupdateIt'],comm)
             elif p['algorithm'] == 'AitkenBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
@@ -160,6 +160,9 @@ class CUPyDO(object):
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 solidSolver = sItf.pyBeamAdjointSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
+            elif myId == 0 and p['solidSolver'] == 'RBMI':
+                from . import RBMI as sItf
+                solidSolver = sItf.RBMIAdjoint(p['csdFile'], p['compType'])
             elif myId == 0:
                 raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
         else:
@@ -205,14 +208,15 @@ class CUPyDO(object):
 
 # FSI parameters
 # needed by all algos
-# - p['compType'], steady or unsteady
+# - p['compType'], steady, unsteady or harmonic
+# - p['computation'], direct or adjoint
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
 # - p['tTot'], total time
 # - p['timeItTresh'], ??????
 # needed by BGS
 # - p['tol'], tolerance on displacements
-# - p['maxIt'], maximu number of iterations
+# - p['maxIt'], maximum number of iterations
 # - p['omega'], relaxation parameter
 # needed by IQN-ILS
 # - p['firstItTgtMat'], compute the Tangent matrix based on first iteration (True or False)
@@ -220,7 +224,12 @@ class CUPyDO(object):
 # needed by RBF interpolator
 # - p['rbfRadius'], radius of interpolation for RBF
 # optional for RBF/TPS interpolators
-# - p['interpOpts'], optional options for interpolator, [0] = max number of iterations, [1] = preconditionner type
+# - p['interpOpts'], optional options for interpolator, [0] = max number of iterations, [1] = preconditioner type
+
+# needed for Harmonic Balance
+# - p['HBomega'], initial base frequency for HB
+# - p['HBupdateIt'], number of FSI iterations between each update to HB frequency
+# Maybe add one for updating HB frequency after n initial iterations
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['nodalLoadsType'], SU2

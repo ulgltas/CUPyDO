@@ -37,7 +37,7 @@ CUPyDO currently features interfaces for the following solvers:
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
   ---
-  - PFEM3D **[2.0.0]** (https://github.com/ImperatorS79/PFEM3D)
+  - PFEM3D **[master]** (https://github.com/ImperatorS79/PFEM3D)
   - A 3D Particle Finite Element Method fluid solver developed at the University of Liège.
 
 ##  Features

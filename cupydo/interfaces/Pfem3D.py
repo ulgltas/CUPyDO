@@ -142,7 +142,7 @@ class Pfem3D(FluidSolver):
 
 # %% Apply Boundary Conditions
 
-    def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
+    def applyNodalDisplacements(self,dx,dy,dz,*_):
         self.disp = np.transpose([dx,dy,dz])
 
     # For implicit and incompressible flows
@@ -229,7 +229,6 @@ class Pfem3D(FluidSolver):
     # Other utilitary functions
 
     def getNodalIndex(self,index):
-        #return self.FSI[index]
         return index
 
     def getNodalInitialPositions(self):
@@ -246,7 +245,7 @@ class Pfem3D(FluidSolver):
 
     # Save te results into a file
 
-    def save(self,nt):
+    def save(self,_):
         self.problem.dump()
 
     # Display the current simulation state

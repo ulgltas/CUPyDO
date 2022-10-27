@@ -18,8 +18,8 @@ def test(meanFSIIt):
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X',coord[0],0.5,0.05,False))
-    tests.add(CTest('Middle bar coordinate Y',coord[1],-0.049748,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.749875,0.05,False))
+    tests.add(CTest('Middle bar coordinate Y',coord[1],-0.052684,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.696348,0.05,False))
     tests.run()
 
 # %% Input Parameters

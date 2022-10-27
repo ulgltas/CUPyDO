@@ -140,7 +140,6 @@ class Pfem3D(FluidSolver):
         self.setCurrentState()
         return True
 
-
 # %% Apply Boundary Conditions
 
     def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,time):
@@ -204,8 +203,6 @@ class Pfem3D(FluidSolver):
             self.nodalLoad_X[i] = -vec[i][0]
             self.nodalLoad_Y[i] = -vec[i][1]
             self.nodalLoad_Z[i] = -vec[i][2]
-
-            
 
 # %% Other Functions
 

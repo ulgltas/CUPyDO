@@ -21,14 +21,14 @@ CUPyDO currently features interfaces for the following solvers:
   - GetDP **[X]** (http://getdp.info/)
   - A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liège.
   ---
-  - pyBeam **[0.1]** (https://github.com/pyBeam/pyBeam)
+  - pyBeam **[master]** (https://github.com/pyBeam/pyBeam)
   - A nonlinear beam finite element solver developed for aeronautical design applications.
   ---
 - **Fluid**
   - PFEM **[v1.19]** (https://gitlab.uliege.be/am-dept/PFEM)
   - Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
-  - SU2 **[7.1.1\*]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
+  - SU2 **[fix_wrap_strong]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
   - Open-source CFD code developed at Stanford University.
   ---
   - Flow **[v2.1.1]** (https://gitlab.uliege.be/am-dept/waves)

@@ -168,10 +168,8 @@ class RBMI(SolidSolver):
 
             if self.computationType == 'harmonic':
                 self.NativeSolid.computeInterfacePosVel(False, jInst) # To update the position of the centre of rotation... inelegant
-            self.NativeSolid.setGeneralisedForce()
-            self.NativeSolid.setGeneralisedMoment()
-            if self.computationType == 'harmonic':
-                self.NativeSolid.applyload(jInst, total_Y_load)
+            self.NativeSolid.setGeneralisedForce(jInst)
+            self.NativeSolid.setGeneralisedMoment(jInst)
 
     def getDeltaOmega(self):
         return self.NativeSolid.getDeltaOmega()

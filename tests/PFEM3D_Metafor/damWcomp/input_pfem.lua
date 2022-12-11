@@ -18,19 +18,20 @@ Problem.Mesh.alpha = 1.2
 Problem.Mesh.omega = 0.5
 Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.015
+Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.addOnFS = false
-Problem.Mesh.minAspectRatio = 1e-3
+Problem.Mesh.minAspectRatio = 1e-2
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = false
 Problem.Mesh.laplacianSmoothingBoundaries = false
-Problem.Mesh.boundingBox = {0,0,0.6,0.6}
+Problem.Mesh.boundingBox = {-0.01,-0.01,0.6,100}
 Problem.Mesh.exclusionZones = {}
 
-Problem.Mesh.remeshAlgo = 'CGAL'
+Problem.Mesh.remeshAlgo = 'GMSH'
 Problem.Mesh.mshFile = 'geometry.msh'
 Problem.Mesh.exclusionGroups = {'FSInterface'}
-Problem.Mesh.ignoreGroups = {'Solid'}
+Problem.Mesh.ignoreGroups = {'Solid','SolidBase'}
 
 -- Extractor Parameters
 
@@ -39,7 +40,7 @@ Problem.Extractors = {}
 Problem.Extractors[0] = {}
 Problem.Extractors[0].kind = 'GMSH'
 Problem.Extractors[0].writeAs = 'NodesElements'
-Problem.Extractors[0].outputFile = 'fluid.msh'
+Problem.Extractors[0].outputFile = 'pfem/fluid.msh'
 Problem.Extractors[0].whatToWrite = {'p','velocity'}
 Problem.Extractors[0].timeBetweenWriting = math.huge
 
@@ -58,12 +59,6 @@ Problem.Material.gamma = 0
 Problem.Material.K0 = 2.2e+7
 Problem.Material.rhoStar = 1000
 
--- Initial Conditions
-
-Problem.IC = {}
-Problem.IC.ReservoirFixed = true
-Problem.IC.FSInterfaceFixed = false
-
 -- Solver Parameters
 
 Problem.Solver = {}
@@ -79,11 +74,13 @@ Problem.Solver.maxRemeshDT = math.huge
 
 Problem.Solver.MomEq = {}
 Problem.Solver.ContEq = {}
+Problem.Solver.ContEq.pExt = 0
 Problem.Solver.MomEq.bodyForce = {0,-9.81}
 Problem.Solver.ContEq.stabilization = 'Meduri'
 
 -- Momentum Continuity BC
 
+Problem.IC = {}
 Problem.Solver.MomEq.BC = {}
 Problem.Solver.ContEq.BC = {}
 Problem.Solver.MomEq.BC['FSInterfaceVExt'] = true
@@ -93,5 +90,5 @@ function Problem.IC:initStates(pos)
 end
 
 function Problem.Solver.MomEq.BC:ReservoirV(pos,t)
-	return {0,0}
+	return 0,0
 end

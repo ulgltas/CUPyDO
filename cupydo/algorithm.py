@@ -1595,7 +1595,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSAitkenRelax):
 
                     if self.FSIIter == 0: # Use J^-1 from the previous time step because Vk and Wk are empty
                         
-                        invJ = self.invJprev.copy()
+                        self.invJ = self.invJprev.copy()
 
                     else: # Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
                         if self.manager.nDim == 3:
@@ -1613,25 +1613,22 @@ class AlgorithmIQN_MVJ(AlgorithmBGSAitkenRelax):
                         Vk_mat = np.vstack(Vk).T
                         Wk_mat = np.vstack(Wk).T
                         
-                        Vinv = np.linalg.pinv(Vk_mat)
-                        self.invJ = self.invJprev+np.dot(Wk_mat-self.invJprev.dot(Vk_mat),Vinv)
-                        invJ = self.invJ.copy()
+                        X = np.transpose(Wk_mat-np.dot(self.invJprev,Vk_mat))
+                        self.invJ = self.invJprev+np.linalg.lstsq(Vk_mat.T,X,rcond=-1)[0].T
 
                     if self.manager.nDim == 3:
                         Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)
                     else:
                         Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)
 
-                    np.fill_diagonal(invJ,invJ.diagonal()-1)
-
                     if self.manager.nDim == 3:
-                        delta_ds_loc = np.split(np.dot(invJ,-Res),3,axis=0)
+                        delta_ds_loc = np.split(np.dot(self.invJ,-Res)+Res,3,axis=0)
                         
                         delta_ds_loc_X = delta_ds_loc[0]
                         delta_ds_loc_Y = delta_ds_loc[1]
                         delta_ds_loc_Z = delta_ds_loc[2]
                     else:
-                        delta_ds_loc = np.split(np.dot(invJ,-Res),2,axis=0)
+                        delta_ds_loc = np.split(np.dot(self.invJ,-Res)+Res,2,axis=0)
                         
                         delta_ds_loc_X = delta_ds_loc[0]
                         delta_ds_loc_Y = delta_ds_loc[1]

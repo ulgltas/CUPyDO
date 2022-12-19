@@ -1,7 +1,0 @@
-
-mkdir build
-cd build
-
-cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release -DWITH_MPI=OFF ..
-make -j8
-make install

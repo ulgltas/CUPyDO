@@ -95,10 +95,3 @@ def getMetafor(input):
     input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
     input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor
-
-# %% A Dummy Function
-
-def getRealTimeExtractorsList(mtf):
-    
-    extractorsList = []
-    return extractorsList

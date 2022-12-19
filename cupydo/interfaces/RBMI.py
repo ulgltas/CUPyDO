@@ -31,6 +31,7 @@ import NativeSolid
 
 import math
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
@@ -168,4 +169,4 @@ class RBMI(SolidSolver):
         Des.
         """
 
-        print("***************************** Exit RBM Integrator *****************************")
+        titlePrint("Exit RBM Integrator")

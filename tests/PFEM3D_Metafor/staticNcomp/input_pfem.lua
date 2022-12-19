@@ -30,8 +30,8 @@ Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
 Problem.Mesh.mshFile = 'geometry.msh'
-Problem.Mesh.exclusionGroups = {'FSInterface'}
-Problem.Mesh.ignoreGroups = {'Solid','Clamped'}
+Problem.Mesh.ignoreGroups = {'Solid','Clamped','Bottom'}
+Problem.Mesh.exclusionGroups = {}
 
 -- Extractor Parameters
 

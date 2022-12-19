@@ -1,10 +1,11 @@
 from ..genericSolvers import FluidSolver
+from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
 
 # %% Reads a Lua Input File
 
-def readLua(path):
+def read(path):
 
     with open(path,'r') as file: text = file.read()
     text = text.replace('"','').replace("'",'').replace(' ','')
@@ -16,8 +17,9 @@ def readLua(path):
 class Pfem3D(FluidSolver):
     def __init__(self,param):
 
+        titlePrint('\nInitializing PFEM3D')
         path = param['cfdFile']
-        input = readLua(path)
+        input = read(path)
 
         # Read data from the lua file
 
@@ -67,10 +69,8 @@ class Pfem3D(FluidSolver):
         self.ok = True
 
         # Prints the initial solution and stats
-
-        self.problem.updateTime(-param['dt'])
+        
         self.dt = param['dt']
-
         FluidSolver.__init__(self)
         self.problem.displayParams()
         self.problem.dump()

@@ -17,7 +17,7 @@ def test(res, tol, it):
     
     tests = CTests()
     tests.add(CTest('Mean nb of FSI iterations', it, 4, 1, True))
-    tests.add(CTest('Y-displacement panel center', result_1[2], -0.002028, 1e-2, False))
+    tests.add(CTest('Y-displacement panel center', result_1[-1], -0.002028, 1e-2, False))
     tests.run()
 
 def getFsiP():
@@ -45,7 +45,7 @@ def getFsiP():
     p['nDim'] = 2
     p['dt'] = 1.5e-6
     p['tTot'] = 1e-4 # 40*((4*R)/U0 + d/U0)
-    p['timeItTresh'] = 0
+    
     p['dtSave'] = 0
     p['tol'] = 1e-6
     p['maxIt'] = 20

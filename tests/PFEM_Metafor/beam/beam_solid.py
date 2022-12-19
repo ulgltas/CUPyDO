@@ -1,23 +1,27 @@
-import toolbox.gmsh as gmsh
+import toolbox.gmshOld as gmshOld
 import wrap as w
 import os
 
-# %% Physical group 1 = FSInterface
+# %% Physical group 3 = FSInterface
 
-def params(input):
+def params(p):
 
-    input['bndno'] = 1
-    input['saveAllFacs'] = False
-    input['bctype'] = 'pydeadloads'
-    return input
+    p['bndno'] = 3
+    p['saveAllFacs'] = False
+    p['bctype'] = 'pydeadloads'
+    p['exporter'] = None
+    return p
 
 # %% Parallel Computing
 
 metafor = None
+w.StrVectorBase.useTBB()
+w.StrMatrixBase.useTBB()
+w.ContactInteraction.useTBB()
 
 # %% Main Function
 
-def getMetafor(input):
+def getMetafor(p):
 
     global metafor
     if metafor: return metafor
@@ -32,6 +36,7 @@ def getMetafor(input):
     solvermanager = metafor.getSolverManager()
     interactionset = domain.getInteractionSet()
     mim = metafor.getMechanicalIterationManager()
+    groupset = domain.getGeometry().getGroupSet()
 
     # Plane strain and DSS solver
 
@@ -40,35 +45,34 @@ def getMetafor(input):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),"geometry.msh")
-    importer = gmsh.GmshImport(mshFile,domain)
-    groups = importer.groups
-    importer.execute()
+    mshFile = os.path.join(os.path.dirname(__file__),"beam.msh")
+    importer = gmshOld.GmshImport(mshFile,domain)
+    importer.execute2D()
 
-    # Defines the solid domain
+    # Defines the ball domain
 
     app = w.FieldApplicator(1)
-    app.push(groups['Solid'])
+    app.push(groupset(1))
     interactionset.add(app)
-    
-    # Material parameters
+
+    # Solid material parameters
 
     materset.define(1,w.ElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e6)
-    materset(1).put(w.MASS_DENSITY,2500)
+    materset(1).put(w.ELASTIC_MODULUS,1e7)
+    materset(1).put(w.MASS_DENSITY,8e3)
     materset(1).put(w.POISSON_RATIO,0)
-    
+
     # Finite element properties
 
     prp = w.ElementProperties(w.Volume2DElement)
     prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
     prp.put(w.MATERIAL,1)
     app.addProperty(prp)
-    
+
     # Boundary conditions
     
-    loadingset.define(groups['SolidBase'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['SolidBase'],w.Field1D(w.TY,w.RE))
+    loadingset.define(groupset(5),w.Field1D(w.TX,w.RE))
+    loadingset.define(groupset(5),w.Field1D(w.TY,w.RE))
 
     # Mechanical time integration
 
@@ -77,18 +81,14 @@ def getMetafor(input):
 
     # Mechanical iterations
 
-    mim.setMaxNbOfIterations(4)
-    mim.setResidualTolerance(1e-7)
+    mim.setMaxNbOfIterations(25)
+    mim.setResidualTolerance(1e-8)
 
     # Time step iterations
-
+    
     tscm = w.NbOfMechNRIterationsTimeStepComputationMethod(metafor)
     tsm.setTimeStepComputationMethod(tscm)
     tscm.setTimeStepDivisionFactor(2)
     tscm.setNbOptiIte(25)
 
-    # Parameters for CUPyDO
-
-    input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

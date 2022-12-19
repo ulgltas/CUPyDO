@@ -136,7 +136,7 @@ class SolidSolver(object):
         self.nodalVel_YNm1 = self.nodalVel_Y.copy()
         self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
 
-    def bgsUpdate(self):
+    def steadyUpdate(self):
         return
 
     def save(self):
@@ -233,7 +233,7 @@ class FluidSolver(object):
     def update(self, dt):
         return
 
-    def bgsUpdate(self):
+    def steadyUpdate(self):
         return
 
     def save(self, nt):

@@ -22,7 +22,6 @@ Drive (create and run) an FSI computation
 Authors: Adrien CROVATO
 
 '''
-import os
 from .. import utilities as cupyutil
 from .. import manager as cupyman
 from .. import interpolator as cupyinterp
@@ -82,25 +81,28 @@ class CUPyDO(object):
         if p['computation'] == 'Adjoint':
             if p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: "StaticBGS").\n')
 
         else:
             if p['algorithm'] == 'Explicit':
                 self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator,
-                    p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], comm)
+                    p['dt'], p['tTot'], p['dtSave'], comm)
             elif p['algorithm'] == 'StaticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
             elif p['algorithm'] == 'AitkenBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
             elif p ['algorithm'] == 'IQN_ILS':
                 self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['dtSave'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+            elif p ['algorithm'] == 'IQN_MVJ':
+                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion,
+                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], p['firstItTgtMat'], comm)
             else:
-                raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS" or "IQN_ILS").\n')
+                raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS", "IQN_ILS" or "IQN_MVJ").\n')
         cupyutil.mpiBarrier()
 
     def run(self):
@@ -167,7 +169,7 @@ class CUPyDO(object):
         else:
             if myId == 0 and p['solidSolver'] == 'Metafor':
                 from . import Metafor as sItf
-                solidSolver = sItf.Metafor(p['csdFile'], p['compType'])
+                solidSolver = sItf.Metafor(p)
             elif myId == 0 and p['solidSolver'] == 'RBMI':
                 from . import RBMI as sItf
                 solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
@@ -211,7 +213,6 @@ class CUPyDO(object):
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
 # - p['tTot'], total time
-# - p['timeItTresh'], ??????
 # - p['dtSave'], time between each result save()
 # needed by BGS
 # - p['tol'], tolerance on displacements

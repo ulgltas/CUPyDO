@@ -20,62 +20,80 @@ limitations under the License.
 
 '''
 
-def test(res, tol, it):
+
+def test(res,tol,it):
+
+    from cupydo.testing import CTest,CTests,ccolors
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+
     # Check convergence and results
+
     if (res > tol):
-        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
-    
+        print("\n\nFSI residual = "+str(res)+", FSI tolerance = "+str(tol))
+        raise Exception(ccolors.ANSI_RED+"FSI algo failed to converge!"+ccolors.ANSI_RESET)
+
     # Read results from file
-    with open("Node_9_POS.ascii", 'rb') as f:
-        lines = f.readlines()
-    result_1 = np.genfromtxt(lines[-1:], delimiter=None)
-    
+
+    with open("Node_56_POS.ascii", 'rb') as f: lines = f.readlines()
+    result = np.genfromtxt(lines[-1:], delimiter=None)
+
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 5, 1, True))
-    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.487164, 1e-2, False))
-    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.0006501, 1e-2, False))
+    tests.add(CTest('Middle bar coordinate X',result[0],0.5,0.05,False))
+    tests.add(CTest('Middle bar coordinate Y',result[1],-0.053056,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',it,2.913457,0.05,False))
     tests.run()
 
+# %% Input Parameters
+
 def getFsiP():
-    """Fsi parameters"""
-    import os
-    fileName = os.path.splitext(os.path.basename(__file__))[0]
-    p = {}
-    # Solvers and config files
+
+    p = dict()
+
+    # Metafor and PFEM solvers
+    
     p['fluidSolver'] = 'Pfem'
     p['solidSolver'] = 'Metafor'
-    p['cfdFile'] = fileName[:-3] + 'fluid'
-    p['csdFile'] = fileName[:-3] + 'solid'
-    # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'AitkenBGS'
-    # FSI parameters
-    p['compType'] = 'unsteady'
-    p['computation'] = 'direct'
-    p['nDim'] = 2
-    p['dt'] = 0.001
-    p['tTot'] = 0.05
+    p['cfdFile'] = 'beam_fluid'
+    p['csdFile'] = 'beam_solid'
     
-    p['dtSave'] = 0
-    p['tol'] = 1e-6
-    p['maxIt'] = 20
+    # FSI objects
+
+    p['criterion'] = 'Displacements'
+    p['interpolator'] = 'Matching'
+    p['algorithm'] = 'IQN_ILS'
+    
+    # FSI parameters
+
+    p['firstItTgtMat'] = False
+    p['computation'] = 'direct'
+    p['compType'] = 'unsteady'
+    
+    p['dtSave'] = 0.05
     p['omega'] = 0.5
+    p['maxIt'] = 25
+    p['nSteps'] = 10
+    p['tol'] = 1e-8
+    p['dt'] = 0.01
+    p['tTot'] = 20
+    p['nDim'] = 2
+
     return p
 
+# %% Main Function
+
 def main():
+
     import cupydo.interfaces.Cupydo as cupy
+
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
+
+    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.timeIter)
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
     print('')
 
-# --- This is only accessed if running from command prompt --- #
-if __name__ == '__main__':
+if __name__=='__main__':
     main()

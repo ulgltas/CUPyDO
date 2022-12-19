@@ -24,6 +24,8 @@ def params(q={}):
     p['bctype'] = 'pydeadloads'  # variable loads
     # p['bctype']     = 'slave'     # variable loads (mpi)
 
+    p['exporter'] = None
+
     p.update(q)
     return p
 
@@ -95,7 +97,3 @@ def getMetafor(p={}):
     #vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
 
     return metafor
-
-
-def getRealTimeExtractorsList(mtf):
-    return []

@@ -56,7 +56,7 @@ def getFsiP():
     p['nDim'] = 2
     p['dt'] = 0.001
     p['tTot'] = 0.005
-    p['timeItTresh'] = 0
+    
     p['dtSave'] = 0
     p['tol'] = 1e-7
     p['maxIt'] = 10

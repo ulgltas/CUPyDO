@@ -19,7 +19,7 @@ def test(meanFSIIt):
     tests = CTests()
     tests.add(CTest('Solid tip coordinate X',coord[0],0.317212,0.05,False))
     tests.add(CTest('Solid tip coordinate Y',coord[1],0.0780102,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,2.977011,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,2.131805,0.05,False))
     tests.run()
 
 # %% Input Parameters
@@ -40,14 +40,14 @@ def getFsiP():
 
     p['criterion'] = 'Displacements'
     p['interpolator'] = 'Matching'
-    p['algorithm'] = 'AitkenBGS'
+    p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters
 
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
-    p['timeItTresh'] = 0
+    
     p['omega'] = 0.5
     p['dtSave'] = 0
     p['maxIt'] = 20

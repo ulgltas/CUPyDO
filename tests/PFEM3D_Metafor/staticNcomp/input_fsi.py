@@ -13,13 +13,13 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(57)[0]
+    coord = gmsh.model.mesh.getNode(56)[0]
     gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X',coord[0],0.5,0.05,False))
     tests.add(CTest('Middle bar coordinate Y',coord[1],-0.052684,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.696348,0.05,False))
+    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.658329,0.05,False))
     tests.run()
 
 # %% Input Parameters

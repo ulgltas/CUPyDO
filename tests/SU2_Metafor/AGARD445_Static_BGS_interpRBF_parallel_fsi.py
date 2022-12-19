@@ -42,8 +42,8 @@ def test(res, tol):
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Drag coefficient', resultA[3], 0.000054, 1e-1, False)) # rel. tol. of 10% (was 0.00035 before)
-    tests.add(CTest('Displacement (180, TZ)', resultS1[2], 0.0116, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (181, TZ)', resultS2[2], 0.0132, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.0116, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.0132, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getFsiP():
@@ -66,7 +66,7 @@ def getFsiP():
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.05
-    p['timeItTresh'] = -1
+    
     p['dtSave'] = 0
     p['tol'] = 1e-6
     p['maxIt'] = 4

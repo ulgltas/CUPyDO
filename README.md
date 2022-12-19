@@ -50,7 +50,9 @@ Finally, CUPyDO features two main couplers:
 - Block-Gauss-Seidel (BGS) with
   - constant (static) relaxation
   - Aitken relaxation
-- Interface Quasi-Newton with Inverse Least-Square (IQN_ILS)
+- Interface Quasi-Newton with
+  - Inverse Least-Square (IQN_ILS)
+  - Multi-Vector Jacobian (IQN_MVJ)
 
 ## Compilation
 Detailed build instructions can be found in the [wiki](https://github.com/ulgltas/CUPyDO/wiki/Installation).

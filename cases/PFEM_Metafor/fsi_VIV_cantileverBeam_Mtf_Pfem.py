@@ -18,6 +18,7 @@ def getParameters(_p):
     p = {}
     p['nthreads'] = 1
     p['mtfSaveAllFacs'] = True
+    p['extractor'] = None
     p.update(_p)
     return p
 

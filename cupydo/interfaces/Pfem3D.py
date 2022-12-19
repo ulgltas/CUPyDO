@@ -1,4 +1,5 @@
 from ..genericSolvers import FluidSolver
+from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
 
@@ -16,6 +17,7 @@ def read(path):
 class Pfem3D(FluidSolver):
     def __init__(self,param):
 
+        titlePrint('\nInitializing PFEM3D')
         path = param['cfdFile']
         input = read(path)
 

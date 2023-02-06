@@ -22,11 +22,11 @@ limitations under the License.
 
 def test(res, tol, it):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     
     # Read results from file
     with open("Node_6_POS.ascii", 'rb') as f:

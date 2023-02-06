@@ -23,7 +23,7 @@ import os
 
 def test_adj(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()

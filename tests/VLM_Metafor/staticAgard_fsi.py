@@ -8,7 +8,7 @@
 def test(cupydo, tol):
     res = cupydo.algorithm.errValue
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from data
     cl = cupydo.algorithm.FluidSolver.coreSolver.getCl()
     cd = cupydo.algorithm.FluidSolver.coreSolver.getCd()
@@ -22,7 +22,7 @@ def test(cupydo, tol):
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', cl, 0.0460, 1e-2, True)) # abs. tol
     tests.add(CTest('Drag coefficient', cd, 0.00080, 1e-4, True))

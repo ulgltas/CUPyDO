@@ -7,7 +7,7 @@
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Flow constant (defined in case_fluid)
     dynP = 0.5*100 # dynamic pressure
     alpha0 = np.radians(3) # initial angle of attack
@@ -43,7 +43,7 @@ def test(res, tol):
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], cl_alpha*x[1], 2*1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Vertical displacement', -resultS[2]/cRef, x[0]/cRef, 2*1e-2, True)) # abs. tol. of 1% of chord

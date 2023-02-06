@@ -6,7 +6,7 @@ FSI tools for partinioned coupling between generic solid and fluid solvers.
 ## Solvers
 CUPyDO currently features interfaces for the following solvers:
 - **Solid**
-  - Metafor **[v3492]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
+  - Metafor **[v3501]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
   - RBMI **[1.1]** (https://github.com/ulgltas/NativeSolid)
@@ -21,14 +21,14 @@ CUPyDO currently features interfaces for the following solvers:
   - GetDP **[X]** (http://getdp.info/)
   - A free finite element software and a general environment for the treatment of discrete problems, developed at University of Liège.
   ---
-  - pyBeam **[0.1]** (https://github.com/pyBeam/pyBeam)
+  - pyBeam **[master]** (https://github.com/pyBeam/pyBeam)
   - A nonlinear beam finite element solver developed for aeronautical design applications.
   ---
 - **Fluid**
   - PFEM **[v1.19]** (https://gitlab.uliege.be/am-dept/PFEM)
   - Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
-  - SU2 **[7.1.1\*]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
+  - SU2 **[fix_wrap_strong]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
   - Open-source CFD code developed at Stanford University.
   ---
   - DART **[v1.2.0]** (https://gitlab.uliege.be/am-dept/dartflo)
@@ -37,7 +37,7 @@ CUPyDO currently features interfaces for the following solvers:
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
   ---
-  - PFEM3D **[2.0.0]** (https://github.com/ImperatorS79/PFEM3D)
+  - PFEM3D **[2.1.0]** (https://github.com/ImperatorS79/PFEM3D)
   - A 3D Particle Finite Element Method fluid solver developed at the University of Liège.
 
 ##  Features

@@ -1,81 +1,98 @@
-Problem = {
-    id = "IncompNewtonNoT",
-	FSInterface = "FSInterface",
-	simulationTime = math.huge,
-	verboseOutput = false,
-	autoRemeshing = false,
+-- Problem Parameters
 
-	Mesh = {
-		alpha = 1.2,
-		omega = 0.5,
-		gamma = 0.6,
-		hchar = 0.03,
-		addOnFS = false,
-		deleteFlyingNodes = false,
-		laplacianSmoothingBoundaries = false,
-		boundingBox = {-0.01,-1,1.01,1},
+Problem = {}
+Problem.autoRemeshing = false
+Problem.verboseOutput = false
+Problem.simulationTime = math.huge
+Problem.id = 'IncompNewtonNoT'
 
-		remeshAlgo = "CGAL",
-		mshFile = "geometry.msh",
-		exclusionGroups = {"FSInterface"},
-		ignoreGroups = {"Solid"},
-		exclusionZones = {}
-	},
+-- FSPC Parameters
 
-	Extractors = {
-		{
-			kind = "GMSH",
-			writeAs = "NodesElements",
-			outputFile = "fluid.msh",
-			whatToWrite = {"p","velocity"},
-			timeBetweenWriting = math.huge
-		},
-        {
-            kind = "Global",
-            whatToWrite = "mass",
-            outputFile = "mass.txt",
-            timeBetweenWriting = math.huge
-        }
-	},
+Problem.interface = 'FSInterface'
+Problem.maxFactor = 10
 
-	Material = {
-		rho = 1000,
-		mu = 1000,
-		gamma = 0
-	},
+-- Mesh Parameters
 
-	IC = {
-		WallFixed = true,
-		FSInterfaceFixed = false
-	},
+Problem.Mesh = {}
+Problem.Mesh.alpha = 1.2
+Problem.Mesh.omega = 0.5
+Problem.Mesh.gamma = 0.6
+Problem.Mesh.hchar = 0.03
+Problem.Mesh.gammaFS = 0.2
+Problem.Mesh.addOnFS = false
+Problem.Mesh.minAspectRatio = 1e-2
+Problem.Mesh.keepFluidElements = true
+Problem.Mesh.deleteFlyingNodes = false
+Problem.Mesh.deleteBoundElements = false
+Problem.Mesh.laplacianSmoothingBoundaries = false
+Problem.Mesh.boundingBox = {-0.01,-1,1.01,1}
+Problem.Mesh.exclusionZones = {}
 
-	Solver = {
-	    id = "PSPG",
-		coeffDTDecrease = 2,
-		coeffDTincrease = 1.5,
-		initialDT = math.huge,
-		maxDT = math.huge,
-		adaptDT = true,
-		
-		MomContEq = {
-			nlAlgo = "Picard",
-			residual = "Ax_f",
-			bodyForce = {0,-9.81},
-			minRes = 1e-8,
-			maxIter = 25,
-			BC = {}
-		}
-	}
-}
+Problem.Mesh.remeshAlgo = 'GMSH'
+Problem.Mesh.mshFile = 'geometry.msh'
+Problem.Mesh.exclusionGroups = {'FSInterface'}
+Problem.Mesh.ignoreGroups = {'Solid','Clamped'}
+
+-- Extractor Parameters
+
+Problem.Extractors = {}
+
+Problem.Extractors[0] = {}
+Problem.Extractors[0].kind = 'GMSH'
+Problem.Extractors[0].writeAs = 'NodesElements'
+Problem.Extractors[0].outputFile = 'pfem/fluid.msh'
+Problem.Extractors[0].whatToWrite = {'p','velocity'}
+Problem.Extractors[0].timeBetweenWriting = math.huge
+
+Problem.Extractors[1] = {}
+Problem.Extractors[1].kind = 'Global'
+Problem.Extractors[1].whatToWrite = 'mass'
+Problem.Extractors[1].outputFile = 'mass.txt'
+Problem.Extractors[1].timeBetweenWriting = math.huge
+
+-- Material Parameters
+
+Problem.Material = {}
+Problem.Material.mu = 1000
+Problem.Material.gamma = 0
+Problem.Material.rho = 1000
+
+-- Solver Parameters
+
+Problem.Solver = {}
+Problem.Solver.id = 'PSPG'
+
+Problem.Solver.adaptDT = true
+Problem.Solver.maxDT = math.huge
+Problem.Solver.initialDT = math.huge
+Problem.Solver.coeffDTDecrease = math.huge
+Problem.Solver.coeffDTincrease = math.huge
+
+-- Momentum Continuity Equation
+
+Problem.Solver.MomContEq = {}
+Problem.Solver.MomContEq.residual = 'Ax_f'
+Problem.Solver.MomContEq.nlAlgo = 'Picard'
+Problem.Solver.MomContEq.sparseSolverLib = 'Eigen'
+Problem.Solver.MomContEq.PStepSparseSolver = 'LLT'
+
+Problem.Solver.MomContEq.pExt = 0
+Problem.Solver.MomContEq.maxIter = 25
+Problem.Solver.MomContEq.gammaFS = 0.5
+Problem.Solver.MomContEq.minRes = 1e-8
+Problem.Solver.MomContEq.cgTolerance = 1e-12
+Problem.Solver.MomContEq.bodyForce = {0,-9.81}
+
+-- Momentum Continuity BC
+
+Problem.IC = {}
+Problem.Solver.MomContEq.BC = {}
+Problem.Solver.MomContEq.BC['FSInterfaceVExt'] = true
 
 function Problem.IC:initStates(pos)
 	return {0,0,0}
 end
 
 function Problem.Solver.MomContEq.BC:WallV(pos,t)
-	return {0,0}
-end
-
-function Problem.Solver.MomContEq.BC:FSInterfaceV(pos,t)
-	return nil
+	return 0,0
 end

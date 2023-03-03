@@ -1,17 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# CUPyDO configuration file for Flow
-# Diamond airfoil
+# CUPyDO configuration file for DART
+# Naca0012 airfoil
 # Adrien Crovato
+#
+# CAUTION: fluid solver convergence might stall if geometry is meshed with gmsh 4.x.x (test should still pass)
 
 import os
 
 def getParams():
     p = {}
     # Input/Output
-    p['File'] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'models/diamond_fluid.geo')) # Input file containing the model
-    p['Pars'] = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 1., 'msA' : 0.01} # Parameters for input file model
+    p['File'] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'models/n0012_fluid.geo')) # Input file containing the model
+    p['Pars'] = {'xLgt' : 5, 'yLgt' : 5, 'msF' : 0.5, 'msTe' : 0.01, 'msLe' : 0.01} # Parameters for input file model
     p['Dim'] = 2 # Problem dimension
     p['Format'] = 'gmsh' # Save format (vtk or gmsh)
     # Markers
@@ -21,9 +23,9 @@ def getParams():
     p['Wake'] = 'wake' # Name of physical group containing the wake
     p['Te'] =  'te' # Name of physical group containing the trailing edge
     # Freestream
-    p['M_inf'] = 0.31 # Freestream Mach number
+    p['M_inf'] = 0. # Freestream Mach number
     p['AoA'] = 3. # Freestream angle of attack
-    p['P_dyn'] = 0.5*102*102 # Dynamic pressure
+    p['Q_inf'] = 0.5*100 # Dynamic pressure
     # Geometry
     p['S_ref'] = 1. # Reference surface length (c_ref for 2D)
     p['c_ref'] = 1. # Reference chord length
@@ -31,13 +33,8 @@ def getParams():
     p['y_ref'] = 0. # Reference point for moment computation (y)
     p['z_ref'] = 0. # Reference point for moment computation (z)
     # Numerical
-    p['LSolver'] = 'Pardiso' # Linear solver (Pardiso, GMRES, MUMPS or SparseLU)
-    p['NSolver'] = 'Newton' # Noninear solver type (Picard or Newton)
+    p['LSolver'] = 'PARDISO' # Linear solver (PARDISO, GMRES, or MUMPS)
     p['Rel_tol'] = 1e-6 # Relative tolerance on solver residual
     p['Abs_tol'] = 1e-8 # Absolute tolerance on solver residual
-    p['Max_it'] = 25 # Solver maximum number of iterations
-    p['LS_tol'] = 1e-6 # Tolerance on linesearch residual
-    p['Max_it_LS'] = 10 # Linesearch maximum number of iterations
-    p['AV_thrsh'] = 1e-2 # Residual threshold below which the artificial viscosity is decreased
-    p['M_crit'] = 5. # Critical Mach number above which density is damped
+    p['Max_it'] = 10 # Solver maximum number of iterations
     return p

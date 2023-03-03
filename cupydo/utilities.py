@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -374,7 +374,7 @@ class solverPath(object):
         self.basePaths['Metafor'] = ['Metafor/oo_metaB/bin','Metafor/oo_meta','Metafor/linuxbin']
         self.basePaths['RBMI'] = ['NativeSolid/bin']
         self.basePaths['Modal'] = ['modali']
-        self.basePaths['Flow'] = ['waves']
+        self.basePaths['DART'] = ['dartflo', 'dartflo/ext/amfe']
         self.basePaths['Pfem'] = ['PFEM','waves']
         self.basePaths['SU2'] = ['SU2/build/bin']
         self.basePaths['VLM'] = ['VLM']

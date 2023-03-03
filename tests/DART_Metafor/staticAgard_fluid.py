@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# CUPyDO configuration file for Flow
+# CUPyDO configuration file for DART
 # Agard445 wing
 # Adrien Crovato
 
@@ -24,15 +24,14 @@ def getParams():
     p['Fluid'] = 'field' # Name of physical group containing the fluid
     p['Symmetry'] = 'symmetry' # Name of physical group containing the (slip) symmetry boundary
     p['Farfield'] = ['upstream', 'farfield', 'downstream'] # LIST of names of physical groups containing the farfield boundaries (upstream/downstream should be first/last element)
-    p['Wings'] = ['wing'] # LIST of names of physical group containing the lifting surface boundary
-    p['Fsi'] = 'wing' # Name of the physical group containing the FSI boundary
+    p['Wings'] = ['wing'] # LIST of names of physical group containing the lifting surface boundary (first element will be the FSI boundary)
     p['Wakes'] = ['wake'] # LIST of names of physical groups containing the wake
     p['WakeTips'] = ['wakeTip'] # LIST of names of physical groups containing the edge of the wake
-    p['TeTips'] = ['teTip'] # LIST of names of physical groups containing the edge of the wake and the trailing edge
+    p['Tes'] = ['te'] # LIST of names of physical groups containing the trailing edge
     # Freestream
     p['M_inf'] = 0.8 # Freestream Mach number
     p['AoA'] = 1. # Freestream angle of attack
-    p['P_dyn'] = 0.5*0.094*247.1*247.1 # Dynamic pressure
+    p['Q_inf'] = 0.5*0.094*247.1*247.1 # Dynamic pressure
     # Geometry
     p['S_ref'] = .35 # Reference surface length (c_ref for 2D)
     p['c_ref'] = .47 # Reference chord length
@@ -40,13 +39,8 @@ def getParams():
     p['y_ref'] = 0. # Reference point for moment computation (y)
     p['z_ref'] = 0. # Reference point for moment computation (z)
     # Numerical
-    p['LSolver'] = 'Pardiso' # Linear solver (Pardiso, GMRES, MUMPS or SparseLU)
-    p['NSolver'] = 'Newton' # Noninear solver type (Picard or Newton)
+    p['LSolver'] = 'PARDISO' # Linear solver (PARDISO, GMRES, or MUMPS)
     p['Rel_tol'] = 1e-6 # Relative tolerance on solver residual
     p['Abs_tol'] = 1e-8 # Absolute tolerance on solver residual
     p['Max_it'] = 25 # Solver maximum number of iterations
-    p['LS_tol'] = 1e-6 # Tolerance on linesearch residual
-    p['Max_it_LS'] = 10 # Linesearch maximum number of iterations
-    p['AV_thrsh'] = 1e-2 # Residual threshold below which the artificial viscosity is decreased
-    p['M_crit'] = 5. # Critical Mach number above which density is damped
     return p

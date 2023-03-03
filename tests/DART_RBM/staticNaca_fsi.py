@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # CUPyDO configuration file
@@ -17,7 +17,7 @@ def test(res, tol):
     k = 250 # vertical stiffness
     kappa = 25 # rotational stiffness
 
-    # Airfoil slopes (measured from flow sovler)
+    # Airfoil slopes (measured from DART)
     cl_alpha = 6.8
     cd_alpha = 0.085
     cm_alpha = 0.27 # must be measured from flexural axis posit. hard to calibrate but of crucial importance!
@@ -36,7 +36,7 @@ def test(res, tol):
 
     # Read results from file
     resultS = np.genfromtxt("NativeHistory.dat", delimiter=None, skip_header=1)
-    with open("FlowHistory.dat", 'rb') as f:
+    with open("DartHistory.dat", 'rb') as f:
         lines = f.readlines()
     resultA = np.genfromtxt(lines[-1:], delimiter=None)
 
@@ -57,7 +57,7 @@ def getFsiP():
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
     # Solvers and config files
-    p['fluidSolver'] = 'Flow'
+    p['fluidSolver'] = 'DART'
     p['solidSolver'] = 'RBMI'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = os.path.join(filePath, fileName[:-3] + 'solid.cfg')

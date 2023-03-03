@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ''' 
@@ -133,9 +133,9 @@ class CUPyDO(object):
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
                 fluidSolver = fItf.Pfem(p['cfdFile'], args.n, args.nogui, p['dt'])
-            elif p['fluidSolver'] == 'Flow':
-                from . import Flow as fItf
-                fluidSolver = fItf.Flow(p['cfdFile'], args.n)
+            elif p['fluidSolver'] == 'DART':
+                from dart.api.cupydo import Dart
+                fluidSolver = Dart(p['cfdFile'], args.n)
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p['cfdFile'])
@@ -194,7 +194,7 @@ class CUPyDO(object):
 # Sample parameters list
 
 # Solvers
-# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM, Pfem3D
+# - p['fluidSolver'], fluid solvers available: SU2, Pfem, DART, VLM, Pfem3D
 # - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 

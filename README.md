@@ -31,8 +31,8 @@ CUPyDO currently features interfaces for the following solvers:
   - SU2 **[fix_wrap_strong]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
   - Open-source CFD code developed at Stanford University.
   ---
-  - Flow **[v2.1.1]** (https://gitlab.uliege.be/am-dept/waves)
-  - A Full Potential Finite Element fluid solver, part of the waves project, developed at the University of Liège.
+  - DART **[v1.2.0]** (https://gitlab.uliege.be/am-dept/dartflo)
+  - Open-source transonic full potential finite element fluid solver, developed at the University of Liège.
   ---
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
@@ -64,3 +64,5 @@ Examples of simulations are available in [CUPyDO/tests](https://github.com/ulglt
 Cerquaglia M.L., Thomas D., Boman R., Terrapon V.E., Ponthot J.-P., [A fully partitioned Lagrangian framework for FSI problems characterized by free surfaces, large solid deformations and displacements, and strong added-mass effects](https://doi.org/10.1016/j.cma.2019.01.021), Computer Methods in Applied Mechanics and Engineering, in press (2019)
 
 Thomas D., Cerquaglia M.L., Boman R., Economon T.D., Alonso J.J., Dimitriadis G., Terrapon V.E., [CUPyDO - An integrated Python environment for coupled multi-physics simulations](https://doi.org/10.1016/j.advengsoft.2018.05.007), Advances in Engineering Software 128:69-85 (2019)
+
+Thomas David, [Efficient and flexible implementation of an interfacing Python-based tool for numerical simulations of fluid-structure interaction problems](https://hdl.handle.net/2268/252830), PhD thesis, University of Liège, 2020.

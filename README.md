@@ -25,7 +25,7 @@ CUPyDO currently features interfaces for the following solvers:
   - A nonlinear beam finite element solver developed for aeronautical design applications.
   ---
 - **Fluid**
-  - PFEM **[v1.19]** (https://gitlab.uliege.be/am-dept/PFEM)
+  - PFEM **[v1.26]** (https://gitlab.uliege.be/am-dept/PFEM)
   - Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
   - SU2 **[fix_wrap_strong]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)

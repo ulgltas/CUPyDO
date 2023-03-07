@@ -180,7 +180,7 @@ class Pfem(FluidSolver):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
         self.pfem.scheme.updateSolutionVectors()
-        self.pfem.scheme.updateMatIDVector()
+        #self.pfem.scheme.updateMatIDVector()
         #self.u = self.pfem.scheme.u
         #self.v = self.pfem.scheme.v
         

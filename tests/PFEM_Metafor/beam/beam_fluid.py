@@ -34,13 +34,12 @@ w = None
 
 
 class Module(object):
-    def __init__(self, w, msh, pbl, contactTag, solScheme,
+    def __init__(self, w, msh, pbl, solScheme,
                  nonLinAlgo, convCriterion, scheme,
                  extManager, gui, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
-        self.contactTag = contactTag
         self.solScheme = solScheme
         self.nonLinAlgo = nonLinAlgo
         self.convCriterion = convCriterion
@@ -79,26 +78,20 @@ def getPfem():
     solScheme = w.SchemeMonolithicPSPG(msh, pbl)
     convCriterion = w.ForceBalanceCriterion(msh, pbl, toll, 9.81*rho0)
     nonLinAlgo = w.PicardAlgorithm(solScheme, convCriterion, nItMax)
-
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 3 # fsi boundary
+    bndno = "FSInterface"
 
-    contactTag = w.Tag(100, "Contact", 2)
-    msh.ptags[100] = contactTag
-    msh.ntags["Contact"] = contactTag
-
-    w.Medium(msh, 100, 0., 0., 0., 4)
-    w.Medium(msh, 3, 0., 0., 3)
-    w.Medium(msh, 2, mu, rho0, 1)
-    w.Medium(msh, 7, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Fluid", w.MASTER_FLUID, mu, rho0)
+    w.Medium(msh, "Wall", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 4, 3, pbl.extP)
-    w.Boundary(msh, 7, 1, 0.0)
-    w.Boundary(msh, 7, 2, 0.0)
-    w.Boundary(msh, 3, 1, 0.0)
-    w.Boundary(msh, 3, 2, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, pbl.extP)
+    w.Boundary(msh, "Wall", 1, 0.0)
+    w.Boundary(msh, "Wall", 2, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     scheme.savefreq = 1
     scheme.gamma = 0.6
@@ -112,7 +105,7 @@ def getPfem():
     import pfem.tools.link2vtk as v
     gui = v.Link2VTK(msh, scheme, False, True)
 
-    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

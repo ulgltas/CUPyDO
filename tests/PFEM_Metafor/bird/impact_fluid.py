@@ -88,15 +88,15 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 13 # fsi boundary
+    bndno = "FSInterface" # fsi boundary
 
-    w.Medium(msh, 13, 0., 0., 3)
-    w.Medium(msh, 16, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Bird", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 15, 3, 0.0)
-    w.Boundary(msh, 13, 1, 0.0)
-    w.Boundary(msh, 13, 2, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     # Initial velocity
     bird = w.Group(msh, 16)

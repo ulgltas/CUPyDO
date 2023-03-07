@@ -80,17 +80,17 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 9
+    bndno = "Cylinder"
 
-    w.Medium(msh, 15, 0., 0., 3)
-    w.Medium(msh, 14, mu, rho0, 1)
+    w.Medium(msh, "Face2", w.SOLID, 0., 0.)
+    w.Medium(msh, "Face1", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 8, 3, pbl.extP)
-    w.Boundary(msh, 7, 1, 0.0)
-    w.Boundary(msh, 7, 2, 0.0)
-    w.Boundary(msh, 9, 1, 0.0)
-    w.Boundary(msh, 9, 2, 0.0)
+    w.Boundary(msh, "Free", 3, pbl.extP)
+    w.Boundary(msh, "Wall", 1, 0.0)
+    w.Boundary(msh, "Wall", 2, 0.0)
+    w.Boundary(msh, "Cylinder", 1, 0.0)
+    w.Boundary(msh, "Cylinder", 2, 0.0)
 
     scheme.savefreq = 1
     scheme.gamma = 0.6

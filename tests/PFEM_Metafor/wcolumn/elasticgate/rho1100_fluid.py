@@ -85,16 +85,16 @@ def getPfem():
     bndno = 17 # fsi boundary
 
     # w.Medium(msh, 100, 0., 0., 0., 4)
-    w.Medium(msh, 17, 0., 0., 3)
-    w.Medium(msh, 16, mu, rho0, 1)
-    w.Medium(msh, 20, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Reservoir", w.MASTER_FLUID, mu, rho0)
+    w.Medium(msh, "WaterColumn", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 18, 3, pbl.extP)
-    w.Boundary(msh, 16, 1, 0.0)
-    w.Boundary(msh, 16, 2, 0.0)
-    w.Boundary(msh, 17, 1, -1.0e-15)
-    w.Boundary(msh, 17, 2, -1.0e-15)
+    w.Boundary(msh, "FreeSurface", 3, pbl.extP)
+    w.Boundary(msh, "Reservoir", 1, 0.0)
+    w.Boundary(msh, "Reservoir", 2, 0.0)
+    w.Boundary(msh, "FSInterface", 1, -1.0e-15)
+    w.Boundary(msh, "FSInterface", 2, -1.0e-15)
 
     scheme.savefreq = 10
     scheme.gamma = 0.5

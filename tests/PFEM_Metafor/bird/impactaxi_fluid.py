@@ -87,16 +87,16 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 13 # fsi boundary no
+    bndno = "FSInterface" # fsi boundary no
 
-    w.Medium(msh, 13, 0., 0., 3)
-    w.Medium(msh, 17, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Bird", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 15, 7, 0.0)
-    w.Boundary(msh, 16, 3, 0.0)
-    w.Boundary(msh, 13, 1, 0.0)
-    w.Boundary(msh, 13, 2, 0.0)
+    w.Boundary(msh, "Axis", 7, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     # --- Necessary for the correct elimination of nodes along the axis of symmetry ---
     n4 = msh.getNode(4)
@@ -104,7 +104,7 @@ def getPfem():
     # ---
 
     # Initial velocity
-    bird = w.Group(msh, 17)
+    bird = w.Group(msh, "Bird")
     loadingset = w.LoadingSet(msh)
     loadingset.add(1, w.InitialVelocity(msh, bird, 0., -U0, 0.))
 

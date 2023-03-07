@@ -30,7 +30,7 @@ Line(7) = {6,4};
 
 Curve Loop(1) = {1,2,3,4};
 Plane Surface(1) = {1};
-Physical Surface("Solid") = {1};
+Physical Surface("Solid",1) = {1};
 
 Transfinite Line{2} = N;
 Transfinite Line{4} = N;
@@ -42,15 +42,15 @@ Recombine Surface{1};
 
 Curve Loop(2) = {-3,5,6,7};
 Plane Surface(2) = {2};
-Physical Surface("Fluid") = {2};
+Physical Surface("Fluid",2) = {2};
 
 // Boundaries
 
-Physical Curve("FSInterface") = {3};
-Physical Curve("FreeSurface") = {6};
-Physical Curve("Clamped") = {2,4};
-Physical Curve("Bottom") = {1};
-Physical Curve("Wall") = {5,7};
+Physical Curve("FSInterface",3) = {3};
+Physical Curve("FreeSurface",4) = {6};
+Physical Curve("Clamped",5) = {2,4};
+Physical Curve("Bottom",6) = {1};
+Physical Curve("Wall",7) = {5,7};
 
 // Builds 2D Mesh
 

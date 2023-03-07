@@ -168,8 +168,8 @@ class Pfem(FluidSolver):
         """
         prescribes given nodal positions and velocities coming from solid solver to node #no
         """
-        if self.pfem.scheme.t < time:
-            self.pfem.scheme.resetNodalPositions()
+        # if self.pfem.scheme.t < time:
+        #     self.pfem.scheme.resetNodalPositions()
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 

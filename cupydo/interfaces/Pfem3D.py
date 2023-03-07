@@ -96,7 +96,7 @@ class Pfem3D(FluidSolver):
                 self.resetSystem(t2-t1)
                 iteration = 0
 
-        self.setCurrentState()
+        self.__setCurrentState()
         return True
 
     # Run for explicit integration scheme
@@ -119,7 +119,7 @@ class Pfem3D(FluidSolver):
             self.solver.setTimeStep(dt)
             self.solver.solveOneTimeStep()
 
-        self.setCurrentState()
+        self.__setCurrentState()
         return True
 
 # %% Apply Boundary Conditions
@@ -168,7 +168,7 @@ class Pfem3D(FluidSolver):
         
     # Computes the reaction nodal loads
 
-    def setCurrentState(self):
+    def __setCurrentState(self):
 
         vector = w.VectorVectorDouble()
         self.solver.computeLoads(self.group,self.FSI,vector)

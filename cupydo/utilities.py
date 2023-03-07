@@ -390,7 +390,7 @@ class solverPath(object):
         self.basePaths['RBMI'] = ['NativeSolid/bin']
         self.basePaths['Modal'] = ['modali']
         self.basePaths['DART'] = ['dartflo', 'dartflo/ext/amfe']
-        self.basePaths['Pfem'] = ['PFEM','waves']
+        self.basePaths['Pfem'] = ['PFEM', 'PFEM/ext/amfe']
         self.basePaths['SU2'] = ['SU2/build/bin']
         self.basePaths['VLM'] = ['VLM']
         self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']

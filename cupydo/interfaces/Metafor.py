@@ -116,7 +116,7 @@ class Metafor(SolidSolver):
 
         SolidSolver.__init__(self)
         self.metafor.getDomain().build()
-        self.setNodalVal(True)
+        self.__setCurrentState(True)
         self.save()
 
         # Manages time step restart functions
@@ -153,7 +153,7 @@ class Metafor(SolidSolver):
 
 # %% Gets Nodal Values
 
-    def setNodalVal(self,initialize):
+    def __setCurrentState(self,initialize):
         """
         Save the current nodal states in vectors
         """

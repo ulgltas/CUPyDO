@@ -89,34 +89,6 @@ class Algorithm(object):
 
         self.solidHasRun = False
 
-    def setFSIInitialConditions(self):
-        """
-        Des.
-        """
-
-        if self.manager.mechanical:
-            if self.manager.computationType == 'unsteady':
-                if self.myid in self.manager.getSolidSolverProcessors():
-                    self.SolidSolver.setInitialDisplacements()
-                self.interfaceInterpolator.getDisplacementFromSolidSolver()
-                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-                self.interfaceInterpolator.setDisplacementToFluidSolver(self.time+self.deltaT)
-                self.FluidSolver.setInitialMeshDeformation()
-            else:
-                if self.myid in self.manager.getSolidSolverProcessors():
-                    self.SolidSolver.setInitialDisplacements()
-                self.interfaceInterpolator.getDisplacementFromSolidSolver()
-                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-                self.interfaceInterpolator.setDisplacementToFluidSolver(self.time+self.deltaT)
-                self.FluidSolver.setInitialMeshDeformation()
-
-        if self.manager.thermal:
-            if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
-                self.FluidSolver.setInitialInterfaceHeatFlux()
-            elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
-                self.FluidSolver.setInitialInterfaceTemperature()
-            self.FluidSolver.boundaryConditionsUpdate()
-
     def fluidToSolidMechaTransfer(self):
         """
         Des.
@@ -199,11 +171,6 @@ class AlgorithmExplicit(Algorithm):
         mpiPrint("Begin FSI Computation",self.mpiComm,titlePrint)
 
         self.globalTimer.start()
-
-        # If no restart
-        mpiPrint('Setting FSI initial conditions...', self.mpiComm)
-        self.setFSIInitialConditions()
-        mpiPrint('\nFSI initial conditions are set', self.mpiComm)
         
         try:
             if self.manager.computationType == 'unsteady':
@@ -459,11 +426,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         self.globalTimer.start()
 
-        # If no restart
-        mpiPrint('Setting FSI initial conditions...', self.mpiComm)
-        self.setFSIInitialConditions()
-        mpiPrint('\nFSI initial conditions are set', self.mpiComm)
-        
         try:
             if self.manager.computationType == 'unsteady':
                 self.__unsteadyRun()
@@ -1276,11 +1238,6 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.iniRealTimeData()
         mpiPrint("Begin FSI Adjoint Computation",self.mpiComm,titlePrint)
         self.globalTimer.start()
-
-        # If no restart
-        mpiPrint('Setting FSI initial conditions...', self.mpiComm)
-        self.setFSIInitialConditions()
-        mpiPrint('\nFSI initial conditions are set', self.mpiComm)
         
         try:
             self.timeIter = 1

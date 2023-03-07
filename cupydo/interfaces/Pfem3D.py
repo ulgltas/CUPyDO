@@ -17,32 +17,20 @@ def read(path):
 class Pfem3D(FluidSolver):
     def __init__(self,param):
 
-        titlePrint('\nInitializing PFEM3D')
+        titlePrint('Initializing PFEM3D')
+
         path = param['cfdFile']
+        self.problem = w.getProblem(path)
+        self.autoRemesh = self.problem.hasAutoRemeshing()
+        problemID = self.problem.getID()
+
+        # Read the input Lua file
+
         input = read(path)
-
-        # Read data from the lua file
-
-        self.ID = input['Problem.id']
         self.group = input['Problem.interface']
         self.maxFactor = int(input['Problem.maxFactor'])
-        self.autoRemesh = (input['Problem.autoRemeshing'] == 'true')
-
-        # Problem class and functions initialization
-
-        if self.ID == 'IncompNewtonNoT':
-
-            self.run = self.runIncomp
-            self.problem = w.ProbIncompNewton(path)
-            self.applyDispBC = self.applyDispIncomp
-
-        elif self.ID == 'WCompNewtonNoT':
-
-            self.run = self.runWcomp
-            self.problem = w.ProbWCompNewton(path)
-            self.applyDispBC = self.applyDispWcomp
-
-        else: raise Exception('Problem type not supported')
+        if problemID[:2] == 'WC': self.implicit = False
+        else: self.implicit = True
 
         # Stores the important objects and variables
 
@@ -59,30 +47,31 @@ class Pfem3D(FluidSolver):
         self.mesh.setComputeNormalCurvature(True)
         self.nPhysicalNodes = self.FSI.size()
         self.nNodes = self.nPhysicalNodes
+        self.problem.displayParams()
 
         # Initializes the simulation data
 
         self.disp = np.zeros((self.nPhysicalNodes,3))
-        self.initPos = self.getPosition()
+        self.initPos =  self.getPosition()
+        self.dt = param['dt']
         self.reload = False
         self.factor = 1
         self.ok = True
-
-        # Prints the initial solution and stats
         
-        self.dt = param['dt']
         FluidSolver.__init__(self)
-        self.problem.displayParams()
-        self.problem.dump()
 
-# %% Run for Incompressible Flows
+# %% Calculates One Time Step
 
-    def runIncomp(self,t1,t2):
+    def run(self,t1,t2):
 
         print('\nSolve ({:.5e}, {:.5e})'.format(t1,t2))
         print('----------------------------------')
+        if self.implicit: return self.runImplicit(t1,t2)
+        else: return self.runExplicit(t1,t2)
 
-        # The line order is important here
+    # Run for implicit integration scheme
+
+    def runImplicit(self,t1,t2):
 
         if not (self.reload and self.ok): self.factor //= 2
         self.factor = max(1,self.factor)
@@ -107,18 +96,12 @@ class Pfem3D(FluidSolver):
                 self.resetSystem(t2-t1)
                 iteration = 0
 
-        print('PFEM3D: Successful run')
         self.setCurrentState()
         return True
-        
-# %% Run for Weakly Compressible Flows
 
-    def runWcomp(self,t1,t2):
+    # Run for explicit integration scheme
 
-        print('\nSolve ({:.5e}, {:.5e})'.format(t1,t2))
-        print('----------------------------------')
-
-        # Estimate the time step only once
+    def runExplicit(self,t1,t2):
         
         self.resetSystem(t2-t1)
         self.solver.computeNextDT()
@@ -136,7 +119,6 @@ class Pfem3D(FluidSolver):
             self.solver.setTimeStep(dt)
             self.solver.solveOneTimeStep()
 
-        print('PFEM3D: Successful run')
         self.setCurrentState()
         return True
 
@@ -145,73 +127,65 @@ class Pfem3D(FluidSolver):
     def applyNodalDisplacements(self,dx,dy,dz,*_):
         self.disp = np.transpose([dx,dy,dz])
 
-    # For implicit and incompressible flows
+    # Update and apply the nodal displacement
 
-    def applyDispIncomp(self,distance,dt):
+    def applyDispBC(self,distance,dt):
 
-        BC = (distance)/dt
-        for i in range(self.dim):
-            for j,k in enumerate(self.FSI):
-                self.mesh.setNodeState(k,i,BC[j,i])
+        if self.implicit:
 
-    # For explicit weakly compressive flows
+            BC = w.VectorVectorDouble(distance/dt)
+            self.solver.setVelocity(self.FSI,BC)
 
-    def applyDispWcomp(self,distance,dt):
+        else:
 
-        velocity = self.getVelocity()
-        BC = 2*(distance-velocity*dt)/(dt*dt)
-
-        # Update the FSI node states BC
-
-        for i in range(self.dim):
-            idx = int(self.dim+2+i)
-
-            for j,k in enumerate(self.FSI):
-                self.mesh.setNodeState(k,idx,BC[j,i])
+            BC = 2*(distance-self.getVelocity()*dt)
+            BC = w.VectorVectorDouble(BC/np.square(dt))
+            self.solver.setAcceleration(self.FSI,BC)
 
 # %% Return Nodal Values
 
     def getPosition(self):
 
-        pos = self.disp.copy()
+        vector = np.zeros((self.nPhysicalNodes,3))
+
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                pos[j,i] = self.mesh.getNode(k).getCoordinate(i)
+                vector[j,i] = self.mesh.getNode(k).getCoordinate(i)
 
-        return pos
+        return vector
 
     # Computes the nodal velocity vector
 
     def getVelocity(self):
 
-        vel = self.disp.copy()
+        vector = np.zeros((self.nPhysicalNodes,3))
+        
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                vel[j,i] = self.mesh.getNode(k).getState(i)
+                vector[j,i] = self.mesh.getNode(k).getState(i)
 
-        return vel
-
+        return vector
+        
     # Computes the reaction nodal loads
 
     def setCurrentState(self):
 
-        vec = w.VectorArrayDouble3()
-        self.solver.computeLoads(self.group,self.FSI,vec)
+        vector = w.VectorVectorDouble()
+        self.solver.computeLoads(self.group,self.FSI,vector)
 
         for i in range(self.nNodes):
 
-            self.nodalLoad_X[i] = -vec[i][0]
-            self.nodalLoad_Y[i] = -vec[i][1]
-            self.nodalLoad_Z[i] = -vec[i][2]
+            self.nodalLoad_X[i] = -vector[i][0]
+            self.nodalLoad_Y[i] = -vector[i][1]
+            if self.dim == 3: self.nodalLoad_Z[i] = -vector[i][2]
 
 # %% Other Functions
 
-    def update(self,dt):
+    def update(self,_):
 
         self.mesh.remesh(False)
-        if self.ID == 'IncompNewtonNoT': self.solver.precomputeMatrix()
+        if self.implicit: self.solver.precomputeMatrix()
         self.problem.copySolution(self.prevSolution)
-        FluidSolver.update(self,dt)
         self.reload = False
 
     # Prepare to solve one time step
@@ -219,8 +193,8 @@ class Pfem3D(FluidSolver):
     def resetSystem(self,dt):
 
         if self.reload: self.problem.loadSolution(self.prevSolution)
-        if self.autoRemesh and (self.ID == 'IncompNewtonNoT'):
-            if self.reload: self.solver.precomputeMatrix()
+        if self.autoRemesh and self.implicit and self.reload:
+            self.solver.precomputeMatrix()
 
         distance = self.disp-(self.getPosition()-self.initPos)
         self.applyDispBC(distance,dt)

@@ -147,7 +147,7 @@ class Metafor(SolidSolver):
             self.tsm.setNextTime(t2,0,t2-t1)
             ok = self.metafor.getTimeIntegration().restart(self.mfac)
 
-        self.setNodalVal(False)
+        self.__setCurrentState(False)
         self.reload = True
         return ok
 

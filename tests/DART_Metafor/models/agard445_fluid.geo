@@ -351,7 +351,7 @@ Mesh.SmoothNormals = 1;
 
 // Trailing edge and wake tip
 Physical Line("wakeTip") = {162};
-Physical Line("teTip") = {61, 162};
+Physical Line("te") = {61};
 
 // Internal Field:
 Physical Volume("field") = {1};

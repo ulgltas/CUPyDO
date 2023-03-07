@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # original name: birdImpact_deformable_panel_alu_Mtf_Pfem_Axisym_fsi.py
 

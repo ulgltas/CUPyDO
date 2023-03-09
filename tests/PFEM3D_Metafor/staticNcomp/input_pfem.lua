@@ -89,10 +89,10 @@ Problem.IC = {}
 Problem.Solver.MomContEq.BC = {}
 Problem.Solver.MomContEq.BC['FSInterfaceVExt'] = true
 
-function Problem.IC:initStates(pos)
+function Problem.IC.initStates(x,y,z)
 	return {0,0,0}
 end
 
-function Problem.Solver.MomContEq.BC:WallV(pos,t)
+function Problem.Solver.MomContEq.BC.WallV(x,y,z,t)
 	return 0,0
 end

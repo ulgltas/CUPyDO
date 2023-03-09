@@ -85,10 +85,10 @@ Problem.Solver.MomEq.BC = {}
 Problem.Solver.ContEq.BC = {}
 Problem.Solver.MomEq.BC['FSInterfaceVExt'] = true
 
-function Problem.IC:initStates(pos)
+function Problem.IC.initStates(x,y,z)
 	return {0,0,0,Problem.Material.rhoStar,0,0}
 end
 
-function Problem.Solver.MomEq.BC:ReservoirV(pos,t)
+function Problem.Solver.MomEq.BC.ReservoirV(x,y,z,t)
 	return 0,0
 end

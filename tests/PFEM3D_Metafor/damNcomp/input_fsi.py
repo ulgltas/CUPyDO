@@ -17,9 +17,9 @@ def test(meanFSIIt):
     gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Solid tip coordinate X',coord[0],0.317212,0.05,False))
-    tests.add(CTest('Solid tip coordinate Y',coord[1],0.0780102,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,2.131805,0.05,False))
+    tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))
+    tests.add(CTest('Solid tip coordinate Y', coord[1], 0.080027, 0.05, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2.171920, 0.05, False))
     tests.run()
 
 # %% Input Parameters

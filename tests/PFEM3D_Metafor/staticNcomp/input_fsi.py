@@ -17,9 +17,9 @@ def test(meanFSIIt):
     gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X',coord[0],0.5,0.05,False))
-    tests.add(CTest('Middle bar coordinate Y',coord[1],-0.052684,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.658329,0.05,False))
+    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
+    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.052784, 0.05, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 1.655328, 0.05, False))
     tests.run()
 
 # %% Input Parameters

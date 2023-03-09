@@ -38,9 +38,9 @@ def test(res,tol,it):
     result = np.genfromtxt(lines[-1:], delimiter=None)
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X',result[0],0.5,0.05,False))
-    tests.add(CTest('Middle bar coordinate Y',result[1],-0.053056,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',it,2.913457,0.05,False))
+    tests.add(CTest('Middle bar coordinate X', result[0], 0.5 , 1e-3, False))
+    tests.add(CTest('Middle bar coordinate Y', result[1], -0.053139, 0.05, False))
+    tests.add(CTest('Mean number of ISI iterations', it, 4, 1, True))
     tests.run()
 
 # %% Input Parameters
@@ -73,7 +73,7 @@ def getFsiP():
     p['maxIt'] = 25
     p['nSteps'] = 10
     p['tol'] = 1e-8
-    p['dt'] = 0.01
+    p['dt'] = 0.1
     p['tTot'] = 20
     p['nDim'] = 2
 

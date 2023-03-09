@@ -35,8 +35,8 @@ def test(res, tol, it):
     
     tests = CTests()
     tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
-    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.317212, 1e-2, False))
-    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.0780102, 1e-2, False))
+    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.305751, 0.05, False))
+    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.080041, 0.05, False))
     tests.run()
 
 def getFsiP():

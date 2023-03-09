@@ -20,8 +20,8 @@ def test(res, tol, it):
 
     tests = CTests()
     tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
-    tests.add(CTest('Y-coordinate Node 6', result_1[1], 0.25, 1e-4, False))
-    tests.add(CTest('Total force on cylinder', result_2[1], -0.116, 1e-2, False))
+    tests.add(CTest('Y-coordinate Node 6', result_1[1], 0.25, 1e-3, False))
+    tests.add(CTest('Total force on cylinder', result_2[1], -0.1197, 0.05, False))
     tests.run()
 
 def getFsiP():

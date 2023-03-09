@@ -204,15 +204,11 @@ class AlgorithmExplicit(Algorithm):
         Des.
         """
 
-        # If no restart
-        nbTimeIter = int(self.totTime/self.deltaT-1)
-        prevWrite = self.time
         next = self.dtSave
-
         mpiPrint('Begin time integration\n', self.mpiComm)
 
         # --- External temporal loop --- #
-        while self.timeIter <= nbTimeIter:
+        while self.time < self.totTime:
             
             mpiPrint("\n>>>> Time iteration {} <<<<".format(self.timeIter), self.mpiComm)
 
@@ -238,8 +234,12 @@ class AlgorithmExplicit(Algorithm):
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
 
-            next = math.floor(self.time/self.dtSave)
-            next = (next+1)*self.dtSave
+            # --- Update the next required extractor time  ---#
+            try:
+                next = math.floor(self.time/self.dtSave)
+                next = (next+1)*self.dtSave
+            except: next = self.time
+            
             self.writeRealTimeData()
 
             # --- Perform some remeshing if necessary
@@ -466,9 +466,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         Des.
         """
 
-        # If no restart
-        prevWrite = self.time
-
+        next = self.dtSave
         mpiPrint('Begin time integration\n', self.mpiComm)
 
         # --- External temporal loop --- #
@@ -496,14 +494,17 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FluidSolver.update(self.deltaT)
 
             # --- Write fluid and solid solution, update FSI history  ---#
-
-            if (self.time > 0) and (self.time-prevWrite > self.dtSave):
-
-                prevWrite = self.time
+            if self.time >= next:
                 self.FluidSolver.save(self.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
 
+            # --- Update the next required extractor time  ---#
+            try:
+                next = math.floor(self.time/self.dtSave)
+                next = (next+1)*self.dtSave
+            except: next = self.time
+            
             self.writeRealTimeData()
 
             # --- Perform some remeshing if necessary

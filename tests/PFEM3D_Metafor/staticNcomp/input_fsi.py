@@ -48,7 +48,7 @@ def getFsiP():
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
     p['timeItTresh'] = 0
-    p['dtSave'] = 0.05
+    p['dtSave'] = 0
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['nSteps'] = 10

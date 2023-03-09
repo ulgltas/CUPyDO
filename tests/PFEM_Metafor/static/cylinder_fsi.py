@@ -50,7 +50,7 @@ def getFsiP():
     p['dt'] = 0.1
     p['tTot'] = 1. # 40*((4*R)/U0 + d/U0)
     
-    p['dtSave'] = p['dt']
+    p['dtSave'] = 0
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5

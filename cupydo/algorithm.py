@@ -34,6 +34,7 @@ import sys
 import traceback
 import copy
 import sys
+import math
 
 from .utilities import *
 from .interfaceData import FlexInterfaceData
@@ -206,6 +207,7 @@ class AlgorithmExplicit(Algorithm):
         # If no restart
         nbTimeIter = int(self.totTime/self.deltaT-1)
         prevWrite = self.time
+        next = self.dtSave
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -231,13 +233,13 @@ class AlgorithmExplicit(Algorithm):
             self.FluidSolver.update(self.deltaT)
 
             # --- Write fluid and solid solution, update FSI history  ---#
-            if (self.time > 0) and (self.time-prevWrite > self.dtSave):
-
-                prevWrite = self.time
+            if self.time >= next:
                 self.FluidSolver.save(self.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
 
+            next = math.floor(self.time/self.dtSave)
+            next = (next+1)*self.dtSave
             self.writeRealTimeData()
 
             # --- Perform some remeshing if necessary

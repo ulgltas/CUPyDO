@@ -38,7 +38,7 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Pfem(FluidSolver):
-    def __init__(self, testname, nthreads, nogui, dt):
+    def __init__(self, testname, nthreads, dt):
         
         titlePrint('Initializing Pfem')
         
@@ -57,6 +57,10 @@ class Pfem(FluidSolver):
         # create an instance of Pfem
         self.pfem = module.getPfem()
         self.realTimeExtractorsList = module.getRealTimeExtractorsList(self.pfem)
+
+        # Current mesh state VTK extractor
+        import pfem.tools.link2vtk as v
+        self.extractor = v.Link2VTK(self.pfem.msh, self.pfem.scheme, False, True)
         
         # retrieve the f/s boundary and the related nodes
         gr = self.pfem.w.Group(self.pfem.msh, self.pfem.bndno)
@@ -86,8 +90,6 @@ class Pfem(FluidSolver):
         self.pfem.scheme.init()
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
-        if nogui:
-            self.pfem.gui = None
         
         self.runOK = True
         
@@ -193,10 +195,9 @@ class Pfem(FluidSolver):
         # ---
         
     def save(self, nt):
-        if nt%self.pfem.scheme.savefreq==0:
             self.pfem.scheme.archive()
-        if not self.pfem.gui==None:
             self.pfem.scheme.vizu()
+            self.extractor.saveVTK(nt,self.pfem.scheme.dt)
         
     def initRealTimeData(self):
         """

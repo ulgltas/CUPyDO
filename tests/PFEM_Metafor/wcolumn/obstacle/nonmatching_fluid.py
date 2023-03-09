@@ -36,7 +36,7 @@ w = None
 class Module(object):
     def __init__(self, w, msh, pbl, contactTag, solScheme,
                  nonLinAlgo, convCriterion,
-                 scheme, extManager, gui, bndno):
+                 scheme, extManager, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -46,7 +46,6 @@ class Module(object):
         self.convCriterion = convCriterion
         self.scheme = scheme
         self.extManager = extManager
-        self.gui = gui
         self.bndno = bndno
 
 
@@ -123,10 +122,7 @@ def getPfem():
     extManager.add(11,wt.KineticEnergyExtractor(msh,pbl,"Water"))
     extManager.add(12,wt.ViscousEnergyExtractor(msh,pbl,scheme,"Water"))'''
 
-    import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, False, True)
-
-    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

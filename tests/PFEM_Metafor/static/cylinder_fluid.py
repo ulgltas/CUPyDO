@@ -35,7 +35,7 @@ w = None
 
 class Module(object):
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
-                 convCriterion, scheme, extManager, gui, bndno):
+                 convCriterion, scheme, extManager, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -44,7 +44,6 @@ class Module(object):
         self.convCriterion = convCriterion
         self.scheme = scheme
         self.extManager = extManager
-        self.gui = gui
         self.bndno = bndno
 
 
@@ -103,10 +102,7 @@ def getPfem():
     extManager.add(20, w.IntForceExtractor(msh, "Cylinder"))
     extManager.add(21, wt.TotalIntForceExtractor(msh, "Cylinder"))
 
-    import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, False, True)
-
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

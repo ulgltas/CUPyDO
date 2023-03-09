@@ -134,10 +134,10 @@ class CUPyDO(object):
                     fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
-                fluidSolver = fItf.Pfem(p['cfdFile'], args.n, args.nogui, p['dt'])
+                fluidSolver = fItf.Pfem(p['cfdFile'], args.k, p['dt'])
             elif p['fluidSolver'] == 'DART':
                 from dart.api.cupydo import Dart
-                fluidSolver = Dart(p['cfdFile'], args.n)
+                fluidSolver = Dart(p['cfdFile'], args.k)
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p['cfdFile'])

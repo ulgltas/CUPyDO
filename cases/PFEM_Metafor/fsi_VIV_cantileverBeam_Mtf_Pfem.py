@@ -22,7 +22,7 @@ def getParameters(_p):
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
+def main(_p):
     
     p = getParameters(_p)
 
@@ -51,10 +51,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    if battery:
-        fluidSolver.pfem.scheme.savefreq = int(tTot/dt)
-    if nogui:
-        fluidSolver.pfem.gui = None
+    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
     # ---
     
     cupyutil.mpiBarrier(comm)
@@ -64,11 +61,7 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
         solidSolver = sItf.Metafor(csd_file, computationType)
-        
-        # --- This part is specific to Metafor ---
-        if battery:
-            solidSolver.saveAllFacs = False
-        # ---
+    # ---
         
     cupyutil.mpiBarrier(comm)
         
@@ -97,17 +90,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 if __name__ == '__main__':
     
     p = {}
-    p['nthreads'] = nthreads
-    
     parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
-
-
+    parser.add_option("-k", type="int", help="Number of threads", dest="nthreads", default=1)
     (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    nthreads = options.nthreads
-    
-    main(p, nogui)
+    p['nthreads'] = options.nthreads
+    main(p)

@@ -16,7 +16,7 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, scheme, solScheme, nonLinAlgo, convCriterion, extManager, gui):
+    def __init__(self, w, msh, pbl, scheme, solScheme, nonLinAlgo, convCriterion, extManager):
         self.w = w
         self.msh = msh
         self.pbl = pbl       
@@ -25,7 +25,6 @@ class Module:
         self.nonLinAlgo = nonLinAlgo
         self.convCriterion = convCriterion
         self.extManager = extManager
-        self.gui = gui
 
 def getPfem():
     global w
@@ -60,7 +59,7 @@ def getPfem():
     # Initial mesh
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
     
     # Formulation (PSPG stabilization/Fractional step/Algebraic splitting)
     solScheme = w.SchemeMonolithicPSPG(msh, pbl)
@@ -101,9 +100,7 @@ def getPfem():
     extManager.add(4,w.IntForceExtractor(msh,16))
     extManager.add(5,w.MassExtractor(msh,pbl,17))
     
-    gui = v.MeshViewer(msh, scheme, True) 
-    
-    return Module(w, msh, pbl, scheme, solScheme, nonLinAlgo, convCriterion, extManager, gui)
+    return Module(w, msh, pbl, scheme, solScheme, nonLinAlgo, convCriterion, extManager)
     
 def getRealTimeExtractorsList(pfem):
     

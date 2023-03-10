@@ -63,7 +63,6 @@ class Algorithm(object):
         self.SolidSolver = SolidSolver
         self.interfaceInterpolator = InterfaceInterpolator
         
-
         self.globalTimer = Timer()
         self.communicationTimer = Timer()
         self.meshDefTimer = Timer()
@@ -72,11 +71,9 @@ class Algorithm(object):
         self.solidRemeshingTimer = Timer()
         self.fluidRemeshingTimer = Timer()
 
-        
         self.deltaT = deltaT
         self.totTime = totTime
         self.dtSave = dtSave
-
 
         self.time = 0
         self.timeIter = 0
@@ -89,6 +86,34 @@ class Algorithm(object):
             self.mpiSize = 1
 
         self.solidHasRun = False
+
+    def setFSIInitialConditions(self):
+        """
+        Des.
+        """
+
+        if self.manager.mechanical:
+            if self.manager.computationType == 'unsteady':
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.setInitialDisplacements()
+                self.interfaceInterpolator.getDisplacementFromSolidSolver()
+                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+                self.interfaceInterpolator.setDisplacementToFluidSolver(self.time)
+                self.FluidSolver.setInitialMeshDeformation()
+            else:
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.SolidSolver.setInitialDisplacements()
+                self.interfaceInterpolator.getDisplacementFromSolidSolver()
+                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
+                self.interfaceInterpolator.setDisplacementToFluidSolver(self.time)
+                self.FluidSolver.setInitialMeshDeformation()
+
+        if self.manager.thermal:
+            if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
+                self.FluidSolver.setInitialInterfaceHeatFlux()
+            elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
+                self.FluidSolver.setInitialInterfaceTemperature()
+            self.FluidSolver.boundaryConditionsUpdate()
 
     def fluidToSolidMechaTransfer(self):
         """
@@ -166,12 +191,12 @@ class AlgorithmExplicit(Algorithm):
         Des.
         """
         
-        # --- Initialize output manager --- #
-        self.iniRealTimeData()
-
+        # --- Initialize the algorithm --- #
         mpiPrint("Begin FSI Computation",self.mpiComm,titlePrint)
-
+        self.initInterfaceData()
+        self.iniRealTimeData()
         self.globalTimer.start()
+        self.setFSIInitialConditions()
         
         try:
             if self.manager.computationType == 'unsteady':
@@ -222,6 +247,9 @@ class AlgorithmExplicit(Algorithm):
             # --- End of FSI loop --- #
 
             mpiBarrier(self.mpiComm)
+
+            if self.timeIter > 0:
+                self.totNbOfFSIIt += self.FSIIter
 
             # --- Update the fluid and solid solver for the next time step --- #
             if self.myid in self.manager.getSolidSolverProcessors():
@@ -418,15 +446,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
         Des.
         """
 
-        # --- Initialize interface data --- #
-        self.initInterfaceData()
-        
-        # --- Initialize output manager --- #
-        self.iniRealTimeData()
-
+        # --- Initialize the algorithm --- #
         mpiPrint("Begin FSI Computation",self.mpiComm,titlePrint)
-
+        self.initInterfaceData()
+        self.iniRealTimeData()
         self.globalTimer.start()
+        self.setFSIInitialConditions()
 
         try:
             if self.manager.computationType == 'unsteady':
@@ -1234,13 +1259,12 @@ class FsiSolidTestAlgorithm(object):
 class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
     def run(self):
 
-        # --- Initialize interface data --- #
+        # --- Initialize the algorithm --- #
+        mpiPrint("Begin FSI Computation",self.mpiComm,titlePrint)
         self.initInterfaceData()
-        
-        # --- Initialize output manager --- #
         self.iniRealTimeData()
-        mpiPrint("Begin FSI Adjoint Computation",self.mpiComm,titlePrint)
         self.globalTimer.start()
+        self.setFSIInitialConditions()
         
         try:
             self.timeIter = 1

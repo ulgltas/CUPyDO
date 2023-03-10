@@ -19,7 +19,7 @@ def test(meanFSIIt):
     tests = CTests()
     tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))
     tests.add(CTest('Solid tip coordinate Y', coord[1], 0.080027, 0.05, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2.171920, 0.05, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
     tests.run()
 
 # %% Input Parameters

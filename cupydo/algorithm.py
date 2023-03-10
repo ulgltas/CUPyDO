@@ -256,7 +256,7 @@ class AlgorithmExplicit(Algorithm):
                 self.SolidSolver.update()
             self.FluidSolver.update(self.deltaT)
 
-            # --- Write fluid and solid solution, update FSI history  ---#
+            # --- Save the fluid and solid solutions ---#
             if self.time >= next:
                 self.FluidSolver.save(self.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
@@ -267,8 +267,6 @@ class AlgorithmExplicit(Algorithm):
                 next = math.floor(self.time/self.dtSave)
                 next = (next+1)*self.dtSave
             except: next = self.time
-            
-            self.writeRealTimeData()
 
             # --- Perform some remeshing if necessary
             if self.myid in self.manager.getSolidSolverProcessors():
@@ -281,10 +279,12 @@ class AlgorithmExplicit(Algorithm):
             self.FluidSolver.remeshing()
             self.fluidRemeshingTimer.stop()
             self.fluidRemeshingTimer.cumul()
-            # ---
 
+            # --- Update the time iteration and FSI history --- #
             self.timeIter += 1
             self.time += self.deltaT
+            self.writeRealTimeData()
+
         # --- End of the temporal loop --- #
 
     def fsiCoupling(self):
@@ -518,19 +518,17 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.SolidSolver.update()
             self.FluidSolver.update(self.deltaT)
 
-            # --- Write fluid and solid solution, update FSI history  ---#
+            # --- Save the fluid and solid solutions  ---#
             if self.time >= next:
                 self.FluidSolver.save(self.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
 
-            # --- Update the next required extractor time  ---#
+            # --- Update the next save extractor time  ---#
             try:
                 next = math.floor(self.time/self.dtSave)
                 next = (next+1)*self.dtSave
             except: next = self.time
-            
-            self.writeRealTimeData()
 
             # --- Perform some remeshing if necessary
             if self.myid in self.manager.getSolidSolverProcessors():
@@ -550,8 +548,10 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 mpiPrint('\nSolid displacement prediction for next time step', self.mpiComm)
                 self.solidDisplacementPredictor()
 
+            # --- Update the time iteration and FSI history --- #
             self.timeIter += 1
             self.time += self.deltaT
+            self.writeRealTimeData()
         # --- End of the temporal loop --- #
 
     def iniRealTimeData(self):
@@ -697,11 +697,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 # --- Relaxe thermal data --- #
                 self.relaxCHT()
 
-            if self.writeInFSIloop == True:
-                self.writeRealTimeData()
-
-            self.FSIIter += 1
-
             # --- Update the solvers for the next BGS steady iteration --- #
             if self.manager.computationType == 'steady':
 
@@ -709,6 +704,11 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()
                 self.FluidSolver.steadyUpdate()
+
+            # --- Update the FSI iteration and history --- #
+            if self.writeInFSIloop == True:
+                self.writeRealTimeData()
+            self.FSIIter += 1
 
         mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
 
@@ -1173,10 +1173,10 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             else:
                 res.copy(solidInterfaceResidual0)
                 solidInterfaceDisplacement_tilde.copy(solidInterfaceDisplacement_tilde1)
-        
+
+            # --- Update the FSI iteration and history --- #
             if self.writeInFSIloop == True:
                 self.writeRealTimeData()
-            
             self.FSIIter += 1
         
         # update of the matrices V and W at the end of the while
@@ -1365,11 +1365,6 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidAdjointLoad()
 
-            if self.writeInFSIloop == True:
-                self.writeRealTimeData()
-
-            self.FSIIter += 1
-
             # --- Update the solvers for the next BGS steady iteration --- #
             if self.manager.computationType == 'steady':
 
@@ -1377,6 +1372,11 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()
                 self.FluidSolver.steadyUpdate()
+
+            # --- Update the FSI iteration and history --- #
+            if self.writeInFSIloop == True:
+                self.writeRealTimeData()
+            self.FSIIter += 1
 
         mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
 
@@ -1634,11 +1634,10 @@ class AlgorithmIQN_MVJ(AlgorithmBGSAitkenRelax):
             else:
                 res.copy(solidInterfaceResidual0)
                 solidInterfaceDisplacement_tilde.copy(solidInterfaceDisplacement_tilde1)
-        
+
+            # --- Update the FSI iteration and history --- #
             if self.writeInFSIloop == True:
                 self.writeRealTimeData()
-            
             self.FSIIter += 1
             
-        # --- Update the FSI history file --- #
         mpiPrint("IQN-MVJ is Converged",self.mpiComm,titlePrint)

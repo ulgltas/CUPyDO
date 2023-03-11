@@ -257,7 +257,8 @@ class Metafor(SolidSolver):
         Save the curent state to the disk
         """
 
-        if self.exporter is not None: self.exporter.execute()
+        if self.exporter is not None:
+            self.exporter.execute()
     
     def exit(self):
         """

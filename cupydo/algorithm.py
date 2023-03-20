@@ -654,8 +654,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
         self.FSIConv = False
         self.errValue = 1e12
         self.errValue_CHT = 1e6
+        self.errValue_HB = 1e12
 
-        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
+        while ((self.FSIIter < nbFSIIter) and (not self.FSIConv)):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
             if self.manager.mechanical:
@@ -697,14 +698,18 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.solidSolverTimer.start()
                     self.SolidSolver.run(self.time-self.deltaT, self.time)
-                    deltaOmega = self.SolidSolver.getDeltaOmega()
-                    self.interfaceInterpolator.deltaOmega = deltaOmega*self.omegaMecha
-                    print("deltaw, {}".format(deltaOmega))
+                    localOmega = self.SolidSolver.getDeltaOmega()
+                    self.interfaceInterpolator.deltaOmega = localOmega*self.omegaMecha
+                    self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
                     if ((self.FSIIter % self.updateHB) == 0):
-                        self.omegaHB = deltaOmega*self.omegaMecha + self.omegaHB
+                        self.omegaHB = self.deltaOmega*self.omegaMecha + self.omegaHB
                     self.SolidSolver.setOmegaHB(self.omegaHB)
                     self.solidSolverTimer.stop()
                     self.solidSolverTimer.cumul()
+                else:
+                    localOmega = 0.
+                    self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                    self.omegaHB = self.deltaOmega*self.omegaMecha + self.omegaHB
                 self.solidHasRun = True
 
                 if self.manager.mechanical:
@@ -721,9 +726,15 @@ class AlgorithmBGSStaticRelax(Algorithm):
                     mpiPrint('\nCHT error value : {}\n'.format(self.errValue_CHT), self.mpiComm)
                 else:
                     self.errValue_CHT = 0.0
+                
+                if self.manager:
+                    self.errValue_HB = self.criterion.updateFrequency(self.deltaOmega)
+                    mpiPrint('\nFrequency error value : {}\n'.format(self.errValue_HB), self.mpiComm)
+                else:
+                    self.errValue_HB = 0.0
 
                 # --- Monitor the coupling convergence --- #
-                self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
+                self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT, self.errValue_HB)
 
                 if self.manager.mechanical:
                     # --- Relaxe the solid position --- #
@@ -1375,7 +1386,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.errValue = 1e12
         self.errValue_CHT = 1e6
 
-        while ((self.FSIIter < nbFSIIter) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
+        while ((self.FSIIter < nbFSIIter) and (not self.criterion.FSIConv)):
             mpiPrint("\n>>>> FSI Adjoint iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
             if self.manager.mechanical:

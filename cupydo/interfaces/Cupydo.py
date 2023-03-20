@@ -68,7 +68,10 @@ class CUPyDO(object):
         if p['algorithm'] == 'Explicit':
             print('Explicit simulations requested, criterion redefined to None.')
         if p['criterion'] == 'Displacements':
-            criterion = cupycrit.DispNormCriterion(p['tol'])
+            if p['compType'] == 'harmonic' and not p['computation'] == 'Adjoint':
+                criterion = cupycrit.DispNormCriterion(p['tol'], omegaTolerance=p['omegaTol'])
+            else:
+                criterion = cupycrit.DispNormCriterion(p['tol'])
         else:
             raise RuntimeError(p['criterion'], 'not available! (avail: "Displacements").\n')
         cupyutil.mpiBarrier()

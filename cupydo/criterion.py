@@ -38,7 +38,7 @@ class Criterion(object):
     Description
     """
 
-    def __init__(self, tolerance, thermalTolerance = 1e12):
+    def __init__(self, tolerance, thermalTolerance = 1e12, omegaTolerance = 1e12):
         """
         Description.
         """
@@ -49,18 +49,24 @@ class Criterion(object):
         self.tolthermal = thermalTolerance
         self.epsilonThermal = 0
 
-    def isVerified(self, epsilon, epsilonThermal=0):
+        self.tolfrequency = omegaTolerance
+        self.epsilonFrequency = 0
+
+    def isVerified(self, epsilon, epsilonThermal=0, epsilonOmega = 0):
         """
         Description.
         """
 
-        verifList = [False, False]
+        verifList = [False, False, False]
 
         if epsilon < self.tol:
             verifList[0] = True
 
         if epsilonThermal < self.tolthermal:
             verifList[1] = True
+        
+        if epsilonOmega < self.tolfrequency:
+            verifList[2] = True
 
         if False in verifList:
             return False
@@ -72,21 +78,23 @@ class DispNormCriterion(Criterion):
     Description.
     """
 
-    def __init__(self, tolerance, thermalTolerance = 1e12):
+    def __init__(self, tolerance, thermalTolerance = 1e12, omegaTolerance = 1e12):
         """
         Description.
         """
 
-        Criterion.__init__(self, tolerance, thermalTolerance)
+        Criterion.__init__(self, tolerance, thermalTolerance, omegaTolerance)
 
     def update(self, res):
         """
         Des.
         """
 
-        normX, normY, normZ = res.norm()[:3]
-
-        norm = sqrt(normX**2 + normY**2 + normZ**2)
+        normList = res.norm()
+        normSquare = 0.0
+        for ii in range(len(normList)):
+            normSquare += normList[ii]**2
+        norm = sqrt(normSquare)
 
         self.epsilon = norm
 
@@ -112,3 +120,7 @@ class DispNormCriterion(Criterion):
         self.epsilonThermal = norm
 
         return self.epsilonThermal
+
+    def updateFrequency(self, deltaOmega):
+        self.epsilonFrequency = abs(deltaOmega)
+        return self.epsilonFrequency

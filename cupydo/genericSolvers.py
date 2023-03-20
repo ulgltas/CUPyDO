@@ -163,6 +163,15 @@ class SolidSolver(object):
     def setOmegaHB(self, omega):
         return
 
+    def getNumberDesignVariables(self):
+        return 0
+
+    def applyDesignVariables(self, alpha):
+        return
+    
+    def getObjectiveFunction(self):
+        return 0.
+
 # ----------------------------------------------------------------------
 #  Generic fluid solver class
 # ----------------------------------------------------------------------
@@ -271,6 +280,9 @@ class FluidSolver(object):
     
     def setOmegaHB(self, omega):
         return
+    
+    def getObjectiveFunction(self):
+        return 0.
 
 # ----------------------------------------------------------------------
 #  Generic solid adjoint solver class
@@ -298,6 +310,9 @@ class SolidAdjointSolver(SolidSolver):
     
     def getNodalAdjointLoads(self):
         return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjLoad_Z)
+    
+    def getDesignVariableDerivative(self, iAlpha):
+        return 0.
 
 # ----------------------------------------------------------------------
 #  Generic fluid adjoint solver class

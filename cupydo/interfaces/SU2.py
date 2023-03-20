@@ -410,6 +410,11 @@ class SU2(FluidSolver):
 
         return
 
+    def getObjectiveFunction(self):
+        ObjFun = self.SU2.GetObjFunc()
+        print("SU2 OF: {}".format(ObjFun))
+        return ObjFun
+
 
 class SU2HarmonicBalance(SU2):
     """

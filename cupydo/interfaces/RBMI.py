@@ -54,6 +54,12 @@ class RBMI(SolidSolver):
             self.nInst = 2*self.NativeSolid.getNumberHarmonics()+1
         else:
             self.nInst = 1
+        
+        self.nDV = self.NativeSolid.getNumberDesignVariables()
+
+        for iAlpha in range(1, self.nDV+1): # Symmetric design variables... Closer to the LE. Unfortunately hardcoded
+            x = float(iAlpha)/(self.nDV+1)
+            self.NativeSolid.setDesignVariableCentre(x*x, iAlpha-1)
 
         self.haloNodeList = {}
 
@@ -164,7 +170,7 @@ class RBMI(SolidSolver):
             total_Y_load = 0.
             for iVertex in range(self.nPhysicalNodes):
                 total_Y_load += load_Y[jInst][iVertex]
-                self.NativeSolid.applyload(iVertex, load_X[jInst][iVertex], load_Y[jInst][iVertex], load_Z[jInst][iVertex])
+                self.NativeSolid.applyload(iVertex, jInst, load_X[jInst][iVertex], load_Y[jInst][iVertex], load_Z[jInst][iVertex])
 
             if self.computationType == 'harmonic':
                 self.NativeSolid.computeInterfacePosVel(False, jInst) # To update the position of the centre of rotation... inelegant
@@ -177,6 +183,20 @@ class RBMI(SolidSolver):
     def setOmegaHB(self, omega):
         if self.computationType == 'harmonic':
             self.NativeSolid.setOmega(omega)
+
+    def getNumberDesignVariables(self):
+        return self.nDV
+
+    def applyDesignVariables(self, alpha):
+        for iAlpha in range(self.nDV):
+            self.NativeSolid.setDesignVariableMagnitude(alpha[iAlpha], iAlpha)
+        self.NativeSolid.applyDesignVariables()
+        return
+    
+    def getObjectiveFunction(self):
+        ObjFun = self.NativeSolid.getObjectiveFunction()
+        print("RBM OF: {}".format(ObjFun))
+        return ObjFun
 
     def update(self):
         """
@@ -231,6 +251,12 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
             self.nInst = 2*self.NativeSolid.getNumberHarmonics()+1
         else:
             self.nInst = 1
+        
+        self.nDV = self.NativeSolid.getNumberDesignVariables()
+
+        for iAlpha in range(1, self.nDV+1): # Symmetric design variables... Closer to the LE. Unfortunately hardcoded
+            x = float(iAlpha)/(self.nDV+1)
+            self.NativeSolid.setDesignVariableCentre(x*x, iAlpha-1)
 
         self.haloNodeList = {}
 
@@ -265,7 +291,7 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
                 dispY = disp_adj_Y[jInst][PhysicalIndex]
                 dispZ = disp_adj_Z[jInst][PhysicalIndex]
                 PhysicalIndex += 1
-                self.NativeSolid.applyDisplacementAdjoint(iVertex, dispX, dispY, dispZ)
+                self.NativeSolid.applyDisplacementAdjoint(iVertex, jInst, dispX, dispY, dispZ)
             self.NativeSolid.setTotalAdjointDisplacement(jInst)
 
     def applyFrequencyDerivative(self, omega_adj):
@@ -307,3 +333,6 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
         """
 
         self.NativeSolid.writeAdjointSolution(time, nFSIIter)
+    
+    def getDesignVariableDerivative(self, iAlpha):
+        return self.NativeSolid.getDesignVariableDerivative(iAlpha)

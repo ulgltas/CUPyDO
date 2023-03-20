@@ -88,6 +88,12 @@ class Algorithm(object):
             self.mpiSize = 1
 
         self.solidHasRun = False
+        self.objectiveFunction = 0.
+        if self.myid in self.manager.getSolidSolverProcessors():
+            self.gradients = np.zeros((self.SolidSolver.getNumberDesignVariables(),))
+        else:
+            self.gradients = None
+        self.deltaOmega = 0.
 
     def setFSIInitialConditions(self):
         """
@@ -489,6 +495,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
                 self.totNbOfFSIIt = self.FSIIter
+                self.objectiveFunction = self.FluidSolver.getObjectiveFunction()
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.objectiveFunction += self.SolidSolver.getObjectiveFunction()
         except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
             traceback.print_exc()
@@ -1345,6 +1354,12 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.save()
             self.totNbOfFSIIt = self.FSIIter
+            self.objectiveFunction = self.FluidSolver.getObjectiveFunction()
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.objectiveFunction += self.SolidSolver.getObjectiveFunction()
+                for i in range(self.SolidSolver.getNumberDesignVariables()):
+                    self.gradients[i] = self.SolidSolver.getDesignVariableDerivative(i)
+            mpiPrint('Gradient vector: {}'.format(self.gradients))
         except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
             traceback.print_exc()

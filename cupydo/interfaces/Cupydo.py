@@ -93,7 +93,7 @@ class CUPyDO(object):
                     p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['HBomega'], p['HBupdateIt'],comm)
             elif p['algorithm'] == 'AitkenBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['HBomega'], mpiComm=comm)
             elif p ['algorithm'] == 'IQN_ILS':
                 self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)

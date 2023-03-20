@@ -899,12 +899,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
 class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList=[1.0, 1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold=-1, omegaBoundList=[1.0, 1.0], omegaHB = 0.0, mpiComm=None):
         """
         Des.
         """
 
-        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaBoundList, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, timeIterTreshold, omegaBoundList, omegaHB, updateHB=1,mpiComm=mpiComm)
 
 
         self.solidInterfaceResidualkM1 = None
@@ -922,7 +922,7 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
-        self.solidInterfaceResidualkM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        self.solidInterfaceResidualkM1 = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
         self.solidHeatFluxResidualkM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
         self.solidTemperatureResidualkM1 = FlexInterfaceData(ns+d, 1, self.mpiComm)
 
@@ -936,12 +936,14 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
         if self.FSIIter != 0:
             # --- Compute the dynamic Aitken coefficient --- #
             deltaInterfaceResidual = self.solidInterfaceResidual - self.solidInterfaceResidualkM1
-
-            prodScalRes_X, prodScalRes_Y, prodScalRes_Z = deltaInterfaceResidual.dot(self.solidInterfaceResidualkM1)
-            prodScalRes = prodScalRes_X + prodScalRes_Y + prodScalRes_Z
-
-            deltaInterfaceResidual_NormX, deltaInterfaceResidual_NormY, deltaInterfaceResidual_NormZ = deltaInterfaceResidual.norm()
-            deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
+            prodScalRes = 0.
+            prodScal = deltaInterfaceResidual.dot(self.solidInterfaceResidualkM1)
+            deltaResNorm = deltaInterfaceResidual.norm()
+            deltaResNormSquare = 0.
+            for i in prodScal:
+                prodScalRes += i
+            for i in deltaResNorm:
+                deltaResNormSquare += i
 
             if deltaResNormSquare != 0.:
                 self.omegaMecha *= -prodScalRes/deltaResNormSquare
@@ -1007,7 +1009,7 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
         # --- Update the value of the residual for the next FSI iteration --- #
         self.solidHeatFluxResidual.copy(self.solidInterfaceResidualkM1)
-        self.solidTemperatureResidual.copy(solidTemperatureResidualkM1)
+        self.solidTemperatureResidual.copy(self.solidTemperatureResidualkM1)
 
 class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
     """

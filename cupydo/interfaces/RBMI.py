@@ -57,9 +57,12 @@ class RBMI(SolidSolver):
         
         self.nDV = self.NativeSolid.getNumberDesignVariables()
 
-        for iAlpha in range(1, self.nDV+1): # Symmetric design variables... Closer to the LE. Unfortunately hardcoded
-            x = float(iAlpha)/(self.nDV+1)
-            self.NativeSolid.setDesignVariableCentre(x*x, iAlpha-1)
+        for iAlpha in range(1, int(self.nDV/2+1)): # Now with some asymmetry
+            x = float(iAlpha)/(self.nDV/2+1)
+            self.NativeSolid.setDesignVariableCentre(x*x, 2*iAlpha-2)
+            self.NativeSolid.setDesignVariableSide(1, 2*iAlpha-2)
+            self.NativeSolid.setDesignVariableSide(-1, 2*iAlpha-1)
+            self.NativeSolid.setDesignVariableCentre(x*x, 2*iAlpha-1)
 
         self.haloNodeList = {}
 

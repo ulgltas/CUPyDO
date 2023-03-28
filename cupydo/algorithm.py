@@ -1403,7 +1403,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.errValue = 1e12
         self.errValue_CHT = 1e6
 
-        while ((self.FSIIter < nbFSIIter) and (not self.criterion.FSIConv)):
+        while ((self.FSIIter < nbFSIIter) and (not self.FSIConv)):
             mpiPrint("\n>>>> FSI Adjoint iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
             if self.manager.mechanical:

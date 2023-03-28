@@ -193,6 +193,8 @@ class RBMI(SolidSolver):
     def applyDesignVariables(self, alpha):
         for iAlpha in range(self.nDV):
             self.NativeSolid.setDesignVariableMagnitude(alpha[iAlpha], iAlpha)
+        if alpha.size > self.nDV:
+            self.NativeSolid.setDamping(0, alpha[-1])
         self.NativeSolid.applyDesignVariables()
         return
     

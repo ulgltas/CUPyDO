@@ -6,7 +6,7 @@ FSI tools for partinioned coupling between generic solid and fluid solvers.
 ## Solvers
 CUPyDO currently features interfaces for the following solvers:
 - **Solid**
-  - Metafor **[v3513]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
+  - Metafor **[v3514]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
   - RBMI **[1.1]** (https://github.com/ulgltas/NativeSolid)

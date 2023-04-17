@@ -706,6 +706,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.solidSolverTimer.start()
+                    self.SolidSolver.setOmegaHB(self.omegaHB)
                     self.SolidSolver.run(self.time-self.deltaT, self.time)
                     localOmega = self.SolidSolver.getDeltaOmega()
                     self.interfaceInterpolator.deltaOmega = localOmega*self.omegaMecha

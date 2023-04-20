@@ -15,8 +15,8 @@ Problem.maxFactor = 1000
 
 Problem.Mesh = {}
 Problem.Mesh.alpha = 1.2
-Problem.Mesh.omega = 0.5
-Problem.Mesh.gamma = 0.6
+Problem.Mesh.omega = 0.7
+Problem.Mesh.gamma = 0.3
 Problem.Mesh.hchar = 0.015
 Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.addOnFS = false

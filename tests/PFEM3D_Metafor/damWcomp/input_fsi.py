@@ -13,7 +13,7 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(9)[0]
+    coord = gmsh.model.mesh.getNode(2)[0]
     gmsh.finalize()
 
     tests = CTests()

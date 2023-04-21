@@ -29,9 +29,9 @@ Problem.Mesh.boundingBox = {-0.01,-0.01,0.6,100}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
-Problem.Mesh.mshFile = 'geometry.msh'
-Problem.Mesh.exclusionGroups = {'FSInterface'}
-Problem.Mesh.ignoreGroups = {'Solid','SolidBase'}
+Problem.Mesh.mshFile = 'geometryF.msh'
+Problem.Mesh.exclusionGroups = {'Polytope'}
+Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 
@@ -94,5 +94,9 @@ function Problem.IC.initStates(x,y,z)
 end
 
 function Problem.Solver.MomContEq.BC.ReservoirV(x,y,z,t)
+	return 0,0
+end
+
+function Problem.Solver.MomContEq.BC.PolytopeV(x,y,z,t)
 	return 0,0
 end

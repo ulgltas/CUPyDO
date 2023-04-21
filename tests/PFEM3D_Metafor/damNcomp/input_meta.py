@@ -40,7 +40,7 @@ def getMetafor(input):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),"geometry.msh")
+    mshFile = os.path.join(os.path.dirname(__file__),"geometryS.msh")
     importer = gmsh.GmshImport(mshFile,domain)
     groups = importer.groups
     importer.execute()

@@ -2,7 +2,9 @@ L = 0.146;
 s = 0.012;
 h = 0.08;
 d = 0.015;
+
 N = 10;
+M = 3;
 
 // Points List
 
@@ -35,28 +37,20 @@ Line(12) = {8,11};
 
 // Fluid Surface
 
+Transfinite Line{7} = N;
+Transfinite Line{9} = N;
+Transfinite Line{8} = M;
+Transfinite Line{12} = M;
+
 Curve Loop(1) = {2,3,4,5};
 Plane Surface(1) = {1};
 
-// Solid Surface
-
-Transfinite Line{7} = N;
-Transfinite Line{9} = N;
-
-Curve Loop(2) = {-9,-8,-7,12};
-Plane Surface(2) = {2};
-
-Transfinite Surface{2};
-Recombine Surface{2};
-
 // Physical Boundaries
 
-Physical Curve("FSInterface") = {7,8,9,12};
+Physical Curve("Polytope") = {7,8,9,12};
+Physical Curve("FSInterface") = {7,8,9};
 Physical Curve("Reservoir") = {1,2,3,6,10,11};
 Physical Curve("FreeSurface") = {5,4};
-Physical Curve("SolidBase") = {12};
-
 Physical Surface("Fluid") = {1};
-Physical Surface("Solid") = {2};
 
 Mesh 2;

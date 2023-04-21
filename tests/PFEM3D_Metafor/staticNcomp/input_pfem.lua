@@ -29,9 +29,9 @@ Problem.Mesh.boundingBox = {-0.01,-1,1.01,1}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
-Problem.Mesh.mshFile = 'geometry.msh'
-Problem.Mesh.ignoreGroups = {'Solid','Clamped','Bottom'}
+Problem.Mesh.mshFile = 'geometryF.msh'
 Problem.Mesh.exclusionGroups = {}
+Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 

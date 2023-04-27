@@ -3,32 +3,17 @@ from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
 
-# %% Reads a Lua Input File
-
-def read(path):
-
-    with open(path,'r') as file: text = file.read()
-    text = text.replace('"','').replace("'",'').replace(' ','')
-    text = [x.split('=') for x in text.splitlines() if '=' in x]
-    return dict(text)
-
 # %% Interface Between PFEM3D and CUPyDO
 
 class Pfem3D(FluidSolver):
     def __init__(self,param):
 
         titlePrint('Initializing PFEM3D')
-
-        path = param['cfdFile']
-        self.group = w.getProblemString(path,'interface')
-        self.maxFactor = w.getProblemInt(path,'maxFactor')
+        self.problem = w.getProblem(param['cfdFile'])
 
         # Incompressible or weakly compressible solver
 
-        self.problem = w.getProblem(path)
-        problemType = self.problem.getID()
-
-        if 'WC' in problemType:
+        if 'WC' in self.problem.getID():
             
             self.implicit = False
             self.run = self.runExplicit
@@ -42,7 +27,7 @@ class Pfem3D(FluidSolver):
 
         self.FSI = w.VectorInt()
         self.mesh = self.problem.getMesh()
-        self.mesh.getNodesIndex(self.group,self.FSI)
+        self.mesh.getNodesIndex('FSInterface',self.FSI)
         self.solver = self.problem.getSolver()
         self.nPhysicalNodes = self.FSI.size()
         self.nNodes = self.FSI.size()
@@ -63,6 +48,7 @@ class Pfem3D(FluidSolver):
         self.prevSolution = w.SolutionData()
         self.problem.copySolution(self.prevSolution)
         self.problem.displayParams()
+        self.problem.dump()
 
         # Store temporary simulation variables
 
@@ -91,7 +77,7 @@ class Pfem3D(FluidSolver):
                 
                 dt = float(dt/2)
                 count = np.multiply(2,count)
-                if dt < (t2-t1)/self.maxFactor: return False
+                if dt < (t2-t1)/10: return False
                 continue
 
             count = count-1
@@ -110,7 +96,7 @@ class Pfem3D(FluidSolver):
 
         self.solver.computeNextDT()
         factor = int((t2-t1)/self.solver.getTimeStep())
-        if factor > self.maxFactor: return False
+        if factor > 100: return False
         dt = (t2-t1)/factor
 
         # Main solving loop for the fluid simulation
@@ -163,7 +149,7 @@ class Pfem3D(FluidSolver):
     def __setCurrentState(self):
 
         vector = w.VectorVectorDouble()
-        self.solver.computeLoads(self.group,self.FSI,vector)
+        self.solver.computeLoads('FSInterface',self.FSI,vector)
 
         for i in range(self.nNodes):
 

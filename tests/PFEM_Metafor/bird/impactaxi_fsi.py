@@ -16,8 +16,8 @@ def test(res, tol, it):
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 4, 1, True))
-    tests.add(CTest('Y-displacement panel center', result_1[-1], -0.002550, 0.05, False))
+    tests.add(CTest('Mean nb of FSI iterations', it, 2, 1, True))
+    tests.add(CTest('Y-displacement panel center', result_1[-1], -0.000894, 0.05, False))
     tests.run()
 
 def getFsiP():

@@ -35,10 +35,10 @@ Line Loop(2) = {1,2,3,4};
 Plane Surface(1) = {1};
 Plane Surface(2) = {2};
 
-// Transfinite Line{1} = 1.5*(N+1);
-// Transfinite Line{2} = 2*(N+1);
-// Transfinite Line{3} = (N+1);
-// Transfinite Line{4} = 3*(N+1);
+Transfinite Line{1} = 1.5*(N+1);
+Transfinite Line{2} = 2*(N+1);
+Transfinite Line{3} = (N+1);
+Transfinite Line{4} = 3*(N+1);
 Transfinite Line{5} = 1.5*(L/R)*N+1;
 
 // Physical Boundaries

@@ -122,13 +122,13 @@ class Pfem(FluidSolver):
             z0[i] = 0.
         
         return x0, y0, z0
-    
+
     def __setCurrentState(self):
         
         fx = np.zeros(len(self.vnods))
         fy = np.zeros(len(self.vnods))
         fz = np.zeros(len(self.vnods))
-        
+
         for i in range(len(self.vnods)):
             node = self.vnods[i]
             fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
@@ -138,6 +138,11 @@ class Pfem(FluidSolver):
         self.nodalLoad_X = fx
         self.nodalLoad_Y = fy
         self.nodalLoad_Z = fz
+
+        if self.pfem.pbl.isAxisymmetric: # Rescale to 1 radian for Metafor (B-J)
+
+            self.nodalLoad_X /= (2.0*np.pi)
+            self.nodalLoad_Y /= (2.0*np.pi)
     
     def getNodalIndex(self, iVertex):
         """

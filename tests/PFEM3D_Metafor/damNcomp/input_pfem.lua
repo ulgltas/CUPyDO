@@ -6,11 +6,6 @@ Problem.verboseOutput = false
 Problem.simulationTime = math.huge
 Problem.id = 'IncompNewtonNoT'
 
--- FSPC Parameters
-
-Problem.interface = 'FSInterface'
-Problem.maxFactor = 10
-
 -- Mesh Parameters
 
 Problem.Mesh = {}

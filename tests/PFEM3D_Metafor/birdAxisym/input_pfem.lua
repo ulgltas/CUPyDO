@@ -69,8 +69,7 @@ Problem.Solver.coeffDTincrease = math.huge
 Problem.Solver.MomContEq = {}
 Problem.Solver.MomContEq.residual = 'Ax_f'
 Problem.Solver.MomContEq.nlAlgo = 'Picard'
-Problem.Solver.MomContEq.sparseSolverLib = 'MKL'
-Problem.Solver.MomContEq.PStepSparseSolver = 'LLT'
+Problem.Solver.MomContEq.sparseSolverLib = 'Eigen'
 
 Problem.Solver.MomContEq.pExt = 0
 Problem.Solver.MomContEq.maxIter = 25

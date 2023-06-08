@@ -17,13 +17,13 @@ class Pfem3D(FluidSolver):
             
             self.implicit = False
             self.run = self.runExplicit
-            self.maxDivision = 10
+            self.maxDivision = 2000
 
         else:
             
             self.implicit = True
             self.run = self.runImplicit
-            self.maxDivision = 100
+            self.maxDivision = 10
 
         # Stores the important objects and variables
 
@@ -79,7 +79,8 @@ class Pfem3D(FluidSolver):
                 
                 dt = float(dt/2)
                 count = np.multiply(2,count)
-                if dt < (t2-t1)/self.maxDivision: return False
+                if dt < (t2-t1)/self.maxDivision:
+                    raise Exception('Too large time step')
                 continue
 
             count = count-1
@@ -98,7 +99,8 @@ class Pfem3D(FluidSolver):
 
         self.solver.computeNextDT()
         division = int((t2-t1)/self.solver.getTimeStep())
-        if division > self.maxDivision: return False
+        if division > self.maxDivision:
+            raise Exception('Too large time step')
         dt = (t2-t1)/division
 
         # Main solving loop for the fluid simulation

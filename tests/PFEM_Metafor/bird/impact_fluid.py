@@ -36,7 +36,7 @@ w = None
 class Module(object):
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
                  convCriterion, bird, loadingset, scheme,
-                 extManager, gui, bndno):
+                 extManager, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -47,7 +47,6 @@ class Module(object):
         self.loadingset = loadingset
         self.scheme = scheme
         self.extManager = extManager
-        self.gui = gui
         self.bndno = bndno
 
 
@@ -88,15 +87,15 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 13 # fsi boundary
+    bndno = "FSInterface" # fsi boundary
 
-    w.Medium(msh, 13, 0., 0., 3)
-    w.Medium(msh, 16, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Bird", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 15, 3, 0.0)
-    w.Boundary(msh, 13, 1, 0.0)
-    w.Boundary(msh, 13, 2, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     # Initial velocity
     bird = w.Group(msh, 16)
@@ -117,10 +116,7 @@ def getPfem():
     extManager.add(8, wt.PressureWorkExtractor(msh, pbl, scheme, 16))
     extManager.add(9, w.MassExtractor(msh, pbl, 16))
 
-    import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, False, True)
-
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

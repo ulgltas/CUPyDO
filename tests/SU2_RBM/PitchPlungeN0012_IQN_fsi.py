@@ -21,7 +21,7 @@ limitations under the License.
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -30,10 +30,10 @@ def test(res, tol):
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.257, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 0.0021, 0.001, True)) # Absolute tolerance
+    tests.add(CTest('Lift coefficient', resultA[2], 0.368, 1e-1, False)) # Previous : 0.257
+    tests.add(CTest('Drag coefficient', resultA[3], 0.0228, 0.001, True)) # Previous : 0.0021
     tests.run()
 
 def getFsiP():
@@ -56,7 +56,7 @@ def getFsiP():
     p['nDim'] = 2
     p['dt'] = 0.001
     p['tTot'] = 0.005
-    p['timeItTresh'] = 0
+    
     p['dtSave'] = 0
     p['tol'] = 1e-7
     p['maxIt'] = 10

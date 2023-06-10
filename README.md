@@ -6,7 +6,7 @@ FSI tools for partinioned coupling between generic solid and fluid solvers.
 ## Solvers
 CUPyDO currently features interfaces for the following solvers:
 - **Solid**
-  - Metafor **[v3501]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
+  - Metafor **[v3514]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
   - RBMI **[1.1]** (https://github.com/ulgltas/NativeSolid)
@@ -25,7 +25,7 @@ CUPyDO currently features interfaces for the following solvers:
   - A nonlinear beam finite element solver developed for aeronautical design applications.
   ---
 - **Fluid**
-  - PFEM **[v1.19]** (https://gitlab.uliege.be/am-dept/PFEM)
+  - PFEM **[v1.26]** (https://gitlab.uliege.be/am-dept/PFEM)
   - Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
   - SU2 **[fix_wrap_strong]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
@@ -37,7 +37,7 @@ CUPyDO currently features interfaces for the following solvers:
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
   ---
-  - PFEM3D **[2.1.0]** (https://github.com/ImperatorS79/PFEM3D)
+  - PFEM3D **[v2.2.0]** (https://github.com/ImperatorS79/PFEM3D)
   - A 3D Particle Finite Element Method fluid solver developed at the University of Liège.
 
 ##  Features
@@ -50,7 +50,9 @@ Finally, CUPyDO features two main couplers:
 - Block-Gauss-Seidel (BGS) with
   - constant (static) relaxation
   - Aitken relaxation
-- Interface Quasi-Newton with Inverse Least-Square (IQN_ILS)
+- Interface Quasi-Newton with
+  - Inverse Least-Square (IQN_ILS)
+  - Multi-Vector Jacobian (IQN_MVJ)
 
 ## Compilation
 Detailed build instructions can be found in the [wiki](https://github.com/ulgltas/CUPyDO/wiki/Installation).

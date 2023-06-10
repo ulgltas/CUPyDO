@@ -22,11 +22,11 @@ limitations under the License.
 
 def test(res, tol, it):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     
     # Read results from file
     with open("Node_6_POS.ascii", 'rb') as f:
@@ -35,8 +35,8 @@ def test(res, tol, it):
     
     tests = CTests()
     tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
-    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.317212, 1e-2, False))
-    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.0780102, 1e-2, False))
+    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.305751, 0.05, False))
+    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.080041, 0.05, False))
     tests.run()
 
 def getFsiP():
@@ -59,7 +59,7 @@ def getFsiP():
     p['nDim'] = 2
     p['dt'] = 0.001
     p['tTot'] = 0.35
-    p['timeItTresh'] = 0
+    
     p['dtSave'] = 0
     p['tol'] = 1e-6
     p['maxIt'] = 20

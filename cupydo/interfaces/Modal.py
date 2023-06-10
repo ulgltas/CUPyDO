@@ -28,6 +28,7 @@ Adrien Crovato, Mariano Sanchez Martinez
 # ----------------------------------------------------------------------
 
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
@@ -40,7 +41,8 @@ class Modal(SolidSolver):
     """
 
     def __init__(self, _module, _computationType):
-        print("\n***************************** Initialize modal interface *****************************\n")
+
+        titlePrint('Initialize Modal Interface')
         # load the python module and initialize modal solver
         module = __import__(_module)
         self.initModal(module.getParams())
@@ -168,4 +170,5 @@ class Modal(SolidSolver):
         Adrien Crovato.
         """
         del self.solver
-        print("***************************** Exit modal interface *****************************")
+        
+        titlePrint("Exit Modal Interface")

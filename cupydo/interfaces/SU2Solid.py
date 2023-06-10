@@ -267,17 +267,6 @@ class SU2SolidSolver(SolidSolver):
 
         self.SU2.Update()
 
-        # overload here
-
-    def bgsUpdate(self):
-        """
-        Des.
-        """
-
-        # overload here
-
-        return
-
     def save(self):
         """
         Des.

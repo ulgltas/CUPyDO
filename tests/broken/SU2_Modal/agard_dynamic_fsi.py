@@ -39,7 +39,7 @@ def test(res, tol):
     # residual for test is xxx
     #if (res > tol):
     #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
-    #    raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    #    raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.1, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Drag coefficient', resultA[3], 0.1, 1e-1, False)) # rel. tol. of 10%
@@ -64,7 +64,7 @@ def getParameters(_p):
     p.update(_p)
     return p
 
-def main(_p, nogui):
+def main(_p):
     # --- Get FSI parameters ---#
     p = getParameters(_p)
 
@@ -124,7 +124,7 @@ def main(_p, nogui):
     cupyutil.mpiBarrier(comm)
 
     # eof
-    print ''
+    print('')
 
 # -------------------------------------------------------------------
 #  Run Main Program
@@ -132,15 +132,10 @@ def main(_p, nogui):
 
 # this is only accessed if running from command prompt
 if __name__ == '__main__':
-    p = {}
-    
-    parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of process", dest="nprocess", default=1) # not used
 
+    p = {}
+    parser=OptionParser()
+    parser.add_option("-k", type="int", help="Number of threads", dest="nthreads", default=1)
     (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    
-    main(p, nogui)
+    p['nthreads'] = options.nthreads
+    main(p)

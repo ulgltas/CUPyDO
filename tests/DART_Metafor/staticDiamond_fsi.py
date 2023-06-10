@@ -7,7 +7,7 @@
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from file
     with open("DartHistory.dat", 'rb') as f:
         lines = f.readlines()
@@ -19,10 +19,10 @@ def test(res, tol):
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.22, 1e-1, False)) # rel. tol. of 10%, dummy value
-    tests.add(CTest('TE. vertical displacement', resultS[2], 0.034, 1e-1, False)) # rel. tol. of 10%, dummy value
+    tests.add(CTest('TE. vertical displacement', resultS[-1], 0.034, 1e-1, False)) # rel. tol. of 10%, dummy value
     tests.run()
 
 def getFsiP():
@@ -45,7 +45,7 @@ def getFsiP():
     p['nDim'] = 2
     p['dt'] = 0.1
     p['tTot'] = 0.1
-    p['timeItTresh'] = -1
+    
     p['dtSave'] = 0
     p['tol'] = 1e-5
     p['maxIt'] = 50

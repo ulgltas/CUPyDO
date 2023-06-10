@@ -45,6 +45,18 @@ _theWDirRoot = os.getcwd()  # base directory du workspace
 #  Utilities
 # ----------------------------------------------------------------------
 
+def titlePrint(text):
+
+    # Prints a title in the terminal with formatting
+
+    size = 50
+    space = int((size-len(text))/2)
+    size = 2*space+len(text)
+
+    print("\n"+"-"*(size+2))
+    print("|"+" "*space+text+" "*space+"|")
+    print("-"*(size+2)+"\n")
+
 def solve_upper_triangular_mod(U, y, toll):
 
     # 'Modified' backward solve Ux = y with U upper triangular. 'Modified' because if the value of a diagonal element is close to zero (i.e. <= toll) the corresponding element in the solution is set to zero
@@ -126,8 +138,7 @@ def parseArgs():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs=1, help='Python input file')
-    parser.add_argument('-n', dest='n', help='Number of threads', default=1, type=int)
-    parser.add_argument('--nogui', action='store_true', help='Disable GUI', default=False)
+    parser.add_argument('-k', dest='k', help='Number of threads', default=1, type=int)
     return parser.parse_args()
 
 def setDirs(fpath):
@@ -183,7 +194,7 @@ def getMpi():
 #    MPI Functions
 # ----------------------------------------------------------------------
 
-def mpiPrint(message, mpiComm = None):
+def mpiPrint(message, mpiComm = None, function = None):
     """
     Description.
     """
@@ -194,7 +205,9 @@ def mpiPrint(message, mpiComm = None):
         myid = 0
 
     if myid == 0:
-        print(message)
+
+        if function == None: print(message)
+        else: function(message)
 
     mpiBarrier(mpiComm)
 
@@ -375,7 +388,7 @@ class solverPath(object):
         self.basePaths['RBMI'] = ['NativeSolid/bin']
         self.basePaths['Modal'] = ['modali']
         self.basePaths['DART'] = ['dartflo', 'dartflo/ext/amfe']
-        self.basePaths['Pfem'] = ['PFEM','waves']
+        self.basePaths['Pfem'] = ['PFEM', 'PFEM/ext/amfe']
         self.basePaths['SU2'] = ['SU2/build/bin']
         self.basePaths['VLM'] = ['VLM']
         self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']

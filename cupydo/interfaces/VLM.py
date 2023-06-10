@@ -30,6 +30,7 @@ import os
 
 # CUPyDO imports
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
@@ -38,7 +39,8 @@ from ..genericSolvers import FluidSolver
                
 class VLMSolver(FluidSolver):
     def __init__(self, _module):
-        print("\n***************************** Initializing VLM *****************************")
+
+        titlePrint("Initializing VLM")
         
         module = __import__(_module)
         pars = module.getParams()
@@ -216,4 +218,4 @@ class VLMSolver(FluidSolver):
         solFile.close()
     
     def exit(self):
-        print("***************************** Exit VLM solver *****************************")
+        titlePrint("Exit VLM solver")

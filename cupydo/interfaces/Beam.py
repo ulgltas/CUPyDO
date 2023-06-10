@@ -212,23 +212,10 @@ class pyBeamSolver(SolidSolver):
 
         SolidSolver.update(self)
 
-        # overload here
-
-    def bgsUpdate(self):
-        """
-        Des.
-        """
-
-        # overload here
-
-        return
-
     def save(self):
         """
         Des.
         """
-
-        # overload here
 
         return
 

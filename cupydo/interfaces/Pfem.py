@@ -30,6 +30,7 @@ import os, os.path, sys, time, string
 
 import math
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
@@ -37,9 +38,9 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Pfem(FluidSolver):
-    def __init__(self, testname, nthreads, nogui, dt):
+    def __init__(self, testname, nthreads, dt):
         
-        print('\n***************************** Initializing Pfem *****************************')
+        titlePrint('Initializing Pfem')
         
         self.testname = testname  # string (name of the module of the fluid model)
         
@@ -56,6 +57,10 @@ class Pfem(FluidSolver):
         # create an instance of Pfem
         self.pfem = module.getPfem()
         self.realTimeExtractorsList = module.getRealTimeExtractorsList(self.pfem)
+
+        # Current mesh state VTK extractor
+        import pfem.tools.link2vtk as v
+        self.extractor = v.Link2VTK(self.pfem.msh, self.pfem.scheme, False, True)
         
         # retrieve the f/s boundary and the related nodes
         gr = self.pfem.w.Group(self.pfem.msh, self.pfem.bndno)
@@ -85,8 +90,6 @@ class Pfem(FluidSolver):
         self.pfem.scheme.init()
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
-        if nogui:
-            self.pfem.gui = None
         
         self.runOK = True
         
@@ -119,13 +122,13 @@ class Pfem(FluidSolver):
             z0[i] = 0.
         
         return x0, y0, z0
-    
+
     def __setCurrentState(self):
         
         fx = np.zeros(len(self.vnods))
         fy = np.zeros(len(self.vnods))
         fz = np.zeros(len(self.vnods))
-        
+
         for i in range(len(self.vnods)):
             node = self.vnods[i]
             fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
@@ -135,6 +138,11 @@ class Pfem(FluidSolver):
         self.nodalLoad_X = fx
         self.nodalLoad_Y = fy
         self.nodalLoad_Z = fz
+
+        if self.pfem.pbl.isAxisymmetric: # Rescale to 1 radian for Metafor (B-J)
+
+            self.nodalLoad_X /= (2.0*np.pi)
+            self.nodalLoad_Y /= (2.0*np.pi)
     
     def getNodalIndex(self, iVertex):
         """
@@ -167,8 +175,8 @@ class Pfem(FluidSolver):
         """
         prescribes given nodal positions and velocities coming from solid solver to node #no
         """
-        if self.pfem.scheme.t < time:
-            self.pfem.scheme.resetNodalPositions()
+        # if self.pfem.scheme.t < time:
+        #     self.pfem.scheme.resetNodalPositions()
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
@@ -179,7 +187,7 @@ class Pfem(FluidSolver):
         self.pfem.scheme.t+=dt
         self.pfem.scheme.nt+=1
         self.pfem.scheme.updateSolutionVectors()
-        self.pfem.scheme.updateMatIDVector()
+        #self.pfem.scheme.updateMatIDVector()
         #self.u = self.pfem.scheme.u
         #self.v = self.pfem.scheme.v
         
@@ -192,10 +200,9 @@ class Pfem(FluidSolver):
         # ---
         
     def save(self, nt):
-        if nt%self.pfem.scheme.savefreq==0:
             self.pfem.scheme.archive()
-        if not self.pfem.gui==None:
             self.pfem.scheme.vizu()
+            self.extractor.saveVTK(nt,self.pfem.scheme.dt)
         
     def initRealTimeData(self):
         """
@@ -249,8 +256,6 @@ class Pfem(FluidSolver):
         """
         Exits the Pfem solver.
         """
-        #if not self.pfem.gui==None:
-        #    self.pfem.gui.save2vtk()
+
         self.pfem.scheme.exit()
-        
-        print("\n***************************** Exit Pfem *****************************")
+        titlePrint("Exit Pfem")

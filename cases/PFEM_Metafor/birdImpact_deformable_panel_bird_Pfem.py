@@ -16,7 +16,7 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, bird, loadingset, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, bird, loadingset, scheme, extManager):
        self.w = w
        self.msh = msh
        self.pbl = pbl 
@@ -24,7 +24,6 @@ class Module:
        self.loadingset = loadingset      
        self.scheme = scheme
        self.extManager = extManager
-       self.gui = gui
 
 def getPfem():
     global w
@@ -33,7 +32,7 @@ def getPfem():
     
     mshFile = runPath+os.sep+'birdImpact_deformable_panel_Mtf_Pfem.msh'
     
-    print 'mshFile: ', mshFile
+    print('mshFile: ', mshFile)
     
     rho0 = 1000.
     mu = 0.001
@@ -51,7 +50,7 @@ def getPfem():
 
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
     
     scheme = w.BackwardEuler(msh, pbl)
 
@@ -82,10 +81,8 @@ def getPfem():
     extManager.add(7,wt.ViscousEnergyExtractor(msh,pbl,scheme,16))
     extManager.add(8,wt.PressureWorkExtractor(msh,pbl,scheme,16))
     extManager.add(9,w.MassExtractor(msh,pbl,16))
-    
-    gui = v.MeshViewer(msh, scheme, True) 
-    
-    return Module(w, msh, pbl, bird, loadingset, scheme, extManager, gui)
+
+    return Module(w, msh, pbl, bird, loadingset, scheme, extManager)
 
 def getRealTimeExtractorsList(pfem):
     

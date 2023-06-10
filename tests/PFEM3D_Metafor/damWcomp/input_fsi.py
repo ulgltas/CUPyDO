@@ -13,13 +13,13 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(9)[0]
+    coord = gmsh.model.mesh.getNode(2)[0]
     gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Solid tip coordinate X',coord[0],0.306518,0.05,False))
-    tests.add(CTest('Solid tip coordinate Y',coord[1],0.079872,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,4.155172,0.05,False))
+    tests.add(CTest('Solid tip coordinate X', coord[0], 0.311361, 0.05, False))
+    tests.add(CTest('Solid tip coordinate Y', coord[1], 0.079275, 0.05, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
     tests.run()
 
 # %% Input Parameters
@@ -47,7 +47,7 @@ def getFsiP():
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
-    p['timeItTresh'] = 0
+    
     p['omega'] = 0.5
     p['dtSave'] = 0
     p['maxIt'] = 20

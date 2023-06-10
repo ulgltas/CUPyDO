@@ -31,11 +31,11 @@ Line(12) = {11, 1};
 Line Loop(12) = {1, 2, 3, 4};
 Plane Surface(13) = {12};
 
-Physical Line(16) = {1, 2, 5, 9, 10, 12}; //Reservoir
-Physical Line(17) = {6, 7, 8};        //Obstacle surface: FSI interface
-Physical Line(18) = {3, 4};           //Free surface
-Physical Surface(20) = {13};          //Water column
-Physical Surface(100) = {};          //Solid-solid contact
+Physical Line("Reservoir") = {1, 2, 5, 9, 10, 12}; //Reservoir
+Physical Line("FSInterface") = {6, 7, 8};        //Obstacle surface: FSI interface
+Physical Line("FreeSurface") = {3, 4};           //Free surface
+Physical Surface("WaterColumn") = {13};          //Water column
+Physical Surface("Contact") = {};          //Solid-solid contact
 
 Transfinite Line{1} = 2*N;
 Transfinite Line{2} = N;

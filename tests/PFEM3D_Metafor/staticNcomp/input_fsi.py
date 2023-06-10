@@ -13,13 +13,13 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(57)[0]
+    coord = gmsh.model.mesh.getNode(19)[0]
     gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X',coord[0],0.5,0.05,False))
-    tests.add(CTest('Middle bar coordinate Y',coord[1],-0.052684,0.05,False))
-    tests.add(CTest('Mean number of ISI iterations',meanFSIIt,1.696348,0.05,False))
+    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
+    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.072110, 0.01, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
     tests.run()
 
 # %% Input Parameters
@@ -48,12 +48,12 @@ def getFsiP():
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
     p['timeItTresh'] = 0
-    p['dtSave'] = 0.05
+    p['dtSave'] = 0
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['nSteps'] = 10
     p['tol'] = 1e-8
-    p['dt'] = 0.01
+    p['dt'] = 0.1
     p['tTot'] = 20
     p['nDim'] = 2
 

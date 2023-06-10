@@ -6,11 +6,6 @@ Problem.verboseOutput = false
 Problem.simulationTime = math.huge
 Problem.id = 'IncompNewtonNoT'
 
--- FSPC Parameters
-
-Problem.interface = 'FSInterface'
-Problem.maxFactor = 10
-
 -- Mesh Parameters
 
 Problem.Mesh = {}
@@ -29,9 +24,9 @@ Problem.Mesh.boundingBox = {-0.01,-1,1.01,1}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
-Problem.Mesh.mshFile = 'geometry.msh'
-Problem.Mesh.exclusionGroups = {'FSInterface'}
-Problem.Mesh.ignoreGroups = {'Solid','Clamped'}
+Problem.Mesh.mshFile = 'geometryF.msh'
+Problem.Mesh.exclusionGroups = {}
+Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 
@@ -89,10 +84,10 @@ Problem.IC = {}
 Problem.Solver.MomContEq.BC = {}
 Problem.Solver.MomContEq.BC['FSInterfaceVExt'] = true
 
-function Problem.IC:initStates(pos)
+function Problem.IC.initStates(x,y,z)
 	return {0,0,0}
 end
 
-function Problem.Solver.MomContEq.BC:WallV(pos,t)
+function Problem.Solver.MomContEq.BC.WallV(x,y,z,t)
 	return 0,0
 end

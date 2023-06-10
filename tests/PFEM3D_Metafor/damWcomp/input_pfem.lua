@@ -6,17 +6,12 @@ Problem.verboseOutput = false
 Problem.simulationTime = math.huge
 Problem.id = 'WCompNewtonNoT'
 
--- FSPC Parameters
-
-Problem.interface = 'FSInterface'
-Problem.maxFactor = 1000
-
 -- Mesh Parameters
 
 Problem.Mesh = {}
 Problem.Mesh.alpha = 1.2
-Problem.Mesh.omega = 0.5
-Problem.Mesh.gamma = 0.6
+Problem.Mesh.omega = 0.7
+Problem.Mesh.gamma = 0.3
 Problem.Mesh.hchar = 0.015
 Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.addOnFS = false
@@ -29,9 +24,9 @@ Problem.Mesh.boundingBox = {-0.01,-0.01,0.6,100}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
-Problem.Mesh.mshFile = 'geometry.msh'
-Problem.Mesh.exclusionGroups = {'FSInterface'}
-Problem.Mesh.ignoreGroups = {'Solid','SolidBase'}
+Problem.Mesh.mshFile = 'geometryF.msh'
+Problem.Mesh.exclusionGroups = {'Polytope'}
+Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 
@@ -53,6 +48,7 @@ Problem.Extractors[1].timeBetweenWriting = math.huge
 -- Material Parameters
 
 Problem.Material = {}
+Problem.Material.p0 = 0
 Problem.Material.mu = 1e-3
 Problem.Material.K0p = 7.6
 Problem.Material.gamma = 0
@@ -85,10 +81,14 @@ Problem.Solver.MomEq.BC = {}
 Problem.Solver.ContEq.BC = {}
 Problem.Solver.MomEq.BC['FSInterfaceVExt'] = true
 
-function Problem.IC:initStates(pos)
+function Problem.IC.initStates(x,y,z)
 	return {0,0,0,Problem.Material.rhoStar,0,0}
 end
 
-function Problem.Solver.MomEq.BC:ReservoirV(pos,t)
+function Problem.Solver.MomEq.BC.ReservoirV(x,y,z,t)
+	return 0,0
+end
+
+function Problem.Solver.MomEq.BC.PolytopeV(x,y,z,t)
 	return 0,0
 end

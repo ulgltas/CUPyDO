@@ -133,16 +133,6 @@ class ExampSolver(SolidSolver):
 
         #overload here
 
-
-    def bgsUpdate(self):
-        """
-        Des.
-        """
-
-        #overload here
-
-        return
-
     def save(self):
         """
         Des.

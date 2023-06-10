@@ -16,7 +16,7 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
@@ -25,7 +25,6 @@ class Module:
        self.convCriterion = convCriterion
        self.scheme = scheme
        self.extManager = extManager
-       self.gui = gui
 
 def getPfem():
     global w
@@ -48,7 +47,7 @@ def getPfem():
     
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
     
     toll = 1e-6
     nItMax = 20
@@ -78,9 +77,7 @@ def getPfem():
     extManager.add(2,w.PositionExtractor(msh,6))
     extManager.add(3,w.PositionExtractor(msh,76))
     
-    gui = v.MeshViewer(msh, scheme, True) 
-    
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, scheme, extManager)
 
 def getRealTimeExtractorsList(pfem):
     

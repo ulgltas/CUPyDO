@@ -16,13 +16,12 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, scheme, extManager):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
        self.scheme = scheme
        self.extManager = extManager
-       self.gui = gui
 
 def getPfem():
     global contactTag
@@ -47,7 +46,7 @@ def getPfem():
     
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
     
     msh.boundingBox = True
     msh.xMin = -0.0601
@@ -66,7 +65,7 @@ def getPfem():
     w.Medium(msh, 22, mu, rho0, 3)
     w.Medium(msh, 25, mu, rho0, 1)
     
-    print msh.media.size()
+    print(msh.media.size())
     
     # boundaries
     w.Boundary(msh, 19, 9, 0.0)
@@ -96,9 +95,7 @@ def getPfem():
     #Results
     extManager = w.ExtractorsManager(msh)
     
-    gui = v.MeshViewer(msh, scheme, True) 
-    
-    return Module(w, msh, pbl, scheme, extManager, gui)
+    return Module(w, msh, pbl, scheme, extManager)
     
 def getRealTimeExtractorsList(pfem):
 

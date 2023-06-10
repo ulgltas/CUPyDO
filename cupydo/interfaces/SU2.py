@@ -378,8 +378,7 @@ class SU2(FluidSolver):
         Preprocessing routine before each time step.
         """
 
-        if timeIter > 0:
-            self.SU2.Preprocess(timeIter)
+        self.SU2.Preprocess(timeIter)
 
     def remeshing(self):
         """

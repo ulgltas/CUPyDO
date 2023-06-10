@@ -34,7 +34,7 @@ def getParameters(_p):
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
+def main(_p):
     
     p = getParameters(_p)
     
@@ -59,8 +59,6 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     # --- This part is specific to PFEM ---
     fluidSolver.pfem.scheme.nthreads = p['nthreads']
     fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    if nogui:
-        fluidSolver.pfem.gui = None
     # ---
     
     cupyutil.mpiBarrier(comm)
@@ -101,18 +99,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 if __name__ == '__main__':
     
     p = {}
-    
     parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
-
-
+    parser.add_option("-k", type="int", help="Number of threads", dest="nthreads", default=1)
     (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    nthreads = options.nthreads
-    
-    p['nthreads'] = nthreads
-    
-    main(p, nogui)
+    p['nthreads'] = options.nthreads
+    main(p)

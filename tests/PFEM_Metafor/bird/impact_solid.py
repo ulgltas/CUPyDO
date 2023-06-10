@@ -43,6 +43,8 @@ def params(q={}):
     p['bctype'] = 'pydeadloads'  # variable loads
     # p['bctype']     = 'slave'     # variable loads (mpi)
 
+    p['exporter'] = Extractor()
+
     p.update(q)
     return p
 
@@ -139,19 +141,23 @@ def getMetafor(p={}):
 
     return metafor
 
+class Extractor(object):
+    def __init__(self):
 
-def getRealTimeExtractorsList(mtf):
+        self.metafor = metafor
+        
 
-    extractorsList = []
+    def write(self,extractor):
 
-    # --- Extractors list starts --- #
-    groupset = mtf.getDomain().getGeometry().getGroupSet()
-    extractor1 = TdFieldValueExtractor(
-        metafor, groupset(17), THERMODYN_TRAV_FINT)
-    extractor2 = DbNodalValueExtractor(groupset(17), Field1D(TY, RE), SortByDist0(
-        0., 0., 0.), 1)  # Vertical displacement of the center (upper skin) of the panel
-    extractorsList.append(extractor1)
-    extractorsList.append(extractor2)
-    # --- Extractors list ends --- #
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
-    return extractorsList
+    def execute(self):
+
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.write(TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FINT))
+        self.write(DbNodalValueExtractor(groupset(17), Field1D(TY, RE), SortByDist0(0,0,0), 1))
+        

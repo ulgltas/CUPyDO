@@ -23,7 +23,7 @@ import os
 
 def test_adj(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -59,7 +59,7 @@ def getAdjP():
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05
-    p['timeItTresh'] = -1
+    
     p['dtSave'] = 0
     p['tol'] = 1e-8
     p['maxIt'] = 16

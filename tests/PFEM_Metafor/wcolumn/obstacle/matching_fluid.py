@@ -36,7 +36,7 @@ w = None
 class Module(object):
     def __init__(self, w, msh, pbl, contactTag, solScheme,
                  nonLinAlgo, convCriterion, scheme,
-                 extManager, gui, bndno):
+                 extManager, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -46,7 +46,6 @@ class Module(object):
         self.convCriterion = convCriterion
         self.scheme = scheme
         self.extManager = extManager
-        self.gui = gui
         self.bndno = bndno
 
 
@@ -82,23 +81,23 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 17 # fsi boundary
+    bndno = "FSInterface"
 
     contactTag = w.Tag(100, "Contact", 2)
     msh.ptags[100] = contactTag
     msh.ntags["Contact"] = contactTag
 
-    w.Medium(msh, 100, 0., 0., 0., 4)
-    w.Medium(msh, 17, 0., 0., 3)
-    w.Medium(msh, 16, mu, rho0, 1)
-    w.Medium(msh, 20, mu, rho0, 1)
+    w.Medium(msh, "Contact", w.CONTACT, 0., 0.)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Reservoir", w.MASTER_FLUID, mu, rho0)
+    w.Medium(msh, "WaterColumn", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 18, 3, pbl.extP)
-    w.Boundary(msh, 16, 1, 0.0)
-    w.Boundary(msh, 16, 2, 0.0)
-    w.Boundary(msh, 17, 1, 0.0)
-    w.Boundary(msh, 17, 2, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, pbl.extP)
+    w.Boundary(msh, "Reservoir", 1, 0.0)
+    w.Boundary(msh, "Reservoir", 2, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     scheme.savefreq = 100
     scheme.gamma = 0.6
@@ -121,10 +120,7 @@ def getPfem():
     extManager.add(11,wt.KineticEnergyExtractor(msh,pbl,"Water"))
     extManager.add(12,wt.ViscousEnergyExtractor(msh,pbl,scheme,"Water"))'''
 
-    import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, False, True)
-
-    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

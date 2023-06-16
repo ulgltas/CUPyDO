@@ -288,7 +288,7 @@ class InterfaceMatrix(ccupydo.CInterfaceMatrix):
         if self.mpiComm != None:
             ccupydo.CInterfaceMatrix.mult(self, Data, DataOut)
         else:
-            PyH = self.getMat();
+            PyH = self.getMat()
             dim = Data.getDim()
             for iDim in range(dim):
                 np.dot(PyH, Data.getData(iDim), DataOut.getData(iDim))

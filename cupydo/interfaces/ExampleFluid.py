@@ -99,7 +99,7 @@ class ExampSolver(FluidSolver):
 
         #return no
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
         """
         Des.
         """

@@ -115,19 +115,19 @@ class SolidSolver(object):
     def getNodalIndex(self, iVertex):
         return
 
-    def fakeFluidSolver(self, time):
+    def fakeFluidSolver(self, dt):
         return
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
         return
 
-    def applyNodalTemperatures(self, Temperature, time):
+    def applyNodalTemperatures(self, Temperature, dt):
         return
 
-    def applyNodalNormalHeatFluxes(self, NormalHeatFlux, val_time):
+    def applyNodalNormalHeatFluxes(self, NormalHeatFlux, dt):
         return
 
-    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, time):
+    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt):
         return
 
     def update(self):
@@ -202,7 +202,7 @@ class FluidSolver(object):
     def getNodalIndex(self, iVertex):
         return
 
-    def fakeSolidSolver(self, time):
+    def fakeSolidSolver(self, dt):
         return
 
     def getNodalLoads(self):
@@ -221,13 +221,13 @@ class FluidSolver(object):
     def getNodalHeatFluxes(self):
         return (self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z)
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, dt):
         return
 
-    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt):
         return
 
-    def applyNodalTemperatures(self, Temperature, time):
+    def applyNodalTemperatures(self, Temperature, dt):
         return
 
     def update(self, dt):
@@ -278,7 +278,7 @@ class SolidAdjointSolver(SolidSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
         return
     
     def getNodalAdjointLoads(self):
@@ -302,7 +302,7 @@ class FluidAdjointSolver(FluidSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
 
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, dt):
         return
     
     def getNodalAdjointDisplacement(self):

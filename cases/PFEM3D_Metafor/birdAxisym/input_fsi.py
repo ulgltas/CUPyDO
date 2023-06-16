@@ -48,7 +48,7 @@ def getFsiP():
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
     p['timeItTresh'] = 0
-    p['dtSave'] = 0
+    
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['tol'] = 1e-8
@@ -66,7 +66,7 @@ def main():
     cupydo = cupy.CUPyDO(param)
     cupydo.run()
 
-    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.timeIter)
+    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
     test(cupydo.algorithm.getMeanNbOfFSIIt())
 
 if __name__=='__main__':

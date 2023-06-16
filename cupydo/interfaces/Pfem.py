@@ -153,7 +153,7 @@ class Pfem(FluidSolver):
         
         return no
     
-    def fakeSolidSolver(self, time):
+    def fakeSolidSolver(self, dt):
         """
         calculate some dummy positions and velocities as a function of timestep.
         it should be replaced by the solid solver in practice.
@@ -165,13 +165,13 @@ class Pfem(FluidSolver):
             node = self.vnods[no]                 
             vx = -0.5 # current vx          
             vy = 0. # current vy
-            px = node.posN.x[0] + vx*self.pfem.scheme.dt # current x         
-            py = node.posN.x[1] + vy*self.pfem.scheme.dt# current y              
+            px = node.posN.x[0] + vx*dt # current x         
+            py = node.posN.x[1] + vy*dt # current y              
             out[no] = (px,py,vx,vy)
             
         self.applydefo(out)
     
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, dt):
         """
         prescribes given nodal positions and velocities coming from solid solver to node #no
         """
@@ -180,8 +180,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/self.pfem.scheme.dt
-            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/self.pfem.scheme.dt
+            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/dt
+            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/dt
         
     def update(self, dt):
         self.pfem.scheme.t+=dt

@@ -205,7 +205,7 @@ class Metafor(SolidSolver):
 
 # %% Set Nodal Loads
 
-    def applyNodalLoads(self,loadX,loadY,loadZ,time,*_):
+    def applyNodalLoads(self,loadX,loadY,loadZ,dt,*_):
         """
         Apply the load boundary conditions on the mesh
         """
@@ -217,11 +217,11 @@ class Metafor(SolidSolver):
             fx.val2 = loadX[i]
             fy.val2 = loadY[i]
             fz.val2 = loadZ[i]
-            fx.t2 = time
-            fy.t2 = time
-            fz.t2 = time
+            fx.t2 = fx.t1+dt
+            fy.t2 = fy.t1+dt
+            fz.t2 = fz.t1+dt
 
-    def applyNodalTemperatures(self,temp,time):
+    def applyNodalTemperatures(self,temp,dt):
         """
         Apply the temperature boundary conditions on the mesh
         """
@@ -231,7 +231,7 @@ class Metafor(SolidSolver):
             node = self.FSI.getMeshPoint(i)
             temp = self.Tnods[node.getNo()]
             temp.val2 = temp[i]
-            temp.t2 = time
+            temp.t2 = temp.t1+dt
 
 # %% Other Functions
 

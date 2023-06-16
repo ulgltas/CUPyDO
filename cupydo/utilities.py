@@ -211,6 +211,17 @@ def mpiPrint(message, mpiComm = None, function = None):
 
     mpiBarrier(mpiComm)
 
+def mpiScatter(message, mpiComm = None, rootProcess = 0):
+    """
+    Description.
+    """
+
+    if mpiComm != None:
+        vec = [message for i in range(mpiComm.Get_size())]
+        message = mpiComm.scatter(vec,root=rootProcess)
+    return message
+
+
 def mpiBarrier(mpiComm = None):
     """
     Description.

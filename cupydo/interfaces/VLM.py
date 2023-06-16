@@ -155,7 +155,7 @@ class VLMSolver(FluidSolver):
             index = iVertex
         return index
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
         for ii in range(self.coreSolver.m): # For each row of panels
             kk = ii*self.coreSolver.n # Starting index of row
             # Current vertex: complete displacement

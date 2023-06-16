@@ -95,7 +95,7 @@ class Modal(SolidSolver):
         self.nodalDisp_Y = self.solver.dispY
         self.nodalDisp_Z = self.solver.dispZ
            
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
         """Update the loads
         Adrien Crovato
         """

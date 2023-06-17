@@ -177,13 +177,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
-
-            print(self.verified)
             # --- End of FSI loop --- #
 
-
             if not self.verified:
-                
                 self.step.update(self.verified)
                 continue
 
@@ -285,7 +281,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         verif = False
         self.FSIIter = 0
-        self.FSIConv = False
         self.errValue = 1e12
         self.errValue_CHT = 1e6
 
@@ -357,9 +352,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
             else:
                 self.errValue_CHT = 0.0
 
-            # --- Monitor the coupling convergence --- #
-            self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
-
             if self.manager.mechanical:
                 # --- Relaxe the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
@@ -379,8 +371,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
             # --- Update the FSI iteration and history --- #
             if self.writeInFSIloop == True:
                 self.writeRealTimeData()
-
             self.FSIIter += 1
+
+            # --- Monitor the coupling convergence --- #
             if self.criterion.isVerified(self.errValue, self.errValue_CHT):
                 mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
                 return True

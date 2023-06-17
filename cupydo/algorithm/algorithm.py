@@ -252,12 +252,6 @@ class AlgorithmExplicit(Algorithm):
                 self.SolidSolver.update()
             self.FluidSolver.update(self.step.dt)
 
-            # --- Save the fluid and solid solutions ---#
-
-
-            # --- Update the next required extractor time  ---#
-
-
             # --- Perform some remeshing if necessary
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.solidRemeshingTimer.start()

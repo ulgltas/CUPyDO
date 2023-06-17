@@ -128,16 +128,16 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         delta_ds_loc_Y = np.zeros(0)
         delta_ds_loc_Z = np.zeros(0)
 
-        if (self.nbTimeToKeep!=0 and self.step.timeIter > 1): # If information from previous time steps is re-used then Vk = V, Wk = W
+        if self.nbTimeToKeep > 0: # If information from previous time steps is re-used then Vk = V, Wk = W
             Vk = copy.deepcopy(self.V)
             Wk = copy.deepcopy(self.W)
-        else: # If information from previous time steps is not re-used then Vk and Wk are empty lists of np.array()
+        else: # If information from previous time steps is not re-used then Vk and Wk are empty lists
             Vk = []
             Wk = []
         
         nIt = 0
 
-        while ((self.FSIIter < self.nbFSIIterMax) and (not self.criterion.isVerified(self.errValue,self.errValue_CHT))):
+        while (self.FSIIter < self.nbFSIIterMax) and (self.FSIConv == False):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
             # --- Solid to fluid mechanical transfer --- #
@@ -152,10 +152,13 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching fluid solver...', self.mpiComm)
             self.fluidSolverTimer.start()
-            self.FluidSolver.run(*self.step.timeFrame())
+            verif = self.FluidSolver.run(*self.step.timeFrame())
             self.fluidSolverTimer.stop()
             self.fluidSolverTimer.cumul()
             mpiBarrier(self.mpiComm)
+
+            # --- The fluid solver failed if verif is false --- #
+            if not verif: return False
 
             # --- Fluid to solid mechanical transfer --- #
             mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
@@ -166,15 +169,21 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.solidSolverTimer.start()
-                self.SolidSolver.run(*self.step.timeFrame())
+                verif = self.SolidSolver.run(*self.step.timeFrame())
                 self.solidSolverTimer.stop()
                 self.solidSolverTimer.cumul()
+
+            # --- The solid solver failed if verif is false --- #
+            try: solidProc = int(self.manager.getSolidSolverProcessors())
+            except: raise Exception('Only one solid solver process is supported yet')
+            verif = mpiScatter(verif, self.mpiComm, solidProc)
+            self.solidHasRun = True
+            if not verif: return False
 
             # --- Compute and monitor the FSI residual --- #
             res = self.computeSolidInterfaceResidual()
             self.errValue = self.criterion.update(res)
             mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-            self.FSIConv = self.criterion.isVerified(self.errValue)
 
             # --- Initialize d_tilde for the construction of the Wk matrix -- #
             if self.myid in self.manager.getSolidInterfaceProcessors():
@@ -185,11 +194,14 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
 
             solidInterfaceDisplacement_tilde.assemble()
             
-            if ((self.FSIIter == 0 and (self.nbTimeToKeep == 0 or (self.nbTimeToKeep != 0 and (self.maxNbOfItReached or self.convergenceReachedInOneIt or self.step.timeIter == 1)))) or self.step.timeIter < 1): # If information from previous time steps is re-used then this step is only performed at the first iteration of the first time step, otherwise it is performed at the first iteration of every time step
+            if len(Vk) == 0:
+
                 # --- Relax the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidPosition()
+
             else:
+                
                 # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
                 mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
                 
@@ -273,38 +285,27 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             if self.writeInFSIloop == True:
                 self.writeRealTimeData()
             self.FSIIter += 1
+
+            # --- Compute and monitor the FSI residual --- #
+            if self.criterion.isVerified(self.errValue,self.errValue_CHT):
+                mpiPrint("IQN-ILS is Converged",self.mpiComm,titlePrint)
+                self.FSIConv = True
         
-        # update of the matrices V and W at the end of the while
-        if self.nbTimeToKeep != 0 and self.step.timeIter >= 1:
+        # --- Empty the V and W containers if no convergence --- #
+        if not self.FSIConv:
+            self.V = []
+            self.W = []
+            return False
+        
+        # Add the current time data step to V and W, and remove out-of-range time steps
+        if (self.nbTimeToKeep > 0) and (len(Vk) > 0):
             
-            # --- Trick to avoid breaking down of the simulation in the rare cases when, in the initial time steps, FSI convergence is reached without iterating (e.g. starting from a steady condition and using very small time steps), leading to empty V and W matrices ---
-            if not (self.FSIIter == 1 and self.FSIConv and len(self.V)==0):
-                
-                self.convergenceReachedInOneIt = False
-                
-                # --- Managing situations where FSI convergence is not reached ---
-                if (self.FSIIter >= self.nbFSIIterMax and not self.FSIConv):
-                    mpiPrint('WARNING: IQN-ILS using information from {} previous time steps reached max number of iterations. Next time step is run without using any information from previous time steps!'.format(self.nbTimeToKeep), self.mpiComm)
-                    
-                    self.maxNbOfItReached = True
-                    self.V = []
-                    self.W = []
-                else:
-                    self.maxNbOfItReached = False
-                    
-                    mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
-                    
-                    self.V.insert(0, Vk_mat[:,0:nIt].T)
-                    self.W.insert(0, Wk_mat[:,0:nIt].T)
-                    
-                    if (self.step.timeIter > self.nbTimeToKeep and len(self.V) > self.nbTimeToKeep):
-                        del self.V[-1]
-                        del self.W[-1]
-                # --- 
-            else:
-                mpiPrint('\nWARNING: IQN-ILS algorithm convergence reached in one iteration at the beginning of the simulation. V and W matrices cannot be built. BGS will be employed for the next time step!\n', self.mpiComm)
-                self.convergenceReachedInOneIt = True
-            # ---
+            mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
+            self.V.insert(0, Vk_mat[:,0:nIt].T)
+            self.W.insert(0, Wk_mat[:,0:nIt].T)
             
-        # --- Update the FSI history file --- #
-        mpiPrint("IQN-ILS is Converged",self.mpiComm,titlePrint)
+            while len(self.V) > self.nbTimeToKeep:
+                del self.V[-1]
+                del self.W[-1]
+
+        return True

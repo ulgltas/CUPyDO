@@ -206,21 +206,10 @@ class Pfem3D(FluidSolver):
 
     def exit(self):
 
-        print('======================================')
         self.problem.displayTimeStats()
-        print('======================================')
-        print('\nExit PFEM3D')
+        titlePrint('Exit PFEM3D')
 
     # Save te results into a file
 
     def save(self,_):
         self.problem.dump()
-
-    # Display the current simulation state
-
-    def timeStats(self,time,dt):
-
-        start = self.problem.getCurrentSimTime()
-        print('t1 = {:.5e} - dt = {:.3e}'.format(start,dt))
-        print('t2 = {:.5e} - division = {:.0f}'.format(time,self.factor))
-        print('----------------------------------')

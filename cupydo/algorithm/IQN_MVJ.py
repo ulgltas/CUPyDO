@@ -68,9 +68,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         # --- Global V and W matrices for IQN-MVJ algorithm --- #
         self.V = []
         self.W = []
-
-        # --- Curent inverse approximate Jacobian (J^-1 - I) --- #
-        ns = self.interfaceInterpolator.getNs()
     
     def fsiCoupling(self):
         """
@@ -80,7 +77,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         mpiPrint("Enter IQN-MNV Strong Coupling FSI",self.mpiComm,titlePrint)
 
         self.FSIIter = 0
-        self.FSIConv = False
         self.errValue = 1.0
         self.errValue_CHT = 1e6 # Just for compatibility
         
@@ -103,7 +99,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         # --- Initialises the previous approximate inverse Jacobian and V, W --- #
         Vk = []
         Wk = []
-        nIt = 0
 
         while (self.FSIIter < self.nbFSIIterMax):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
@@ -152,7 +147,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             res = self.computeSolidInterfaceResidual()
             self.errValue = self.criterion.update(res)
             mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-            self.FSIConv = self.criterion.isVerified(self.errValue)
 
             # --- Initialize d_tilde for the construction of the Wk matrix -- #
             if self.myid in self.manager.getSolidInterfaceProcessors():
@@ -202,8 +196,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                         
                         Vk.insert(0, delta_res)
                         Wk.insert(0, delta_d)
-                        
-                        nIt+=1
                     
                         Vk_mat = np.vstack(Vk).T
                         Wk_mat = np.vstack(Wk).T
@@ -249,9 +241,10 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
             # --- Update the FSI iteration and history --- #
             self.FSIIter += 1
-            if self.criterion.isVerified(self.errValue, self.errValue_CHT):
 
-                mpiPrint("MVJ is Converged",self.mpiComm,titlePrint)
+            # --- Compute and monitor the FSI residual --- #
+            if self.criterion.isVerified(self.errValue, self.errValue_CHT):
+                mpiPrint("IQN-MVJ is Converged",self.mpiComm,titlePrint)
                 if self.hasInvJ: self.invJprev = np.copy(self.invJ)
                 return True
         

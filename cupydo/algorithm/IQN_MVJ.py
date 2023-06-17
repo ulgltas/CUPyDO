@@ -74,7 +74,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         Interface Quasi Newton - Multi Vector Jacobian (IQN-MVJ) method for strong coupling FSI
         """
 
-        mpiPrint("Enter IQN-MNV Strong Coupling FSI",self.mpiComm,titlePrint)
+        mpiPrint("Enter IQN-MNJ Strong Coupling FSI",self.mpiComm,titlePrint)
 
         self.FSIIter = 0
         self.errValue = 1.0

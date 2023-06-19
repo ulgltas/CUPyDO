@@ -33,7 +33,6 @@ try: # Try to import the AD-capable SU2 module first
 except ModuleNotFoundError as error:
     import pysu2
     adjoint = False
-import math
 import numpy as np
 from ..genericSolvers import FluidSolver, FluidAdjointSolver
 
@@ -160,6 +159,7 @@ class SU2(FluidSolver):
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, nt):
         """
@@ -443,6 +443,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __steadyRun(self):
         """

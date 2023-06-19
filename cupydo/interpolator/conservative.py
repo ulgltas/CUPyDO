@@ -68,11 +68,12 @@ class ConservativeInterpolator(InterfaceInterpolator):
     def generateInterfaceData(self):
 
         if self.manager.mechanical:
+            self.prevSolidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
             self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
             self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
             self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            if self.manager.mechanical:
+            if self.manager.adjoint:
                 self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
                 self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
                 self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)

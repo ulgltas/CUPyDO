@@ -95,6 +95,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.myid = 0
             self.mpiSize = 1
 
+        self.prevSolidInterfaceDisplacement = None
         self.solidInterfaceDisplacement = None
         self.fluidInterfaceDisplacement = None
         self.solidInterfaceLoads = None
@@ -550,6 +551,13 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.interpolateFluidToSolid(self.fluidInterfaceAdjointDisplacement, self.solidInterfaceAdjointDisplacement)
 
+    def saveSolidInterfaceDisplacement(self):
+
+        self.solidInterfaceDisplacement.copy(self.prevSolidInterfaceDisplacement)
+
+    def restoreSolidInterfaceDisplacement(self):
+
+        self.prevSolidInterfaceDisplacement.copy(self.solidInterfaceDisplacement)
 
     def getNs(self):
 

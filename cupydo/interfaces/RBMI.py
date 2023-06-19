@@ -88,6 +88,7 @@ class RBMI(SolidSolver):
             self.NativeSolid.staticComputation()
 
         self.__setCurrentState()
+        return False
 
     def __setCurrentState(self):
         """

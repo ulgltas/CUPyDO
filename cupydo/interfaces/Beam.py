@@ -120,6 +120,7 @@ class pyBeamSolver(SolidSolver):
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, t1, t2):
         """
@@ -279,6 +280,7 @@ class pyBeamAdjointSolver(pyBeamSolver, SolidAdjointSolver):
         """
         self.__steadyRun()
         self.__setCurrentState()
+        return True
 
     def __steadyRun(self):
         self.pyBeam.RecordSolver()

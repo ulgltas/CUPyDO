@@ -109,6 +109,7 @@ class VLMSolver(FluidSolver):
         self.coreSolver.run()
 
         self.__setCurrentState()       # use to fill the arrays with nodal values after each run
+        return True
 
     def __setCurrentState(self):
         """

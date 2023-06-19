@@ -164,6 +164,7 @@ class SU2SolidSolver(SolidSolver):
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, t1, t2):
         """
@@ -388,6 +389,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
         """

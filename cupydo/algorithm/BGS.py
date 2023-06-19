@@ -86,9 +86,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
-        # --- Initialize data for solution backup (mechanical only) --- #
-        self.prevSolidInterfaceDisplacement = FlexInterfaceData(ns, 3, self.mpiComm)
-
         # --- Initialize data for prediction (mechanical only) --- #
         if self.predictor and self.manager.mechanical:
             self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
@@ -116,7 +113,11 @@ class AlgorithmBGSStaticRelax(Algorithm):
             else:
                 self.step.dt = self.totTime
                 self.writeInFSIloop = True
-                self.fsiCoupling()
+
+                # --- Internal FSI loop --- #
+                self.verified = self.fsiCoupling()
+                if not self.verified: raise Exception('The steady FSI coupling did not converge')
+
                 self.FluidSolver.save(self.step.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
@@ -162,7 +163,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
-            # --- End of FSI loop --- #
 
             if not self.verified:
                 self.step.update(self.verified)
@@ -177,7 +177,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.SolidSolver.update()
             self.FluidSolver.update(self.step.dt)
 
-            # --- Save the fluid and solid solutions  ---#
+            # --- Save the fluid and solid solutions  --- #
             if self.step.mustSave():
                 self.FluidSolver.save(self.step.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
@@ -411,14 +411,14 @@ class AlgorithmBGSStaticRelax(Algorithm):
             if not self.verified:
 
                 # --- Bring back the interface position of the previous time step --- #
-                self.prevSolidInterfaceDisplacement.copy(self.interfaceInterpolator.solidInterfaceDisplacement)
+                self.interfaceInterpolator.restoreSolidInterfaceDisplacement()
             
             return
 
         if self.verified:
             
             # --- Save the current interface position before predicting a new one --- #
-            self.interfaceInterpolator.solidInterfaceDisplacement.copy(self.prevSolidInterfaceDisplacement)
+            self.interfaceInterpolator.saveSolidInterfaceDisplacement()
 
             # --- Get the velocity (current and previous time step) of the solid interface from the solid solver --- #
             if self.myid in self.manager.getSolidInterfaceProcessors():
@@ -435,7 +435,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         else:
 
             # --- Bring back the interface position of the previous time step --- #
-            self.prevSolidInterfaceDisplacement.copy(self.interfaceInterpolator.solidInterfaceDisplacement)
+            self.interfaceInterpolator.restoreSolidInterfaceDisplacement()
 
         # --- Predict the solid position for the next time step --- #
         if self.predictorOrder == 1:
@@ -596,7 +596,11 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             self.step.timeIter = 1
             self.step.dt = self.totTime
             self.writeInFSIloop = True
-            self.fsiCoupling()
+
+            # --- Internal FSI loop --- #
+            self.verified = self.fsiCoupling()
+            if not self.verified: raise Exception('The adjoint FSI coupling did not converge')
+
             self.FluidSolver.save(self.step.timeIter)
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.save()

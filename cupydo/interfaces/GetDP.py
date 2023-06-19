@@ -331,6 +331,8 @@ class GetDP(SolidSolver):
             else:
                 os.system(self.pathToGetDP +" {} -setnumber Initialize 0 -setnumber OutputFiles 1 -solve {}".format(self.testname, self.resolution))
             self.__setCurrentState(False)
+        
+        return True
             
 
     def __setCurrentState(self, initialize):

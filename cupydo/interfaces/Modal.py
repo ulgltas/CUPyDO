@@ -86,6 +86,7 @@ class Modal(SolidSolver):
             self.solver.runDynamic(t1, t2)
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
         """Update displacements

@@ -206,8 +206,9 @@ class AlgorithmExplicit(Algorithm):
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
 
+            # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
-                self.step.update(self.verified)
+                self.step.updateTime(self.verified)
                 continue
 
             mpiBarrier(self.mpiComm)
@@ -218,12 +219,6 @@ class AlgorithmExplicit(Algorithm):
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.update()
             self.FluidSolver.update(self.step.dt)
-
-            # --- Save the fluid and solid solutions  --- #
-            if self.step.mustSave():
-                self.FluidSolver.save(self.step.timeIter)
-                if self.myid in self.manager.getSolidSolverProcessors():
-                    self.SolidSolver.save()
 
             # --- Perform some remeshing if necessary
             if self.myid in self.manager.getSolidSolverProcessors():
@@ -237,8 +232,9 @@ class AlgorithmExplicit(Algorithm):
             self.fluidRemeshingTimer.stop()
             self.fluidRemeshingTimer.cumul()
 
-            # --- Update the time iteration and FSI history --- #
-            self.step.update(self.verified)
+            # --- Update TimeStep class, export the results and write FSI history --- #
+            self.step.updateTime(self.verified)
+            self.step.updateSave(self)
             self.writeRealTimeData()
 
         # --- End of the temporal loop --- #

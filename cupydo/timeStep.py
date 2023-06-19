@@ -44,22 +44,31 @@ class TimeStep(object):
         self.timeIter = 0
 
     def timeFrame(self):
+        """
+        Get [t1, t2] for fluid and solid run
+        """
         return self.time,self.time+self.dt
+    
+    # I need the Algorithm class because the solid solver is on a specific process
 
-    # Update and return if save is required
+    def updateSave(self,Algorithm):
+        """
+        Update next save time and export results if needed
+        """
 
-    def mustSave(self):
+        if self.time >= self.next:
+            Algorithm.FluidSolver.save(self.timeIter)
+            if Algorithm.myid in Algorithm.manager.getSolidSolverProcessors():
+                Algorithm.SolidSolver.save()
 
-        if self.dtSave <= 0: return True
+        if self.dtSave > 0:
+            next = math.floor(self.time/self.dtSave)
+            self.next = (next+1)*self.dtSave
 
-        output = (self.time >= self.next)
-        next = math.floor(self.time/self.dtSave)
-        self.next = (next+1)*self.dtSave
-        return output
-        
-    # Update the coupling time step
-
-    def update(self,verified):
+    def updateTime(self,verified):
+        """
+        Update the current coupling time step
+        """
 
         if not verified:
             
@@ -68,7 +77,7 @@ class TimeStep(object):
                 raise Exception('Reached minimal time step')
 
         else:
-
+            
             self.timeIter += 1
             self.time += self.dt
             self.dt = math.pow(self.division,1/7)*self.dt

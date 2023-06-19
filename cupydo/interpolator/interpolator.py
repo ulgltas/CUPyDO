@@ -31,9 +31,6 @@ import numpy as np
 import sys
 import ccupydo
 from ..utilities import *
-from ..interfaceData import FlexInterfaceData
-from ..interfaceData import InterfaceMatrix
-from ..linearSolver import LinearSolver
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -57,9 +54,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
     """
 
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        Description.
-        """
 
         mpiPrint("Initializing FSI Interpolator",mpiComm,titlePrint)
 
@@ -121,12 +115,8 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceAdjointLoads = None
 
     def checkTotalLoad(self):
-        """
-        Des.
-        """
 
         FX, FY, FZ = self.solidInterfaceLoads.sum()
-
         FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
 
         mpiPrint("Checking f/s interface total force...", self.mpiComm)
@@ -134,9 +124,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         mpiPrint('Fluid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FFX, FFY, FFZ), self.mpiComm)
 
     def getDisplacementFromSolidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
@@ -147,9 +134,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.solidInterfaceDisplacement.assemble()
 
     def getHeatFluxFromSolidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceHeatFlux_X, localSolidInterfaceHeatFlux_Y, localSolidInterfaceHeatFlux_Z = self.SolidSolver.getNodalHeatFluxes()
@@ -160,9 +144,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.solidInterfaceHeatFlux.assemble()
 
     def getAdjointLoadsFromSolidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointLoads()
@@ -173,9 +154,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.solidInterfaceAdjointLoads.assemble()
 
     def getLoadsFromFluidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceLoad_X, localFluidInterfaceLoad_Y, localFluidInterfaceLoad_Z = self.FluidSolver.getNodalLoads()
@@ -186,9 +164,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceLoads.assemble()
 
     def getTemperatureFromFluidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceTemperature = self.FluidSolver.getNodalTemperatures()
@@ -199,9 +174,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceTemperature.assemble()
 
     def getRobinTemperatureFromFluidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceNormalHeatFlux = self.FluidSolver.getNodalNormalHeatFlux()
@@ -214,9 +186,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceRobinTemperature.assemble()
 
     def getHeatFluxFromFluidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceHeatFlux_X, localFluidInterfaceHeatFlux_Y, localFluidInterfaceHeatFlux_Z = self.FluidSolver.getNodalHeatFluxes()
@@ -230,9 +199,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceNormalHeatFlux.assemble()
 
     def getAdjointDisplacementFromFluidSolver(self):
-        """
-        Des.
-        """
 
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceAdjDisp_X, localFluidInterfaceAdjDisp_Y, localFluidInterfaceAdjDisp_Z = self.FluidSolver.getNodalAdjointDisplacement()
@@ -243,9 +209,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceAdjointDisplacement.assemble()
 
     def redistributeDataToFluidSolver(self, fluidInterfaceData):
-        """
-        Description
-        """
 
         localFluidInterfaceData_array = None
         haloNodesData = {}
@@ -345,9 +308,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         return (localFluidInterfaceData_array, haloNodesData)
 
     def redistributeDataToSolidSolver(self, solidInterfaceData):
-        """
-        Des.
-        """
 
         localSolidInterfaceData_array = None
         haloNodesData = {}
@@ -438,12 +398,8 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         return (localSolidInterfaceData_array, haloNodesData)
 
     def setLoadsToSolidSolver(self, dt):
-        """
-        des.
-        """
 
         FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
-
 
         FX = 0.
         FY = 0.
@@ -472,15 +428,11 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         mpiPrint('Fluid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FFX, FFY, FFZ), self.mpiComm)
 
     def setAdjointDisplacementToSolidSolver(self, dt):
-        """
-        Des.
-        """
 
         # self.checkConservation()
 
         if self.mpiComm != None:
             (localSolidInterfaceAdjointDisplacement, haloNodesDisplacements) = self.redistributeDataToSolidSolver(self.solidInterfaceAdjointDisplacement)
-#            mpiBarrier(self.mpiComm)
             if self.myid in self.manager.getSolidInterfaceProcessors():
                 self.SolidSolver.applyNodalAdjointDisplacement(localSolidInterfaceAdjointDisplacement[0], localSolidInterfaceAdjointDisplacement[1], localSolidInterfaceAdjointDisplacement[2], haloNodesDisplacements, dt)
         else:
@@ -488,24 +440,17 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
 
     def setDisplacementToFluidSolver(self, dt):
-        """
-        Des.
-        """
 
         self.checkConservation()
 
         if self.mpiComm != None:
             (localFluidInterfaceDisplacement, haloNodesDisplacements) = self.redistributeDataToFluidSolver(self.fluidInterfaceDisplacement)
-#            mpiBarrier(self.mpiComm)
             if self.myid in self.manager.getFluidInterfaceProcessors():
                 self.FluidSolver.applyNodalDisplacements(localFluidInterfaceDisplacement[0], localFluidInterfaceDisplacement[1], localFluidInterfaceDisplacement[2], localFluidInterfaceDisplacement[0], localFluidInterfaceDisplacement[1], localFluidInterfaceDisplacement[2], haloNodesDisplacements, dt)
         else:
             self.FluidSolver.applyNodalDisplacements(self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), {}, dt)
 
     def setHeatFluxToFluidSolver(self, dt):
-        """
-        Description.
-        """
 
         if self.mpiComm != None:
             (localFluidInterfaceHeatFlux, haloNodesHeatFlux) = self.redistributeDataToFluidSolver(self.fluidInterfaceHeatFlux)
@@ -515,9 +460,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.FluidSolver.applyNodalHeatFluxes(self.fluidInterfaceHeatFlux.getDataArray(0), self.fluidInterfaceHeatFlux.getDataArray(1), self.fluidInterfaceHeatFlux.getDataArray(2), dt)
 
     def setTemperatureToFluidSolver(self, dt):
-        """
-        Des.
-        """
 
         if self.mpiComm != None:
             (localFluidInterfaceTemperature, haloNodesTemperature) = self.redistributeDataToFluidSolver(self.fluidInterfaceTemperature)
@@ -527,15 +469,12 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.FluidSolver.applyNodalTemperatures(self.fluidInterfaceTemperature.getDataArray(0), dt)
 
     def setAdjointLoadsToFluidSolver(self, dt):
-        """
-        Des.
-        """
 
         # self.checkConservation()
 
         if self.mpiComm != None:
+
             (localFluidInterfaceAdjointLoad, haloNodesAdjointLoads) = self.redistributeDataToFluidSolver(self.fluidInterfaceAdjointLoads)
-#            mpiBarrier(self.mpiComm)
             if self.myid in self.manager.getFluidInterfaceProcessors():
                 self.FluidSolver.applyNodalAdjointLoads(localFluidInterfaceAdjointLoad[0], localFluidInterfaceAdjointLoad[1], localFluidInterfaceAdjointLoad[2], haloNodesAdjointLoads, dt)
         else:
@@ -543,9 +482,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
 
     def setTemperatureToSolidSolver(self, dt):
-        """
-        Description
-        """
 
         if self.mpiComm != None:
             (localSolidInterfaceTemperature, haloNodesTemperature) = self.redistributeDataToSolidSolver(self.solidInterfaceTemperature)
@@ -555,9 +491,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.SolidSolver.applyNodalTemperatures(self.solidInterfaceTemperature.getDataArray(0), dt)
 
     def setRobinHeatFluxToSolidSolver(self, dt):
-        """
-        Def
-        """
 
         if self.mpiComm != None:
             (localSolidInterfaceRobinTemperature, haloNodesRobinTemperature) = self.redistributeDataToSolidSolver(self.solidInterfaceRobinTemperature)
@@ -571,9 +504,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceRobinHeatFlux, dt)
 
     def setHeatFluxToSolidSolver(self, dt):
-        """
-        Des.
-        """
 
         if self.mpiComm != None:
             (localSolidInterfaceNormalHeatFlux, haloNodesNormalHeatFlux) =  self.redistributeDataToSolidSolver(self.solidInterfaceNormalHeatFlux)
@@ -583,89 +513,53 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             self.SolidSolver.applyNodalNormalHeatFluxes(self.solidInterfaceNormalHeatFlux.getDataArray(0), dt)
 
     def interpolateFluidLoadsOnSolidMesh(self):
-        """
-        Description
-        """
 
         self.interpolateFluidToSolid(self.fluidInterfaceLoads, self.solidInterfaceLoads)
 
     def interpolateSolidDisplacementOnFluidMesh(self):
-        """
-        Description.
-        """
 
         self.interpolateSolidToFluid(self.solidInterfaceDisplacement, self.fluidInterfaceDisplacement)
 
     def interpolateSolidHeatFluxOnFluidMesh(self):
-        """
-        Description.
-        """
 
         self.interpolateSolidToFluid(self.solidInterfaceHeatFlux, self.fluidInterfaceHeatFlux)
 
 
     def interpolateSolidTemperatureOnFluidMesh(self):
-        """
-        Description
-        """
 
         self.interpolateSolidToFluid(self.solidInterfaceTemperature, self.fluidInterfaceTemperature)
 
     def interpolateSolidAdjointLoadsOnFluidMesh(self):
-        """
-        Description.
-        """
 
         self.interpolateSolidToFluid(self.solidInterfaceAdjointLoads, self.fluidInterfaceAdjointLoads)
 
     def interpolateFluidHeatFluxOnSolidMesh(self):
-        """
-        Description.
-        """
 
         self.interpolateFluidToSolid(self.fluidInterfaceHeatFlux, self.solidInterfaceHeatFlux)
         self.interpolateFluidToSolid(self.fluidInterfaceNormalHeatFlux, self.solidInterfaceNormalHeatFlux)
 
     def interpolateFluidTemperatureOnSolidMesh(self):
-        """
-        Description.
-        """
 
         self.interpolateFluidToSolid(self.fluidInterfaceTemperature, self.solidInterfaceTemperature)
 
     def interpolateFluidRobinTemperatureOnSolidMesh(self):
-        """
-        Des.
-        """
 
         self.interpolateFluidToSolid(self.fluidInterfaceRobinTemperature, self.solidInterfaceRobinTemperature)
 
     def interpolateFluidAdjointDisplacementOnSolidMesh(self):
-        """
-        Des.
-        """
 
         self.interpolateFluidToSolid(self.fluidInterfaceAdjointDisplacement, self.solidInterfaceAdjointDisplacement)
 
 
     def getNs(self):
-        """
-        Des.
-        """
 
         return self.ns
 
     def getNf(self):
-        """
-        Des.
-        """
 
         return self.nf
 
     def getd(self):
-        """
-        Des.
-        """
 
         return self.d
     

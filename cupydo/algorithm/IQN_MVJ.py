@@ -43,15 +43,7 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
-    """
-    Des.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList= [1.0, 1.0], computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
-        """
-        Des.
-        """
-
         AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
 
         # --- Indicate if a BGS iteration must be performed --- #

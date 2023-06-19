@@ -34,14 +34,8 @@ from math import *
 # ----------------------------------------------------------------------
 
 class Criterion(object):
-    """
-    Description
-    """
 
     def __init__(self, tolerance, thermalTolerance = 1e12):
-        """
-        Description.
-        """
 
         self.tol = tolerance
         self.epsilon = 0
@@ -50,9 +44,6 @@ class Criterion(object):
         self.epsilonThermal = 0
 
     def isVerified(self, epsilon, epsilonThermal=0):
-        """
-        Description.
-        """
 
         verifList = [False, False]
 
@@ -68,34 +59,18 @@ class Criterion(object):
             return True
 
 class DispNormCriterion(Criterion):
-    """
-    Description.
-    """
-
     def __init__(self, tolerance, thermalTolerance = 1e12):
-        """
-        Description.
-        """
 
         Criterion.__init__(self, tolerance, thermalTolerance)
 
     def update(self, res):
-        """
-        Des.
-        """
 
         normX, normY, normZ = res.norm()
-
         norm = sqrt(normX**2 + normY**2 + normZ**2)
-
         self.epsilon = norm
-
         return self.epsilon
 
     def updateThermal(self, resThermal):
-        """
-        Des.
-        """
 
         if resThermal != None:
             #normX, normY, normZ = resHeatFlux.norm()

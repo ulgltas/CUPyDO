@@ -85,9 +85,7 @@ def getPfem():
     n2.isOnFreeSlipBoundaryY = True
     n3.isOnFreeSlipBoundaryY = True
     # ---
-    
-    scheme.savefreq=100
-    scheme.nthreads=4
+
     scheme.gamma = 0.8
     scheme.omega = 0.7
     scheme.addRemoveNodesOption = True

@@ -23,12 +23,18 @@ Authors R. BOMAN, M.L. CERQUAGLIA, D. THOMAS
 
 '''
 
+# ----------------------------------------------------------------------
+#  Imports
+# ----------------------------------------------------------------------
+
 from ..genericSolvers import FluidSolver
 from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
 
-# %% Interface Between PFEM3D and CUPyDO
+# ----------------------------------------------------------------------
+#  Pfem3D solver interface class
+# ----------------------------------------------------------------------
 
 class Pfem3D(FluidSolver):
     def __init__(self,param):

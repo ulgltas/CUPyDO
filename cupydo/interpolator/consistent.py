@@ -43,17 +43,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class ConsistentInterpolator(InterfaceInterpolator):
-    """
-    Description.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        Des.
-        """
 
         InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
-
         mpiPrint('\nSetting non-matching consistent interpolator...', mpiComm)
 
         self.d = self.nDim+1
@@ -61,23 +53,14 @@ class ConsistentInterpolator(InterfaceInterpolator):
         self.SolverC = None
 
     def getLinearSolvers(self):
-        """
-        Des.
-        """
 
         return [self.SolverA, self.SolverC]
 
     def checkConservation(self):
-        """
-        Des.
-        """
 
         mpiPrint('No conservation check for consistent interpolation.', self.mpiComm)
 
     def generateInterfaceData(self):
-        """
-        Description.
-        """
 
         if self.manager.mechanical:
             self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
@@ -120,9 +103,6 @@ class ConsistentInterpolator(InterfaceInterpolator):
         self.D = InterfaceMatrix((self.ns,self.nf+self.d), self.mpiComm)
 
     def generateMapping(self):
-        """
-        Des.
-        """
 
         solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
         fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
@@ -130,8 +110,8 @@ class ConsistentInterpolator(InterfaceInterpolator):
         fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
 
         mpiPrint('\nBuilding interpolation matrices...', self.mpiComm)
-
         mpiPrint('\nBuilding matrix A of size {} X {}...'.format(self.ns, self.ns), self.mpiComm)
+        
         # Fill the matrix A
         if self.mpiComm != None:
             for iProc in solidInterfaceProcessors:
@@ -165,8 +145,8 @@ class ConsistentInterpolator(InterfaceInterpolator):
         stop = tm.time()
         mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
         mpiPrint('Matrix A is built.', self.mpiComm)
-
         mpiPrint('\nBuilding matrix B & D of size {} X {} & {} X {}...'.format(self.nf, self.ns, self.ns, self.nf), self.mpiComm)
+
         # Fill the matrix B & D
         if self.mpiComm != None:
             for iProc in solidInterfaceProcessors:
@@ -200,8 +180,8 @@ class ConsistentInterpolator(InterfaceInterpolator):
         stop = tm.time()
         mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
         mpiPrint('Matrix B & D are built.', self.mpiComm)
-
         mpiPrint('\nBuilding matrix C of size {} X {}...'.format(self.nf, self.nf), self.mpiComm)
+
         # Fill the matrix C
         if self.mpiComm != None:
             for iProc in fluidInterfaceProcessors:
@@ -237,9 +217,6 @@ class ConsistentInterpolator(InterfaceInterpolator):
         self.SolverC = LinearSolver(self.C, self.mpiComm)
 
     def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
-        """
-        des.
-        """
 
         dim = fluidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.nf + self.d, dim, self.mpiComm)
@@ -248,9 +225,6 @@ class ConsistentInterpolator(InterfaceInterpolator):
         self.D.mult(gamma_array, solidInterfaceData)
 
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
-        """
-        Des.
-        """
 
         dim = solidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
@@ -263,32 +237,18 @@ class ConsistentInterpolator(InterfaceInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentRBFInterpolator(ConsistentInterpolator):
-    """
-    Description.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius = 0.1, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        Des.
-        """
 
         ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
-
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
         self.radius = RBFradius
-
         self.generateInterfaceData()
-
         self.generateMapping()
 
     def generateInterfaceData(self):
-        """
-        Des.
-        """
 
         ConsistentInterpolator.generateInterfaceData(self)
-
         mpiPrint('Generating interface data for consistent RBF interpolator...', self.mpiComm)
 
         self.A.createSparseFullAlloc()
@@ -296,11 +256,7 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
         self.C.createSparseFullAlloc()
         self.D.createSparseFullAlloc()
 
-
     def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -310,9 +266,6 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
         print('Built A on rank {} in {} s'.format(self.myid,stop-start))
 
     def fillMatrixBD(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -322,9 +275,6 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
         print('Built B & D on rank {} in {} s'.format(self.myid,stop-start))
 
     def fillMatrixC(self, fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -338,30 +288,17 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentTPSInterpolator(ConsistentInterpolator):
-    """
-    Description.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        Des.
-        """
 
         ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
-
         mpiPrint('\nSetting consistent interpolation with Thin Plate Spline...', self.mpiComm)
 
         self.generateInterfaceData()
-
         self.generateMapping()
 
     def generateInterfaceData(self):
-        """
-        Des.
-        """
 
         ConsistentInterpolator.generateInterfaceData(self)
-
         mpiPrint('Generating interface data for consistent TPS interpolator...', self.mpiComm)
 
         self.A.createDense()
@@ -370,9 +307,6 @@ class ConsistentTPSInterpolator(ConsistentInterpolator):
         self.D.createDense()
 
     def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Des.
-        """
 
         localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -382,9 +316,6 @@ class ConsistentTPSInterpolator(ConsistentInterpolator):
         print('Built A on rank {} in {} s'.format(self.myid,stop-start))
 
     def fillMatrixBD(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        des.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -394,9 +325,6 @@ class ConsistentTPSInterpolator(ConsistentInterpolator):
         print('Built B & D on rank {} in {} s'.format(self.myid,stop-start))
 
     def fillMatrixC(self, fluidInterfaceBuffRcv_X, fluidInterfaceBuffRcv_Y, fluidInterfaceBuffRcv_Z, iProc):
-        """
-        Des.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
         start = tm.time()

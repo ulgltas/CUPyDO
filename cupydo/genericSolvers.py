@@ -37,10 +37,6 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class SolidSolver(object):
-    """
-    Des.
-    """
-
     def __init__(self):
 
         self.haloNodeList = {}
@@ -75,41 +71,21 @@ class SolidSolver(object):
         return
 
     def getNodalDisplacements(self):
-        """
-        Des.
-        """
-
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
     def getNodalHeatFluxes(self):
-        """
-        Des.
-        """
-
         return (self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z)
 
     def getNodalTemperatures(self):
-        """
-        Des.
-        """
-
         return self.nodalTemperature
 
     def getNodalInitialPositions(self):
         return
 
     def getNodalVelocity(self):
-        """
-        des.
-        """
-
         return (self.nodalVel_X, self.nodalVel_Y, self.nodalVel_Z)
 
     def getNodalVelocityNm1(self):
-        """
-        Des.
-        """
-
         return (self.nodalVel_XNm1, self.nodalVel_YNm1, self.nodalVel_ZNm1)
 
     def getNodalIndex(self, iVertex):
@@ -162,9 +138,6 @@ class SolidSolver(object):
 # ----------------------------------------------------------------------
 
 class FluidSolver(object):
-    """Generic fluid solver class
-    """
-
     def __init__(self):
 
         self.haloNodeList = {}
@@ -265,11 +238,10 @@ class FluidSolver(object):
 # ----------------------------------------------------------------------
 
 class SolidAdjointSolver(SolidSolver):
-    """
-    Generic solid adjoint solver class
-    """
     def __init__(self):
+
         SolidSolver.__init__(self)
+
         self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes))
         self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes))
@@ -289,10 +261,8 @@ class SolidAdjointSolver(SolidSolver):
 # ----------------------------------------------------------------------
 
 class FluidAdjointSolver(FluidSolver):
-    """
-    Generic fluid adjoint solver class
-    """
     def __init__(self):
+        
         FluidSolver.__init__(self)
         self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes))
         self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes))

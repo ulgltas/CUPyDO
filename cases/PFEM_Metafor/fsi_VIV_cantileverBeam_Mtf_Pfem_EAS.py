@@ -17,7 +17,6 @@ def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
-    p['mtfSaveAllFacs'] = True
     p['extractor'] = None
     p.update(_p)
     return p
@@ -48,11 +47,6 @@ def main(_p):
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.Pfem as fItf
     fluidSolver = fItf.Pfem(cfd_file, 23, dt)
-    
-    # --- This part is specific to PFEM ---
-    fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    # ---
     
     cupyutil.mpiBarrier(comm)
     

@@ -16,7 +16,6 @@ import cupydo.algorithm as cupyalgo
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
-    p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-7
     p['dt'] = 1e-4
@@ -28,8 +27,6 @@ def getParameters(_p):
     p['nbTimeToKeep'] = 0
     p['tollQR'] = 1.0e-1
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 10
-    p['mtfSaveAllFacs'] = False
     p['testName'] = fileName
     p['cfdFile'] = 'waterColumnOnElasticColumn_water_Pfem'
     p['csdFile'] = 'waterColumnOnElasticColumn_elasticColumn_Mtf'
@@ -59,11 +56,6 @@ def main(_p):
     fluidSolver = fItf.Pfem(cfd_file, 14, p['dt'])
     fluidSolver.pfem.pbl.betaFSI = p['betaFSI']
     
-    # --- This part is specific to PFEM ---
-    fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    # ---
-    
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the solid solver --- #
@@ -71,9 +63,6 @@ def main(_p):
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
         solidSolver = sItf.Metafor(csd_file, p['computationType'])
-        
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
         
     cupyutil.mpiBarrier(comm)
         

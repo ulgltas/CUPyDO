@@ -33,7 +33,9 @@ import numpy as np
 import wrap as w
 import importlib
 
-# %% Nodal Load class
+# ----------------------------------------------------------------------
+#  Nodal Load class
+# ----------------------------------------------------------------------
 
 class NLoad(object):
     """
@@ -55,7 +57,9 @@ class NLoad(object):
         self.t1 = self.t2
         self.val1 = self.val2
 
-# %% Interface Between Metafor and CUPyDO
+# ----------------------------------------------------------------------
+#  Metafor solver interface class
+# ----------------------------------------------------------------------
                
 class Metafor(SolidSolver):
 

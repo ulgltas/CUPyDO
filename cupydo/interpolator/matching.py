@@ -42,14 +42,7 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class MatchingMeshesInterpolator(InterfaceInterpolator):
-    """
-    Description.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        Description
-        """
 
         InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
 
@@ -60,16 +53,11 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         ccupydo.CInterpolator.matching_initSearch(self)
 
         self.generateInterfaceData()
-
         self.generateMapping()
 
     def checkConservation(self):
-        """
-        Des.
-        """
 
         WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)
-
         WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)
 
         mpiPrint("Checking f/s interface conservation...", self.mpiComm)
@@ -77,9 +65,6 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
 
     def generateInterfaceData(self):
-        """
-        Des.
-        """
 
         if self.manager.mechanical:
             self.solidInterfaceDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
@@ -122,9 +107,6 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         self.H_T.createSparse(1,1)
 
     def generateMapping(self):
-        """
-        Des.
-        """
 
         solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
         fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
@@ -176,9 +158,6 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         self.mappingTimer.cumul()
 
     def mappingSearch(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Des.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
 
@@ -190,9 +169,6 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         print('Search on rank {} in {} s'.format(self.myid,stop-start))
 
     def fillMatrix(self):
-        """
-        Des.
-        """
 
         print('Building H on rank {}...'.format(self.myid))
         start = tm.time()
@@ -201,15 +177,9 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
         print('Built H on rank {} in {} s'.format(self.myid,stop-start))
 
     def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
-        """
-        des.
-        """
 
         self.H_T.mult(fluidInterfaceData, solidInterfaceData)
 
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
-        """
-        Des.
-        """
 
         self.H.mult(solidInterfaceData, fluidInterfaceData)

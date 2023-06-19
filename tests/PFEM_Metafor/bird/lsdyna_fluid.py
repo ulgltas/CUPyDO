@@ -101,7 +101,6 @@ def getPfem():
     loadingset = w.LoadingSet(msh)
     loadingset.add(1, w.InitialVelocity(msh, bird, U0, V0, 0.))
 
-    scheme.savefreq = 1
     scheme.gamma = 0.5
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True

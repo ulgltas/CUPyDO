@@ -45,14 +45,7 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
-    """
-    Des.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
-        """
-        Des.
-        """
 
         AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
 

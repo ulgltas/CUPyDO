@@ -43,17 +43,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class ConservativeInterpolator(InterfaceInterpolator):
-    """
-    Description.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        Des.
-        """
 
         InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
-
         mpiPrint('\nSetting non-matching conservative interpolator...', mpiComm)
 
         self.d = self.nDim+1
@@ -61,19 +53,12 @@ class ConservativeInterpolator(InterfaceInterpolator):
         self.SolverA_T = None
 
     def getLinearSolvers(self):
-        """
-        Des.
-        """
 
         return [self.SolverA, self.SolverA_T]
 
     def checkConservation(self):
-        """
-        Des.
-        """
 
         WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)
-
         WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)
 
         mpiPrint("Checking f/s interface conservation...", self.mpiComm)
@@ -81,9 +66,6 @@ class ConservativeInterpolator(InterfaceInterpolator):
         mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
 
     def generateInterfaceData(self):
-        """
-        Description.
-        """
 
         if self.manager.mechanical:
             self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
@@ -126,17 +108,14 @@ class ConservativeInterpolator(InterfaceInterpolator):
         self.B_T = InterfaceMatrix((self.ns+self.d,self.nf), self.mpiComm)
 
     def generateMapping(self):
-        """
-        Des.
-        """
 
         solidInterfaceProcessors = self.manager.getSolidInterfaceProcessors()
         fluidInterfaceProcessors = self.manager.getFluidInterfaceProcessors()
         solidPhysicalInterfaceNodesDistribution = self.manager.getSolidPhysicalInterfaceNodesDistribution()
 
         mpiPrint('\nBuilding interpolation matrices...', self.mpiComm)
-
         mpiPrint('\nBuilding matrix A of size {} X {}...'.format(self.ns, self.ns), self.mpiComm)
+
         # Fill the matrix A
         if self.mpiComm != None:
             for iProc in solidInterfaceProcessors:
@@ -172,8 +151,8 @@ class ConservativeInterpolator(InterfaceInterpolator):
         stop = tm.time()
         mpiPrint('Assembly performed in {} s'.format(stop-start), self.mpiComm)
         mpiPrint('Matrix A is built.', self.mpiComm)
-
         mpiPrint('\nBuilding matrix B of size {} X {}...'.format(self.nf, self.ns), self.mpiComm)
+
         # Fill the matrix B
         if self.mpiComm != None:
             for iProc in solidInterfaceProcessors:
@@ -212,9 +191,6 @@ class ConservativeInterpolator(InterfaceInterpolator):
         self.SolverA_T = LinearSolver(self.A_T, self.mpiComm)
 
     def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
-        """
-        des.
-        """
 
         dim = fluidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
@@ -223,9 +199,6 @@ class ConservativeInterpolator(InterfaceInterpolator):
         self.SolverA_T.solve(gamma_array, solidInterfaceData)
 
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
-        """
-        Des.
-        """
 
         dim = solidInterfaceData.getDim()
         gamma_array = FlexInterfaceData(self.ns + self.d, dim, self.mpiComm)
@@ -238,33 +211,19 @@ class ConservativeInterpolator(InterfaceInterpolator):
 # ----------------------------------------------------------------------
 
 class RBFInterpolator(ConservativeInterpolator):
-    """
-    Description.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius=0.1, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """"
-        Description.
-        """
 
         ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
-
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
         self.radius = RBFradius
-
         self.generateInterfaceData()
-
         self.generateMapping()
 
 
     def generateInterfaceData(self):
-        """
-        Des.
-        """
 
         ConservativeInterpolator.generateInterfaceData(self)
-
         mpiPrint('Generating interface data for conservative RBF interpolator...', self.mpiComm)
 
         self.A.createSparseFullAlloc()
@@ -273,9 +232,6 @@ class RBFInterpolator(ConservativeInterpolator):
         self.B_T.createSparseFullAlloc()
 
     def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -286,9 +242,6 @@ class RBFInterpolator(ConservativeInterpolator):
 
 
     def fillMatrixB(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
         start = tm.time()
@@ -302,30 +255,17 @@ class RBFInterpolator(ConservativeInterpolator):
 # ----------------------------------------------------------------------
 
 class TPSInterpolator(ConservativeInterpolator):
-    """
-    Des.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm=None, chtTransferMethod=None, heatTransferCoeff=1.0):
-        """
-        des.
-        """
 
         ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
-
         mpiPrint('\nSetting interpolation with Thin Plate Spline...', self.mpiComm)
-
+        
         self.generateInterfaceData()
-
         self.generateMapping()
 
     def generateInterfaceData(self):
-        """
-        Des.
-        """
 
         ConservativeInterpolator.generateInterfaceData(self)
-
         mpiPrint('Generating interface data for TPS interpolator...', self.mpiComm)
 
         self.A.createDense()
@@ -334,9 +274,6 @@ class TPSInterpolator(ConservativeInterpolator):
         self.B_T.createDense()
 
     def fillMatrixA(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localSolidInterface_array_X_init, localSolidInterface_array_Y_init, localSolidInterface_array_Z_init = self.SolidSolver.getNodalInitialPositions()
 
@@ -347,9 +284,6 @@ class TPSInterpolator(ConservativeInterpolator):
         print('Built A on rank {} in {} s'.format(self.myid,stop-start))
 
     def fillMatrixB(self, solidInterfaceBuffRcv_X, solidInterfaceBuffRcv_Y, solidInterfaceBuffRcv_Z, iProc):
-        """
-        Description.
-        """
 
         localFluidInterface_array_X_init, localFluidInterface_array_Y_init, localFluidInterface_array_Z_init = self.FluidSolver.getNodalInitialPositions()
 

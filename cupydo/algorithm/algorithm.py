@@ -43,14 +43,7 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class Algorithm(object):
-    """
-    Des.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, dtSave, mpiComm=None):
-        """
-        Des.
-        """
 
         mpiPrint("Initializing FSI Algorithm",mpiComm,titlePrint)
 
@@ -82,9 +75,6 @@ class Algorithm(object):
         self.verified = True
 
     def setFSIInitialConditions(self):
-        """
-        Des.
-        """
 
         if self.manager.mechanical:
             if self.manager.computationType == 'unsteady':
@@ -110,9 +100,6 @@ class Algorithm(object):
             self.FluidSolver.boundaryConditionsUpdate()
 
     def fluidToSolidMechaTransfer(self):
-        """
-        Des.
-        """
 
         self.communicationTimer.start()
         self.interfaceInterpolator.getLoadsFromFluidSolver()
@@ -122,9 +109,6 @@ class Algorithm(object):
         self.communicationTimer.cumul()
 
     def solidToFluidMechaTransfer(self):
-        """
-        Des.
-        """
 
         self.communicationTimer.start()
         self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
@@ -133,9 +117,6 @@ class Algorithm(object):
         self.communicationTimer.cumul()
 
     def solidToFluidThermalTransfer(self):
-        """
-        Des.
-        """
 
         self.communicationTimer.start()
         if self.interfaceInterpolator.chtTransferMethod == 'TFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFFB':
@@ -148,9 +129,6 @@ class Algorithm(object):
         self.communicationTimer.cumul()
 
     def fluidToSolidThermalTransfer(self):
-        """
-        Des.
-        """
 
         self.communicationTimer.start()
         if self.interfaceInterpolator.chtTransferMethod == 'TFFB':
@@ -173,21 +151,10 @@ class Algorithm(object):
 # ----------------------------------------------------------------------
 
 class AlgorithmExplicit(Algorithm):
-    """
-    Des.
-    """
-
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, dtSave, mpiComm=None):
-        """
-        Des.
-        """
-
         Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, dtSave, mpiComm)
 
     def run(self):
-        """
-        Des.
-        """
         
         # --- Initialize the algorithm --- #
         mpiPrint("Begin FSI Computation",self.mpiComm,titlePrint)
@@ -223,9 +190,6 @@ class AlgorithmExplicit(Algorithm):
             mpiBarrier(self.mpiComm)
 
     def __unsteadyRun(self):
-        """
-        Des.
-        """
 
         mpiPrint('Begin time integration\n', self.mpiComm)
 
@@ -320,27 +284,18 @@ class AlgorithmExplicit(Algorithm):
         self.solidHasRun = True
 
     def iniRealTimeData(self):
-        """
-        Des
-        """
 
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
 
     def writeRealTimeData(self):
-        """
-        Des
-        """
 
         if self.myid == 0:
             self.FluidSolver.saveRealTimeData(self.step.time, 0)
             self.SolidSolver.saveRealTimeData(self.step.time, 0)
 
     def printExitInfo(self):
-        """
-        Des
-        """
-
+        
         mpiPrint('[cpu FSI total]: ' + str(self.globalTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[cpu FSI fluid mesh mapping]: ' + str(self.interfaceInterpolator.mappingTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[cpu FSI fluid mesh deformation]: ' + str(self.meshDefTimer.cumulTime) + ' s', self.mpiComm)

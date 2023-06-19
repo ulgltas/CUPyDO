@@ -15,7 +15,6 @@ import cupydo.algorithm as cupyalgo
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
-    p['nthreads'] = 1
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
     p['dt'] = 0.001
@@ -24,8 +23,6 @@ def getParameters(_p):
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 1
-    p['mtfSaveAllFacs'] = True
     p['testName'] = fileName
     p['cfd_file'] = 'FallingCylinder_Franci_Fluid_Pfem'
     p['csd_file'] = 'FallingCylinder_Franci_Cylinder_Mtf'
@@ -53,11 +50,6 @@ def main(_p):
     import cupydo.interfaces.Pfem as fItf
     fluidSolver = fItf.Pfem(cfd_file, 15, p['dt'])
     
-    # --- This part is specific to PFEM ---
-    fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    # ---
-    
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the solid solver --- #
@@ -65,9 +57,6 @@ def main(_p):
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
         solidSolver = sItf.Metafor(csd_file, p['computationType'])
-        
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
         
     cupyutil.mpiBarrier(comm)
         

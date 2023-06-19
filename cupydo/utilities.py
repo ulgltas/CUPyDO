@@ -133,8 +133,10 @@ def QRfiltering_mod(V, W, toll):
 # ------------------------------------------------------------------------------
 
 def parseArgs():
-    """Parse arguments specific to CUPyDO
     """
+    Parse arguments specific to CUPyDO
+    """
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs=1, help='Python input file')
@@ -142,8 +144,10 @@ def parseArgs():
     return parser.parse_args()
 
 def setDirs(fpath):
-    """Add file dir to python path and setup the working directory
     """
+    Add file dir to python path and setup the working directory
+    """
+
     import os, sys
     # get MPI status
     haveMpi, comm, rank, size = getMpi()
@@ -177,6 +181,7 @@ def getMpi():
     """
     Get MPI parameters
     """
+
     from ccupydo import CMpi
     cmpi = CMpi()
     if cmpi.haveMPI:
@@ -195,9 +200,6 @@ def getMpi():
 # ----------------------------------------------------------------------
 
 def mpiPrint(message, mpiComm = None, function = None):
-    """
-    Description.
-    """
 
     if mpiComm != None:
         myid = mpiComm.Get_rank()
@@ -212,9 +214,6 @@ def mpiPrint(message, mpiComm = None, function = None):
     mpiBarrier(mpiComm)
 
 def mpiScatter(message, mpiComm = None, rootProcess = 0):
-    """
-    Description.
-    """
 
     if mpiComm != None:
         vec = [message for i in range(mpiComm.Get_size())]
@@ -223,17 +222,12 @@ def mpiScatter(message, mpiComm = None, rootProcess = 0):
 
 
 def mpiBarrier(mpiComm = None):
-    """
-    Description.
-    """
 
     if mpiComm != None:
         mpiComm.barrier()
 
 def mpiAllReduce(mpiComm = None, value = 0):
-    """
-    Description.
-    """
+
     sendBuff = np.array(value)
     if mpiComm != None:
         from mpi4py import MPI
@@ -244,9 +238,6 @@ def mpiAllReduce(mpiComm = None, value = 0):
         return value
 
 def mpiAllGather(mpiComm = None, value = 0):
-    """
-    Description
-    """
 
     sendBuff = np.array(value)
     if mpiComm != None:
@@ -258,11 +249,8 @@ def mpiAllGather(mpiComm = None, value = 0):
         return sendBuff
 
 def mpiGatherv(sendBuff, localSize, globalSize, mpiComm = None, rootProcess=0):
-    """
-    Des.
-    """
 
-    #sendBuff must be a numpy array
+    # sendBuff must be a numpy array
 
     rcvBuff = None
 
@@ -286,9 +274,7 @@ def mpiGatherv(sendBuff, localSize, globalSize, mpiComm = None, rootProcess=0):
         return sendBuff
 
 def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess = 0):
-    """
-    Des.
-    """
+
     interfData_Gat = []
 
     if mpiComm != None :
@@ -307,14 +293,7 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
 # ----------------------------------------------------------------------
 
 class Timer(object):
-    """
-    Description
-    """
-
     def __init__(self):
-        """
-        Des.
-        """
 
         self.startTime = 0.0
         self.stopTime = 0.0
@@ -323,9 +302,6 @@ class Timer(object):
         self.isRunning = False
 
     def start(self):
-        """
-        Des.
-        """
 
         if not self.isRunning:
             self.startTime = tm.time()
@@ -334,9 +310,6 @@ class Timer(object):
             print('[WARNING] Calling Timer.start() but the Timer is already running !')
 
     def stop(self):
-        """
-        Des.
-        """
 
         if self.isRunning:
             self.stopTime = tm.time()
@@ -344,25 +317,14 @@ class Timer(object):
             self.isRunning = False
 
     def cumul(self):
-        """
-        Des.
-        """
 
         self.cumulTime += self.elapsedTime
         self.elapsedTime = 0.0
 
     def getElapsedTime(self):
-        """
-        Des.
-        """
-
         return self.elapsedTime
 
     def getCumulTime(self):
-        """
-        Des.
-        """
-
         return self.cumulTime
 
 # ----------------------------------------------------------------------

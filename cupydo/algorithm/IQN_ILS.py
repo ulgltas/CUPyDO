@@ -36,7 +36,7 @@ import sys
 
 from ..utilities import *
 from ..interfaceData import FlexInterfaceData
-from .BGS import AlgorithmBGSAitkenRelax
+from .BGS import AlgorithmBGSStaticRelax
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -44,10 +44,10 @@ np.set_printoptions(threshold=sys.maxsize)
 #    IQN ILS Algorithm class
 # ----------------------------------------------------------------------
 
-class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
+class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
 
-        AlgorithmBGSAitkenRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
 
         # --- Number of previous time steps used in the approximation of the tangent matrix --- #
         self.nbTimeToKeep = nbTimeToKeep
@@ -60,8 +60,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         self.tollQR = 1.0e-1 # Tolerance employed for the QR decomposition
         self.qrFilter = 'Haelterman' # Type of QR filtering employed. Possible choices are 'Degroote1', 'Degroote2', and 'Haelterman' (see 'qrSolve()' function below)
         
-        self.maxNbOfItReached = False
-        self.convergenceReachedInOneIt = False
+        # --- Indicate if a BGS iteration must be performed --- #
+        self.makeBGS = True
         
         # --- Global V and W matrices for IQN-ILS algorithm, including information from previous time steps --- #
         self.V = []
@@ -97,6 +97,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
 
         mpiPrint("Enter IQN-ILS Strong Coupling FSI",self.mpiComm,titlePrint)
 
+        stack = 0
         self.FSIIter = 0
         self.FSIConv = False
         self.errValue = 1.0
@@ -127,14 +128,13 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
         else: # If information from previous time steps is not re-used then Vk and Wk are empty lists
             Vk = []
             Wk = []
-        
-        nIt = 0
 
         while (self.FSIIter < self.nbFSIIterMax) and (self.FSIConv == False):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
             # --- Solid to fluid mechanical transfer --- #
             self.solidToFluidMechaTransfer()
+
             # --- Fluid mesh morphing --- #
             mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
             self.meshDefTimer.start()
@@ -150,8 +150,12 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
             self.fluidSolverTimer.cumul()
             mpiBarrier(self.mpiComm)
 
-            # --- The fluid solver failed if verif is false --- #
-            if not verif: return False
+            # --- Check if the fluid solver succeeded --- #
+            if not verif:
+                self.makeBGS = True
+                self.V = []
+                self.W = []
+                return False
 
             # --- Fluid to solid mechanical transfer --- #
             mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
@@ -166,12 +170,17 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                 self.solidSolverTimer.stop()
                 self.solidSolverTimer.cumul()
 
-            # --- The solid solver failed if verif is false --- #
+            # --- Check if the solid solver succeeded --- #
             try: solidProc = int(self.manager.getSolidSolverProcessors())
             except: raise Exception('Only one solid solver process is supported yet')
             verif = mpiScatter(verif, self.mpiComm, solidProc)
             self.solidHasRun = True
-            if not verif: return False
+
+            if not verif:
+                self.makeBGS = True
+                self.V = []
+                self.W = []
+                return False
 
             # --- Compute and monitor the FSI residual --- #
             res = self.computeSolidInterfaceResidual()
@@ -187,11 +196,11 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
 
             solidInterfaceDisplacement_tilde.assemble()
             
-            if len(Vk) == 0:
-
+            if self.makeBGS:
                 # --- Relax the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidPosition()
+                self.makeBGS = False
 
             else:
                 
@@ -220,8 +229,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                         
                         Vk.insert(0, delta_res)
                         Wk.insert(0, delta_d)
-                        
-                        nIt+=1
+                        stack += 1
                     
                     Vk_mat = np.vstack(Vk).T
                     Wk_mat = np.vstack(Wk).T
@@ -242,7 +250,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                     if self.useQR: # Technique described by Degroote et al.
                         c, dummy_W = self.qrSolve(dummy_V, dummy_W, dummy_Res)
                     else:
-                        c = np.linalg.lstsq(dummy_V, -dummy_Res)[0] # Classical QR decomposition: NOT RECOMMENDED!
+                        c = np.linalg.lstsq(dummy_V, -dummy_Res, rcond=-1)[0] # Classical QR decomposition: NOT RECOMMENDED!
                     
                     if self.manager.nDim == 3:
                         delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)),3,axis=0)
@@ -284,21 +292,26 @@ class AlgorithmIQN_ILS(AlgorithmBGSAitkenRelax):
                 mpiPrint("IQN-ILS is Converged",self.mpiComm,titlePrint)
                 self.FSIConv = True
         
-        # --- Empty the V and W containers if no convergence --- #
+        # --- Empty the V and W containers if not converged --- #
         if not self.FSIConv:
+            self.makeBGS = True
             self.V = []
             self.W = []
             return False
         
         # Add the current time data step to V and W, and remove out-of-range time steps
-        if (self.nbTimeToKeep > 0) and (len(Vk) > 0):
+        if (self.nbTimeToKeep > 0) and (stack > 0):
             
             mpiPrint('\nUpdating V and W matrices...\n', self.mpiComm)
-            self.V.insert(0, Vk_mat[:,0:nIt].T)
-            self.W.insert(0, Wk_mat[:,0:nIt].T)
+            self.V.insert(0, Vk_mat[:,0:stack].T)
+            self.W.insert(0, Wk_mat[:,0:stack].T)
             
             while len(self.V) > self.nbTimeToKeep:
                 del self.V[-1]
                 del self.W[-1]
 
+        if self.nbTimeToKeep == 0:
+            # --- Start the next time step by a BGS since V and W are empty --- #
+            self.makeBGS = True
         return True
+    

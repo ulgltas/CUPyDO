@@ -48,19 +48,21 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
         # --- Indicate if a BGS iteration must be performed --- #
         self.makeBGS = True
-        self.hasInvJ = False
-
-        # --- Internal variables for convcergence check --- #
-        self.maxNbOfItReached = False
-        self.convergenceReachedInOneIt = False
 
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
         self.computeTangentMatrixBasedOnFirstIt = computeTangentMatrixBasedOnFirstIt
         
         # --- Global V and W matrices for IQN-MVJ algorithm --- #
-        self.V = []
-        self.W = []
-    
+        ns = self.interfaceInterpolator.getNs()
+        self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+        self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+
+    def qrSolve(self, V, W, res):
+        Q, R, V, W = QRfiltering_mod(V, W, self.tollQR)
+        s = np.dot(np.transpose(Q), -res)
+        c = np.linalg.solve(R, s)
+        return c, W
+
     def fsiCoupling(self):
         """
         Interface Quasi Newton - Multi Vector Jacobian (IQN-MVJ) method for strong coupling FSI
@@ -88,7 +90,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         delta_ds_loc_Y = np.zeros(0)
         delta_ds_loc_Z = np.zeros(0)
 
-        # --- Initialises the previous approximate inverse Jacobian and V, W --- #
+        # --- Initialises V, W --- #
         Vk = []
         Wk = []
 
@@ -112,8 +114,12 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             self.fluidSolverTimer.cumul()
             mpiBarrier(self.mpiComm)
 
-            # --- The fluid solver failed if verif is false --- #
-            if not verif: return False
+            # --- Check if the fluid solver succeeded --- #
+            if not verif:
+                self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+                self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+                self.makeBGS = True
+                return False
 
             # --- Fluid to solid mechanical transfer --- #
             mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
@@ -128,12 +134,17 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 self.solidSolverTimer.stop()
                 self.solidSolverTimer.cumul()
 
-            # --- The solid solver failed if verif is false --- #
+            # --- Check if the solid solver succeeded --- #
             try: solidProc = int(self.manager.getSolidSolverProcessors())
             except: raise Exception('Only one solid solver process is supported yet')
             verif = mpiScatter(verif, self.mpiComm, solidProc)
             self.solidHasRun = True
-            if not verif: return False
+
+            if not verif:
+                self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+                self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+                self.makeBGS = True
+                return False
 
             # --- Compute and monitor the FSI residual --- #
             res = self.computeSolidInterfaceResidual()
@@ -153,6 +164,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 # --- Relax the solid position --- #
                 mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+                self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
                 self.relaxSolidPosition()
                 self.makeBGS = False
 
@@ -165,6 +177,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(solidInterfaceResidual0, ns+d, self.mpiComm, 0)
                 solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
                 solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
+
                 if self.myid == 0:
                     res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
                     res_Y_Gat_C = res_Y_Gat[:ns]
@@ -173,12 +186,14 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                     solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
                     solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
 
-                    if self.FSIIter == 0: # Use J^-1 from the previous time step because Vk and Wk are empty
-                        
-                        self.invJ = self.invJprev.copy()
-                        self.hasInvJ = True
+                    if self.FSIIter == 0:
 
-                    else: # Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
+                        # --- Use J from the previous time step because Vk and Wk are empty --- #
+                        self.invJ = self.invJprev.copy()
+
+                    else:
+                        
+                        # -- Vk and Wk matrices are enriched only starting from the second iteration --- #
                         if self.manager.nDim == 3:
                             delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
                             delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
@@ -191,10 +206,9 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                     
                         Vk_mat = np.vstack(Vk).T
                         Wk_mat = np.vstack(Wk).T
-                        
+
                         X = np.transpose(Wk_mat-np.dot(self.invJprev,Vk_mat))
                         self.invJ = self.invJprev+np.linalg.lstsq(Vk_mat.T,X,rcond=-1)[0].T
-                        self.hasInvJ = True
 
                     if self.manager.nDim == 3:
                         Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)
@@ -234,11 +248,15 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             # --- Update the FSI iteration and history --- #
             self.FSIIter += 1
 
-            # --- Compute and monitor the FSI residual --- #
+            # --- Compute and monitor the FSI residual then update the Jacobian --- #
             if self.criterion.isVerified(self.errValue, self.errValue_CHT):
                 mpiPrint("IQN-MVJ is Converged",self.mpiComm,titlePrint)
-                if self.hasInvJ: self.invJprev = np.copy(self.invJ)
+                self.invJprev = np.copy(self.invJ)
                 return True
         
+        # --- Reset the Jacobians because the coupling did not converge --- #
+        self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+        self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
         self.makeBGS = True
         return False
+    

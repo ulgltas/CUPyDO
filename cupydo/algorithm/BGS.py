@@ -161,9 +161,10 @@ class AlgorithmBGSStaticRelax(Algorithm):
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.preprocessTimeIter(self.step.timeIter)
 
-            # --- Update TimeStep class and restart if FSI failed --- #
+            # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
 
+            # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
                 self.step.updateTime(self.verified)
                 continue
@@ -754,3 +755,4 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
         # --- Relax the solid interface position --- #
         self.interfaceInterpolator.solidInterfaceAdjointLoads += (self.omegaMecha*self.solidInterfaceResidual)
+        

@@ -116,12 +116,13 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
                 # --- Internal FSI loop --- #
                 self.verified = self.fsiCoupling()
+                self.totNbOfFSIIt = self.FSIIter
                 if not self.verified: raise Exception('The steady FSI coupling did not converge')
 
                 self.FluidSolver.save(self.step.timeIter)
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.save()
-                self.totNbOfFSIIt = self.FSIIter
+    
         except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
             traceback.print_exc()
@@ -163,6 +164,8 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
+            self.totNbOfFSIIt += self.FSIIter
+            mpiBarrier(self.mpiComm)
 
             # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
@@ -170,10 +173,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.resetInternalVars()
                 self.writeRealTimeData()
                 continue
-
-            mpiBarrier(self.mpiComm)
-            
-            self.totNbOfFSIIt += self.FSIIter
 
             # --- Update the fluid and solid solver for the next time step --- #
             if self.myid in self.manager.getSolidSolverProcessors():
@@ -600,12 +599,13 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
+            self.totNbOfFSIIt = self.FSIIter
             if not self.verified: raise Exception('The adjoint FSI coupling did not converge')
 
             self.FluidSolver.save(self.step.timeIter)
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.SolidSolver.save()
-            self.totNbOfFSIIt = self.FSIIter
+    
         except:
             mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
             traceback.print_exc()

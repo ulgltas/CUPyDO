@@ -208,15 +208,13 @@ class AlgorithmExplicit(Algorithm):
 
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
+            self.totNbOfFSIIt += self.FSIIter
+            mpiBarrier(self.mpiComm)
 
             # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
                 self.step.updateTime(self.verified)
                 continue
-
-            mpiBarrier(self.mpiComm)
-
-            self.totNbOfFSIIt += self.FSIIter
 
             # --- Update the fluid and solid solver for the next time step --- #
             if self.myid in self.manager.getSolidSolverProcessors():

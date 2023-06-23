@@ -153,7 +153,11 @@ class SU2(FluidSolver):
         """
 
         if self.computationType == 'unsteady':
-            nt = int(t2/(t2-t1))
+
+            dt = t2-t1
+            if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
+                raise Exception('SU2 and FSI time step do not match')
+            nt = int(t2/dt)
             self.__unsteadyRun(nt)
         else:
             self.__steadyRun()

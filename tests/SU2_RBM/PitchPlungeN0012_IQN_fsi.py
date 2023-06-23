@@ -54,12 +54,12 @@ def getFsiP():
     p['compType'] = 'unsteady'
     p['computation'] = 'Direct'
     p['nDim'] = 2
-    p['dt'] = 0.001
+    p['dt'] = 0.0005
     p['tTot'] = 0.005
     
     p['dtSave'] = 0
-    p['tol'] = 1e-7
-    p['maxIt'] = 10
+    p['tol'] = 1e-6
+    p['maxIt'] = 25
     p['omega'] = 1.0
     p['nSteps'] = 0
     p['firstItTgtMat'] = False

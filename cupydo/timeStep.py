@@ -37,11 +37,11 @@ class TimeStep(object):
     def __init__(self,dt,dtSave):
 
         self.time = 0
+        self.timeIter = 0
         self.minDt = 1e-9
         self.division = int(2)
         self.maxDt = self.dt = dt
         self.next = self.dtSave = dtSave
-        self.timeIter = 0
 
     def timeFrame(self):
         """
@@ -70,6 +70,8 @@ class TimeStep(object):
         Update the current coupling time step
         """
 
+        self.timeIter += 1
+
         if not verified:
             
             self.dt /= self.division
@@ -78,7 +80,6 @@ class TimeStep(object):
 
         else:
             
-            self.timeIter += 1
             self.time += self.dt
             self.dt = math.pow(self.division,1/7)*self.dt
             self.dt = min(self.dt,self.maxDt)

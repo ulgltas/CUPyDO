@@ -172,7 +172,7 @@ class AlgorithmExplicit(Algorithm):
             else:
                 raise Exception('Explicit coupling is only valid for unsteady computations!')
         except:
-            mpiPrint('\nError when executing Explicit : unsteadyRun\n', self.mpiComm)
+            mpiPrint('\nError when executing Explicit coupling\n', self.mpiComm)
             traceback.print_exc()
         finally:
             self.globalTimer.stop()
@@ -213,6 +213,7 @@ class AlgorithmExplicit(Algorithm):
 
             # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
+                mpiPrint('\nFSI coupling did not converge, restart with smaller time step\n', self.mpiComm)
                 self.step.updateTime(self.verified)
                 self.resetInternalVars()
                 self.writeRealTimeData()

@@ -124,7 +124,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                     self.SolidSolver.save()
     
         except:
-            mpiPrint('\nError when executing BGS : unsteadyRun\n', self.mpiComm)
+            mpiPrint('\nError when executing BGS coupling\n', self.mpiComm)
             traceback.print_exc()
         finally:
             self.globalTimer.stop()
@@ -169,6 +169,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
+                mpiPrint('\nFSI coupling did not converge, restart with smaller time step\n', self.mpiComm)
                 self.step.updateTime(self.verified)
                 self.resetInternalVars()
                 self.writeRealTimeData()
@@ -218,7 +219,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
     def getMeanNbOfFSIIt(self):
 
         if self.manager.computationType == 'unsteady':
-            return float(self.totNbOfFSIIt)/(self.step.timeIter+1)
+            return float(self.totNbOfFSIIt)/self.step.timeIter
         else:
             return self.FSIIter
 
@@ -607,7 +608,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 self.SolidSolver.save()
     
         except:
-            mpiPrint('\nError when executing BGS Adjoint : fsiCoupling\n', self.mpiComm)
+            mpiPrint('\nError when executing BGS Adjoint coupling\n', self.mpiComm)
             traceback.print_exc()
         finally:
             self.globalTimer.stop()

@@ -172,7 +172,7 @@ class AlgorithmExplicit(Algorithm):
             else:
                 raise Exception('Explicit coupling is only valid for unsteady computations!')
         except:
-            mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            mpiPrint('\nError when executing Explicit : unsteadyRun\n', self.mpiComm)
             traceback.print_exc()
         finally:
             self.globalTimer.stop()
@@ -214,6 +214,8 @@ class AlgorithmExplicit(Algorithm):
             # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
                 self.step.updateTime(self.verified)
+                self.resetInternalVars()
+                self.writeRealTimeData()
                 continue
 
             # --- Update the fluid and solid solver for the next time step --- #
@@ -266,10 +268,13 @@ class AlgorithmExplicit(Algorithm):
         # --- Fluid solver call  --- #
         mpiPrint('\nLaunching fluid solver...', self.mpiComm)
         self.fluidSolverTimer.start()
-        self.FluidSolver.run(*self.step.timeFrame())
+        verif = self.FluidSolver.run(*self.step.timeFrame())
         self.fluidSolverTimer.stop()
         self.fluidSolverTimer.cumul()
         mpiBarrier(self.mpiComm)
+
+        # --- Check if the fluid solver succeeded --- #
+        if not verif: return False
 
         if self.manager.mechanical:
             # --- Fluid to solid mechanical transfer --- #
@@ -285,10 +290,19 @@ class AlgorithmExplicit(Algorithm):
         mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
         if self.myid in self.manager.getSolidSolverProcessors():
             self.solidSolverTimer.start()
-            self.SolidSolver.run(*self.step.timeFrame())
+            verif = self.SolidSolver.run(*self.step.timeFrame())
             self.solidSolverTimer.stop()
             self.solidSolverTimer.cumul()
         self.solidHasRun = True
+
+        # --- Check if the solid solver succeeded --- #
+        try: solidProc = int(self.manager.getSolidSolverProcessors())
+        except: raise Exception('Only one solid solver process is supported yet')
+        verif = mpiScatter(verif, self.mpiComm, solidProc)
+        self.solidHasRun = True
+        if not verif: return False
+
+        return True
 
     def iniRealTimeData(self):
 

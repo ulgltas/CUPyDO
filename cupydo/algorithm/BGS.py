@@ -124,7 +124,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                     self.SolidSolver.save()
     
         except:
-            mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            mpiPrint('\nError when executing BGS : unsteadyRun\n', self.mpiComm)
             traceback.print_exc()
         finally:
             self.globalTimer.stop()
@@ -279,7 +279,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.fluidSolverTimer.cumul()
             mpiBarrier(self.mpiComm)
 
-            # --- The fluid solver failed if verif is false --- #
+            # --- Check if the fluid solver succeeded --- #
             if not verif: return False
 
             if self.manager.mechanical:
@@ -300,7 +300,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.solidSolverTimer.stop()
                 self.solidSolverTimer.cumul()
 
-            # --- The solid solver failed if verif is false --- #
+            # --- Check if the solid solver succeeded --- #
             try: solidProc = int(self.manager.getSolidSolverProcessors())
             except: raise Exception('Only one solid solver process is supported yet')
             verif = mpiScatter(verif, self.mpiComm, solidProc)
@@ -607,7 +607,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 self.SolidSolver.save()
     
         except:
-            mpiPrint('\nA DIVINE ERROR OCCURED...EXITING COMPUTATION\n', self.mpiComm)
+            mpiPrint('\nError when executing BGS Adjoint : fsiCoupling\n', self.mpiComm)
             traceback.print_exc()
         finally:
             self.globalTimer.stop()

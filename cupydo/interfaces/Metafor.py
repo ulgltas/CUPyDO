@@ -255,7 +255,10 @@ class Metafor(SolidSolver):
         Save the current state in the RAM and update the load
         """
 
-        self.update()
+        for F in self.Fnods.values(): [F[i].nextstep() for i in range(3)]
+        for T in self.Tnods.values(): T.nextstep()
+        self.metaFac.save(self.mfac)
+        self.reload = True
 
     def save(self):
         """

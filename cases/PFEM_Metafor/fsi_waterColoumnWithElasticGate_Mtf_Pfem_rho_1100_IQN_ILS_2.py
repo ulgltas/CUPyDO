@@ -74,7 +74,6 @@ def main(_p):
     
     # --- Initialize the FSI algorithm --- #
     algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p['nFSIIterMax'], p['dt'], p['tTot'], p['timeIterTreshold'], p['omegaMax'], p['nbTimeToKeep'], p['computeTangentMatrixBasedOnFirstIt'], comm)
-    algorithm.useQR = True
     
     # --- Launch the FSI computation --- #
     algorithm.run()

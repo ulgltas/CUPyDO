@@ -55,11 +55,10 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
         self.computeTangentMatrixBasedOnFirstIt = computeTangentMatrixBasedOnFirstIt
 
-        # --- Option which determines the way the c coefficients are computed either using Degroote's QR decompoistion or simply using np.linalg.lstsq
-        self.useQR = True
-        self.tollQR = 1.0e-1 # Tolerance employed for the QR decomposition
-        self.qrFilter = 'Haelterman' # Type of QR filtering employed. Possible choices are 'Degroote1', 'Degroote2', and 'Haelterman' (see 'qrSolve()' function below)
-        
+        # --- Tolerance and type of filtering : None, Degroote1, Degroote2, and Haelterman.
+        self.tollQR = 1.0e-1
+        self.qrFilter = 'Haelterman'
+
         # --- Indicate if a BGS iteration must be performed --- #
         self.makeBGS = True
         
@@ -68,6 +67,9 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
         self.W = []
     
     def qrSolve(self, V, W, res):
+
+        if self.qrFilter == None: # Classical least squares without QR filtering
+            c = np.linalg.lstsq(V, -res, rcond=-1)[0]
         
         if self.qrFilter == 'Degroote1': # QR filtering as described by J. Degroote et al. Computers and Structures, 87, 793-801 (2009).
             Q, R = sp.linalg.qr(V, mode='economic')
@@ -89,6 +91,12 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
             raise NameError('IQN-ILS Algorithm: the QR filtering technique is unknown!')
         
         return c, W
+    
+    def resetInternalVars(self):
+
+        self.makeBGS = True
+        self.V = []
+        self.W = []
     
     def fsiCoupling(self):
         """
@@ -151,11 +159,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
             mpiBarrier(self.mpiComm)
 
             # --- Check if the fluid solver succeeded --- #
-            if not verif:
-                self.makeBGS = True
-                self.V = []
-                self.W = []
-                return False
+            if not verif: return False
 
             # --- Fluid to solid mechanical transfer --- #
             mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
@@ -175,12 +179,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
             except: raise Exception('Only one solid solver process is supported yet')
             verif = mpiScatter(verif, self.mpiComm, solidProc)
             self.solidHasRun = True
-
-            if not verif:
-                self.makeBGS = True
-                self.V = []
-                self.W = []
-                return False
+            if not verif: return False
 
             # --- Compute and monitor the FSI residual --- #
             res = self.computeSolidInterfaceResidual()
@@ -247,11 +246,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                     else:
                         dummy_Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)
                     
-                    if self.useQR: # Technique described by Degroote et al.
-                        c, dummy_W = self.qrSolve(dummy_V, dummy_W, dummy_Res)
-                    else:
-                        c = np.linalg.lstsq(dummy_V, -dummy_Res, rcond=-1)[0] # Classical QR decomposition: NOT RECOMMENDED!
-                    
+                    c, dummy_W = self.qrSolve(dummy_V, dummy_W, dummy_Res)
+
                     if self.manager.nDim == 3:
                         delta_ds_loc = np.split((np.dot(dummy_W,c).T + np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)),3,axis=0)
                         
@@ -293,11 +289,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                 self.FSIConv = True
         
         # --- Empty the V and W containers if not converged --- #
-        if not self.FSIConv:
-            self.makeBGS = True
-            self.V = []
-            self.W = []
-            return False
+        if not self.FSIConv: return False
         
         # Add the current time data step to V and W, and remove out-of-range time steps
         if (self.nbTimeToKeep > 0) and (stack > 0):

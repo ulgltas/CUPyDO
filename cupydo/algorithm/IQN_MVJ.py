@@ -46,6 +46,10 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
     def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList= [1.0, 1.0], computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
         AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
 
+        # --- Tolerance and type of filtering : None, Degroote2, and Haelterman.
+        self.tollQR = 1.0e-1
+        self.qrFilter = 'Haelterman'
+
         # --- Indicate if a BGS iteration must be performed --- #
         self.makeBGS = True
 
@@ -57,11 +61,29 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
         self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
 
-    def qrSolve(self, V, W, res):
-        Q, R, V, W = QRfiltering_mod(V, W, self.tollQR)
-        s = np.dot(np.transpose(Q), -res)
-        c = np.linalg.solve(R, s)
-        return c, W
+    def filter(self, V, W):
+
+        if self.qrFilter == None: # No filtering is applied to V and W
+            return V, W
+
+        if self.qrFilter == 'Degroote2': # QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010).
+            Q, R, V, W = QRfiltering(V, W, self.tollQR)
+            return V, W
+        
+        elif self.qrFilter == 'Haelterman': # 'Modified' QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016).
+            Q, R, V, W = QRfiltering_mod(V, W, self.tollQR)
+            return V, W
+        
+        else:
+            raise NameError('IQN-MVJ Algorithm: the QR filtering technique is unknown!')
+        
+    def resetInternalVars(self):
+
+        ns = self.interfaceInterpolator.getNs()
+        d = self.interfaceInterpolator.getd()
+        self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+        self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
+        self.makeBGS = True
 
     def fsiCoupling(self):
         """
@@ -116,9 +138,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
             # --- Check if the fluid solver succeeded --- #
             if not verif:
-                self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
-                self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
-                self.makeBGS = True
+                self.resetInternalVars()
                 return False
 
             # --- Fluid to solid mechanical transfer --- #
@@ -141,9 +161,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             self.solidHasRun = True
 
             if not verif:
-                self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
-                self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
-                self.makeBGS = True
+                self.resetInternalVars()
                 return False
 
             # --- Compute and monitor the FSI residual --- #
@@ -204,11 +222,12 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                         Vk.insert(0, delta_res)
                         Wk.insert(0, delta_d)
                     
-                        Vk_mat = np.vstack(Vk).T
-                        Wk_mat = np.vstack(Wk).T
+                        V = np.vstack(Vk).T
+                        W = np.vstack(Wk).T
 
-                        X = np.transpose(Wk_mat-np.dot(self.invJprev,Vk_mat))
-                        self.invJ = self.invJprev+np.linalg.lstsq(Vk_mat.T,X,rcond=-1)[0].T
+                        V, W = self.filter(V, W)
+                        X = np.transpose(W-np.dot(self.invJprev,V))
+                        self.invJ = self.invJprev+np.linalg.lstsq(V.T,X,rcond=-1)[0].T
 
                     if self.manager.nDim == 3:
                         Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)
@@ -255,8 +274,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 return True
         
         # --- Reset the Jacobians because the coupling did not converge --- #
-        self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
-        self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
-        self.makeBGS = True
+        self.resetInternalVars()
         return False
     

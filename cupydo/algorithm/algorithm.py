@@ -74,6 +74,9 @@ class Algorithm(object):
         self.solidHasRun = False
         self.verified = True
 
+    # --- Function called when the FSI coupling failed --- #
+    def resetInternalVars(self): return
+
     def setFSIInitialConditions(self):
 
         if self.manager.mechanical:

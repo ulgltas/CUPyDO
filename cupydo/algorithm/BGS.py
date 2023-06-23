@@ -167,6 +167,8 @@ class AlgorithmBGSStaticRelax(Algorithm):
             # --- Update TimeStep class and restart if FSI failed --- #
             if not self.verified:
                 self.step.updateTime(self.verified)
+                self.resetInternalVars()
+                self.writeRealTimeData()
                 continue
 
             mpiBarrier(self.mpiComm)
@@ -501,7 +503,10 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
         self.solidHeatFluxResidualkM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
         self.solidTemperatureResidualkM1 = FlexInterfaceData(ns+d, 1, self.mpiComm)
 
+    def resetInternalVars(self):
 
+        self.omegaMecha = self.omegaBoundMecha
+        self.omegaThermal = self.omegaBoundThermal
 
     def setOmegaMecha(self):
 

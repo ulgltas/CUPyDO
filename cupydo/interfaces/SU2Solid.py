@@ -159,6 +159,10 @@ class SU2SolidSolver(SolidSolver):
         """
 
         if self.computationType == 'unsteady':
+
+            dt = t2-t1
+            if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
+                raise Exception('SU2 and FSI time step do not match')
             self.__unsteadyRun(t1, t2)
         else:
             self.__steadyRun()
@@ -170,7 +174,6 @@ class SU2SolidSolver(SolidSolver):
         """
         Run SU2 on one time step.
         """
-
         self.SU2.ResetConvergence()
         self.SU2.Run()
 

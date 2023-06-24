@@ -102,6 +102,9 @@ class VLMSolver(FluidSolver):
         """
         Run the VLM code for one full iteration
         """
+
+        self.coreSolver.data.dt = t2-t1
+
         if self.isRun:
             self.update(t2-t1)
         else:

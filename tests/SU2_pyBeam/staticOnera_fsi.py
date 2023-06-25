@@ -59,7 +59,7 @@ def getFsiP():
     p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'Steady'
-    p['computation'] = ''direct'
+    p['computation'] = 'direct'
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.05

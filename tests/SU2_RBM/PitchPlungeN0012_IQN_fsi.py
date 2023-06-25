@@ -52,7 +52,7 @@ def getFsiP():
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'
-    p['computation'] = ''direct'
+    p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.0005
     p['tTot'] = 0.005

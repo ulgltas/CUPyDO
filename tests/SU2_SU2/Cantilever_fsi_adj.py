@@ -49,13 +49,13 @@ def getAdjP():
     p['solidSolver'] = 'SU2'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
     p['csdFile'] = os.path.join(filePath, 'config_cantilever_adj.cfg')
-    p['computation'] = 'Adjoint'
+    p['computation'] = 'adjoint'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
-    p['compType'] = 'steady'
+    p['compType'] = 'Steady'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05

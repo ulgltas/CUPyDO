@@ -62,11 +62,11 @@ def getFsiP():
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = os.path.join(filePath, fileName[:-3] + 'solid.cfg')
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
-    p['compType'] = 'steady'
+    p['compType'] = 'Steady'
     p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.0

@@ -53,13 +53,13 @@ def getFsiP():
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel.cfg')
     p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
-    p['computation'] = 'Direct'
+    p['computation'] = ''direct'
     # FSI objects
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
-    p['compType'] = 'steady'
+    p['compType'] = 'Steady'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05

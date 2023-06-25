@@ -38,9 +38,9 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'Displacements'
-    p['interpolator'] = 'Matching'
-    p['algorithm'] = 'AitkenBGS'
+    p['criterion'] = 'displacement'
+    p['interpolator'] = 'matching'
+    p['algorithm'] = 'aitkenBGS'
     
     # FSI parameters
 

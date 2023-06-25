@@ -333,7 +333,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.relaxCHT()
 
             # --- Update the solvers for the next BGS steady iteration --- #
-            if self.manager.computationType == 'steady':
+            if self.manager.computationType == 'Steady':
 
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()
@@ -698,7 +698,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 self.relaxSolidAdjointLoad()
 
             # --- Update the solvers for the next BGS steady iteration --- #
-            if self.manager.computationType == 'steady':
+            if self.manager.computationType == 'Steady':
 
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()

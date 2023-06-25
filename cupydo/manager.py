@@ -47,7 +47,7 @@ class Manager(ccupydo.CManager):
         -getGlobalIndex()
     """
 
-    def __init__(self, FluidSolver, SolidSolver, nDim, computationType='steady', mpiComm=None):
+    def __init__(self, FluidSolver, SolidSolver, nDim, computationType='Steady', computation='direct', mpiComm=None):
 
         ccupydo.CManager.__init__(self)
 
@@ -65,8 +65,8 @@ class Manager(ccupydo.CManager):
         # --- Initialize all the parameters --- #
         self.nDim = nDim
         self.computationType = computationType
+        self.computation = computation
         self.mechanical = True
-        self.adjoint = False
         self.thermal = False
 
         self.haveFluidSolver = False

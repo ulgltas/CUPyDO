@@ -48,11 +48,11 @@ def getFsiP():
     p['csdFile'] = os.path.join(filePath, 'PitchPlungeN0012_IQN_fsi_RBMConf.cfg')
     # FSI objects
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
+    p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'
-    p['computation'] = 'Direct'
+    p['computation'] = ''direct'
     p['nDim'] = 2
     p['dt'] = 0.0005
     p['tTot'] = 0.005

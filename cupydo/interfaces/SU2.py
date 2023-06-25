@@ -360,7 +360,7 @@ class SU2(FluidSolver):
 
         if self.computationType == 'unsteady' and nt>0:
             self.SU2.DynamicMeshUpdate(nt)
-        elif self.computationType == 'steady':
+        elif self.computationType == 'Steady':
             self.SU2.StaticMeshUpdate()
 
     def boundaryConditionsUpdate(self):

@@ -38,8 +38,8 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'Displacements'
-    p['interpolator'] = 'Matching'
+    p['criterion'] = 'displacement'
+    p['interpolator'] = 'matching'
     p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters

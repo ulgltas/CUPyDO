@@ -49,8 +49,8 @@ def getFsiP():
     p['cfdFile'] = 'rho1100_fluid'
     p['csdFile'] = 'rho1100_solid'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'

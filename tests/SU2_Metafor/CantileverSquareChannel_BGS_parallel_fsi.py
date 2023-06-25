@@ -51,9 +51,9 @@ def getFsiP():
     p['cfdFile'] = os.path.join(filePath, 'CantileverSquareChannel_BGS_parallel_SU2Conf.cfg')
     p['csdFile'] = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'unsteady'
     p['computation'] = 'direct'

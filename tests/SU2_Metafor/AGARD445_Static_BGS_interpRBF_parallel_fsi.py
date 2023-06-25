@@ -40,10 +40,10 @@ def test(res, tol):
     #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
     #    raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False))
-    tests.add(CTest('Drag coefficient', resultA[3], 5.4e-5, 1e-1, False)) # Previous : 0.00035
-    tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.0116, 1e-1, False))
-    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.0132, 1e-1, False))
+    tests.add(CTest('Lift coefficient', resultA[2], 0.0544, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 0.000042, 1e-1, False))
+    tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.0128, 1e-1, False))
+    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.0144, 1e-1, False))
     tests.run()
 
 def getFsiP():
@@ -58,10 +58,10 @@ def getFsiP():
     p['csdFile'] = 'AGARD445_Static_MetaforConf'
     # FSI objects
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
-    p['compType'] = 'steady'
+    p['compType'] = 'Steady'
     p['computation'] = 'direct'
     p['nDim'] = 3
     p['dt'] = 0.

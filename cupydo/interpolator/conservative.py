@@ -73,7 +73,7 @@ class ConservativeInterpolator(InterfaceInterpolator):
             self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
             self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
             self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            if self.manager.adjoint:
+            if self.manager.computation == 'adjoint':
                 self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
                 self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
                 self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)

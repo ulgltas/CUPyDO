@@ -265,6 +265,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 solidInterfaceDisplacement_tilde.copy(solidInterfaceDisplacement_tilde1)
 
             # --- Update the FSI iteration and history --- #
+            if self.writeInFSIloop == True:
+                self.writeRealTimeData()
             self.FSIIter += 1
 
             # --- Compute and monitor the FSI residual then update the Jacobian --- #

@@ -640,7 +640,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.errValue = 1e12
         self.errValue_CHT = 1e6
 
-        while ((self.FSIIter < self.nbFSIIterMax) and (not self.criterion.isVerified(self.errValue, self.errValue_CHT))):
+        while self.FSIIter < self.nbFSIIterMax:
             mpiPrint("\n>>>> FSI Adjoint iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
             if self.manager.mechanical:
@@ -658,10 +658,13 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching adjoint fluid solver...', self.mpiComm)
             self.fluidSolverTimer.start()
-            self.FluidSolver.run(*self.step.timeFrame())
+            verif = self.FluidSolver.run(*self.step.timeFrame())
             self.fluidSolverTimer.stop()
             self.fluidSolverTimer.cumul()
             mpiBarrier(self.mpiComm)
+
+            # --- Check if the fluid solver succeeded --- #
+            if not verif: return False
 
             if self.manager.mechanical:
                 # --- Fluid to solid mechanical transfer --- #
@@ -674,10 +677,17 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             mpiPrint('\nLaunching adjoint solid solver...\n', self.mpiComm)
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.solidSolverTimer.start()
-                self.SolidSolver.run(*self.step.timeFrame())
+                verif = self.SolidSolver.run(*self.step.timeFrame())
                 self.solidSolverTimer.stop()
                 self.solidSolverTimer.cumul()
             self.solidHasRun = True
+
+            # --- Check if the solid solver succeeded --- #
+            try: solidProc = int(self.manager.getSolidSolverProcessors())
+            except: raise Exception('Only one solid solver process is supported yet')
+            verif = mpiScatter(verif, self.mpiComm, solidProc)
+            self.solidHasRun = True
+            if not verif: return False
 
             if self.manager.mechanical:
                 # --- Compute the mechanical residual --- #
@@ -686,11 +696,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
             else:
                 self.errValue = 0.0
-            
             self.errValue_CHT = 0.0
-
-            # --- Monitor the coupling convergence --- #
-            self.FSIConv = self.criterion.isVerified(self.errValue, self.errValue_CHT)
 
             if self.manager.mechanical:
                 # --- Relaxe the solid position --- #
@@ -709,7 +715,12 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 self.writeRealTimeData()
             self.FSIIter += 1
 
-        mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
+            # --- Monitor the coupling convergence --- #
+            if self.criterion.isVerified(self.errValue, self.errValue_CHT):
+                mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
+                return True
+
+        return False
 
     def fluidToSolidAdjointTransfer(self):
 

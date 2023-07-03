@@ -19,7 +19,7 @@ limitations under the License.
 
 Pfem3D.py
 Python interface between the wrapper of Metafor and CUPyDO.
-Authors M. Lacroix
+Authors M. Lacroix, S. Février
 
 '''
 

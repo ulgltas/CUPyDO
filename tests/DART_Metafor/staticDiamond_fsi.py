@@ -40,7 +40,7 @@ def getFsiP():
     p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
-    p['compType'] = 'Steady'
+    p['compType'] = 'steady'
     p['computation'] = 'direct'
     p['nDim'] = 2
     p['dt'] = 0.1

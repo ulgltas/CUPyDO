@@ -80,7 +80,7 @@ class Modal(SolidSolver):
         """Run the solver between t1 and t2
         Adrien Crovato
         """
-        if self.computationType == 'Steady':
+        if self.computationType == 'steady':
             self.solver.runStatic()
         else:
             self.solver.runDynamic(t1, t2)

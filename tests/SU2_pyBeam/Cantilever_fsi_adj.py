@@ -66,7 +66,7 @@ def getAdjP():
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters
-    p['compType'] = 'Steady'
+    p['compType'] = 'steady'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05

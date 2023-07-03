@@ -199,7 +199,7 @@ class Pfem(FluidSolver):
     def save(self, nt):
             self.pfem.scheme.archive()
             self.pfem.scheme.vizu()
-            self.extractor.saveVTK(nt,self.pfem.scheme.t)
+            self.extractor.saveVTK(nt,self.pfem.scheme.dt)
         
     def initRealTimeData(self):
 

@@ -42,7 +42,7 @@ def getFsiP():
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters
-    p['compType'] = 'Steady'
+    p['compType'] = 'steady'
     p['computation'] = 'direct'
     p['nDim'] = 3
     p['dt'] = 0.

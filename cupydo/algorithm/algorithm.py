@@ -62,7 +62,7 @@ class Algorithm(object):
         self.fluidRemeshingTimer = Timer()
 
         self.totTime = totTime
-        self.step = TimeStep(deltaT,dtSave)
+        self.step = TimeStep(Manager, FluidSolver, SolidSolver, deltaT, dtSave)
         
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
@@ -238,7 +238,7 @@ class AlgorithmExplicit(Algorithm):
 
             # --- Update TimeStep class, export the results and write FSI history --- #
             self.step.updateTime(self.verified)
-            self.step.updateSave(self)
+            self.step.updateSave()
             self.writeRealTimeData()
 
         # --- End of the temporal loop --- #

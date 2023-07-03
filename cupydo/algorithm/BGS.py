@@ -194,7 +194,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Update TimeStep class, export the results and write FSI history --- #
             self.step.updateTime(self.verified)
-            self.step.updateSave(self)
+            self.step.updateSave()
             self.writeRealTimeData()
 
     def iniRealTimeData(self):

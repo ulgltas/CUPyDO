@@ -34,13 +34,28 @@ import math
 # ----------------------------------------------------------------------
 
 class TimeStep(object):
-    def __init__(self,dt,dtSave):
+    def __init__(self,Manager, FluidSolver, SolidSolver, deltaT, dtSave, mpiComm=None):
+
+        self.mpiComm = mpiComm
+
+        if self.mpiComm != None:
+            self.myid = self.mpiComm.Get_rank()
+            self.mpiSize = self.mpiComm.Get_size()
+        else:
+            self.myid = 0
+            self.mpiSize = 1
+
+        self.manager = Manager
+        self.FluidSolver = FluidSolver
+        self.SolidSolver = SolidSolver
+
+        # Time step internal variables
 
         self.time = 0
         self.timeIter = 0
         self.minDt = 1e-9
         self.division = int(2)
-        self.maxDt = self.dt = dt
+        self.maxDt = self.dt = deltaT
         self.next = self.dtSave = dtSave
 
     def timeFrame(self):
@@ -51,15 +66,15 @@ class TimeStep(object):
     
     # I need the Algorithm class because the solid solver is on a specific process
 
-    def updateSave(self,Algorithm):
+    def updateSave(self):
         """
         Update next save time and export results if needed
         """
 
         if self.time >= self.next:
-            Algorithm.FluidSolver.save(self.timeIter)
-            if Algorithm.myid in Algorithm.manager.getSolidSolverProcessors():
-                Algorithm.SolidSolver.save()
+            self.FluidSolver.save(self.timeIter)
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.SolidSolver.save()
 
         if self.dtSave > 0:
             next = math.floor(self.time/self.dtSave)

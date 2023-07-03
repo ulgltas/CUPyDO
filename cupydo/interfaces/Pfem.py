@@ -104,6 +104,7 @@ class Pfem(FluidSolver):
         self.pfem.scheme.setNextStep()
         runOK = self.pfem.scheme.runOneTimeStep()
         if runOK: self.__setCurrentState()
+        else: self.pfem.scheme.resetNodalPositions()
         return runOK
     
     def getNodalInitialPositions(self):

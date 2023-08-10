@@ -43,8 +43,8 @@ def getFsiP():
     p['csdFile'] = fileName[:-3] + 'solid'
     # FSI objects
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'steady'
     p['computation'] = 'direct'

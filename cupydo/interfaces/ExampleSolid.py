@@ -67,6 +67,7 @@ class ExampSolver(SolidSolver):
         #self.coreSolver.run()
 
         self.__setCurrentState()       # use to fill the arrays with nodal values after each run
+        return True
 
     def __setCurrentState(self):
         """
@@ -108,7 +109,7 @@ class ExampSolver(SolidSolver):
     
         #return no
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
         """
         Des.
         """
@@ -119,7 +120,7 @@ class ExampSolver(SolidSolver):
             #self.coreSolver.applyNodalLoadY(load_Y[ii], ii)
             #self.coreSolver.applyNodalLoadZ(load_Z[ii], ii)
 
-    def applyNodalTemperatures(self, Temperature, val_time):
+    def applyNodalTemperatures(self, Temperature, dt):
         """
         Des.
         """

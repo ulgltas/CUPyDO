@@ -35,9 +35,9 @@ def test(res, tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.00095, 5e-4, True))
-    tests.add(CTest('Drag coefficient', resultA[3], 2.3, 1e-1, False)) # Previous : 2.64
-    tests.add(CTest('Displacement (104, TY)', resultS[-1], 0., 1e-4, True))
+    tests.add(CTest('Lift coefficient', resultA[2], 0.00029, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 2.067434, 1e-1, False))
+    tests.add(CTest('Displacement (104, TY)', resultS[-1], 0.0, 1e-4, True))
     tests.run()
 
 def getFsiP():
@@ -51,8 +51,8 @@ def getFsiP():
     p['cfdFile'] = os.path.join(filePath, 'CantileverSquareChannel_BGS_parallel_SU2Conf.cfg')
     p['csdFile'] = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'

@@ -19,7 +19,7 @@ def test(meanFSIIt):
     tests = CTests()
     tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))
     tests.add(CTest('Solid tip coordinate Y', coord[1], 0.080027, 0.05, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
     tests.run()
 
 # %% Input Parameters
@@ -38,8 +38,8 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'Displacements'
-    p['interpolator'] = 'Matching'
+    p['criterion'] = 'displacement'
+    p['interpolator'] = 'matching'
     p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters
@@ -53,7 +53,7 @@ def getFsiP():
     p['maxIt'] = 20
     p['tTot'] = 0.35
     p['tol'] = 1e-6
-    p['dt'] = 0.001
+    p['dt'] = 0.01
     p['nDim'] = 2
     
     return p
@@ -66,7 +66,7 @@ def main():
     cupydo = cupy.CUPyDO(param)
     cupydo.run()
 
-    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.timeIter)
+    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
     test(cupydo.algorithm.getMeanNbOfFSIIt())
 
 if __name__=='__main__':

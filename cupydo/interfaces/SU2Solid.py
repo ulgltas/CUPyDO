@@ -159,17 +159,21 @@ class SU2SolidSolver(SolidSolver):
         """
 
         if self.computationType == 'unsteady':
+
+            dt = t2-t1
+            if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
+                raise Exception('SU2 and FSI time step do not match')
             self.__unsteadyRun(t1, t2)
         else:
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, t1, t2):
         """
         Run SU2 on one time step.
         """
-
         self.SU2.ResetConvergence()
         self.SU2.Run()
 
@@ -241,7 +245,7 @@ class SU2SolidSolver(SolidSolver):
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
         """
         Des.
         """
@@ -367,7 +371,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         """
         SolidAdjointSolver.__init__(self)
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
@@ -388,6 +392,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
         """

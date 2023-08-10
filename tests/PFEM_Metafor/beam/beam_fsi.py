@@ -58,8 +58,8 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'Displacements'
-    p['interpolator'] = 'Matching'
+    p['criterion'] = 'displacement'
+    p['interpolator'] = 'matching'
     p['algorithm'] = 'IQN_ILS'
     
     # FSI parameters
@@ -89,7 +89,7 @@ def main():
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
 
-    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.timeIter)
+    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
     test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof

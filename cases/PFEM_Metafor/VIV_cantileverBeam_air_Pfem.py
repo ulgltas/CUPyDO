@@ -82,8 +82,6 @@ def getPfem():
     n3.isOnAxisOfSymmetry = True
     # ---
     
-    scheme.savefreq=100
-    scheme.nthreads=3
     scheme.gamma = 0.7
     scheme.omega = 0.7
     scheme.addRemoveNodesOption = True

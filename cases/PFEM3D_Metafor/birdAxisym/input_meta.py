@@ -7,7 +7,6 @@ import os
 def params(input):
 
     input['bndno'] = 12
-    input['saveAllFacs'] = False
     input['bctype'] = 'pydeadloads'
     return input
 

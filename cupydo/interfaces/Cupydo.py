@@ -50,18 +50,18 @@ class CUPyDO(object):
         path.remove(p['solidSolver'])
 
         # --- Initialize the FSI manager --- #
-        manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], comm)
+        manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], p['computation'], comm)
         cupyutil.mpiBarrier()
 
         # --- Initialize the interpolator --- #
-        if p['interpolator'] == 'Matching':
+        if p['interpolator'] == 'matching':
             interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
         elif p['interpolator'] == 'RBF':
             interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
         elif p['interpolator'] == 'TPS':
             interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
         else:
-            raise RuntimeError(p['interpolator'], 'not available! (avail: "Matching", "RBF" or "TPS").\n')
+            raise RuntimeError(p['interpolator'], 'not available! (avail: matching, RBF or TPS).\n')
         # if petsc is used, then some options can be set
         if withMPI and 'interpOpts' in p:
             for linSolver in interpolator.getLinearSolvers():
@@ -69,30 +69,30 @@ class CUPyDO(object):
                 linSolver.setPreconditioner(p['interpOpts'][1])
 
         # --- Initialize the FSI criterion --- #
-        if p['algorithm'] == 'Explicit':
+        if p['algorithm'] == 'explicit':
             print('Explicit simulations requested, criterion redefined to None.')
-        if p['criterion'] == 'Displacements':
+        if p['criterion'] == 'displacement':
             criterion = cupycrit.DispNormCriterion(p['tol'])
         else:
-            raise RuntimeError(p['criterion'], 'not available! (avail: "Displacements").\n')
+            raise RuntimeError(p['criterion'], 'not available! (avail: displacement).\n')
         cupyutil.mpiBarrier()
 
         # --- Initialize the FSI algorithm --- #
-        if p['computation'] == 'Adjoint':
-            if p['algorithm'] == 'StaticBGS':
+        if p['computation'] == 'adjoint':
+            if p['algorithm'] == 'staticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
             else:
-                raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: "StaticBGS").\n')
+                raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: staticBGS).\n')
 
         else:
-            if p['algorithm'] == 'Explicit':
+            if p['algorithm'] == 'explicit':
                 self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator,
                     p['dt'], p['tTot'], p['dtSave'], comm)
-            elif p['algorithm'] == 'StaticBGS':
+            elif p['algorithm'] == 'staticBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
-            elif p['algorithm'] == 'AitkenBGS':
+            elif p['algorithm'] == 'aitkenBGS':
                 self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
             elif p ['algorithm'] == 'IQN_ILS':
@@ -102,7 +102,7 @@ class CUPyDO(object):
                 self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion,
                     p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], p['firstItTgtMat'], comm)
             else:
-                raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS", "IQN_ILS" or "IQN_MVJ").\n')
+                raise RuntimeError(p['algorithm'], 'not available! (avail: explicit, staticBGS, aitkenBGS, IQN_ILS or IQN_MVJ).\n')
         cupyutil.mpiBarrier()
 
     def run(self):
@@ -116,7 +116,7 @@ class CUPyDO(object):
         Adrien Crovato
         """
         args = cupyutil.parseArgs()
-        if p['computation'] == 'Adjoint':
+        if p['computation'] == 'adjoint':
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
                 if comm != None:
@@ -154,7 +154,7 @@ class CUPyDO(object):
         """
         solidSolver = None
         # IMPORTANT! only master can instantiate the solid solver except SU2Solid.
-        if p['computation'] == 'Adjoint': # Adjoint calculations only support SU2Solid
+        if p['computation'] == 'adjoint': # Adjoint calculations only support SU2Solid
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:

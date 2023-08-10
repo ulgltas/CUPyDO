@@ -102,6 +102,9 @@ class VLMSolver(FluidSolver):
         """
         Run the VLM code for one full iteration
         """
+
+        self.coreSolver.data.dt = t2-t1
+
         if self.isRun:
             self.update(t2-t1)
         else:
@@ -109,6 +112,7 @@ class VLMSolver(FluidSolver):
         self.coreSolver.run()
 
         self.__setCurrentState()       # use to fill the arrays with nodal values after each run
+        return True
 
     def __setCurrentState(self):
         """
@@ -155,7 +159,7 @@ class VLMSolver(FluidSolver):
             index = iVertex
         return index
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
         for ii in range(self.coreSolver.m): # For each row of panels
             kk = ii*self.coreSolver.n # Starting index of row
             # Current vertex: complete displacement

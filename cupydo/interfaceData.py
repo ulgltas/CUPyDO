@@ -40,16 +40,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class FlexInterfaceData(ccupydo.CFlexInterfaceData):
-    """
-    Description
-    """
-
     def __init__(self, val_nPoint, val_nDim, mpiComm=None):
-        """
-        Des.
-        """
+
         self.mpiComm = mpiComm
-        
         ccupydo.CFlexInterfaceData.__init__(self, val_nPoint, val_nDim, mpiComm)
 
         #self.mpiComm = mpiComm
@@ -80,9 +73,6 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         #    self.mpiSize = 1
 
     def __setitem__(self, index, values):
-        """
-        Des.
-        """
 
         if type(values) != list:
             raise TypeError("FlexInterfaceData.__setitem__ needs list as argument !")
@@ -94,9 +84,6 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
                 self.setValue(iDim, index, values[iDim])
 
     def __add__(self, dataToAdd):
-        """
-        Des.
-        """
 
         if type(dataToAdd) == type(self):
             if self.nDim != dataToAdd.nDim:
@@ -111,18 +98,11 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         return newData
 
     def __radd__(self, dataToAdd):
-        """
-        Des.
-        """
 
         newData = self + dataToAdd
-
         return newData
 
     def __iadd__(self, dataToAdd):
-        """
-        Des.
-        """
 
         if type(dataToAdd) == type(self):
             if self.nDim != dataToAdd.nDim:
@@ -135,9 +115,6 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         return self
 
     def __sub__(self, dataToSub):
-        """
-        Des.
-        """
 
         if type(dataToSub) == type(self):
             if self.nDim != dataToSub.nDim:
@@ -152,9 +129,6 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         return newData
 
     def __rsub__(self, dataToSub):
-        """
-        Des.
-        """
 
         if type(dataToSub) == type(self):
             if self.nDim != dataToSub.nDim:
@@ -167,9 +141,6 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         return newData
 
     def __isub__(self, dataToSub):
-        """
-        Des.
-        """
 
         if type(dataToSub) == type(self):
             if self.nDim != dataToSub.nDim:
@@ -182,9 +153,6 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         return self
 
     def __mul__(self, mulVal):
-        """
-        Des.
-        """
 
         newData = FlexInterfaceData(self.nPoint, self.nDim, self.comm)
         self.copy(newData)
@@ -193,21 +161,13 @@ class FlexInterfaceData(ccupydo.CFlexInterfaceData):
         return newData
 
     def __rmul__(self, mulVal):
-        """
-        Des
-        """
 
         newData = self*mulVal
-
         return newData
 
     def __imul__(self, mulVal):
-        """
-        Des.
-        """
 
         self.scale(mulVal)
-
         return self
     
     def dot(self, dataToDot):
@@ -288,7 +248,7 @@ class InterfaceMatrix(ccupydo.CInterfaceMatrix):
         if self.mpiComm != None:
             ccupydo.CInterfaceMatrix.mult(self, Data, DataOut)
         else:
-            PyH = self.getMat();
+            PyH = self.getMat()
             dim = Data.getDim()
             for iDim in range(dim):
                 np.dot(PyH, Data.getData(iDim), DataOut.getData(iDim))

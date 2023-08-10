@@ -33,7 +33,6 @@ try: # Try to import the AD-capable SU2 module first
 except ModuleNotFoundError as error:
     import pysu2
     adjoint = False
-import math
 import numpy as np
 from ..genericSolvers import FluidSolver, FluidAdjointSolver
 
@@ -154,12 +153,17 @@ class SU2(FluidSolver):
         """
 
         if self.computationType == 'unsteady':
-            nt = int(t2/(t2-t1))
+
+            dt = t2-t1
+            if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
+                raise Exception('SU2 and FSI time step do not match')
+            nt = int(t2/dt)
             self.__unsteadyRun(nt)
         else:
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, nt):
         """
@@ -227,7 +231,7 @@ class SU2(FluidSolver):
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
-    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dispnM1_X, dispnM1_Y, dispnM1_Z, haloNodesDisplacements, time):
+    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dispnM1_X, dispnM1_Y, dispnM1_Z, haloNodesDisplacements, dt):
         """
         Set the displacement of the f/s boundary before mesh morphing.
         """
@@ -252,7 +256,7 @@ class SU2(FluidSolver):
                 PhysicalIndex += 1
             self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
 
-    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt):
         """
         Set the heat fluxes on the f/s boundary and update the multi-grid structure (if any).
         """
@@ -267,7 +271,7 @@ class SU2(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, WallHF)
                 PhysicalIndex += 1
 
-    def applyNodalTemperatures(self, Temperature, time):
+    def applyNodalTemperatures(self, Temperature, dt):
         """
         Des.
         """
@@ -394,7 +398,7 @@ class SU2(FluidSolver):
 
         self.SU2.Postprocessing()
 
-    def fakeSolidSolver(self, time):
+    def fakeSolidSolver(self, dt):
         """
         Des.
         """
@@ -443,6 +447,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __steadyRun(self):
         """
@@ -457,7 +462,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
     
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, dt):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)

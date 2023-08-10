@@ -99,7 +99,6 @@ def getPfem():
     w.Boundary(msh, "FSInterface", 1, 0.0)
     w.Boundary(msh, "FSInterface", 2, 0.0)
 
-    scheme.savefreq = 100
     scheme.gamma = 0.6
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True

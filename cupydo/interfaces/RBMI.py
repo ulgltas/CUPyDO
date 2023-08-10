@@ -88,6 +88,7 @@ class RBMI(SolidSolver):
             self.NativeSolid.staticComputation()
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
         """
@@ -125,7 +126,7 @@ class RBMI(SolidSolver):
 
         self.NativeSolid.getInterfaceNodeGlobalIndex(self.interfaceID, iVertex)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
+    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
         """
         Des.
         """

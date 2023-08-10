@@ -60,11 +60,11 @@ def getAdjP():
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
     p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
-    p['computation'] = 'Adjoint'
+    p['computation'] = 'adjoint'
     # FSI objects
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'steady'
     p['nDim'] = 2

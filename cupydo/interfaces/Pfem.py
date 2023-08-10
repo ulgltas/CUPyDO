@@ -26,9 +26,7 @@ Authors M.L. CERQUAGLIA
 # ----------------------------------------------------------------------
 #  Imports
 # ----------------------------------------------------------------------
-import os, os.path, sys, time, string
 
-import math
 import numpy as np
 from ..utilities import titlePrint
 from ..genericSolvers import FluidSolver
@@ -75,8 +73,8 @@ class Pfem(FluidSolver):
         self.vnods = list(nods.values())
         
         self.nNodes = len(self.vnods)
-        self.nHaloNode = 0    # numbers of nodes at the f/s interface (halo)
-        self.nPhysicalNodes = self.nNodes - self.nHaloNode                        # numbers of nodes at the f/s interface (physical)
+        self.nHaloNode = 0 # numbers of nodes at the f/s interface (halo)
+        self.nPhysicalNodes = self.nNodes - self.nHaloNode # numbers of nodes at the f/s interface (physical)
         
         # Pfem scheme initialization
         #self.u = self.pfem.w.DoubleVector()
@@ -91,8 +89,6 @@ class Pfem(FluidSolver):
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
         
-        self.runOK = True
-        
         FluidSolver.__init__(self)
         
         self.displ_x_Nm1 = np.zeros((self.nPhysicalNodes))
@@ -101,13 +97,15 @@ class Pfem(FluidSolver):
         
     def run(self, t1, t2):
         """
-        calculates one increment from t1 to t2.
+        Calculates one increment from t1 to t2.
         """
         
+        self.pfem.scheme.dt = t2-t1
         self.pfem.scheme.setNextStep()
-        self.runOK = self.pfem.scheme.runOneTimeStep()
-        
-        self.__setCurrentState()
+        runOK = self.pfem.scheme.runOneTimeStep()
+        if runOK: self.__setCurrentState()
+        else: self.pfem.scheme.resetNodalPositions()
+        return runOK
     
     def getNodalInitialPositions(self):
         
@@ -153,9 +151,9 @@ class Pfem(FluidSolver):
         
         return no
     
-    def fakeSolidSolver(self, time):
+    def fakeSolidSolver(self, dt):
         """
-        calculate some dummy positions and velocities as a function of timestep.
+        Calculate some dummy positions and velocities as a function of timestep.
         it should be replaced by the solid solver in practice.
         for each node, the fsi solver may call the "fluid.applyposition" function.
         """
@@ -165,27 +163,27 @@ class Pfem(FluidSolver):
             node = self.vnods[no]                 
             vx = -0.5 # current vx          
             vy = 0. # current vy
-            px = node.posN.x[0] + vx*self.pfem.scheme.dt # current x         
-            py = node.posN.x[1] + vy*self.pfem.scheme.dt# current y              
+            px = node.posN.x[0] + vx*dt # current x         
+            py = node.posN.x[1] + vy*dt # current y              
             out[no] = (px,py,vx,vy)
             
         self.applydefo(out)
     
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, dt):
         """
-        prescribes given nodal positions and velocities coming from solid solver to node #no
+        Prescribes given nodal positions and velocities coming from solid solver to node #no
         """
         # if self.pfem.scheme.t < time:
         #     self.pfem.scheme.resetNodalPositions()
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/self.pfem.scheme.dt
-            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/self.pfem.scheme.dt
+            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/dt
+            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/dt
         
     def update(self, dt):
-        self.pfem.scheme.t+=dt
-        self.pfem.scheme.nt+=1
+        self.pfem.scheme.t += dt
+        self.pfem.scheme.nt += 1
         self.pfem.scheme.updateSolutionVectors()
         #self.pfem.scheme.updateMatIDVector()
         #self.u = self.pfem.scheme.u
@@ -205,10 +203,7 @@ class Pfem(FluidSolver):
             self.extractor.saveVTK(nt,self.pfem.scheme.dt)
         
     def initRealTimeData(self):
-        """
-        Des.
-        """
-        
+
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()
@@ -220,10 +215,7 @@ class Pfem(FluidSolver):
             solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
-        
+
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.buildName()
@@ -235,10 +227,7 @@ class Pfem(FluidSolver):
             solFile.close()
     
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
-        
+
         for extractor in self.realTimeExtractorsList:
             data = extractor.extract()
             extractorName = extractor.dofName

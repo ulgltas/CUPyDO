@@ -35,8 +35,8 @@ def test(res, tol, it):
     
     tests = CTests()
     tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
-    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.483439, 0.05, False))
-    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.001293, 0.05, False))
+    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.483081, 0.05, False))
+    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.001367, 0.05, False))
     tests.run()
 
 def getFsiP():
@@ -49,8 +49,8 @@ def getFsiP():
     p['cfdFile'] = 'rho1100_fluid'
     p['csdFile'] = 'rho1100_solid'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'

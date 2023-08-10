@@ -40,9 +40,9 @@ def getFsiP():
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'AitkenBGS'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'aitkenBGS'
     # FSI parameters
     p['compType'] = 'unsteady'
     p['computation'] = 'direct'

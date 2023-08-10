@@ -53,11 +53,11 @@ def getFsiP():
     p['solidSolver'] = 'SU2'
     p['cfdFile'] = os.path.join(filePath, 'config_channel.cfg')
     p['csdFile'] = os.path.join(filePath, 'config_cantilever.cfg')
-    p['computation'] = 'Direct'
+    p['computation'] = 'direct'
     # FSI objects
-    p['interpolator'] = 'Matching'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['interpolator'] = 'matching'
+    p['criterion'] = 'displacement'
+    p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'steady'
     p['nDim'] = 2

@@ -62,6 +62,7 @@ class ExampSolver(FluidSolver):
         #self.coreSolver.run()
 
         self.__setCurrentState()       # use to fill the arrays with nodal values after each run
+        return True
 
     def __setCurrentState(self):
         """
@@ -99,7 +100,7 @@ class ExampSolver(FluidSolver):
 
         #return no
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
         """
         Des.
         """

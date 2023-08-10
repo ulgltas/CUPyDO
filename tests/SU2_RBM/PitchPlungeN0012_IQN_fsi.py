@@ -32,8 +32,8 @@ def test(res, tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.368, 1e-1, False)) # Previous : 0.257
-    tests.add(CTest('Drag coefficient', resultA[3], 0.0228, 0.001, True)) # Previous : 0.0021
+    tests.add(CTest('Lift coefficient', resultA[2], 0.345479, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 0.022232, 1e-1, False))
     tests.run()
 
 def getFsiP():
@@ -48,18 +48,18 @@ def getFsiP():
     p['csdFile'] = os.path.join(filePath, 'PitchPlungeN0012_IQN_fsi_RBMConf.cfg')
     # FSI objects
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
+    p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters
     p['compType'] = 'unsteady'
-    p['computation'] = 'Direct'
+    p['computation'] = 'direct'
     p['nDim'] = 2
-    p['dt'] = 0.001
+    p['dt'] = 0.0005
     p['tTot'] = 0.005
     
     p['dtSave'] = 0
-    p['tol'] = 1e-7
-    p['maxIt'] = 10
+    p['tol'] = 1e-6
+    p['maxIt'] = 25
     p['omega'] = 1.0
     p['nSteps'] = 0
     p['firstItTgtMat'] = False

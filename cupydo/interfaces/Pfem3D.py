@@ -1,9 +1,40 @@
+#! /usr/bin/env python3
+# -*- coding: utf8 -*-
+
+''' 
+
+Copyright 2018 University of Liège
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+
+Pfem3D.py
+Python interface between the wrapper of Metafor and CUPyDO.
+Authors M. Lacroix, S. Février
+
+'''
+
+# ----------------------------------------------------------------------
+#  Imports
+# ----------------------------------------------------------------------
+
 from ..genericSolvers import FluidSolver
 from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
 
-# %% Interface Between PFEM3D and CUPyDO
+# ----------------------------------------------------------------------
+#  Pfem3D solver interface class
+# ----------------------------------------------------------------------
 
 class Pfem3D(FluidSolver):
     def __init__(self,param):
@@ -79,8 +110,7 @@ class Pfem3D(FluidSolver):
                 
                 dt = float(dt/2)
                 count = np.multiply(2,count)
-                if dt < (t2-t1)/self.maxDivision:
-                    raise Exception('Too large time step')
+                if dt < (t2-t1)/self.maxDivision: return False
                 continue
 
             count = count-1
@@ -99,8 +129,7 @@ class Pfem3D(FluidSolver):
 
         self.solver.computeNextDT()
         division = int((t2-t1)/self.solver.getTimeStep())
-        if division > self.maxDivision:
-            raise Exception('Too large time step')
+        if division > self.maxDivision: return False
         dt = (t2-t1)/division
 
         # Main solving loop for the fluid simulation
@@ -116,10 +145,10 @@ class Pfem3D(FluidSolver):
 
 # %% Apply Boundary Conditions
 
-    def applyNodalDisplacements(self,dx,dy,dz,*_):
+    def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,dt):
 
-        BC = (np.transpose([dx,dy,dz])-self.disp)/self.dt
-        if not self.implicit: BC = 2*(BC-self.vel)/self.dt
+        BC = (np.transpose([dx,dy,dz])-self.disp)/dt
+        if not self.implicit: BC = 2*(BC-self.vel)/dt
 
         for i,vector in enumerate(BC):
             for j,val in enumerate(vector): self.BC[i][j] = val
@@ -163,7 +192,7 @@ class Pfem3D(FluidSolver):
 
 # %% Other Functions
 
-    def update(self,_):
+    def update(self,dt):
 
         self.mesh.remesh(False)
         if self.implicit: self.solver.precomputeMatrix()
@@ -183,21 +212,10 @@ class Pfem3D(FluidSolver):
 
     def exit(self):
 
-        print('======================================')
         self.problem.displayTimeStats()
-        print('======================================')
-        print('\nExit PFEM3D')
+        titlePrint('Exit PFEM3D')
 
     # Save te results into a file
 
     def save(self,_):
         self.problem.dump()
-
-    # Display the current simulation state
-
-    def timeStats(self,time,dt):
-
-        start = self.problem.getCurrentSimTime()
-        print('t1 = {:.5e} - dt = {:.3e}'.format(start,dt))
-        print('t2 = {:.5e} - division = {:.0f}'.format(time,self.factor))
-        print('----------------------------------')

@@ -37,9 +37,7 @@ from ..genericSolvers import SolidSolver
                
 class ExampSolver(SolidSolver):
     def __init__(self, config): # You are free to add any arguments here
-        """
-        Des.
-        """
+
         
         print('\n***************************** Initializing Example *****************************')
         
@@ -59,9 +57,7 @@ class ExampSolver(SolidSolver):
         self.initRealTimeData()
         
     def run(self, t1, t2):
-        """
-        Des.
-        """
+
 
         #Run the solver for one iteration, e.g. :
         #self.coreSolver.run()
@@ -70,9 +66,7 @@ class ExampSolver(SolidSolver):
         return True
 
     def __setCurrentState(self):
-        """
-        Des.
-        """
+
 
         #This is an example, you are free to do it your own way
         #for ii in range(self.nPhysicalNodes):                   
@@ -85,9 +79,7 @@ class ExampSolver(SolidSolver):
 
 
     def getNodalInitialPositions(self):
-        """
-        Description.
-        """
+
 
         #nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
         #nodalInitialPos_Y = np.zeros(self.nPhysicalNodes)
@@ -110,9 +102,7 @@ class ExampSolver(SolidSolver):
         #return no
 
     def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
-        """
-        Des.
-        """
+
 
         #This is just an example again
         #for ii in range(self.nPhysicalNodes):
@@ -121,9 +111,7 @@ class ExampSolver(SolidSolver):
             #self.coreSolver.applyNodalLoadZ(load_Z[ii], ii)
 
     def applyNodalTemperatures(self, Temperature, dt):
-        """
-        Des.
-        """
+
 
     def update(self):
         """
@@ -135,43 +123,33 @@ class ExampSolver(SolidSolver):
         #overload here
 
     def save(self):
-        """
-        Des.
-        """
+
 
         #overload here
 
         return
 
     def initRealTimeData(self):
-        """
-        Des.
-        """
+
         
         solFile = open('ExampleSolution.ascii', "w")
         solFile.write("Time\tnIter\tValue\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
         
         solFile = open('ExampleSolution.ascii', "a")
         solFile.write(str(time) + '\t' + str(nFSIIter) + str(1.0) + '\n')
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
         print(toPrint)
     
     def exit(self):
-        """
-        Des.
-        """
+
 
         print("***************************** Exit Example solver *****************************")

@@ -98,7 +98,7 @@ def main(_p):
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+    interpolator = cupyinterp.ConservativeRBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
 
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])

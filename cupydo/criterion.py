@@ -35,9 +35,9 @@ from math import *
 
 class Criterion(object):
 
-    def __init__(self, tolerance, thermalTolerance = 1e12):
+    def __init__(self, p, thermalTolerance = 1e12):
 
-        self.tol = tolerance
+        self.tol = p['tol']
         self.epsilon = 0
 
         self.tolthermal = thermalTolerance
@@ -59,9 +59,9 @@ class Criterion(object):
             return True
 
 class DispNormCriterion(Criterion):
-    def __init__(self, tolerance, thermalTolerance = 1e12):
+    def __init__(self, p, thermalTolerance = 1e12):
 
-        Criterion.__init__(self, tolerance, thermalTolerance)
+        Criterion.__init__(self, p, thermalTolerance)
 
     def update(self, res):
 

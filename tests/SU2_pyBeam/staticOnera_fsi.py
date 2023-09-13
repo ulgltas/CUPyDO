@@ -55,6 +55,7 @@ def getFsiP():
     p['csdFile'] = '../../tests/SU2_pyBeam/staticOnera_solid.pyBeam'
     # FSI objects
     p['interpolator'] = 'RBF'
+    p['interpType'] == 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters

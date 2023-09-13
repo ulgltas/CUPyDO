@@ -43,8 +43,8 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList= [1.0, 1.0], computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
-        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm=None):
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm)
 
         # --- Tolerance and type of filtering : None, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1
@@ -54,7 +54,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         self.makeBGS = True
 
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
-        self.computeTangentMatrixBasedOnFirstIt = computeTangentMatrixBasedOnFirstIt
+        self.computeTangentMatrixBasedOnFirstIt = p['firstItTgtMat']
         
         # --- Global V and W matrices for IQN-MVJ algorithm --- #
         ns = self.interfaceInterpolator.getNs()

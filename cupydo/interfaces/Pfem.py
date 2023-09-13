@@ -36,11 +36,11 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Pfem(FluidSolver):
-    def __init__(self, testname, nthreads, dt):
+    def __init__(self, p, nthreads):
         
         titlePrint('Initializing Pfem')
         
-        self.testname = testname  # string (name of the module of the fluid model)
+        self.testname = p['cfdFile']  # string (name of the module of the fluid model)
         
         # internal vars
         self.vnods = []           # dict of interface nodes / prescribed velocities
@@ -58,7 +58,7 @@ class Pfem(FluidSolver):
 
         # Current mesh state VTK extractor
         import pfem.tools.link2vtk as v
-        self.extractor = v.Link2VTK(self.pfem.msh, self.pfem.scheme, False, True)
+        self.extractor = v.Link2VTK(self.pfem.msh, self.pfem.scheme, False, True, False, True)
         
         # retrieve the f/s boundary and the related nodes
         gr = self.pfem.w.Group(self.pfem.msh, self.pfem.bndno)
@@ -84,7 +84,7 @@ class Pfem(FluidSolver):
         #self.matID = self.pfem.w.IntVector()
         
         self.pfem.scheme.t = 0.
-        self.pfem.scheme.dt = dt
+        self.pfem.scheme.dt = p['dt']
         self.pfem.scheme.init()
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads

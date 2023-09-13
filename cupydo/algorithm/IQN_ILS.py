@@ -45,15 +45,15 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList= [1.0, 1.0], nbTimeToKeep=0, computeTangentMatrixBasedOnFirstIt = False, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm=None):
 
-        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm)
 
         # --- Number of previous time steps used in the approximation of the tangent matrix --- #
-        self.nbTimeToKeep = nbTimeToKeep
+        self.nbTimeToKeep = p['nSteps']
 
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
-        self.computeTangentMatrixBasedOnFirstIt = computeTangentMatrixBasedOnFirstIt
+        self.computeTangentMatrixBasedOnFirstIt = p['firstItTgtMat']
 
         # --- Tolerance and type of filtering : None, Degroote1, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1

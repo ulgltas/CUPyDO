@@ -58,6 +58,7 @@ def getFsiP():
     p['csdFile'] = 'AGARD445_Static_MetaforConf'
     # FSI objects
     p['interpolator'] = 'RBF'
+    p['interpType'] == 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters

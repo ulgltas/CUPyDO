@@ -38,11 +38,11 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
                
 class VLMSolver(FluidSolver):
-    def __init__(self, _module):
+    def __init__(self, p):
 
         titlePrint("Initializing VLM")
         
-        module = __import__(_module)
+        module = __import__(p['cfdFile'])
         pars = module.getParams()
         if not os.path.exists("models"):
             os.mkdir("models") # Needs to exist to write airfoil data

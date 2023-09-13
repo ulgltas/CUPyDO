@@ -39,6 +39,7 @@ def getFsiP():
     p['csdFile'] = 'agard_solid'
     # FSI objects
     p['interpolator'] = 'RBF'
+    p['interpType'] == 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters

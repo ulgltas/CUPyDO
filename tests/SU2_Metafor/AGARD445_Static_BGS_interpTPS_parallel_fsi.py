@@ -57,7 +57,8 @@ def getFsiP():
     p['cfdFile'] = os.path.join(filePath, 'AGARD445_Static_SU2Conf.cfg')
     p['csdFile'] = 'AGARD445_Static_MetaforConf'
     # FSI objects
-    p['interpolator'] = 'TPS'
+    p['interpolator'] = 'conservTPS'
+    p['interpType'] = 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters

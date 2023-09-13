@@ -40,11 +40,11 @@ class Modal(SolidSolver):
     Modal interface for CUPyDO
     """
 
-    def __init__(self, _module, _computationType):
+    def __init__(self, p):
 
         titlePrint('Initialize Modal Interface')
         # load the python module and initialize modal solver
-        module = __import__(_module)
+        module = __import__(p['csdFile'])
         self.initModal(module.getParams())
 
         # get number of nodes
@@ -54,7 +54,7 @@ class Modal(SolidSolver):
 
         # initialize
         SolidSolver.__init__(self)
-        self.computationType = _computationType
+        self.computationType = p['compType']
         self.setInitialDisplacements()
         self.initRealTimeData()
 

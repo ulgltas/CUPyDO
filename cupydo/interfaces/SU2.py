@@ -45,12 +45,12 @@ class SU2(FluidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
+    def __init__(self, p, have_MPI, MPIComm=None):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
 
-        self.initializeSolver(confFile, have_MPI, MPIComm)
+        self.initializeSolver(p['cfdFile'], have_MPI, MPIComm)
         allMovingMarkersTags = self.SU2.GetAllDeformMeshMarkersTag()                    # list containing the tags of all moving markers
         allCHTMarkersTags = self.SU2.GetAllCHTMarkersTag()
         allMarkersID = self.SU2.GetAllBoundaryMarkers()                             # dic : allMarkersID['marker_tag'] = marker_ID
@@ -71,8 +71,8 @@ class SU2(FluidSolver):
             else:
                 raise Exception("Moving and CHT markers have to be the same!\n")
 
-        self.computationType = computationType                                    # computation type : steady (default) or unsteady
-        self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)
+        self.computationType = p['compType']                                   # computation type : steady (default) or unsteady
+        self.nodalLoadsType = p['nodalLoadsType']                                    # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = 0
@@ -272,9 +272,7 @@ class SU2(FluidSolver):
                 PhysicalIndex += 1
 
     def applyNodalTemperatures(self, Temperature, dt):
-        """
-        Des.
-        """
+
 
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
@@ -294,9 +292,6 @@ class SU2(FluidSolver):
                 PhysicalIndex += 1
 
     def setInitialInterfaceTemperature(self):
-        """
-        Des
-        """
 
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
@@ -322,18 +317,12 @@ class SU2(FluidSolver):
         return stopComp
 
     def initRealTimeData(self):
-        """
-        Description.
-        """
 
         solFile = open('AerodynamicCoeff.ascii', "w")
         solFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
         solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Description.
-        """
 
         CLift = self.SU2.Get_LiftCoeff()
         CDrag = self.SU2.Get_DragCoeff()
@@ -343,9 +332,7 @@ class SU2(FluidSolver):
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         CLift = self.SU2.Get_LiftCoeff()
         CDrag = self.SU2.Get_DragCoeff()
@@ -364,9 +351,6 @@ class SU2(FluidSolver):
             self.SU2.StaticMeshUpdate()
 
     def boundaryConditionsUpdate(self):
-        """
-        Des.
-        """
 
         self.SU2.BoundaryConditionsUpdate()
 
@@ -385,9 +369,6 @@ class SU2(FluidSolver):
         self.SU2.Preprocess(timeIter)
 
     def remeshing(self):
-        """
-        Desctiption.
-        """
 
         return
  
@@ -399,9 +380,6 @@ class SU2(FluidSolver):
         self.SU2.Postprocessing()
 
     def fakeSolidSolver(self, dt):
-        """
-        Des.
-        """
 
         return
 

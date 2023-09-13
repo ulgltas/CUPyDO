@@ -38,19 +38,14 @@ from .getdp import *
 # ----------------------------------------------------------------------
 
 class GetDP(SolidSolver):
-    """
-    Des.
-    """
 
-    def __init__(self, testname, resolution, computationType, pythonFlag):
-        """
-        Des
-        """
+    def __init__(self, p):
 
-        self.testname = testname
-        self.pythonFlag = pythonFlag
-        self.computationType = computationType
-        self.resolution = resolution
+
+        self.testname = p['csdFile']
+        self.pythonFlag = p['pythonFlag']
+        self.computationType = p['compType']
+        self.resolution = p['resolution']
         self.currentDT = 1.0
         self.pathToGetDP = "/home/dthomas/InstalledSoftware/GetDP/bin/getdp"
 
@@ -144,9 +139,7 @@ class GetDP(SolidSolver):
         self.initRealTimeData()
 
     def __readIndex(self, fileName):
-        """
-        Des.
-        """
+
 
         dic = {}
 
@@ -162,9 +155,7 @@ class GetDP(SolidSolver):
         return dic
 
     def __extractIndex(self, vector, nDim):
-        """
-        Des.
-        """
+
 
         extractList = list(vector)
         indexList = extractList[1:(len(extractList)):nDim+1]
@@ -177,9 +168,7 @@ class GetDP(SolidSolver):
         return dic
 
     def __readFileToVec(self, fileName, nNodes):
-        """
-        Des.
-        """
+
 
         vec_x = np.zeros(nNodes)
         vec_y = np.zeros(nNodes)
@@ -199,9 +188,7 @@ class GetDP(SolidSolver):
         return (vec_x, vec_y, vec_z)
 
     def __readFileToScal(self, fileName, nNodes):
-        """
-        Des
-        """
+
 
         scal = np.zeros(nNodes)
 
@@ -217,9 +204,7 @@ class GetDP(SolidSolver):
         return scal
 
     def __vecToVecArray(self, vector):
-        """
-        Des.
-        """
+
 
         extractList = list(vector)
         nNodes = int(extractList[0])
@@ -231,9 +216,7 @@ class GetDP(SolidSolver):
         return (vec_x, vec_y, vec_z)
 
     def __vecToScalArray(self, vector):
-        """
-        Des.
-        """
+
 
         extractList = list(vector)
         nNodes = int(extractList[0])
@@ -243,9 +226,7 @@ class GetDP(SolidSolver):
         return vec
 
     def __writeVecToFile(self, fileName, vec_x, vec_y, vec_z, index):
-        """
-        Des.
-        """
+
 
         f = open(fileName, "w")
         nNodes = vec_x.size
@@ -256,9 +237,7 @@ class GetDP(SolidSolver):
         f.close()
 
     def __writeScalToFile(self, fileName, scal, index):
-        """
-        Des.
-        """
+
 
         f = open(fileName, "w")
         nNodes = scal.size
@@ -269,9 +248,7 @@ class GetDP(SolidSolver):
         f.close()
 
     def __vecArrayToVec(self, vec_x, vec_y, vec_z, index):
-        """
-        Des.
-        """
+
 
         nNodes = vec_x.size
 
@@ -287,9 +264,7 @@ class GetDP(SolidSolver):
         return vec
 
     def __scalArrayToVec(self, scal, index):
-        """
-        Des.
-        """
+
 
         nNodes = scal.size
 
@@ -303,9 +278,7 @@ class GetDP(SolidSolver):
         return vec
 
     def run(self, t1, t2):
-        """
-        Des.
-        """
+
 
         self.currentDT = t2-t1
 
@@ -336,9 +309,7 @@ class GetDP(SolidSolver):
             
 
     def __setCurrentState(self, initialize):
-        """
-        Des.
-        """
+
 
         if self.pythonFlag:
             nodalPos_X , nodalPos_Y, nodalPos_Z = self.__vecToVecArray(GetDPGetNumber("nodalPosition"))
@@ -363,23 +334,17 @@ class GetDP(SolidSolver):
         self.nodalDisp_Z = nodalPos_Z - self.nodalInitialPos_Z
 
     def getNodalInitialPositions(self):
-        """
-        Des.
-        """
+
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
     def getNodalIndex(self, iVertex):
-        """
-        des.
-        """
+
 
         return self.nodalInterfIndex[iVertex]
 
     def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
-        """
-        Des.
-        """
+
 
         if self.pythonFlag:
             GetDPSetNumber("nodalForce", self.__vecArrayToVec(load_X, load_Y, load_Z, self.nodalInterfIndex))
@@ -388,9 +353,7 @@ class GetDP(SolidSolver):
 
 
     def applyNodalTemperatures(self, Temperature, dt):
-        """
-        Des.
-        """
+
 
         if self.pythonFlag:
             GetDPSetNumber("nodalTemperature", self.__scalArrayToVec(Temperature, self.nodalInterfIndex))
@@ -398,9 +361,7 @@ class GetDP(SolidSolver):
             self.__writeScalToFile("nodalTemperature.txt" , Temperature, self.nodalInterfIndex)
 
     def applyNodalNormalHeatFluxes(self, NormalHeatFlux, dt):
-        """
-        Des.
-        """
+
 
         if self.pythonFlag:
             GetDPSetNumber("nodalNormalHeatFlux", self.__scalArrayToVec(NormalHeatFlux, self.nodalInterfIndex))
@@ -408,9 +369,7 @@ class GetDP(SolidSolver):
             self.__writeScalToFile("nodalNormalHeatFlux.txt", NormalHeatFlux, self.nodalInterfIndex)
 
     def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt):
-        """
-        Des.
-        """
+
 
         if self.pythonFlag:
             GetDPSetNumber("nodalHeatFlux", self.__vecArrayToVec(HeatFlux_X, HeatFlux_Y, HeatFlux_Z, self.nodalInterfIndex))
@@ -418,9 +377,7 @@ class GetDP(SolidSolver):
             self.__writeVecToFile("nodalHeatFlux.txt", HeatFlux_X, HeatFlux_Y, HeatFlux_Z, self.nodalInterfIndex)
 
     def update(self):
-        """
-        Des.
-        """
+
 
         SolidSolver.update(self)
 
@@ -435,9 +392,7 @@ class GetDP(SolidSolver):
         self.__nodalDomainTempNm1 = self.__nodalDomainTemp.copy()
 
     def initRealTimeData(self):
-        """
-        des.
-        """
+
 
         self.extractNode = 7        #should be decided by the user outside of the function
         self.iVertexExtract = list(self.nodalInterfIndex.keys())[list(self.nodalInterfIndex.values()).index(self.extractNode)]
@@ -446,9 +401,7 @@ class GetDP(SolidSolver):
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        des.
-        """
+
 
         solFile = open('extractPhysicalNode' + str(self.extractNode) + '.ascii', "a")
         
@@ -468,8 +421,6 @@ class GetDP(SolidSolver):
         solFile.close()
 
     def exit(self):
-        """
-        Des.
-        """
+
 
         print("***************************** Exit GetDP *****************************")

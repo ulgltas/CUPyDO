@@ -50,16 +50,26 @@ class CUPyDO(object):
         path.remove(p['solidSolver'])
 
         # --- Initialize the FSI manager --- #
-        manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], p['computation'], comm)
+        manager = cupyman.Manager(fluidSolver, solidSolver, p, comm)
         cupyutil.mpiBarrier()
 
         # --- Initialize the interpolator --- #
         if p['interpolator'] == 'matching':
             interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
         elif p['interpolator'] == 'RBF':
-            interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+            if p['interpType'] == 'consistent':
+                interpolator = cupyinterp.ConsistentRBFInterpolator(manager, fluidSolver, solidSolver, p, comm)
+            elif p['interpType'] == 'conservative':
+                interpolator = cupyinterp.ConservativeRBFInterpolator(manager, fluidSolver, solidSolver, p, comm)
+            else:
+                raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         elif p['interpolator'] == 'TPS':
-            interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
+            if p['interpType'] == 'consistent':
+                interpolator = cupyinterp.ConsistentTPSInterpolator(manager, fluidSolver, solidSolver, comm)
+            elif p['interpType'] == 'conservative':
+                interpolator = cupyinterp.ConservativeTPSInterpolator(manager, fluidSolver, solidSolver, comm)
+            else:
+                raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         else:
             raise RuntimeError(p['interpolator'], 'not available! (avail: matching, RBF or TPS).\n')
         # if petsc is used, then some options can be set
@@ -72,7 +82,7 @@ class CUPyDO(object):
         if p['algorithm'] == 'explicit':
             print('Explicit simulations requested, criterion redefined to None.')
         if p['criterion'] == 'displacement':
-            criterion = cupycrit.DispNormCriterion(p['tol'])
+            criterion = cupycrit.DispNormCriterion(p)
         else:
             raise RuntimeError(p['criterion'], 'not available! (avail: displacement).\n')
         cupyutil.mpiBarrier()
@@ -80,27 +90,21 @@ class CUPyDO(object):
         # --- Initialize the FSI algorithm --- #
         if p['computation'] == 'adjoint':
             if p['algorithm'] == 'staticBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
+                self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: staticBGS).\n')
 
         else:
             if p['algorithm'] == 'explicit':
-                self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator,
-                    p['dt'], p['tTot'], p['dtSave'], comm)
+                self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator, p, comm)
             elif p['algorithm'] == 'staticBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
+                self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             elif p['algorithm'] == 'aitkenBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], comm)
+                self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             elif p ['algorithm'] == 'IQN_ILS':
-                self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+                self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             elif p ['algorithm'] == 'IQN_MVJ':
-                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['dtSave'], p['omega'], p['firstItTgtMat'], comm)
+                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available! (avail: explicit, staticBGS, aitkenBGS, IQN_ILS or IQN_MVJ).\n')
         cupyutil.mpiBarrier()
@@ -120,27 +124,27 @@ class CUPyDO(object):
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
                 if comm != None:
-                    fluidSolver = fItf.SU2Adjoint(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                    fluidSolver = fItf.SU2Adjoint(p, withMPI, comm)
                 else:
-                    fluidSolver = fItf.SU2Adjoint(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                    fluidSolver = fItf.SU2Adjoint(p, withMPI, 0)
             else:
                 raise RuntimeError('Adjoint interface for', p['fluidSolver'], 'not found!\n')
         else:
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
                 if comm != None:
-                    fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                    fluidSolver = fItf.SU2(p, withMPI, comm)
                 else:
-                    fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                    fluidSolver = fItf.SU2(p, withMPI, 0)
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
-                fluidSolver = fItf.Pfem(p['cfdFile'], args.k, p['dt'])
+                fluidSolver = fItf.Pfem(p, args.k)
             elif p['fluidSolver'] == 'DART':
                 from dart.api.cupydo import Dart
                 fluidSolver = Dart(p['cfdFile'], args.k)
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
-                fluidSolver = fItf.VLMSolver(p['cfdFile'])
+                fluidSolver = fItf.VLMSolver(p)
             elif p['fluidSolver'] == 'Pfem3D':
                 from . import Pfem3D as fItf
                 fluidSolver = fItf.Pfem3D(p)
@@ -158,12 +162,12 @@ class CUPyDO(object):
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
-                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
+                    solidSolver = sItf.SU2SolidAdjoint(p, withMPI, comm)
                 else:
-                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
+                    solidSolver = sItf.SU2SolidAdjoint(p, withMPI, 0)
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
-                solidSolver = sItf.pyBeamAdjointSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
+                solidSolver = sItf.pyBeamAdjointSolver(p)
             elif myId == 0:
                 raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
         else:
@@ -172,19 +176,19 @@ class CUPyDO(object):
                 solidSolver = sItf.Metafor(p)
             elif myId == 0 and p['solidSolver'] == 'RBMI':
                 from . import RBMI as sItf
-                solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
+                solidSolver = sItf.RBMI(p)
             elif myId == 0 and p['solidSolver'] == 'Modal':
                 from . import Modal as sItf
-                solidSolver = sItf.Modal(p['csdFile'], p['compType'])
+                solidSolver = sItf.Modal(p)
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
-                solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
+                solidSolver = sItf.pyBeamSolver(p)
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
-                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
+                    solidSolver = sItf.SU2SolidSolver(p, withMPI, comm)
                 else:
-                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
+                    solidSolver = sItf.SU2SolidSolver(p, withMPI, 0)
             elif p['solidSolver'] == 'GetDP':
                 from . import GetDP as sItf
                 raise RuntimeError('GetDP interface not up-to-date!')
@@ -204,6 +208,7 @@ class CUPyDO(object):
 
 # FSI objects
 # - p['interpolator'], interpolator type available: Matching, RBF, TPS
+# - p['interpType'], loading type available: Conservative, Consistent
 # - p['criterion'], convergence criterion available: Displacements
 # - p['algorithm'], FSI algorithms available: Explicit, StaticBGS, AitkenBGS, IQN_ILS
 

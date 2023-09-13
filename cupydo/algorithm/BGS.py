@@ -45,18 +45,22 @@ np.set_printoptions(threshold=sys.maxsize)
 
 class AlgorithmBGSStaticRelax(Algorithm):
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList=[1.0,1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm=None):
 
-        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, deltaT, totTime, dtSave, mpiComm)
+        Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, p, mpiComm)
 
         self.criterion = Criterion
 
-        if type(omegaBoundList) == list:        #A list specified by the user or the default one
-            self.omegaBoundMecha = omegaBoundList[0]
-            self.omegaBoundThermal = omegaBoundList[1]
-        else:                                   #The user just put one value
-            self.omegaBoundMecha = omegaBoundList
+        # A list specified by the user or the default one
+        if type(p['omega']) == list:
+            self.omegaBoundMecha = p['omega'][0]
+            self.omegaBoundThermal = p['omega'][1]
+
+        # The user just put one value
+        else:
+            self.omegaBoundMecha = p['omega']
             self.omegaBoundThermal = 1.0
+
         self.omegaMinMecha = 1e-12
         self.omegaMinThermal = 1e-12
         self.omegaMecha = self.omegaBoundMecha
@@ -68,7 +72,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         self.errValue = 0.0
         self.FSIConv = False
         self.totNbOfFSIIt = 0
-        self.nbFSIIterMax = nbFSIIterMax
+        self.nbFSIIterMax = p['maxIt']
 
         self.predictor = True
         self.predictorOrder = 2
@@ -483,9 +487,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
 class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList=[1.0, 1.0], mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm=None):
 
-        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, nbFSIIterMax, deltaT, totTime, dtSave, omegaBoundList, mpiComm)
+        AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm)
 
         self.solidInterfaceResidualkM1 = None
         self.solidHeatFluxResidualkM1 = None

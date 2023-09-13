@@ -66,8 +66,8 @@ def main(_p):
 
     # --- Initialize the interpolator --- #
     #interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
-    #interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
+    interpolator = cupyinterp.ConservativeRBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+    #interpolator = cupyinterp.ConservativeTPSInterpolator(manager, fluidSolver, solidSolver, comm)
     
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])

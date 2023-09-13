@@ -37,9 +37,7 @@ from ..genericSolvers import FluidSolver
                
 class ExampSolver(FluidSolver):
     def __init__(self, config): # You are free to add any arguments here
-        """
-        Des.
-        """
+
         
         print('\n***************************** Initializing Example *****************************')
         
@@ -54,9 +52,7 @@ class ExampSolver(FluidSolver):
         self.initRealTimeData()
 
     def run(self, t1, t2):
-        """
-        Des.
-        """
+
 
         #Run the solver for one iteration, e.g. :
         #self.coreSolver.run()
@@ -65,9 +61,7 @@ class ExampSolver(FluidSolver):
         return True
 
     def __setCurrentState(self):
-        """
-        Des.
-        """
+
 
         #This is an example, you are free to do it your own way
         #for iVertex in range(self.nPhysicalNodes):
@@ -76,9 +70,7 @@ class ExampSolver(FluidSolver):
             #self.nodalLoad_Z[iVertex] = self.coreSolver.getLoadZ(iVertex)
 
     def getNodalInitialPositions(self):
-        """
-        Des.
-        """
+
 
         #nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
         #nodalInitialPos_Y = np.zeros(self.nPhysicalNodes)
@@ -92,18 +84,14 @@ class ExampSolver(FluidSolver):
         #return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
 
     def getNodalIndex(self, iVertex):
-        """
-        Des.
-        """
+
 
         #no = 
 
         #return no
 
     def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
-        """
-        Des.
-        """
+
 
         #This is just an example again
         #for iVertex in range(self.nPhysicalNodes):
@@ -112,52 +100,40 @@ class ExampSolver(FluidSolver):
             #self.coreSolver.applyNodalDispZ(dz[iVertex], iVertex)
 
     def update(self, dt):
-        """
-        Des.
-        """
+
 
         FluidSolver.update(self)
 
         #overload here
 
     def save(self, nt):
-        """
-        Des.
-        """
+
 
         #overload here
 
         return
 
     def initRealTimeData(self):
-        """
-        Des.
-        """
+
         
         solFile = open('ExampleSolution.ascii', "w")
         solFile.write("Time\tnIter\tValue\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
         
         solFile = open('ExampleSolution.ascii', "a")
         solFile.write(str(time) + '\t' + str(nFSIIter) + str(1.0) + '\n')
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
         print(toPrint)
     
     def exit(self):
-        """
-        Des.
-        """
+
 
         print("***************************** Exit Example solver *****************************")

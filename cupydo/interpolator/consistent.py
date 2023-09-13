@@ -238,12 +238,12 @@ class ConsistentInterpolator(InterfaceInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentRBFInterpolator(ConsistentInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius = 0.1, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
         ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
-        self.radius = RBFradius
+        self.radius = p['rbfRadius']
         self.generateInterfaceData()
         self.generateMapping()
 

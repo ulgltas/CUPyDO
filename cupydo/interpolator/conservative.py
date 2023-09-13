@@ -211,13 +211,13 @@ class ConservativeInterpolator(InterfaceInterpolator):
 #    RBF Conservative Interpolator class
 # ----------------------------------------------------------------------
 
-class RBFInterpolator(ConservativeInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius=0.1, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+class ConservativeRBFInterpolator(ConservativeInterpolator):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
         ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
-        self.radius = RBFradius
+        self.radius = p['rbfRadius']
         self.generateInterfaceData()
         self.generateMapping()
 
@@ -255,7 +255,7 @@ class RBFInterpolator(ConservativeInterpolator):
 #    TPS Conservative Interpolator class
 # ----------------------------------------------------------------------
 
-class TPSInterpolator(ConservativeInterpolator):
+class ConservativeTPSInterpolator(ConservativeInterpolator):
     def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm=None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
         ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)

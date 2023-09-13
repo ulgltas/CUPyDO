@@ -39,6 +39,7 @@ def getFsiP():
     p['csdFile'] = fileName[:-3] + 'solid'
     # FSI objects
     p['interpolator'] = 'RBF'
+    p['interpType'] == 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters

@@ -63,6 +63,7 @@ def getFsiP():
     p['csdFile'] = os.path.join(filePath, fileName[:-3] + 'solid.cfg')
     # FSI objects
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters

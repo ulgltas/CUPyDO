@@ -50,6 +50,7 @@ def getFsiP():
     p['csdFile'] = 'rho1100_solid'
     # FSI objects
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters

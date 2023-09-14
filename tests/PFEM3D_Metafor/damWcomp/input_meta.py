@@ -2,22 +2,22 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# %% Physical group 1 = FSInterface
+# Physical group 1 = FSInterface
 
-def params(input):
+def params(parm):
 
-    input['bndno'] = 1
-    input['saveAllFacs'] = False
-    input['bctype'] = 'pydeadloads'
-    return input
+    parm['bndno'] = 1
+    parm['saveAllFacs'] = False
+    parm['bctype'] = 'pydeadloads'
+    return parm
 
-# %% Parallel Computing
+# Parallel Computing
 
 metafor = None
 
-# %% Main Function
+# Main Function
 
-def getMetafor(input):
+def getMetafor(parm):
 
     global metafor
     if metafor: return metafor
@@ -89,6 +89,6 @@ def getMetafor(input):
 
     # Parameters for CUPyDO
 
-    input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
+    parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

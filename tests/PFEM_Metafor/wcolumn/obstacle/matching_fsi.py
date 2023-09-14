@@ -51,6 +51,7 @@ def getFsiP():
     p['csdFile'] = fileName[:-3] + 'solid'
     # FSI objects
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'aitkenBGS'
     # FSI parameters

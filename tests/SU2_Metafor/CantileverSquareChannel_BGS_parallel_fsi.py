@@ -52,6 +52,7 @@ def getFsiP():
     p['csdFile'] = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
     # FSI objects
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters

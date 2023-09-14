@@ -37,10 +37,11 @@ import numpy as np
 # ----------------------------------------------------------------------
 
 class Pfem3D(FluidSolver):
-    def __init__(self,param):
+    def __init__(self,p):
 
         titlePrint('Initializing PFEM3D')
-        self.problem = w.getProblem(param['cfdFile'])
+        self.problem = w.getProblem(p['cfdFile'])
+        self.interpType = p['interpType']
 
         # Incompressible or weakly compressible solver
 
@@ -88,11 +89,10 @@ class Pfem3D(FluidSolver):
         self.disp = np.zeros((self.nPhysicalNodes,3))
         self.initPos = self.getPosition()
         self.vel = self.getVelocity()
-        self.dt = param['dt']
         
         FluidSolver.__init__(self)
 
-# %% Run for implicit integration scheme
+# Run for implicit integration scheme
 
     def runImplicit(self,t1,t2):
 
@@ -117,7 +117,7 @@ class Pfem3D(FluidSolver):
         self.__setCurrentState()
         return True
 
-# %% Run for explicit integration scheme
+# Run for explicit integration scheme
 
     def runExplicit(self,t1,t2):
 
@@ -143,7 +143,7 @@ class Pfem3D(FluidSolver):
         self.__setCurrentState()
         return True
 
-# %% Apply Boundary Conditions
+# Apply Boundary Conditions
 
     def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,dt):
 
@@ -153,44 +153,47 @@ class Pfem3D(FluidSolver):
         for i,vector in enumerate(BC):
             for j,val in enumerate(vector): self.BC[i][j] = val
 
-# %% Return Nodal Values
+# Return Nodal Values
 
     def getPosition(self):
 
-        vector = np.zeros(self.disp.shape)
+        result = np.zeros(self.disp.shape)
 
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                vector[j,i] = self.mesh.getNode(k).getCoordinate(i)
+                result[j,i] = self.mesh.getNode(k).getCoordinate(i)
 
-        return vector
+        return result
 
     # Computes the nodal velocity vector
 
     def getVelocity(self):
 
-        vector = np.zeros(self.disp.shape)
+        result = np.zeros(self.disp.shape)
         
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                vector[j,i] = self.mesh.getNode(k).getState(i)
+                result[j,i] = self.mesh.getNode(k).getState(i)
 
-        return vector
+        return result
 
     # Computes the reaction nodal loads
 
     def __setCurrentState(self):
 
-        vector = w.VectorVectorDouble()
-        self.solver.computeLoads('FSInterface',self.FSI,vector)
+        result = w.VectorVectorDouble()
+        if self.interpType == 'conservative':
+            self.solver.computeLoads('FSInterface',self.FSI,result)
+        else:
+            self.solver.computeStress('FSInterface',self.FSI,result)
 
         for i in range(self.nNodes):
 
-            self.nodalLoad_X[i] = -vector[i][0]
-            self.nodalLoad_Y[i] = -vector[i][1]
-            if self.dim == 3: self.nodalLoad_Z[i] = -vector[i][2]
+            self.nodalLoad_X[i] = -result[i][0]
+            self.nodalLoad_Y[i] = -result[i][1]
+            if self.dim == 3: self.nodalLoad_Z[i] = -result[i][2]
 
-# %% Other Functions
+# Other Functions
 
     def update(self,dt):
 
@@ -208,7 +211,7 @@ class Pfem3D(FluidSolver):
     def getNodalInitialPositions(self):
         return np.transpose(self.initPos)
 
-# %% Print Functions
+# Print Functions
 
     def exit(self):
 

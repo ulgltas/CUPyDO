@@ -128,9 +128,6 @@ class RBMI(SolidSolver):
 
         self.NativeSolid.updateSolution()
 
-    def initRealTimeData(self):
-
-
     def saveRealTimeData(self, time, nFSIIter):
 
 

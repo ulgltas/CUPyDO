@@ -48,6 +48,7 @@ def getFsiP():
     p['csdFile'] = os.path.join(filePath, 'PitchPlungeAirfoil_BGS_parallel_RBMConf.cfg')
     # FSI objects
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['criterion'] = 'displacement'
     p['algorithm'] = 'IQN_ILS'
     # FSI parameters

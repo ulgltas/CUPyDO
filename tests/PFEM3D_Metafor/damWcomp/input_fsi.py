@@ -22,7 +22,7 @@ def test(meanFSIIt):
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
     tests.run()
 
-# %% Input Parameters
+# Input Parameters
 
 def getFsiP():
 
@@ -40,6 +40,7 @@ def getFsiP():
 
     p['criterion'] = 'displacement'
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'aitkenBGS'
     
     # FSI parameters
@@ -58,7 +59,7 @@ def getFsiP():
     
     return p
 
-# %% Main Function
+# Main Function
 
 def main():
 

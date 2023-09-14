@@ -43,7 +43,7 @@ def test(res,tol,it):
     tests.add(CTest('Mean number of ISI iterations', it, 4, 1, True))
     tests.run()
 
-# %% Input Parameters
+# Input Parameters
 
 def getFsiP():
 
@@ -60,6 +60,7 @@ def getFsiP():
 
     p['criterion'] = 'displacement'
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'IQN_ILS'
     
     # FSI parameters
@@ -79,7 +80,7 @@ def getFsiP():
 
     return p
 
-# %% Main Function
+# Main Function
 
 def main():
 

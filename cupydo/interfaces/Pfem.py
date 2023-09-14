@@ -58,7 +58,7 @@ class Pfem(FluidSolver):
 
         # Current mesh state VTK extractor
         import pfem.tools.link2vtk as v
-        self.extractor = v.Link2VTK(self.pfem.msh, self.pfem.scheme, False, True, False, True)
+        self.extractor = v.Link2VTK(self.pfem.msh, self.pfem.scheme, False, True)
         
         # retrieve the f/s boundary and the related nodes
         gr = self.pfem.w.Group(self.pfem.msh, self.pfem.bndno)
@@ -132,7 +132,7 @@ class Pfem(FluidSolver):
             fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
             fy[i] = -(node.fIne.x[1] + node.fInt.x[1] - node.fExt.x[1])
             fz[i] = 0.
-        
+
         self.nodalLoad_X = fx
         self.nodalLoad_Y = fy
         self.nodalLoad_Z = fz

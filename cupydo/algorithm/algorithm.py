@@ -107,9 +107,9 @@ class Algorithm(object):
 
         self.communicationTimer.start()
         if self.interpType == 'conservative':
-            self.interfaceInterpolator.getLoadsFromFluidSolver()
+            self.interfaceInterpolator.getForceFromFluidSolver()
             self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
-            self.interfaceInterpolator.setLoadsToSolidSolver(self.step.dt)
+            self.interfaceInterpolator.setForceToSolidSolver(self.step.dt)
         else:
             self.interfaceInterpolator.getStressFromFluidSolver()
             self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()

@@ -186,7 +186,7 @@ class FluidSolver(object):
     def fakeSolidSolver(self, dt):
         return
 
-    def getNodalLoads(self):
+    def getNodalForce(self):
 
         return (self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z)
 

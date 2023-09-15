@@ -194,7 +194,7 @@ class Metafor(SolidSolver):
 
 # Set Nodal Loads
 
-    def applyNodalLoads(self,loadX,loadY,loadZ,dt):
+    def applyNodalForce(self,loadX,loadY,loadZ,dt):
         """
         Apply the conservative load boundary conditions on the mesh
         """

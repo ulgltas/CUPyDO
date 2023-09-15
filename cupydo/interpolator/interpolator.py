@@ -154,7 +154,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.solidInterfaceAdjointLoads.assemble()
 
-    def getLoadsFromFluidSolver(self):
+    def getForceFromFluidSolver(self):
 
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceLoad_X, localFluidInterfaceLoad_Y, localFluidInterfaceLoad_Z = self.FluidSolver.getNodalLoads()
@@ -408,7 +408,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         return (localSolidInterfaceData_array, haloNodesData)
 
-    def setLoadsToSolidSolver(self, dt):
+    def setForceToSolidSolver(self, dt):
 
         FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
 

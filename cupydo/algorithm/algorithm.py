@@ -62,7 +62,8 @@ class Algorithm(object):
         self.fluidRemeshingTimer = Timer()
 
         self.totTime = p['tTot']
-        self.step = TimeStep(Manager, FluidSolver, SolidSolver, p['dt'], p['dtSave'])
+        self.interpType = p['interpType']
+        self.step = TimeStep(Manager, FluidSolver, SolidSolver, p)
         
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
@@ -105,9 +106,14 @@ class Algorithm(object):
     def fluidToSolidMechaTransfer(self):
 
         self.communicationTimer.start()
-        self.interfaceInterpolator.getLoadsFromFluidSolver()
-        self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
-        self.interfaceInterpolator.setLoadsToSolidSolver(self.step.dt)
+        if self.interpType == 'conservative':
+            self.interfaceInterpolator.getLoadsFromFluidSolver()
+            self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
+            self.interfaceInterpolator.setLoadsToSolidSolver(self.step.dt)
+        else:
+            self.interfaceInterpolator.getStressFromFluidSolver()
+            self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
+            self.interfaceInterpolator.setStressToSolidSolver(self.step.dt)
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
 

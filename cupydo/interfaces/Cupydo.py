@@ -55,7 +55,7 @@ class CUPyDO(object):
 
         # --- Initialize the interpolator --- #
         if p['interpolator'] == 'matching':
-            interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+            interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, p, comm)
         elif p['interpolator'] == 'RBF':
             if p['interpType'] == 'consistent':
                 interpolator = cupyinterp.ConsistentRBFInterpolator(manager, fluidSolver, solidSolver, p, comm)
@@ -65,9 +65,9 @@ class CUPyDO(object):
                 raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         elif p['interpolator'] == 'TPS':
             if p['interpType'] == 'consistent':
-                interpolator = cupyinterp.ConsistentTPSInterpolator(manager, fluidSolver, solidSolver, comm)
+                interpolator = cupyinterp.ConsistentTPSInterpolator(manager, fluidSolver, solidSolver, p, comm)
             elif p['interpType'] == 'conservative':
-                interpolator = cupyinterp.ConservativeTPSInterpolator(manager, fluidSolver, solidSolver, comm)
+                interpolator = cupyinterp.ConservativeTPSInterpolator(manager, fluidSolver, solidSolver, p, comm)
             else:
                 raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         else:

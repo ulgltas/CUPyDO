@@ -34,7 +34,7 @@ import math
 # ----------------------------------------------------------------------
 
 class TimeStep(object):
-    def __init__(self,Manager, FluidSolver, SolidSolver, deltaT, dtSave, mpiComm=None):
+    def __init__(self,Manager, FluidSolver, SolidSolver, p, mpiComm=None):
 
         self.mpiComm = mpiComm
 
@@ -55,8 +55,8 @@ class TimeStep(object):
         self.timeIter = 0
         self.minDt = 1e-9
         self.division = int(2)
-        self.maxDt = self.dt = deltaT
-        self.next = self.dtSave = dtSave
+        self.maxDt = self.dt = p['dt']
+        self.next = self.dtSave = p['dtSave']
 
     def timeFrame(self):
         """

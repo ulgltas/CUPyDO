@@ -53,7 +53,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         -distance()
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
         mpiPrint("Initializing FSI Interpolator",mpiComm,titlePrint)
 
@@ -62,7 +62,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.manager = Manager
         self.SolidSolver = SolidSolver
         self.FluidSolver = FluidSolver
-
+        self.interpType = p['interpType']
         self.mappingTimer = Timer()
 
         self.nf = int(self.manager.getNumberOfFluidInterfaceNodes())
@@ -161,6 +161,16 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
                 self.fluidInterfaceLoads[iGlobalVertex] = [localFluidInterfaceLoad_X[iVertex], localFluidInterfaceLoad_Y[iVertex], localFluidInterfaceLoad_Z[iVertex]]
+
+        self.fluidInterfaceLoads.assemble()
+
+    def getStressFromFluidSolver(self):
+
+        if self.myid in self.manager.getFluidInterfaceProcessors():
+            localFluidInterfaceLoad_XX, localFluidInterfaceLoad_YY, localFluidInterfaceLoad_ZZ, localFluidInterfaceLoad_XY, localFluidInterfaceLoad_XZ, localFluidInterfaceLoad_YZ = self.FluidSolver.getNodalStress()
+            for iVertex in range(self.nf_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
+                self.fluidInterfaceLoads[iGlobalVertex] = [localFluidInterfaceLoad_XX[iVertex], localFluidInterfaceLoad_YY[iVertex], localFluidInterfaceLoad_ZZ[iVertex], localFluidInterfaceLoad_XY[iVertex], localFluidInterfaceLoad_XZ[iVertex], localFluidInterfaceLoad_YZ[iVertex]]
 
         self.fluidInterfaceLoads.assemble()
 
@@ -428,9 +438,17 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         mpiPrint('Solid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FXT, FYT, FZT), self.mpiComm)
         mpiPrint('Fluid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FFX, FFY, FFZ), self.mpiComm)
 
-    def setAdjointDisplacementToSolidSolver(self, dt):
+    def setStressToSolidSolver(self, dt):
 
-        # self.checkConservation()
+        if self.mpiComm != None:
+            (localSolidLoads_array, haloNodesSolidLoads) = self.redistributeDataToSolidSolver(self.solidInterfaceLoads)
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                self.SolidSolver.applyNodalStress(localSolidLoads_array[0], localSolidLoads_array[1], localSolidLoads_array[2], localSolidLoads_array[3], localSolidLoads_array[4], localSolidLoads_array[5], dt, haloNodesSolidLoads)
+
+        else:
+            self.SolidSolver.applyNodalStress(self.solidInterfaceLoads.getDataArray(0), self.solidInterfaceLoads.getDataArray(1), self.solidInterfaceLoads.getDataArray(2), self.solidInterfaceLoads.getDataArray(3), self.solidInterfaceLoads.getDataArray(4), self.solidInterfaceLoads.getDataArray(5), dt)
+
+    def setAdjointDisplacementToSolidSolver(self, dt):
 
         if self.mpiComm != None:
             (localSolidInterfaceAdjointDisplacement, haloNodesDisplacements) = self.redistributeDataToSolidSolver(self.solidInterfaceAdjointDisplacement)
@@ -441,8 +459,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
 
     def setDisplacementToFluidSolver(self, dt):
-
-        self.checkConservation()
 
         if self.mpiComm != None:
             (localFluidInterfaceDisplacement, haloNodesDisplacements) = self.redistributeDataToFluidSolver(self.fluidInterfaceDisplacement)

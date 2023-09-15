@@ -90,7 +90,7 @@ class Pfem3D(FluidSolver):
         self.initPos = self.getPosition()
         self.vel = self.getVelocity()
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self,p)
 
 # Run for implicit integration scheme
 
@@ -182,16 +182,46 @@ class Pfem3D(FluidSolver):
     def __setCurrentState(self):
 
         result = w.VectorVectorDouble()
+
         if self.interpType == 'conservative':
+
             self.solver.computeLoads('FSInterface',self.FSI,result)
-        else:
+            for i in range(self.nNodes):
+
+                self.nodalLoad_X[i] = -result[i][0]
+                self.nodalLoad_Y[i] = -result[i][1]
+                if self.dim == 3: self.nodalLoad_Z[i] = -result[i][2]
+
+        elif self.dim == 3:
+
             self.solver.computeStress('FSInterface',self.FSI,result)
+            for i in range(self.nNodes):
 
-        for i in range(self.nNodes):
+                self.nodalLoad_XX[i] = result[i][0]
+                self.nodalLoad_YY[i] = result[i][1]
+                self.nodalLoad_ZZ[i] = result[i][2]
+                self.nodalLoad_XY[i] = result[i][3]
+                self.nodalLoad_XZ[i] = result[i][4]
+                self.nodalLoad_YZ[i] = result[i][5]
 
-            self.nodalLoad_X[i] = -result[i][0]
-            self.nodalLoad_Y[i] = -result[i][1]
-            if self.dim == 3: self.nodalLoad_Z[i] = -result[i][2]
+        elif self.mesh.isAxiSym():
+
+            self.solver.computeStress('FSInterface',self.FSI,result)
+            for i in range(self.nNodes):
+
+                self.nodalLoad_XX[i] = result[i][0]
+                self.nodalLoad_YY[i] = result[i][1]
+                self.nodalLoad_ZZ[i] = result[i][2]
+                self.nodalLoad_XY[i] = result[i][3]
+
+        else:
+
+            self.solver.computeStress('FSInterface',self.FSI,result)
+            for i in range(self.nNodes):
+
+                self.nodalLoad_XX[i] = result[i][0]
+                self.nodalLoad_YY[i] = result[i][1]
+                self.nodalLoad_XY[i] = result[i][2]
 
 # Other Functions
 

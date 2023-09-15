@@ -43,9 +43,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class ConsistentInterpolator(InterfaceInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
         mpiPrint('\nSetting non-matching consistent interpolator...', mpiComm)
 
         self.d = self.nDim+1
@@ -66,13 +66,13 @@ class ConsistentInterpolator(InterfaceInterpolator):
             self.prevSolidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
             self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
             self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
-            self.fluidInterfaceLoads = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
+            self.solidInterfaceLoads = FlexInterfaceData(self.ns, 6, self.mpiComm)
+            self.fluidInterfaceLoads = FlexInterfaceData(self.nf + self.d, 6, self.mpiComm)
             if self.manager.computation == 'adjoint':
                 self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
                 self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
-                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf + self.d, 3, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 6, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf + self.d, 6, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':
@@ -240,7 +240,7 @@ class ConsistentInterpolator(InterfaceInterpolator):
 class ConsistentRBFInterpolator(ConsistentInterpolator):
     def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
-        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
         self.radius = p['rbfRadius']
@@ -289,9 +289,9 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentTPSInterpolator(ConsistentInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
-        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
         mpiPrint('\nSetting consistent interpolation with Thin Plate Spline...', self.mpiComm)
 
         self.generateInterfaceData()

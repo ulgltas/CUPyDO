@@ -138,16 +138,24 @@ class SolidSolver(object):
 # ----------------------------------------------------------------------
 
 class FluidSolver(object):
-    def __init__(self):
+    def __init__(self, p):
 
         self.haloNodeList = {}
 
-        self.nodalLoad_X = np.zeros((self.nPhysicalNodes))
-        self.nodalLoad_Y = np.zeros((self.nPhysicalNodes))
-        self.nodalLoad_Z = np.zeros((self.nPhysicalNodes))
+        if p['interpType'] == 'conservative':
+            self.nodalLoad_X = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_Y = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_Z = np.zeros((self.nPhysicalNodes))
+
+        else:
+            self.nodalLoad_XX = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_YY = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_ZZ = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_XY = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_XZ = np.zeros((self.nPhysicalNodes))
+            self.nodalLoad_YZ = np.zeros((self.nPhysicalNodes))
 
         self.nodalTemperature = np.zeros((self.nPhysicalNodes))
-
         self.nodalNormalHeatFlux = np.zeros(self.nPhysicalNodes)
 
         self.nodalHeatFlux_X = np.zeros((self.nPhysicalNodes))
@@ -182,6 +190,10 @@ class FluidSolver(object):
 
         return (self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z)
 
+    def getNodalStress(self):
+
+        return (self.nodalLoad_XX, self.nodalLoad_YY, self.nodalLoad_ZZ, self.nodalLoad_XY, self.nodalLoad_XZ, self.nodalLoad_YZ)
+    
     def getNodalInitialPositions(self):
         return
 

@@ -42,9 +42,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class MatchingMeshesInterpolator(InterfaceInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
 
         mpiPrint('\nSetting matching meshes interpolator...', mpiComm)
 
@@ -70,13 +70,21 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
             self.prevSolidInterfaceDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
             self.solidInterfaceDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
             self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
-            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            if self.interpType == 'conservative':
+                self.solidInterfaceLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            else:
+                self.solidInterfaceLoads = FlexInterfaceData(self.ns, 6, self.mpiComm)
+                self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 6, self.mpiComm)
             if self.manager.computation == 'adjoint':
                 self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns, 3, self.mpiComm)
                 self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
-                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                if self.interpType == 'conservative':
+                    self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 3, self.mpiComm)
+                    self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                else:
+                    self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns, 6, self.mpiComm)
+                    self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 6, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':

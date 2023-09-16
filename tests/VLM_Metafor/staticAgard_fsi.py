@@ -43,7 +43,6 @@ def getFsiP():
     # FSI objects
     p['interpolator'] = 'RBF'
     p['interpType'] = 'conservative'
-    p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'steady'

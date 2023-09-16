@@ -79,18 +79,21 @@ class CUPyDO(object):
                 linSolver.setPreconditioner(p['interpOpts'][1])
 
         # --- Initialize the FSI criterion --- #
-        if p['algorithm'] == 'explicit':
-            print('Explicit simulations requested, criterion redefined to None.')
-        if p['criterion'] == 'displacement':
-            criterion = cupycrit.DispNormCriterion(p)
-        else:
-            raise RuntimeError(p['criterion'], 'not available! (avail: displacement).\n')
+
+        criterionM = None
+        if p['mechanical'] :
+            criterionM = cupycrit.NormCriterion(p)
+        
+        criterionT = None
+        if p['thermal'] :
+            criterionT = cupycrit.NormCriterion(p)
+            
         cupyutil.mpiBarrier()
 
         # --- Initialize the FSI algorithm --- #
         if p['computation'] == 'adjoint':
             if p['algorithm'] == 'staticBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+                self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterionM, p, comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: staticBGS).\n')
 
@@ -98,13 +101,13 @@ class CUPyDO(object):
             if p['algorithm'] == 'explicit':
                 self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator, p, comm)
             elif p['algorithm'] == 'staticBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+                self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterionM, p, comm)
             elif p['algorithm'] == 'aitkenBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+                self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterionM, p, comm)
             elif p ['algorithm'] == 'IQN_ILS':
-                self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+                self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterionM, p, comm)
             elif p ['algorithm'] == 'IQN_MVJ':
-                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterionM, p, comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available! (avail: explicit, staticBGS, aitkenBGS, IQN_ILS or IQN_MVJ).\n')
         cupyutil.mpiBarrier()

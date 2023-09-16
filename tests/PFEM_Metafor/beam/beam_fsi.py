@@ -58,7 +58,6 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'displacement'
     p['interpolator'] = 'matching'
     p['interpType'] = 'conservative'
     p['algorithm'] = 'IQN_ILS'

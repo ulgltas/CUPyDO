@@ -270,7 +270,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             self.FSIIter += 1
 
             # --- Compute and monitor the FSI residual then update the Jacobian --- #
-            if self.criterion.isVerified(self.errValue, self.errValue_CHT):
+            if self.criterion.isVerified(self.errValue):
                 mpiPrint("IQN-MVJ is Converged",self.mpiComm,titlePrint)
                 self.invJprev = np.copy(self.invJ)
                 return True

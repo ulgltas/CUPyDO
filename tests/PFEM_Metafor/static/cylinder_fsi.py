@@ -42,7 +42,6 @@ def getFsiP():
     # FSI objects
     p['interpolator'] = 'matching'
     p['interpType'] = 'conservative'
-    p['criterion'] = 'displacement'
     p['algorithm'] = 'aitkenBGS'
     # FSI parameters
     p['compType'] = 'unsteady'

@@ -38,7 +38,6 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'displacement'
     p['interpolator'] = 'RBF'
     p['interpType'] = 'consistent'
     p['algorithm'] = 'IQN_ILS'

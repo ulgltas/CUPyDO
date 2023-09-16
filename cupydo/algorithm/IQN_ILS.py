@@ -284,7 +284,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
             self.FSIIter += 1
 
             # --- Compute and monitor the FSI residual --- #
-            if self.criterion.isVerified(self.errValue,self.errValue_CHT):
+            if self.criterion.isVerified(self.errValue):
                 mpiPrint("IQN-ILS is Converged",self.mpiComm,titlePrint)
                 self.FSIConv = True
         

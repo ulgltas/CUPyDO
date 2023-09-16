@@ -487,8 +487,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
     def setAdjointLoadsToFluidSolver(self, dt):
 
-        # self.checkConservation()
-
         if self.mpiComm != None:
 
             (localFluidInterfaceAdjointLoad, haloNodesAdjointLoads) = self.redistributeDataToFluidSolver(self.fluidInterfaceAdjointLoads)

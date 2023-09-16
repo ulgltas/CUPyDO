@@ -53,7 +53,6 @@ def getAdjP():
     # FSI objects
     p['interpolator'] = 'matching'
     p['interpType'] = 'conservative'
-    p['criterion'] = 'displacement'
     p['algorithm'] = 'staticBGS'
     # FSI parameters
     p['compType'] = 'steady'

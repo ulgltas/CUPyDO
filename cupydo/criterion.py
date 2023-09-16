@@ -28,6 +28,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 # ----------------------------------------------------------------------
 
 from math import *
+import numpy as np
 
 # ----------------------------------------------------------------------
 #    Criterion class
@@ -35,55 +36,21 @@ from math import *
 
 class Criterion(object):
 
-    def __init__(self, p, thermalTolerance = 1e12):
+    def __init__(self, p):
 
         self.tol = p['tol']
         self.epsilon = 0
 
-        self.tolthermal = thermalTolerance
-        self.epsilonThermal = 0
+    def isVerified(self, epsilon):
+        return epsilon < self.tol
 
-    def isVerified(self, epsilon, epsilonThermal=0):
-
-        verifList = [False, False]
-
-        if epsilon < self.tol:
-            verifList[0] = True
-
-        if epsilonThermal < self.tolthermal:
-            verifList[1] = True
-
-        if False in verifList:
-            return False
-        else:
-            return True
-
-class DispNormCriterion(Criterion):
-    def __init__(self, p, thermalTolerance = 1e12):
-
-        Criterion.__init__(self, p, thermalTolerance)
+class NormCriterion(Criterion):
+    
+    def __init__(self, p):
+        Criterion.__init__(self, p)
 
     def update(self, res):
 
-        normX, normY, normZ = res.norm()
-        norm = sqrt(normX**2 + normY**2 + normZ**2)
-        self.epsilon = norm
+        norm = res.norm()
+        self.epsilon = np.linalg.norm(norm)
         return self.epsilon
-
-    def updateThermal(self, resThermal):
-
-        if resThermal != None:
-            #normX, normY, normZ = resHeatFlux.norm()
-            normList = resThermal.norm()
-            normSquare = 0.0
-            for ii in range(len(normList)):
-                normSquare += normList[ii]**2
-
-            #norm = sqrt(normX**2 + normY**2 + normZ**2)
-            norm = sqrt(normSquare)
-        else:
-            norm = 1.0
-
-        self.epsilonThermal = norm
-
-        return self.epsilonThermal

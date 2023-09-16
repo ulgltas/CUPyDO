@@ -347,7 +347,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FSIIter += 1
 
             # --- Monitor the coupling convergence --- #
-            if self.criterion.isVerified(self.errValue, self.errValue_CHT):
+            if self.criterion.isVerified(self.errValue):
                 mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
                 return True
         
@@ -706,7 +706,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             self.FSIIter += 1
 
             # --- Monitor the coupling convergence --- #
-            if self.criterion.isVerified(self.errValue, self.errValue_CHT):
+            if self.criterion.isVerified(self.errValue):
                 mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
                 return True
 

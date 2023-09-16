@@ -48,9 +48,6 @@ class SolidSolver(object):
         self.nodalVel_X = np.zeros(self.nPhysicalNodes)
         self.nodalVel_Y = np.zeros(self.nPhysicalNodes)
         self.nodalVel_Z = np.zeros(self.nPhysicalNodes)
-        self.nodalVel_XNm1 = np.zeros(self.nPhysicalNodes)
-        self.nodalVel_YNm1 = np.zeros(self.nPhysicalNodes)
-        self.nodalVel_ZNm1 = np.zeros(self.nPhysicalNodes)
 
         # --- Same for thermal coupling (heat fluxes and temperature) ---
         self.nodalHeatFlux_X = np.zeros(self.nPhysicalNodes)
@@ -85,16 +82,13 @@ class SolidSolver(object):
     def getNodalVelocity(self):
         return (self.nodalVel_X, self.nodalVel_Y, self.nodalVel_Z)
 
-    def getNodalVelocityNm1(self):
-        return (self.nodalVel_XNm1, self.nodalVel_YNm1, self.nodalVel_ZNm1)
-
     def getNodalIndex(self, iVertex):
         return
 
     def fakeFluidSolver(self, dt):
         return
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
         return
 
     def applyNodalTemperatures(self, Temperature, dt):
@@ -107,10 +101,7 @@ class SolidSolver(object):
         return
 
     def update(self):
-
-        self.nodalVel_XNm1 = self.nodalVel_X.copy()
-        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
-        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
+        return
 
     def steadyUpdate(self):
         return
@@ -206,7 +197,7 @@ class FluidSolver(object):
     def getNodalHeatFluxes(self):
         return (self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z)
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, dt):
+    def applyNodalDisplacements(self, dx, dy, dz, haloNodesDisplacements, dt):
         return
 
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt):

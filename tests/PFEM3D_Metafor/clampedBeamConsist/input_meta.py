@@ -7,8 +7,6 @@ import os
 def params(parm):
 
     parm['bndno'] = 2
-    parm['saveAllFacs'] = False
-    parm['bctype'] = 'pydeadloads'
     return parm
 
 # Parallel Computing
@@ -68,6 +66,14 @@ def getMetafor(parm):
     prp.put(w.MATERIAL,1)
     app.addProperty(prp)
 
+    # Elements for surface traction
+
+    prp2 = w.ElementProperties(w.NodStress2DElement)
+    load = w.NodInteraction(2)
+    load.push(groups['FSInterface'])
+    load.addProperty(prp2)
+    interactionset.add(load)
+
     # Boundary conditions
     
     loadingset.define(groups['Clamped'],w.Field1D(w.TX,w.RE))
@@ -92,6 +98,7 @@ def getMetafor(parm):
 
     # Parameters for CUPyDO
 
+    parm['interacM'] = load
     parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
     parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

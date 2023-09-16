@@ -13,12 +13,12 @@ def test(meanFSIIt):
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(4)[0]
+    coord = gmsh.model.mesh.getNode(49)[0]
     gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X', coord[0], 0, 1e-9, True))
-    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.000894, 0.05, False))
+    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
+    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.075215, 0.01, False))
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
     tests.run()
 
@@ -39,9 +39,9 @@ def getFsiP():
     # FSI objects
 
     p['criterion'] = 'displacement'
-    p['interpolator'] = 'matching'
-    p['interpType'] = 'conservative'
-    p['algorithm'] = 'aitkenBGS'
+    p['interpolator'] = 'RBF'
+    p['interpType'] = 'consistent'
+    p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters
 
@@ -49,18 +49,19 @@ def getFsiP():
     p['computation'] = 'direct'
     p['compType'] = 'unsteady'
     p['timeItTresh'] = 0
-    p['dtSave'] = 0
+    p['dtSave'] = 0.1
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['tol'] = 1e-8
-    p['dt'] = 1.5e-6
-    p['tTot'] = 1e-4
+    p['dt'] = 0.1
+    p['tTot'] = 20
     p['nDim'] = 2
+    p['rbfRadius'] = 100
 
     # Coupling Type
 
-    p['mechanical'] = True
-    p['thermal'] = False
+    p['mechanical'] = False
+    p['thermal'] = True
     return p
 
 # Main Function

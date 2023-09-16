@@ -91,9 +91,9 @@ class Pfem(FluidSolver):
         
         FluidSolver.__init__(self)
         
-        self.displ_x_Nm1 = np.zeros((self.nPhysicalNodes))
-        self.displ_y_Nm1 = np.zeros((self.nPhysicalNodes))
-        self.displ_z_Nm1 = np.zeros((self.nPhysicalNodes))
+        self.displ_x_prev = np.zeros((self.nPhysicalNodes))
+        self.displ_y_prev = np.zeros((self.nPhysicalNodes))
+        self.displ_z_prev = np.zeros((self.nPhysicalNodes))
         
     def run(self, t1, t2):
         """
@@ -169,7 +169,7 @@ class Pfem(FluidSolver):
             
         self.applydefo(out)
     
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, dt):
+    def applyNodalDisplacements(self, dx, dy, dz, haloNodesDisplacements, dt):
         """
         Prescribes given nodal positions and velocities coming from solid solver to node #no
         """
@@ -178,8 +178,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/dt
-            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/dt
+            node.imposedU = (dx[i] - self.displ_x_prev[i])/dt
+            node.imposedV = (dy[i] - self.displ_y_prev[i])/dt
         
     def update(self, dt):
         self.pfem.scheme.t += dt
@@ -191,10 +191,10 @@ class Pfem(FluidSolver):
         
         #---
         for i in range(len(self.vnods)):
-            displ_x = self.displ_x_Nm1[i] + self.pfem.scheme.u[self.vnods[i].rowU]*dt
-            displ_y = self.displ_y_Nm1[i] + self.pfem.scheme.v[self.vnods[i].rowU]*dt
-            self.displ_x_Nm1[i] = displ_x
-            self.displ_y_Nm1[i] = displ_y
+            displ_x = self.displ_x_prev[i] + self.pfem.scheme.u[self.vnods[i].rowU]*dt
+            displ_y = self.displ_y_prev[i] + self.pfem.scheme.v[self.vnods[i].rowU]*dt
+            self.displ_x_prev[i] = displ_x
+            self.displ_y_prev[i] = displ_y
         # ---
         
     def save(self, nt):

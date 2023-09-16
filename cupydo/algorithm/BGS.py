@@ -80,7 +80,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
         self.alpha_1 = 0.5
 
         self.solidInterfaceVelocity = None
-        self.solidInterfaceVelocitynM1 = None
         self.solidInterfaceResidual = None
         self.solidHeatFluxResidual = None
         self.solidTemperatureResidual = None
@@ -93,7 +92,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
         # --- Initialize data for prediction (mechanical only) --- #
         if self.predictor and self.manager.mechanical:
             self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
-            self.solidInterfaceVelocitynM1 = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         # --- Initialize coupling residuals --- #
         if self.manager.mechanical:
@@ -374,7 +372,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
         # --- Calculate the residual (vector and norm) --- #
         mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
         self.solidInterfaceResidual.set(predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement)
-
         return self.solidInterfaceResidual
 
     def computeSolidInterfaceResidual_CHT(self):
@@ -400,6 +397,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
             self.solidHeatFluxResidual.set(predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux)
             return self.solidHeatFluxResidual
+        
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
             self.solidTemperatureResidual.set(predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature)
@@ -425,14 +423,11 @@ class AlgorithmBGSStaticRelax(Algorithm):
             # --- Get the velocity (current and previous time step) of the solid interface from the solid solver --- #
             if self.myid in self.manager.getSolidInterfaceProcessors():
                 localSolidInterfaceVel_X, localSolidInterfaceVel_Y, localSolidInterfaceVel_Z = self.SolidSolver.getNodalVelocity()
-                localSolidInterfaceVelNm1_X, localSolidInterfaceVelNm1_Y, localSolidInterfaceVelNm1_Z = self.SolidSolver.getNodalVelocityNm1()
                 for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                     iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
                     self.solidInterfaceVelocity[iGlobalVertex] = [localSolidInterfaceVel_X[iVertex], localSolidInterfaceVel_Y[iVertex], localSolidInterfaceVel_Z[iVertex]]
-                    self.solidInterfaceVelocitynM1[iGlobalVertex] = [localSolidInterfaceVelNm1_X[iVertex], localSolidInterfaceVelNm1_Y[iVertex], localSolidInterfaceVelNm1_Z[iVertex]]
 
             self.solidInterfaceVelocity.assemble()
-            self.solidInterfaceVelocitynM1.assemble()
 
         else:
 
@@ -440,18 +435,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.interfaceInterpolator.restoreSolidInterfaceDisplacement()
 
         # --- Predict the solid position for the next time step --- #
-        if self.predictorOrder == 1:
 
-            mpiPrint("First order predictor.", self.mpiComm)
-            self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.step.dt*self.solidInterfaceVelocity)
-
-        elif self.predictorOrder == 2:
-
-            mpiPrint("Second order predictor.", self.mpiComm)
-            self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.step.dt*self.solidInterfaceVelocity + self.alpha_1*self.step.dt*(self.solidInterfaceVelocity-self.solidInterfaceVelocitynM1))
-
-        else:
-            raise Exception('Only first or second order prdictors are available')
+        mpiPrint("First order predictor.", self.mpiComm)
+        self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.step.dt*self.solidInterfaceVelocity)
 
     def setOmegaMecha(self):
 

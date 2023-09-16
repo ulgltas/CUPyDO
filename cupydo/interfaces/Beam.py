@@ -160,10 +160,6 @@ class pyBeamSolver(SolidSolver):
             # self.nodalVel_X[PhysicalIndex] = vel[0]
             # self.nodalVel_Y[PhysicalIndex] = vel[1]
             # self.nodalVel_Z[PhysicalIndex] = vel[2]
-            #
-            # self.nodalVel_XNm1[PhysicalIndex] = vel_n[0]
-            # self.nodalVel_YNm1[PhysicalIndex] = vel_n[1]
-            # self.nodalVel_ZNm1[PhysicalIndex] = vel_n[2]
 
             PhysicalIndex += 1
 
@@ -186,7 +182,7 @@ class pyBeamSolver(SolidSolver):
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
 
 
         # --- Initialize the interface position and the nodal loads --- #

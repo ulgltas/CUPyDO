@@ -59,6 +59,15 @@ def getFsiP():
     p['nDim'] = 2
     p['rbfRadius'] = 100
 
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 # Main Function

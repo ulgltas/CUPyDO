@@ -55,6 +55,10 @@ def getFsiP():
     p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

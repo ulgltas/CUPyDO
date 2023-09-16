@@ -50,10 +50,6 @@ class ExampSolver(SolidSolver):
         self.coreSolver = solidWrapper.solverDriver(config)
         
         self.__setCurrentState()           # use to fill the arrays with initial nodal values
-        self.nodalVel_XNm1 = self.nodalVel_X.copy()
-        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
-        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
-        
         self.initRealTimeData()
         
     def run(self, t1, t2):
@@ -76,7 +72,7 @@ class ExampSolver(SolidSolver):
             #self.nodalVel_X[ii] = self.coreSolver.getVelocityX(ii)  
             #self.nodalVel_Y[ii] = self.coreSolver.getVelocityY(ii)  
             #self.nodalVel_Z[ii] = self.coreSolver.getVelocityZ(ii)  
-
+        return
 
     def getNodalInitialPositions(self):
 
@@ -91,7 +87,8 @@ class ExampSolver(SolidSolver):
             #nodalInitialPos_Z[ii] = 
 
         #return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
-
+        return
+    
     def getNodalIndex(self, iVertex):
         """
         Returns the index (identifier) of the iVertex^th interface node.
@@ -100,8 +97,9 @@ class ExampSolver(SolidSolver):
         #no = 
     
         #return no
+        return
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
 
 
         #This is just an example again
@@ -109,9 +107,10 @@ class ExampSolver(SolidSolver):
             #self.coreSolver.applyNodalLoadX(load_X[ii], ii)
             #self.coreSolver.applyNodalLoadY(load_Y[ii], ii)
             #self.coreSolver.applyNodalLoadZ(load_Z[ii], ii)
+        return
 
     def applyNodalTemperatures(self, Temperature, dt):
-
+        return
 
     def update(self):
         """

@@ -54,10 +54,6 @@ class RBMI(SolidSolver):
         SolidSolver.__init__(self)
 
         self.__setCurrentState()
-        self.nodalVel_XNm1 = self.nodalVel_X.copy()
-        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
-        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
-
         self.initRealTimeData()
 
     def preprocessTimeIter(self, timeIter):
@@ -112,7 +108,7 @@ class RBMI(SolidSolver):
 
         self.NativeSolid.getInterfaceNodeGlobalIndex(self.interfaceID, iVertex)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
 
 
         for iVertex in range(self.nPhysicalNodes):

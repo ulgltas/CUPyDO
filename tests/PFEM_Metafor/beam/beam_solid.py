@@ -8,8 +8,6 @@ import os
 def params(p):
 
     p['bndno'] = 3
-    p['saveAllFacs'] = False
-    p['bctype'] = 'pydeadloads'
     p['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
     p['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return p

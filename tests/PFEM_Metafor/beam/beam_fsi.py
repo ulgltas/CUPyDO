@@ -78,6 +78,10 @@ def getFsiP():
     p['tTot'] = 20
     p['nDim'] = 2
 
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 # Main Function

@@ -71,6 +71,10 @@ def getAdjP():
     p['extractors'] = [2, 3]
     p['surfaceFilename'] = 'surface_solid'
     p['surfaceExtension'] = 'vtu'
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

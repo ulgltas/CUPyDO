@@ -75,6 +75,10 @@ def getFsiP():
     p['rbfRadius'] = .3
     p['interpOpts'] = [1000, 'JACOBI']
     p['nodalLoadsType'] = 'force'
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

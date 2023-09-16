@@ -7,16 +7,9 @@ import os
 def params(parm):
 
     parm['bndno'] = 1
-    parm['saveAllFacs'] = False
-    parm['bctype'] = 'pydeadloads'
     return parm
 
-# Parallel Computing
-
 metafor = None
-
-# Main Function
-
 def getMetafor(parm):
 
     global metafor

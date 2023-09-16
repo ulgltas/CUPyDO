@@ -80,6 +80,10 @@ def getAdjP():
     p['nodalLoadsType'] = 'force'
     # Solid parameters
     p['extractors'] = [20]
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

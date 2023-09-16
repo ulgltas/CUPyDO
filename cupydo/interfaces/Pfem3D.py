@@ -143,9 +143,9 @@ class Pfem3D(FluidSolver):
         self.__setCurrentState()
         return True
 
-# Apply Boundary Conditions
+# Apply Mechanical Boundary Conditions
 
-    def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,dt):
+    def applyNodalDisplacements(self,dx,dy,dz,haloNodesDisplacements,dt):
 
         BC = (np.transpose([dx,dy,dz])-self.disp)/dt
         if not self.implicit: BC = 2*(BC-self.vel)/dt
@@ -153,11 +153,18 @@ class Pfem3D(FluidSolver):
         for i,vector in enumerate(BC):
             for j,val in enumerate(vector): self.BC[i][j] = val
 
+# Apply Thermal Boundary Conditions
+
+    def applyNodalTemperatures(self,Temperature,dt):
+
+        for i,result in enumerate(Temperature):
+            self.BC[i][self.dim] = result[0]
+
 # Return Nodal Values
 
     def getPosition(self):
 
-        result = np.zeros(self.disp.shape)
+        result = np.zeros((self.nPhysicalNodes,3))
 
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
@@ -169,7 +176,7 @@ class Pfem3D(FluidSolver):
 
     def getVelocity(self):
 
-        result = np.zeros(self.disp.shape)
+        result = np.zeros((self.nPhysicalNodes,3))
         
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):

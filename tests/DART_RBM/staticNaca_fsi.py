@@ -79,6 +79,10 @@ def getFsiP():
     p['omega'] = 1.0
     p['nSteps'] = 0
     p['firstItTgtMat'] = False
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

@@ -58,6 +58,10 @@ def getFsiP():
     p['maxIt'] = 50
     p['omega'] = 1.0
     p['rbfRadius'] = .3
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

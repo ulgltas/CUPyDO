@@ -67,6 +67,10 @@ def getFsiP():
     p['maxIt'] = 20
     p['omega'] = 1.0
     p['nodalLoadsType'] = 'force'
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

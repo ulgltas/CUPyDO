@@ -68,6 +68,7 @@ class ExampSolver(FluidSolver):
             #self.nodalLoad_X[iVertex] = self.coreSolver.getLoadX(iVertex)
             #self.nodalLoad_Y[iVertex] = self.coreSolver.getLoadY(iVertex)
             #self.nodalLoad_Z[iVertex] = self.coreSolver.getLoadZ(iVertex)
+        return
 
     def getNodalInitialPositions(self):
 
@@ -82,15 +83,15 @@ class ExampSolver(FluidSolver):
             #nodalInitialPos_Z[ii] = 
 
         #return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
+        return
 
     def getNodalIndex(self, iVertex):
-
-
         #no = 
 
         #return no
+        return
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
+    def applyNodalDisplacements(self, dx, dy, dz, haloNodesDisplacements,dt):
 
 
         #This is just an example again
@@ -98,6 +99,7 @@ class ExampSolver(FluidSolver):
             #self.coreSolver.applyNodalDispX(dx[iVertex], iVertex)
             #self.coreSolver.applyNodalDispY(dy[iVertex], iVertex)
             #self.coreSolver.applyNodalDispZ(dz[iVertex], iVertex)
+        return
 
     def update(self, dt):
 

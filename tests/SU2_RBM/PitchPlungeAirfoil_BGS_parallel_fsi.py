@@ -65,6 +65,10 @@ def getFsiP():
     p['nSteps'] = 0
     p['firstItTgtMat'] = False
     p['nodalLoadsType'] = 'force'
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

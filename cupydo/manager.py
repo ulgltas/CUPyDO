@@ -66,8 +66,8 @@ class Manager(ccupydo.CManager):
         self.nDim = p['nDim']
         self.computationType = p['compType']
         self.computation = p['computation']
-        self.mechanical = True
-        self.thermal = False
+        self.mechanical = p['mechanical']
+        self.thermal = p['thermal']
 
         self.haveFluidSolver = False
         self.nLocalFluidInterfaceNodes = 0

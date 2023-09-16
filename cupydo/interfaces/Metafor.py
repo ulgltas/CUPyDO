@@ -42,10 +42,10 @@ class NLoad(object):
     Class representing the nodal forces
     """
     def __init__(self,val):
-        self.val = val
+        self.val = float(val)
 
     def __call__(self,time):
-        return self.val
+        return float(self.val)
 
 # ----------------------------------------------------------------------
 #  Metafor solver interface class
@@ -71,6 +71,11 @@ class Metafor(SolidSolver):
         self.exporter = parm['exporter']
         self.interpType = p['interpType']
         self.computationType = p['compType']
+
+        self.thermal = p['thermal']
+        self.mechanical = p['mechanical']
+
+        # Get Metafor Python objects
 
         geometry = domain.getGeometry()
         loadingset = domain.getLoadingSet()
@@ -100,10 +105,17 @@ class Metafor(SolidSolver):
 
         # Create the consistent nodal stress/heat containers
 
-        else:
+        self.interacM = None
+        if 'interacM' in parm:
 
-            self.interac = parm['interaction']
+            self.interacM = parm['interacM']
             self.prevLoad = np.zeros((self.nNodes,6))
+
+        self.interacT = None
+        if 'interacT' in parm:
+
+            self.interacT = parm['interacT']
+            self.prevHeat = np.zeros((self.nNodes,3))
 
         # Creates the array for external communication
 
@@ -169,6 +181,8 @@ class Metafor(SolidSolver):
             self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY,w.RE))
             self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ,w.RE))
 
+            self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO,w.RE))
+
     def getNodalInitialPositions(self):
         """
         Return the position vector of the solver interface
@@ -192,15 +206,15 @@ class Metafor(SolidSolver):
         node = self.FSI.getMeshPoint(index)
         return node.getNo()
 
-# Set Nodal Loads
+# Mechanical Boundary Conditions
 
     def applyNodalForce(self,loadX,loadY,loadZ,dt):
         """
-        Apply the conservative load boundary conditions on the mesh
+        Apply the conservative load boundary conditions
         """
 
         self.nextLoad = np.transpose([loadX,loadY,loadZ])[:self.nNodes]
-        result = (self.prevLoad+self.nextLoad)/2 # Dimension mismatch here !
+        result = (self.prevLoad+self.nextLoad)/2
 
         for i in range(self.nNodes):
 
@@ -210,9 +224,10 @@ class Metafor(SolidSolver):
             fy.val = result[i][1]
             fz.val = result[i][2]
 
+
     def applyNodalStress(self,sXX,sYY,sZZ,sXY,sXZ,sYZ,dt):
         """
-        Apply the consistent load boundary conditions on the mesh
+        Apply the consistent load boundary conditions
         """
 
         self.nextLoad = np.transpose([sXX,sYY,sZZ,sXY,sXZ,sYZ])[:self.nNodes]
@@ -221,7 +236,22 @@ class Metafor(SolidSolver):
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            self.interac.setNodTensor3D(node,*result[i])
+            self.interacM.setNodTensor3D(node,*result[i])
+
+# Thermal Boundary Conditions
+
+    def applyNodalHeatFluxes(self,HF_X,HF_Y,HF_Z,dt):
+        """
+        Apply the consistent heat flux boundary conditions
+        """
+
+        self.nextHeat = np.transpose([HF_X,HF_Y,HF_Z])[:self.nNodes]
+        result = (self.prevHeat+self.nextHeat)/2
+
+        for i in range(self.nbrNod):
+
+            node = self.FSI.getMeshPoint(i)
+            self.interac.setNodVector(node,*result[i])
 
 # Other Functions
 
@@ -230,7 +260,8 @@ class Metafor(SolidSolver):
         Save the current state in the RAM and update the load
         """
 
-        self.prevLoad = np.copy(self.nextLoad)
+        if self.mechanical: self.prevLoad = np.copy(self.nextLoad)
+        if self.thermal: self.prevHeat = np.copy(self.nextHeat)
         self.metaFac.save(self.mfac)
         SolidSolver.update(self)
         self.reload = False
@@ -240,7 +271,8 @@ class Metafor(SolidSolver):
         Save the current state in the RAM and update the load
         """
 
-        self.prevLoad = np.copy(self.nextLoad)
+        if self.mechanical: self.prevLoad = np.copy(self.nextLoad)
+        if self.thermal: self.prevHeat = np.copy(self.nextHeat)
         self.metaFac.save(self.mfac)
         self.reload = True
 

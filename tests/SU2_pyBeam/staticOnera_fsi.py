@@ -73,6 +73,10 @@ def getFsiP():
     p['interpOpts'] = [1000, 'JACOBI']
     p['nodalLoadsType'] = 'force'
     p['extractors'] = [19]
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['thermal'] = False
     return p
 
 def main():

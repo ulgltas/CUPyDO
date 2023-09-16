@@ -33,19 +33,9 @@ def params(q={}):
     #p['tolNR']      = 1.0e-6        # Newton-Raphson tolerance
     p['tend']       = 0.05           # final time
     p['dtmax']      = 0.05          # max time step
-    p['saveAllFacs'] = False
-    
-    # BC type
-    #p['bctype']     = 'pressure'     # uniform pressure
-    #p['bctype']     = 'deadload'     # uniform nodal load
-    #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
-    #p['bctype']     = 'pydeadloads'  # variable loads
-    #p['bctype']     = 'slave'     # variable loads (mpi)
-
     p['bndno'] = 111
     p['extractNode'] = 180
     p['unsteady'] = False
-
     p['exporter'] = Extractor()
                                        
     p.update(q)

@@ -231,7 +231,7 @@ class SU2(FluidSolver):
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
-    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dispnM1_X, dispnM1_Y, dispnM1_Z, haloNodesDisplacements, dt):
+    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dispPrev_X, dispPrev_Y, dispPrev_Z, haloNodesDisplacements, dt):
         """
         Set the displacement of the f/s boundary before mesh morphing.
         """

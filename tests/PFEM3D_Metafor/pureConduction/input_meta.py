@@ -3,7 +3,7 @@ import numpy as np
 import wrap as w
 import os
 
-# Physical group 1 = FSInterface
+# Physical group 2 = FSInterface
 
 def params(parm):
 
@@ -128,6 +128,6 @@ def getMetafor(parm):
 
     parm['interacT'] = heat
     parm['FSInterface'] = groups['FSInterface']
-    parm['exporter'] = gmsh.GmshExport('metafor/output.msh',metafor)
+    parm['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
     parm['exporter'].addDataBaseField([w.TO])
     return metafor

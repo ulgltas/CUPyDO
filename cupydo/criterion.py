@@ -38,19 +38,24 @@ class Criterion(object):
 
     def __init__(self, p):
 
-        self.tol = p['tol']
         self.epsilon = 0
+        self.epsilonCHT = 0
+        self.tol = p['tol']
 
-    def isVerified(self, epsilon):
-        return epsilon < self.tol
+    def isVerified(self):
+        return (self.epsilon < self.tol) and (self.epsilonCHT < self.tol)
 
 class NormCriterion(Criterion):
     
     def __init__(self, p):
         Criterion.__init__(self, p)
 
-    def update(self, res):
+    def update(self, residual):
 
-        norm = res.norm()
+        norm = residual.norm()
         self.epsilon = np.linalg.norm(norm)
-        return self.epsilon
+    
+    def updateCHT(self, residual):
+
+        norm = residual.norm()
+        self.epsilonCHT = np.linalg.norm(norm)

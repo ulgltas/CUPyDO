@@ -93,9 +93,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         mpiPrint("Enter IQN-MNJ Strong Coupling FSI",self.mpiComm,titlePrint)
 
         self.FSIIter = 0
-        self.errValue = 1.0
-        self.errValue_CHT = 1e6 # Just for compatibility
-        
+
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
@@ -166,8 +164,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
             # --- Compute and monitor the FSI residual --- #
             res = self.computeSolidInterfaceResidual()
-            self.errValue = self.criterion.update(res)
-            mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
+            self.criterion.update(res)
+            mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
 
             # --- Initialize d_tilde for the construction of the Wk matrix -- #
             if self.myid in self.manager.getSolidInterfaceProcessors():
@@ -270,7 +268,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             self.FSIIter += 1
 
             # --- Compute and monitor the FSI residual then update the Jacobian --- #
-            if self.criterion.isVerified(self.errValue):
+            if self.criterion.isVerified():
                 mpiPrint("IQN-MVJ is Converged",self.mpiComm,titlePrint)
                 self.invJprev = np.copy(self.invJ)
                 return True

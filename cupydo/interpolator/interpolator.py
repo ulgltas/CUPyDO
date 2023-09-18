@@ -53,40 +53,35 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         -distance()
     """
 
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None):
 
         mpiPrint("Initializing FSI Interpolator",mpiComm,titlePrint)
 
         ccupydo.CInterpolator.__init__(self, Manager)
+        
+        self.d = 0
+        self.mappingTimer = Timer()
 
         self.manager = Manager
         self.SolidSolver = SolidSolver
         self.FluidSolver = FluidSolver
-        self.interpType = p['interpType']
-        self.mappingTimer = Timer()
+        self.mpiComm = mpiComm
+
+        if p['mechanical']:
+            self.interpType = p['interpType']
+
+        if p['thermal']:
+            self.chtTransferMethod = p['chtTransferMethod']
+            if self.chtTransferMethod in ['hFTB','hFFB']:
+                self.heatTransferCoeff = p['heatTransferCoeff']
+            else:
+                self.heatTransferCoeff = None
 
         self.nf = int(self.manager.getNumberOfFluidInterfaceNodes())
         self.ns = int(self.manager.getNumberOfSolidInterfaceNodes())
         self.nf_loc = int(self.manager.getNumberOfLocalFluidInterfaceNodes())
         self.ns_loc = int(self.manager.getNumberOfLocalSolidInterfaceNodes())
         self.nDim = self.manager.getnDim()
-
-        self.d = 0
-
-        if self.manager.thermal:
-            self.chtTransferMethod = chtTransferMethod
-            if self.chtTransferMethod not in ['TFFB','FFTB','hFTB','hFFB']:
-                mpiPrint('CHT transfer method not specified or not recognized, using default TFFB',mpiComm)
-                self.chtTransferMethod = 'TFFB'
-        else:
-            self.chtTransferMethod = None
-
-        if self.chtTransferMethod in ['hFTB','hFFB']:
-            self.heatTransferCoeff = heatTransferCoeff
-        else:
-            self.heatTransferCoeff = None
-
-        self.mpiComm = mpiComm
 
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
@@ -521,11 +516,11 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
     def setHeatFluxToSolidSolver(self, dt):
 
         if self.mpiComm != None:
-            (localSolidInterfaceNormalHeatFlux, haloNodesNormalHeatFlux) =  self.redistributeDataToSolidSolver(self.solidInterfaceNormalHeatFlux)
+            (localSolidInterfaceHeatFlux, haloNodesHeatFlux) =  self.redistributeDataToSolidSolver(self.solidInterfaceHeatFlux)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceNormalHeatFlux[0], dt)
+                self.SolidSolver.applyNodalHeatFluxes(localSolidInterfaceHeatFlux.getDataArray(0), localSolidInterfaceHeatFlux.getDataArray(1), localSolidInterfaceHeatFlux.getDataArray(2), dt)
         else:
-            self.SolidSolver.applyNodalNormalHeatFluxes(self.solidInterfaceNormalHeatFlux.getDataArray(0), dt)
+            self.SolidSolver.applyNodalHeatFluxes(self.solidInterfaceHeatFlux.getDataArray(0), self.solidInterfaceHeatFlux.getDataArray(1), self.solidInterfaceHeatFlux.getDataArray(2), dt)
 
     def interpolateFluidLoadsOnSolidMesh(self):
 
@@ -538,7 +533,6 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
     def interpolateSolidHeatFluxOnFluidMesh(self):
 
         self.interpolateSolidToFluid(self.solidInterfaceHeatFlux, self.fluidInterfaceHeatFlux)
-
 
     def interpolateSolidTemperatureOnFluidMesh(self):
 

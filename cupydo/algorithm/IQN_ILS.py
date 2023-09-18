@@ -108,9 +108,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
         stack = 0
         self.FSIIter = 0
         self.FSIConv = False
-        self.errValue = 1.0
-        self.errValue_CHT = 1e6 # Just for compatibility. CHT not yet implemented for the IQN-ILS algorithm.
-        
+
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
@@ -183,8 +181,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
             # --- Compute and monitor the FSI residual --- #
             res = self.computeSolidInterfaceResidual()
-            self.errValue = self.criterion.update(res)
-            mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
+            self.criterion.update(res)
+            mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
 
             # --- Initialize d_tilde for the construction of the Wk matrix -- #
             if self.myid in self.manager.getSolidInterfaceProcessors():
@@ -284,7 +282,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
             self.FSIIter += 1
 
             # --- Compute and monitor the FSI residual --- #
-            if self.criterion.isVerified(self.errValue):
+            if self.criterion.isVerified():
                 mpiPrint("IQN-ILS is Converged",self.mpiComm,titlePrint)
                 self.FSIConv = True
         

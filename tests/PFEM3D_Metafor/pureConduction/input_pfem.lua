@@ -35,7 +35,7 @@ Problem.Extractors = {}
 Problem.Extractors[0] = {}
 Problem.Extractors[0].kind = 'GMSH'
 Problem.Extractors[0].writeAs = 'NodesElements'
-Problem.Extractors[0].outputFile = 'pfem/output.msh'
+Problem.Extractors[0].outputFile = 'fluid.msh'
 Problem.Extractors[0].whatToWrite = {'T'}
 Problem.Extractors[0].timeBetweenWriting = math.huge
 

@@ -41,6 +41,9 @@ class Pfem3D(FluidSolver):
 
         titlePrint('Initializing PFEM3D')
         self.problem = w.getProblem(p['cfdFile'])
+
+        self.thermal = p['thermal']
+        self.mechanical = p['mechanical']
         self.interpType = p['interpType']
 
         # Incompressible or weakly compressible solver
@@ -114,7 +117,8 @@ class Pfem3D(FluidSolver):
                 continue
 
             count = count-1
-        self.__setCurrentState()
+        if self.mechanical: self.__setCurrentState()
+        if self.thermal:  self.__setCurrentStateCHT()
         return True
 
 # Run for explicit integration scheme
@@ -140,7 +144,8 @@ class Pfem3D(FluidSolver):
             self.solver.setTimeStep(dt)
             self.solver.solveOneTimeStep()
 
-        self.__setCurrentState()
+        if self.mechanical: self.__setCurrentState()
+        if self.thermal:  self.__setCurrentStateCHT()
         return True
 
 # Apply Mechanical Boundary Conditions
@@ -158,7 +163,7 @@ class Pfem3D(FluidSolver):
     def applyNodalTemperatures(self,Temperature,dt):
 
         for i,result in enumerate(Temperature):
-            self.BC[i][self.dim] = result[0]
+            self.BC[i][self.dim] = result
 
 # Return Nodal Values
 
@@ -229,6 +234,17 @@ class Pfem3D(FluidSolver):
                 self.nodalLoad_XX[i] = result[i][0]
                 self.nodalLoad_YY[i] = result[i][1]
                 self.nodalLoad_XY[i] = result[i][2]
+
+    def __setCurrentStateCHT(self):
+        
+        result = w.VectorVectorDouble()
+        self.solver.computeHeatFlux('FSInterface',self.FSI,result)
+
+        for i in range(self.nNodes):
+
+            self.nodalHeatFlux_X[i] = result[i][0]
+            self.nodalHeatFlux_Y[i] = result[i][1]
+            if self.dim == 3: self.nodalHeatFlux_Z[i] = result[i][2]
 
 # Other Functions
 

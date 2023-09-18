@@ -43,9 +43,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class ConsistentInterpolator(InterfaceInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None):
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting non-matching consistent interpolator...', mpiComm)
 
         self.d = self.nDim+1
@@ -238,9 +238,9 @@ class ConsistentInterpolator(InterfaceInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentRBFInterpolator(ConsistentInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None):
 
-        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
+        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
         self.radius = p['rbfRadius']
@@ -289,9 +289,9 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentTPSInterpolator(ConsistentInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm= None):
 
-        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
+        ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting consistent interpolation with Thin Plate Spline...', self.mpiComm)
 
         self.generateInterfaceData()

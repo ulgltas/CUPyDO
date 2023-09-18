@@ -8,12 +8,13 @@ def test(meanFSIIt):
     name = [file for file in os.listdir() if('solid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
+    tag = 49
 
     import gmsh
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(49)[0]
+    coord = gmsh.model.mesh.getNode(tag)[0]
     gmsh.finalize()
 
     tests = CTests()

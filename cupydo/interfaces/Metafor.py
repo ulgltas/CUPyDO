@@ -181,7 +181,7 @@ class Metafor(SolidSolver):
             self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY,w.RE))
             self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ,w.RE))
 
-            self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO,w.RE))
+            self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO,w.AB)) + node.getValue(w.Field1D(w.TO,w.RE))
 
     def getNodalInitialPositions(self):
         """
@@ -248,10 +248,10 @@ class Metafor(SolidSolver):
         self.nextHeat = np.transpose([HF_X,HF_Y,HF_Z])[:self.nNodes]
         result = (self.prevHeat+self.nextHeat)/2
 
-        for i in range(self.nbrNod):
+        for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            self.interac.setNodVector(node,*result[i])
+            self.interacT.setNodVector(node,*result[i])
 
 # Other Functions
 

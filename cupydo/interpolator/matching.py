@@ -42,9 +42,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class MatchingMeshesInterpolator(InterfaceInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None):
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm, chtTransferMethod, heatTransferCoeff)
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
 
         mpiPrint('\nSetting matching meshes interpolator...', mpiComm)
 
@@ -188,7 +188,7 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
     def interpolateFluidToSolid(self, fluidInterfaceData, solidInterfaceData):
 
         self.H_T.mult(fluidInterfaceData, solidInterfaceData)
-
+        
     def interpolateSolidToFluid(self, solidInterfaceData, fluidInterfaceData):
 
         self.H.mult(solidInterfaceData, fluidInterfaceData)

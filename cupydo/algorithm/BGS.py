@@ -69,15 +69,10 @@ class AlgorithmBGSStaticRelax(Algorithm):
         self.writeInFSIloop = False
 
         self.FSIIter = 0
-        self.errValue = 0.0
         self.FSIConv = False
+        self.predictor = True
         self.totNbOfFSIIt = 0
         self.nbFSIIterMax = p['maxIt']
-
-        self.predictor = True
-        self.predictorOrder = 2
-        self.alpha_0 = 1.0
-        self.alpha_1 = 0.5
 
         self.solidInterfaceVelocity = None
         self.solidInterfaceResidual = None
@@ -157,7 +152,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Displacement predictor for the next time step --- #
             mpiPrint('\nSolid displacement prediction for next time step', self.mpiComm)
-            self.solidDisplacementPredictor()
+
+            if self.manager.mechanical:
+                self.solidDisplacementPredictor()
 
             # --- Preprocess the temporal iteration --- #
             self.FluidSolver.preprocessTimeIter(self.step.timeIter)
@@ -215,7 +212,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FluidSolver.saveRealTimeData(self.step.time, self.FSIIter)
             self.SolidSolver.saveRealTimeData(self.step.time, self.FSIIter)
             histFile = open('FSIhistory.ascii', "a")
-            histFile.write('{0:12d}   {1:.6e}   {2:.6e}   {3:.6e}   {4:12d}   {5:.6e}   {6:.6e}\n'.format(self.step.timeIter, self.step.time, self.errValue, self.errValue_CHT, self.FSIIter, self.omegaMecha, self.omegaThermal))
+            histFile.write('{0:12d}   {1:.6e}   {2:.6e}   {3:.6e}   {4:12d}   {5:.6e}   {6:.6e}\n'.format(self.step.timeIter, self.step.time, self.criterion.epsilon, self.criterion.epsilonCHT, self.FSIIter, self.omegaMecha, self.omegaThermal))
             histFile.close()
 
     def getMeanNbOfFSIIt(self):
@@ -243,7 +240,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FluidSolver.printRealTimeData(self.step.time, self.FSIIter)
             self.SolidSolver.printRealTimeData(self.step.time, self.FSIIter)
 
-        mpiPrint('RES-FSI-FSIhistory: ' + str(self.step.timeIter) + '\t' + str(self.step.time) + '\t' + str(self.errValue) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
+        mpiPrint('RES-FSI-FSIhistory: ' + str(self.step.timeIter) + '\t' + str(self.step.time) + '\t' + str(self.criterion.epsilon) + '\t' + str(self.FSIIter) + '\n', self.mpiComm)
 
     def fsiCoupling(self):
         """
@@ -254,8 +251,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         verif = False
         self.FSIIter = 0
-        self.errValue = 1e12
-        self.errValue_CHT = 1e6
 
         while (self.FSIIter < self.nbFSIIterMax):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
@@ -269,9 +264,11 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.FluidSolver.meshUpdate(self.step.timeIter)
                 self.meshDefTimer.stop()
                 self.meshDefTimer.cumul()
+
             if self.manager.thermal and self.solidHasRun:
                 # --- Solid to fluid thermal transfer --- #
                 self.solidToFluidThermalTransfer()
+
             self.FluidSolver.boundaryConditionsUpdate()
 
             # --- Fluid solver call for FSI subiteration --- #
@@ -289,10 +286,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 # --- Fluid to solid mechanical transfer --- #
                 mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
                 self.fluidToSolidMechaTransfer()
+
             if self.manager.thermal:
                 # --- Fluid to solid thermal transfer --- #
                 mpiPrint('\nProcessing interface thermal quantities...\n', self.mpiComm)
                 self.fluidToSolidThermalTransfer()
+
             mpiBarrier(self.mpiComm)
 
             # --- Solid solver call for FSI subiteration --- #
@@ -312,18 +311,13 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             if self.manager.mechanical:
                 # --- Compute the mechanical residual --- #
-                res = self.computeSolidInterfaceResidual()
-                self.errValue = self.criterion.update(res)
-                mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-            else:
-                self.errValue = 0.0
+                self.criterion.update(self.computeSolidInterfaceResidual())
+                mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
+
             if self.manager.thermal:
                 # --- Compute the thermal residual --- #
-                res_CHT = self.computeSolidInterfaceResidual_CHT()
-                self.errValue_CHT = self.criterion.updateThermal(res_CHT)
-                mpiPrint('\nCHT error value : {}\n'.format(self.errValue_CHT), self.mpiComm)
-            else:
-                self.errValue_CHT = 0.0
+                self.criterion.updateCHT(self.computeSolidInterfaceResidual_CHT())
+                mpiPrint('\nCHT error value : {}\n'.format(self.criterion.epsilonCHT), self.mpiComm)
 
             if self.manager.mechanical:
                 # --- Relaxe the solid position --- #
@@ -332,6 +326,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             if self.manager.thermal:
                 # --- Relaxe thermal data --- #
+                mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
                 self.relaxCHT()
 
             # --- Update the solvers for the next BGS steady iteration --- #
@@ -347,7 +342,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FSIIter += 1
 
             # --- Monitor the coupling convergence --- #
-            if self.criterion.isVerified(self.errValue):
+            if self.criterion.isVerified():
                 mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
                 return True
         
@@ -412,7 +407,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
                 # --- Bring back the interface position of the previous time step --- #
                 self.interfaceInterpolator.restoreSolidInterfaceDisplacement()
-            
             return
 
         if self.verified:
@@ -437,7 +431,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         # --- Predict the solid position for the next time step --- #
 
         mpiPrint("First order predictor.", self.mpiComm)
-        self.interfaceInterpolator.solidInterfaceDisplacement += (self.alpha_0*self.step.dt*self.solidInterfaceVelocity)
+        self.interfaceInterpolator.solidInterfaceDisplacement += (self.step.dt*self.solidInterfaceVelocity)
 
     def setOmegaMecha(self):
 
@@ -627,8 +621,6 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
         self.FSIIter = 0
         self.FSIConv = False
-        self.errValue = 1e12
-        self.errValue_CHT = 1e6
 
         while self.FSIIter < self.nbFSIIterMax:
             mpiPrint("\n>>>> FSI Adjoint iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
@@ -681,12 +673,8 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
             if self.manager.mechanical:
                 # --- Compute the mechanical residual --- #
-                res = self.computeSolidInterfaceAdjointResidual()
-                self.errValue = self.criterion.update(res)
-                mpiPrint('\nFSI error value : {}\n'.format(self.errValue), self.mpiComm)
-            else:
-                self.errValue = 0.0
-            self.errValue_CHT = 0.0
+                self.criterion.update(self.computeSolidInterfaceAdjointResidual())
+                mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
 
             if self.manager.mechanical:
                 # --- Relaxe the solid position --- #
@@ -706,7 +694,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             self.FSIIter += 1
 
             # --- Monitor the coupling convergence --- #
-            if self.criterion.isVerified(self.errValue):
+            if self.criterion.isVerified():
                 mpiPrint("BGS is Converged",self.mpiComm,titlePrint)
                 return True
 

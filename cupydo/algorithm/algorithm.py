@@ -101,6 +101,7 @@ class Algorithm(object):
                 self.FluidSolver.setInitialInterfaceHeatFlux()
             elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
                 self.FluidSolver.setInitialInterfaceTemperature()
+            else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
             self.FluidSolver.boundaryConditionsUpdate()
 
     def fluidToSolidMechaTransfer(self):
@@ -110,10 +111,11 @@ class Algorithm(object):
             self.interfaceInterpolator.getForceFromFluidSolver()
             self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
             self.interfaceInterpolator.setForceToSolidSolver(self.step.dt)
-        else:
+        elif self.interpType == 'consistent':
             self.interfaceInterpolator.getStressFromFluidSolver()
             self.interfaceInterpolator.interpolateFluidLoadsOnSolidMesh()
             self.interfaceInterpolator.setStressToSolidSolver(self.step.dt)
+        else: raise Exception('Wrong interpolation type, use: conservative, consistent')
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
 
@@ -134,6 +136,7 @@ class Algorithm(object):
         elif self.interfaceInterpolator.chtTransferMethod == 'FFTB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
             self.interfaceInterpolator.interpolateSolidTemperatureOnFluidMesh()
             self.interfaceInterpolator.setTemperatureToFluidSolver(self.step.dt)
+        else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
 
@@ -152,6 +155,7 @@ class Algorithm(object):
             self.interfaceInterpolator.getRobinTemperatureFromFluidSolver()
             self.interfaceInterpolator.interpolateFluidRobinTemperatureOnSolidMesh()
             self.interfaceInterpolator.setRobinHeatFluxToSolidSolver(self.step.dt)
+        else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
 

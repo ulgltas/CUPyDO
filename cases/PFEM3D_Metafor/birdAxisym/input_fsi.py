@@ -1,6 +1,7 @@
 import cupydo.interfaces.Cupydo as cupy
 from cupydo.testing import CTest,CTests
 import numpy as np
+import gmsh
 import os
 
 def test(meanFSIIt):
@@ -9,12 +10,11 @@ def test(meanFSIIt):
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
 
-    import gmsh
-    gmsh.initialize()
+    if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
     coord = gmsh.model.mesh.getNode(4)[0]
-    gmsh.finalize()
+    if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X', coord[0], 0, 1e-9, True))

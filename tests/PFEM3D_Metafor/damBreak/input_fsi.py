@@ -1,6 +1,7 @@
 import cupydo.interfaces.Cupydo as cupy
 from cupydo.testing import CTest,CTests
 import numpy as np
+import gmsh
 import os
 
 def test(meanFSIIt):
@@ -10,12 +11,11 @@ def test(meanFSIIt):
     lastFile = name[np.argmax(time)]
     tag = 2
 
-    import gmsh
-    gmsh.initialize()
+    if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
     coord = gmsh.model.mesh.getNode(tag)[0]
-    gmsh.finalize()
+    if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))

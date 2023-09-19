@@ -9,20 +9,20 @@ def test(meanFSIIt):
     name = [file for file in os.listdir() if('fluid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
-    step = len(name)
     tag = 52
 
     if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
     coord = gmsh.model.mesh.getNode(tag)[0]
-    nodeVal = gmsh.view.getModelData(1,step)[2]
-    value = nodeVal[tag-1][0]
     if gmsh.isInitialized(): gmsh.finalize()
+
+    output = np.loadtxt('output.txt',delimiter=',')
+    temperature = output[-1][-1]
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
-    tests.add(CTest('Middle bar temperature', value, 311.75, 0.01, False))
+    tests.add(CTest('Middle bar temperature', temperature, 311.75, 0.01, False))
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
     tests.run()
 
@@ -75,7 +75,6 @@ def main():
     cupydo = cupy.CUPyDO(param)
     cupydo.run()
 
-    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
     test(cupydo.algorithm.getMeanNbOfFSIIt())
 
 if __name__=='__main__':

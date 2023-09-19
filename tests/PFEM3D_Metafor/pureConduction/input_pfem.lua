@@ -45,6 +45,13 @@ Problem.Extractors[1].whatToWrite = 'mass'
 Problem.Extractors[1].outputFile = 'mass.txt'
 Problem.Extractors[1].timeBetweenWriting = math.huge
 
+Problem.Extractors[2] = {}
+Problem.Extractors[2].kind = 'Point'
+Problem.Extractors[2].whatToWrite = 'T'
+Problem.Extractors[2].outputFile = 'output.txt'
+Problem.Extractors[2].points = {{0.5,0.2}}
+Problem.Extractors[2].timeBetweenWriting = math.huge
+
 -- Material Parameters
 
 Problem.Material = {}

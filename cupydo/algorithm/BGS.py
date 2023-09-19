@@ -53,18 +53,18 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         # A list specified by the user or the default one
         if type(p['omega']) == list:
-            self.omegaBoundMecha = p['omega'][0]
-            self.omegaBoundThermal = p['omega'][1]
+            self.omegaBound = p['omega'][0]
+            self.omegaBoundCHT = p['omega'][1]
 
         # The user just put one value
         else:
-            self.omegaBoundMecha = p['omega']
-            self.omegaBoundThermal = 1.0
+            self.omegaBound = p['omega']
+            self.omegaBoundCHT = p['omega']
 
-        self.omegaMinMecha = 1e-12
-        self.omegaMinThermal = 1e-12
-        self.omegaMecha = self.omegaBoundMecha
-        self.omegaThermal = self.omegaBoundThermal
+        self.omegaMin = 1e-12
+        self.omegaMinCHT = 1e-12
+        self.omega = self.omegaBound
+        self.omegaCHT = self.omegaBoundCHT
 
         self.writeInFSIloop = False
 
@@ -203,7 +203,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         if self.myid in self.manager.getSolidSolverProcessors():
             self.SolidSolver.initRealTimeData()
         histFile = open('FSIhistory.ascii', "w")
-        histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}   {4:>12s}   {5:>12s}   {6:>12s}\n".format("TimeIter", "Time", "FSIError", "CHTError", "FSINbIter", "omegaMecha", "omegaThermal"))
+        histFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}   {4:>12s}   {5:>12s}   {6:>12s}\n".format("TimeIter", "Time", "FSIError", "CHTError", "FSINbIter", "omega", "omegaCHT"))
         histFile.close()
 
     def writeRealTimeData(self):
@@ -212,7 +212,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             self.FluidSolver.saveRealTimeData(self.step.time, self.FSIIter)
             self.SolidSolver.saveRealTimeData(self.step.time, self.FSIIter)
             histFile = open('FSIhistory.ascii', "a")
-            histFile.write('{0:12d}   {1:.6e}   {2:.6e}   {3:.6e}   {4:12d}   {5:.6e}   {6:.6e}\n'.format(self.step.timeIter, self.step.time, self.criterion.epsilon, self.criterion.epsilonCHT, self.FSIIter, self.omegaMecha, self.omegaThermal))
+            histFile.write('{0:12d}   {1:.6e}   {2:.6e}   {3:.6e}   {4:12d}   {5:.6e}   {6:.6e}\n'.format(self.step.timeIter, self.step.time, self.criterion.epsilon, self.criterion.epsilonCHT, self.FSIIter, self.omega, self.omegaCHT))
             histFile.close()
 
     def getMeanNbOfFSIIt(self):
@@ -265,10 +265,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.meshDefTimer.stop()
                 self.meshDefTimer.cumul()
 
-            if self.manager.thermal and self.solidHasRun:
+            if self.manager.thermal:
                 # --- Solid to fluid thermal transfer --- #
                 self.solidToFluidThermalTransfer()
-
             self.FluidSolver.boundaryConditionsUpdate()
 
             # --- Fluid solver call for FSI subiteration --- #
@@ -316,7 +315,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             if self.manager.thermal:
                 # --- Compute the thermal residual --- #
-                self.criterion.updateCHT(self.computeSolidInterfaceResidual_CHT())
+                self.criterion.update_CHT(self.computeSolidInterfaceResidual_CHT())
                 mpiPrint('\nCHT error value : {}\n'.format(self.criterion.epsilonCHT), self.mpiComm)
 
             if self.manager.mechanical:
@@ -327,7 +326,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
             if self.manager.thermal:
                 # --- Relaxe thermal data --- #
                 mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
-                self.relaxCHT()
+                self.relax_CHT()
 
             # --- Update the solvers for the next BGS steady iteration --- #
             if self.manager.computationType == 'steady':
@@ -433,33 +432,33 @@ class AlgorithmBGSStaticRelax(Algorithm):
         mpiPrint("First order predictor.", self.mpiComm)
         self.interfaceInterpolator.solidInterfaceDisplacement += (self.step.dt*self.solidInterfaceVelocity)
 
-    def setOmegaMecha(self):
+    def setOmega(self):
 
-        self.omegaMecha = self.omegaBoundMecha
-        mpiPrint('Static under-relaxation summary, mechanical : {}'.format(self.omegaMecha), self.mpiComm)
+        self.omega = self.omegaBound
+        mpiPrint('Static under-relaxation summary, mechanical : {}'.format(self.omega), self.mpiComm)
 
 
-    def setOmegaThermal(self):
+    def setOmega_CHT(self):
 
-        self.omegaThermal = self.omegaBoundThermal
-        mpiPrint('Static under-relaxation summary, thermal : {}'.format(self.omegaThermal), self.mpiComm)
+        self.omegaCHT = self.omegaBoundCHT
+        mpiPrint('Static under-relaxation summary, thermal : {}'.format(self.omegaCHT), self.mpiComm)
 
     def relaxSolidPosition(self):
 
         # --- Set the relaxation parameter --- #
-        self.setOmegaMecha()
+        self.setOmega()
 
         # --- Relax the solid interface position --- #
-        self.interfaceInterpolator.solidInterfaceDisplacement += (self.omegaMecha*self.solidInterfaceResidual)
+        self.interfaceInterpolator.solidInterfaceDisplacement += (self.omega*self.solidInterfaceResidual)
 
-    def relaxCHT(self):
+    def relax_CHT(self):
 
-        self.setOmegaThermal()
+        self.setOmega_CHT()
 
         if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
-            self.interfaceInterpolator.solidInterfaceHeatFlux += (self.omegaThermal*self.solidHeatFluxResidual)
+            self.interfaceInterpolator.solidInterfaceHeatFlux += (self.omegaCHT*self.solidHeatFluxResidual)
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
-            self.interfaceInterpolator.solidInterfaceTemperature += (self.omegaThermal*self.solidTemperatureResidual)
+            self.interfaceInterpolator.solidInterfaceTemperature += (self.omegaCHT*self.solidTemperatureResidual)
 
 # ----------------------------------------------------------------------
 #    Aitken BGS Algorithm class
@@ -489,10 +488,10 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
     def resetInternalVars(self):
 
-        self.omegaMecha = self.omegaBoundMecha
-        self.omegaThermal = self.omegaBoundThermal
+        self.omega = self.omegaBound
+        self.omegaCHT = self.omegaBoundCHT
 
-    def setOmegaMecha(self):
+    def setOmega(self):
 
         if self.FSIIter != 0:
             # --- Compute the dynamic Aitken coefficient --- #
@@ -505,26 +504,26 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
             deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
 
             if deltaResNormSquare != 0.:
-                self.omegaMecha *= -prodScalRes/deltaResNormSquare
+                self.omega *= -prodScalRes/deltaResNormSquare
             else:
-                self.omegaMecha = self.omegaMinMecha
+                self.omega = self.omegaMin
 
         else:
             # --- Initiate omega with min/max bounding --- #
             if self.aitkenCritMecha == 'max':
-                self.omegaMecha = max(self.omegaBoundMecha, self.omegaMecha)
+                self.omega = max(self.omegaBound, self.omega)
             else:
-                self.omega = min(self.omegaBoundMecha, self.omegaMecha)
+                self.omega = min(self.omegaBound, self.omega)
 
-        self.omegaMecha = min(self.omegaMecha, 1.0)
-        self.omegaMecha = max(self.omegaMecha, self.omegaMinMecha)
+        self.omega = min(self.omega, 1.0)
+        self.omega = max(self.omega, self.omegaMin)
 
-        mpiPrint('Aitken under-relaxation summary, mechanical : {}'.format(self.omegaMecha), self.mpiComm)
+        mpiPrint('Aitken under-relaxation summary, mechanical : {}'.format(self.omega), self.mpiComm)
 
         # --- Update the value of the residual for the next FSI iteration --- #
         self.solidInterfaceResidual.copy(self.solidInterfaceResidualkM1)
 
-    def setOmegaThermal(self):
+    def setOmega_CHT(self):
 
         if self.FSIIter != 0:
             # --- Compute the dynamic Aitken coefficient --- #
@@ -547,21 +546,21 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
                 deltaResNormSquare = deltaTemperatureResidual_Norm**2
 
             if deltaResNormSquare != 0.:
-                self.omegaThermal *= -prodScalRes/deltaResNormSquare
+                self.omegaCHT *= -prodScalRes/deltaResNormSquare
             else:
-                self.omegaThermal = self.omegaMinThermal
+                self.omegaCHT = self.omegaMinCHT
 
         else:
             # --- Initiate omega with min/max bounding --- #
             if self.aitkenCritThermal == 'max':
-                self.omegaThermal = max(self.omegaBoundThermal, self.omegaThermal)
+                self.omegaCHT = max(self.omegaBoundCHT, self.omegaCHT)
             else:
-                self.omegaThermal = min(self.omegaBoundThermal, self.omegaThermal)
+                self.omegaCHT = min(self.omegaBoundCHT, self.omegaCHT)
 
-        self.omegaThermal = min(self.omegaThermal, 1.0)
-        self.omegaThermal = max(self.omegaThermal, self.omegaMinThermal)
+        self.omegaCHT = min(self.omegaCHT, 1.0)
+        self.omegaCHT = max(self.omegaCHT, self.omegaMinCHT)
 
-        mpiPrint('Aitken under-relaxation summary, thermal : {}'.format(self.omegaThermal), self.mpiComm)
+        mpiPrint('Aitken under-relaxation summary, thermal : {}'.format(self.omegaCHT), self.mpiComm)
 
         # --- Update the value of the residual for the next FSI iteration --- #
         self.solidHeatFluxResidual.copy(self.solidInterfaceResidualkM1)
@@ -635,7 +634,6 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 self.FluidSolver.meshUpdate(self.step.timeIter)
                 self.meshDefTimer.stop()
                 self.meshDefTimer.cumul()
-            self.FluidSolver.boundaryConditionsUpdate()
 
             # --- Fluid solver call for FSI subiteration --- #
             mpiPrint('\nLaunching adjoint fluid solver...', self.mpiComm)
@@ -742,12 +740,17 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.solidInterfaceResidual.set(predictedAdjointLoad - self.interfaceInterpolator.solidInterfaceAdjointLoads)
 
         return self.solidInterfaceResidual
+    
+    def computeSolidInterfaceAdjointResidual_CHT(self):
+        raise Exception('Thermal Coupling not implemented')
 
     def relaxSolidAdjointLoad(self):
 
         # --- Set the relaxation parameter --- #
-        self.setOmegaMecha()
+        self.setOmega()
 
         # --- Relax the solid interface position --- #
-        self.interfaceInterpolator.solidInterfaceAdjointLoads += (self.omegaMecha*self.solidInterfaceResidual)
-        
+        self.interfaceInterpolator.solidInterfaceAdjointLoads += (self.omega*self.solidInterfaceResidual)
+
+    def relaxSolidAdjoint_CHT(self):
+        raise Exception('Thermal Coupling not implemented')

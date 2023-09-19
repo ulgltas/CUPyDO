@@ -55,7 +55,7 @@ class NormCriterion(Criterion):
         norm = residual.norm()
         self.epsilon = np.linalg.norm(norm)
     
-    def updateCHT(self, residual):
+    def update_CHT(self, residual):
 
         norm = residual.norm()
         self.epsilonCHT = np.linalg.norm(norm)

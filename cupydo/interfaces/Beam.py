@@ -92,7 +92,7 @@ class pyBeamSolver(SolidSolver):
             PhysicalIndex += 1
 
         self.extractors = p['extractors']
-
+        self.__setCurrentState()
         self.initRealTimeData()
 
         # print("\n -------------------------- SOLID NODES ------------------------------ \n")
@@ -136,12 +136,6 @@ class pyBeamSolver(SolidSolver):
         """
 
         self.pyBeam.run()
-
-    def setInitialDisplacements(self):
-        """
-        Set initial displacements
-        """
-        self.__setCurrentState()
 
     def __setCurrentState(self):
         """

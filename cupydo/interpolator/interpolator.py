@@ -129,6 +129,16 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         self.solidInterfaceDisplacement.assemble()
 
+    def getTemperatureFromSolidSolver(self):
+
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
+            for iVertex in range(self.ns_loc):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                self.solidInterfaceTemperature[iGlobalVertex] = [localSolidInterfaceTemperature[iVertex]]
+
+        self.solidInterfaceTemperature.assemble()
+
     def getHeatFluxFromSolidSolver(self):
 
         if self.myid in self.manager.getSolidInterfaceProcessors():

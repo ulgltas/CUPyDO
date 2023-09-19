@@ -55,7 +55,7 @@ class Modal(SolidSolver):
         # initialize
         SolidSolver.__init__(self)
         self.computationType = p['compType']
-        self.setInitialDisplacements()
+        self.__setCurrentState()
         self.initRealTimeData()
 
     def initModal(self, p):
@@ -69,12 +69,6 @@ class Modal(SolidSolver):
         self.solver.readModes(p['File']) # config file
         self.solver.setInitial(p['x_i'], p['v_i'], p['f_i']) # initial conditions
         self.solver.setExtractor(p['Extractors']) # extractor list
-
-    def setInitialDisplacements(self):
-        """Set initial displacements
-        Adrien Crovato
-        """
-        self.__setCurrentState()
 
     def run(self, t1, t2):
         """Run the solver between t1 and t2

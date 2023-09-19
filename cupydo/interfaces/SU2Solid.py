@@ -125,6 +125,8 @@ class SU2SolidSolver(SolidSolver):
         self.extractors = p['extractors'] # List of points to extract 
         self.filename = p['surfaceFilename'] # Filename (no extension) of surface output file
         self.extension = p['surfaceExtension'] # Extension of surface output file
+
+        self.__setCurrentState()
         self.initRealTimeData()
 
         # print("\n -------------------------- SOLID NODES ------------------------------ \n")
@@ -187,12 +189,6 @@ class SU2SolidSolver(SolidSolver):
         self.SU2.Run()
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
-
-    def setInitialDisplacements(self):
-        """
-        Set initial displacements
-        """
-        self.__setCurrentState()
 
     def __setCurrentState(self):
         """

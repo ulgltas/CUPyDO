@@ -49,6 +49,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
         AlgorithmBGSStaticRelax.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, Criterion, p, mpiComm)
 
+        self.resetInternalVars()
+        
         # --- Number of previous time steps used in the approximation of the tangent matrix --- #
         self.nbTimeToKeep = p['nSteps']
 
@@ -58,13 +60,6 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
         # --- Tolerance and type of filtering : None, Degroote1, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1
         self.qrFilter = 'Haelterman'
-
-        # --- Indicate if a BGS iteration must be performed --- #
-        self.makeBGS = True
-        
-        # --- Global V and W matrices for IQN-ILS algorithm, including information from previous time steps --- #
-        self.V = []
-        self.W = []
     
     def qrSolve(self, V, W, res):
 
@@ -93,8 +88,11 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
         return c, W
     
     def resetInternalVars(self):
-
+        
+         # --- Indicate if a BGS iteration must be performed --- #
         self.makeBGS = True
+
+        # --- Global V and W matrices for IQN-ILS algorithm, including information from previous time steps --- #
         self.V = []
         self.W = []
     

@@ -53,19 +53,13 @@ class RBMI(SolidSolver):
 
         SolidSolver.__init__(self)
 
+        self.NativeSolid.setInitialDisplacements()
         self.__setCurrentState()
         self.initRealTimeData()
 
     def preprocessTimeIter(self, timeIter):
 
-
         self.NativeSolid.preprocessIteration(timeIter)
-
-    def setInitialDisplacements(self):
-
-
-        self.NativeSolid.setInitialDisplacements()
-        self.__setCurrentState()
         
     def run(self, t1, t2):
 

@@ -81,28 +81,11 @@ class Algorithm(object):
     def setFSIInitialConditions(self):
 
         if self.manager.mechanical:
-            if self.manager.computationType == 'unsteady':
-                if self.myid in self.manager.getSolidSolverProcessors():
-                    self.SolidSolver.setInitialDisplacements()
-                self.interfaceInterpolator.getDisplacementFromSolidSolver()
-                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-                self.interfaceInterpolator.setDisplacementToFluidSolver(self.step.dt)
-                self.FluidSolver.setInitialMeshDeformation()
-            else:
-                if self.myid in self.manager.getSolidSolverProcessors():
-                    self.SolidSolver.setInitialDisplacements()
-                self.interfaceInterpolator.getDisplacementFromSolidSolver()
-                self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
-                self.interfaceInterpolator.setDisplacementToFluidSolver(self.step.dt)
-                self.FluidSolver.setInitialMeshDeformation()
-
+            self.solidToFluidMechaTransfer()
+            self.FluidSolver.setInitialMeshDeformation()
         if self.manager.thermal:
-            if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
-                self.FluidSolver.setInitialInterfaceHeatFlux()
-            elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
-                self.FluidSolver.setInitialInterfaceTemperature()
-            else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
-            self.FluidSolver.boundaryConditionsUpdate()
+            self.solidToFluidThermalTransfer()
+        self.FluidSolver.boundaryConditionsUpdate()
 
     def fluidToSolidMechaTransfer(self):
 
@@ -131,9 +114,11 @@ class Algorithm(object):
 
         self.communicationTimer.start()
         if self.interfaceInterpolator.chtTransferMethod == 'TFFB' or self.interfaceInterpolator.chtTransferMethod == 'hFFB':
+            self.interfaceInterpolator.getHeatFluxFromSolidSolver()
             self.interfaceInterpolator.interpolateSolidHeatFluxOnFluidMesh()
             self.interfaceInterpolator.setHeatFluxToFluidSolver(self.step.dt)
         elif self.interfaceInterpolator.chtTransferMethod == 'FFTB' or self.interfaceInterpolator.chtTransferMethod == 'hFTB':
+            self.interfaceInterpolator.getTemperatureFromSolidSolver()
             self.interfaceInterpolator.interpolateSolidTemperatureOnFluidMesh()
             self.interfaceInterpolator.setTemperatureToFluidSolver(self.step.dt)
         else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
@@ -271,7 +256,7 @@ class AlgorithmExplicit(Algorithm):
             self.meshDefTimer.stop()
             self.meshDefTimer.cumul()
 
-        if self.manager.thermal and self.solidHasRun:
+        if self.manager.thermal:
             # --- Solid to fluid thermal transfer --- #
             self.solidToFluidThermalTransfer()
         self.FluidSolver.boundaryConditionsUpdate()
@@ -291,6 +276,7 @@ class AlgorithmExplicit(Algorithm):
             # --- Fluid to solid mechanical transfer --- #
             mpiPrint('\nProcessing interface fluid loads...\n', self.mpiComm)
             self.fluidToSolidMechaTransfer()
+            
         if self.manager.thermal:
             # --- Fluid to solid thermal transfer --- #
             mpiPrint('\nProcessing interface thermal quantities...\n', self.mpiComm)

@@ -280,25 +280,6 @@ class SU2(FluidSolver):
                 self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, Temperature[PhysicalIndex])
                 PhysicalIndex += 1
 
-    def setInitialInterfaceHeatFlux(self):
-        """
-        Set an initial (first guess) and uniform heat flux on the f/s boundary.
-        """
-
-        PhysicalIndex = 0
-        for iVertex in range(self.nNodes):
-            if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
-                self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, self.QWallInit)
-                PhysicalIndex += 1
-
-    def setInitialInterfaceTemperature(self):
-
-        PhysicalIndex = 0
-        for iVertex in range(self.nNodes):
-            if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
-                self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, self.TWallInit)
-                PhysicalIndex += 1
-
     def update(self, dt):
         """
         Update the solution after each time step (converged) for an unsteady computation.

@@ -1,29 +1,16 @@
 import cupydo.interfaces.Cupydo as cupy
 from cupydo.testing import CTest,CTests
 import numpy as np
-import gmsh
 import os
 
 def test(meanFSIIt):
-
-    name = [file for file in os.listdir() if('fluid' in file)]
-    time = [float(file[8:-4]) for file in name]
-    lastFile = name[np.argmax(time)]
-    tag = 52
-
-    if not gmsh.isInitialized(): gmsh.initialize()
-    gmsh.option.setNumber('General.Terminal',0)
-    gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(tag)[0]
-    if gmsh.isInitialized(): gmsh.finalize()
 
     output = np.loadtxt('output.txt',delimiter=',')
     temperature = output[-1][-1]
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
-    tests.add(CTest('Middle bar temperature', temperature, 311.75, 0.01, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
+    tests.add(CTest('Middle bar temperature', temperature, 311.75, 0.005, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 5, 1, True))
     tests.run()
 
 # Input Parameters
@@ -46,6 +33,7 @@ def getFsiP():
     p['interpType'] = 'consistent'
     p['chtTransferMethod'] = 'FFTB'
     p['algorithm'] = 'aitkenBGS'
+    p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters
 

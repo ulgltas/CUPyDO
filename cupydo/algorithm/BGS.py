@@ -312,20 +312,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 # --- Compute the mechanical residual --- #
                 self.criterion.update(self.computeSolidInterfaceResidual())
                 mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
+                self.relaxSolidPosition()
 
             if self.manager.thermal:
                 # --- Compute the thermal residual --- #
                 self.criterion.update_CHT(self.computeSolidInterfaceResidual_CHT())
                 mpiPrint('\nCHT error value : {}\n'.format(self.criterion.epsilonCHT), self.mpiComm)
-
-            if self.manager.mechanical:
-                # --- Relaxe the solid position --- #
-                mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
-                self.relaxSolidPosition()
-
-            if self.manager.thermal:
-                # --- Relaxe thermal data --- #
-                mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
                 self.relax_CHT()
 
             # --- Update the solvers for the next BGS steady iteration --- #
@@ -446,6 +438,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
     def relaxSolidPosition(self):
 
         # --- Set the relaxation parameter --- #
+        mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
         self.setOmega()
 
         # --- Relax the solid interface position --- #
@@ -453,6 +446,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
     def relax_CHT(self):
 
+        mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
         self.setOmega_CHT()
 
         if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
@@ -673,10 +667,6 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 # --- Compute the mechanical residual --- #
                 self.criterion.update(self.computeSolidInterfaceAdjointResidual())
                 mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
-
-            if self.manager.mechanical:
-                # --- Relaxe the solid position --- #
-                mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
                 self.relaxSolidAdjointLoad()
 
             # --- Update the solvers for the next BGS steady iteration --- #
@@ -747,6 +737,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
     def relaxSolidAdjointLoad(self):
 
         # --- Set the relaxation parameter --- #
+        mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
         self.setOmega()
 
         # --- Relax the solid interface position --- #

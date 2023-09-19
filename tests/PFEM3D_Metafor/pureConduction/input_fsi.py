@@ -32,7 +32,6 @@ def getFsiP():
     p['interpolator'] = 'matching'
     p['interpType'] = 'consistent'
     p['chtTransferMethod'] = 'FFTB'
-    p['algorithm'] = 'aitkenBGS'
     p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters

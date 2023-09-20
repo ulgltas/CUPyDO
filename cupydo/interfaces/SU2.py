@@ -231,7 +231,7 @@ class SU2(FluidSolver):
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
-    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dispPrev_X, dispPrev_Y, dispPrev_Z, haloNodesDisplacements, dt):
+    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dt, haloNodesDisplacements):
         """
         Set the displacement of the f/s boundary before mesh morphing.
         """
@@ -256,7 +256,7 @@ class SU2(FluidSolver):
                 PhysicalIndex += 1
             self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
 
-    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt):
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
         """
         Set the heat fluxes on the f/s boundary and update the multi-grid structure (if any).
         """
@@ -271,7 +271,7 @@ class SU2(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, WallHF)
                 PhysicalIndex += 1
 
-    def applyNodalTemperatures(self, Temperature, dt):
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
 
 
         PhysicalIndex = 0
@@ -348,10 +348,6 @@ class SU2(FluidSolver):
         """
 
         self.SU2.Preprocess(timeIter)
-
-    def remeshing(self):
-
-        return
  
     def exit(self):
         """
@@ -421,7 +417,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
     
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, dt):
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, dt, haloNodesLoads):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)

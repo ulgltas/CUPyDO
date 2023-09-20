@@ -89,17 +89,8 @@ class ExampSolver(SolidSolver):
         #return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
         return
     
-    def getNodalIndex(self, iVertex):
-        """
-        Returns the index (identifier) of the iVertex^th interface node.
-        """
 
-        #no = 
-    
-        #return no
-        return
-
-    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
 
 
         #This is just an example again
@@ -109,7 +100,7 @@ class ExampSolver(SolidSolver):
             #self.coreSolver.applyNodalLoadZ(load_Z[ii], ii)
         return
 
-    def applyNodalTemperatures(self, Temperature, dt):
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
         return
 
     def update(self):

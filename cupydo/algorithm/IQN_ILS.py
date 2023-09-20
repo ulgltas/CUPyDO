@@ -317,7 +317,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                 self.Vk_mat = np.vstack(self.Vk).T
                 self.Wk_mat = np.vstack(self.Wk).T
 
-                # --- Remove extra columns if number of iterations (i.e. columns of Vk and Wk) is larger than number of interface degrees of freedom --- #
+                # --- Remove extra columns if number of iterations is larger than number of interface degrees of freedom --- #
                 if (self.Vk_mat.shape[1] > self.manager.nDim*ns and self.qrFilter == 'Degroote1'):
                     mpiPrint('WARNING: IQN-ILS Algorithm using Degroote1 QR filter. Approximated stiffness matrix number of columns exceeds the number of degrees of freedom at FSI interface. Extra columns (the oldest ones!) are deleted for next iterations to avoid overdetermined problem!', self.mpiComm)
                     self.Vk_mat = np.delete(self.Vk_mat, np.s_[(self.manager.nDim*ns-self.Vk_mat.shape[1]):], 1)
@@ -366,6 +366,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
     def relaxInverseLeastSquare_CHT(self, res):
 
+        if self.interfaceInterpolator.chtTransferMethod != 'FFTB': raise Exception('Only FFTB coupling is implemented with IQN-ILS')
+
         d = self.interfaceInterpolator.getd()
         ns = self.interfaceInterpolator.getNs()
         delta_ds = FlexInterfaceData(ns+d, 1, self.mpiComm)
@@ -413,7 +415,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                 self.Vk_matCHT = np.vstack(self.VkCHT).T
                 self.Wk_matCHT = np.vstack(self.WkCHT).T
                 
-                # --- Remove extra columns if number of iterations (i.e. columns of VkCHT and WkCHT) is larger than number of interface degrees of freedom --- #
+                # --- Remove extra columns if number of iterations is larger than number of interface degrees of freedom --- #
                 if (self.Vk_matCHT.shape[1] > ns and self.qrFilter == 'Degroote1'):
                     mpiPrint('WARNING: IQN-ILS Algorithm using Degroote1 QR filter. Approximated stiffness matrix number of columns exceeds the number of degrees of freedom at FSI interface. Extra columns (the oldest ones!) are deleted for next iterations to avoid overdetermined problem!', self.mpiComm)
                     self.Vk_matCHT = np.delete(self.Vk_matCHT, np.s_[(ns-self.Vk_matCHT.shape[1]):], 1)

@@ -37,7 +37,7 @@ import numpy as np
 # ----------------------------------------------------------------------
 
 class Pfem3D(FluidSolver):
-    def __init__(self,p):
+    def __init__(self, p):
 
         titlePrint('Initializing PFEM3D')
         self.problem = w.getProblem(p['cfdFile'])
@@ -51,13 +51,13 @@ class Pfem3D(FluidSolver):
         if 'WC' in self.problem.getID():
             
             self.implicit = False
-            self.run = self.runExplicit
+            self.run = self.__runExplicit
             self.maxDivision = 2000
 
         else:
             
             self.implicit = True
-            self.run = self.runImplicit
+            self.run = self.__runImplicit
             self.maxDivision = 10
 
         # Stores the important objects and variables
@@ -89,16 +89,17 @@ class Pfem3D(FluidSolver):
 
         # Store temporary simulation variables
 
-        self.disp = np.zeros((self.nPhysicalNodes,3))
-        self.initPos = self.getPosition()
-        self.vel = self.getVelocity()
+        if self.mechanical:
+            self.disp = np.zeros((self.nPhysicalNodes,3))
+            self.vel = self.__getVelocity()
         
         FluidSolver.__init__(self,p)
+        self.initPos = self.__getPosition()
         self.__setCurrentState()
 
 # Run for implicit integration scheme
 
-    def runImplicit(self,t1,t2):
+    def __runImplicit(self, t1, t2):
 
         print('\nt = {:.5e} - dt = {:.5e}'.format(t2,t2-t1))
         self.problem.loadSolution(self.prevSolution)
@@ -124,7 +125,7 @@ class Pfem3D(FluidSolver):
 
 # Run for explicit integration scheme
 
-    def runExplicit(self,t1,t2):
+    def __runExplicit(self, t1, t2):
 
         print('\nt = {:.5e} - dt = {:.5e}'.format(t2,t2-t1))
         self.problem.loadSolution(self.prevSolution)
@@ -150,7 +151,7 @@ class Pfem3D(FluidSolver):
 
 # Apply Mechanical Boundary Conditions
 
-    def applyNodalDisplacements(self,dx,dy,dz,haloNodesDisplacements,dt):
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
 
         BC = (np.transpose([dx,dy,dz])-self.disp)/dt
         if not self.implicit: BC = 2*(BC-self.vel)/dt
@@ -160,14 +161,14 @@ class Pfem3D(FluidSolver):
 
 # Apply Thermal Boundary Conditions
 
-    def applyNodalTemperatures(self,Temperature,dt):
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
 
         for i,result in enumerate(Temperature):
             self.BC[i][self.dim] = result
 
 # Return Nodal Values
 
-    def getPosition(self):
+    def __getPosition(self):
 
         result = np.zeros((self.nPhysicalNodes,3))
 
@@ -179,7 +180,7 @@ class Pfem3D(FluidSolver):
 
     # Computes the nodal velocity vector
 
-    def getVelocity(self):
+    def __getVelocity(self):
 
         result = np.zeros((self.nPhysicalNodes,3))
         
@@ -247,30 +248,23 @@ class Pfem3D(FluidSolver):
 
 # Other Functions
 
-    def update(self,dt):
+    def update(self, dt):
 
         self.mesh.remesh(False)
         if self.implicit: self.solver.precomputeMatrix()
         self.problem.copySolution(self.prevSolution)
-        self.disp = self.getPosition()-self.initPos
-        self.vel = self.getVelocity()
-
-    # Other utilitary functions
-
-    def getNodalIndex(self,index):
-        return index
+        self.disp = self.__getPosition()-self.initPos
+        self.vel = self.__getVelocity()
 
     def getNodalInitialPositions(self):
         return np.transpose(self.initPos)
 
 # Print Functions
-
+    
     def exit(self):
 
         self.problem.displayTimeStats()
         titlePrint('Exit PFEM3D')
-
-    # Save te results into a file
 
     def save(self,_):
         self.problem.dump()

@@ -54,12 +54,12 @@ class Algorithm(object):
         self.interfaceInterpolator = InterfaceInterpolator
         
         self.globalTimer = Timer()
-        self.communicationTimer = Timer()
         self.meshDefTimer = Timer()
+        self.communicationTimer = Timer()
         self.fluidSolverTimer = Timer()
         self.solidSolverTimer = Timer()
-        self.solidRemeshingTimer = Timer()
-        self.fluidRemeshingTimer = Timer()
+        self.solidUpdateTimer = Timer()
+        self.fluidUpdateTimer = Timer()
 
         self.totTime = p['tTot']
         self.interpType = p['interpType']
@@ -216,20 +216,15 @@ class AlgorithmExplicit(Algorithm):
 
             # --- Update the fluid and solid solver for the next time step --- #
             if self.myid in self.manager.getSolidSolverProcessors():
+                self.solidUpdateTimer.start()
                 self.SolidSolver.update()
-            self.FluidSolver.update(self.step.dt)
+                self.solidUpdateTimer.stop()
+                self.solidUpdateTimer.cumul()
 
-            # --- Perform some remeshing if necessary
-            if self.myid in self.manager.getSolidSolverProcessors():
-                self.solidRemeshingTimer.start()
-                self.SolidSolver.remeshing()
-                self.solidRemeshingTimer.stop()
-                self.solidRemeshingTimer.cumul()
-            
-            self.fluidRemeshingTimer.start()
-            self.FluidSolver.remeshing()
-            self.fluidRemeshingTimer.stop()
-            self.fluidRemeshingTimer.cumul()
+            self.fluidUpdateTimer.start()
+            self.FluidSolver.update(self.step.dt)
+            self.fluidUpdateTimer.stop()
+            self.fluidUpdateTimer.cumul()
 
             # --- Update TimeStep class, export the results and write FSI history --- #
             self.step.updateTime(self.verified)
@@ -320,8 +315,8 @@ class AlgorithmExplicit(Algorithm):
         mpiPrint('[cpu FSI communications]: ' + str(self.communicationTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[cpu FSI fluid solver]: ' + str(self.fluidSolverTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[cpu FSI solid solver]: ' + str(self.solidSolverTimer.cumulTime) + ' s', self.mpiComm)
-        mpiPrint('[cpu FSI fluid remeshing]: ' + str(self.fluidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
-        mpiPrint('[cpu FSI solid remeshing]: ' + str(self.solidRemeshingTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI fluid remeshing]: ' + str(self.fluidUpdateTimer.cumulTime) + ' s', self.mpiComm)
+        mpiPrint('[cpu FSI solid remeshing]: ' + str(self.solidUpdateTimer.cumulTime) + ' s', self.mpiComm)
         mpiPrint('[Time steps FSI]: ' + str(self.step.timeIter), self.mpiComm)
         mpiPrint('[Successful Run FSI]: ' + str(self.step.time >= (self.totTime - 2*self.step.dt)), self.mpiComm) # NB: self.totTime - 2*self.step.dt is the extreme case that can be encountered due to rounding effects!
         mpiPrint('[Mean n. of FSI Iterations]: ' + str(1), self.mpiComm)

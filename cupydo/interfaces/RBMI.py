@@ -102,7 +102,7 @@ class RBMI(SolidSolver):
 
         self.NativeSolid.getInterfaceNodeGlobalIndex(self.interfaceID, iVertex)
 
-    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
 
 
         for iVertex in range(self.nPhysicalNodes):

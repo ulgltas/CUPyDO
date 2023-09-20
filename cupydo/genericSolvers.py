@@ -41,7 +41,6 @@ class SolidSolver(object):
 
         self.haloNodeList = {}
 
-        # --- Create the array for external communication (displacement, velocity and velocity at the previous time step) --- #
         self.nodalDisp_X = np.zeros(self.nPhysicalNodes)
         self.nodalDisp_Y = np.zeros(self.nPhysicalNodes)
         self.nodalDisp_Z = np.zeros(self.nPhysicalNodes)
@@ -49,23 +48,13 @@ class SolidSolver(object):
         self.nodalVel_Y = np.zeros(self.nPhysicalNodes)
         self.nodalVel_Z = np.zeros(self.nPhysicalNodes)
 
-        # --- Same for thermal coupling (heat fluxes and temperature) ---
         self.nodalHeatFlux_X = np.zeros(self.nPhysicalNodes)
         self.nodalHeatFlux_Y = np.zeros(self.nPhysicalNodes)
         self.nodalHeatFlux_Z = np.zeros(self.nPhysicalNodes)
         self.nodalTemperature = np.zeros(self.nPhysicalNodes)
 
-    def setInitialDisplacements(self):
-        return
-
-    def preprocessTimeIter(self, timeIter):
-        return
-
     def run(self):
-        return
-
-    def __setCurrentState(self):
-        return
+        raise NotImplementedError
 
     def getNodalDisplacements(self):
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
@@ -77,29 +66,38 @@ class SolidSolver(object):
         return self.nodalTemperature
 
     def getNodalInitialPositions(self):
-        return
+        raise NotImplementedError
 
     def getNodalVelocity(self):
-        return (self.nodalVel_X, self.nodalVel_Y, self.nodalVel_Z)
+        return self.nodalVel_X, self.nodalVel_Y, self.nodalVel_Z
 
     def getNodalIndex(self, iVertex):
-        return
+        return iVertex
 
     def fakeFluidSolver(self, dt):
-        return
+        raise NotImplementedError
 
-    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
-        return
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
+        raise NotImplementedError
+    
+    def applyNodalStress(self, load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ, dt, haloNodesLoads):
+        raise NotImplementedError
 
-    def applyNodalTemperatures(self, Temperature, dt):
-        return
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
+        raise NotImplementedError
 
-    def applyNodalNormalHeatFluxes(self, NormalHeatFlux, dt):
-        return
+    def applyNodalNormalHeatFluxes(self, NormalHeatFlux, dt, haloNodesNormalHeatFlux):
+        raise NotImplementedError
 
-    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt):
-        return
+    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt, haloNodesHeatFlux):
+        raise NotImplementedError
+    
+    def setInitialDisplacements(self):
+        raise NotImplementedError
 
+    def preprocessTimeIter(self, timeIter):
+        return
+    
     def update(self):
         return
 
@@ -116,9 +114,6 @@ class SolidSolver(object):
         return
 
     def printRealTimeData(self, time, nFSIIter):
-        return
-
-    def remeshing(self):
         return
 
     def exit(self):
@@ -153,9 +148,6 @@ class FluidSolver(object):
         self.nodalHeatFlux_Y = np.zeros((self.nPhysicalNodes))
         self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes))
 
-        self.QWallInit = 0
-        self.TWallInit = 288.0
-
     def setInitialMeshDeformation(self):
         return
 
@@ -169,24 +161,22 @@ class FluidSolver(object):
         return
 
     def run(self, t1, t2):
-        return
+        raise NotImplementedError
 
     def getNodalIndex(self, iVertex):
-        return
+        return iVertex
 
     def fakeSolidSolver(self, dt):
-        return
+        raise NotImplementedError
 
     def getNodalForce(self):
-
-        return (self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z)
+        return self.nodalLoad_X, self.nodalLoad_Y, self.nodalLoad_Z
 
     def getNodalStress(self):
-
-        return (self.nodalLoad_XX, self.nodalLoad_YY, self.nodalLoad_ZZ, self.nodalLoad_XY, self.nodalLoad_XZ, self.nodalLoad_YZ)
+        return self.nodalLoad_XX, self.nodalLoad_YY, self.nodalLoad_ZZ, self.nodalLoad_XY, self.nodalLoad_XZ, self.nodalLoad_YZ
     
     def getNodalInitialPositions(self):
-        return
+        raise NotImplementedError
 
     def getNodalTemperatures(self):
         return self.nodalTemperature
@@ -195,16 +185,16 @@ class FluidSolver(object):
         return self.nodalNormalHeatFlux
 
     def getNodalHeatFluxes(self):
-        return (self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z)
+        return self.nodalHeatFlux_X, self.nodalHeatFlux_Y, self.nodalHeatFlux_Z
 
-    def applyNodalDisplacements(self, dx, dy, dz, haloNodesDisplacements, dt):
-        return
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
+        raise NotImplementedError
 
-    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt):
-        return
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
+        raise NotImplementedError
 
-    def applyNodalTemperatures(self, Temperature, dt):
-        return
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
+        raise NotImplementedError
 
     def update(self, dt):
         return
@@ -222,9 +212,6 @@ class FluidSolver(object):
         return
 
     def printRealTimeData(self, time, nFSIIter):
-        return
-
-    def remeshing(self):
         return
 
     def meshUpdate(self, nt):
@@ -253,11 +240,11 @@ class SolidAdjointSolver(SolidSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
-        return
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, dt, haloNodesDisplacements):
+        raise NotImplementedError
     
     def getNodalAdjointLoads(self):
-        return (self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjDisp_Z)
+        return self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjDisp_Z
 
 # ----------------------------------------------------------------------
 #  Generic fluid adjoint solver class
@@ -275,8 +262,8 @@ class FluidAdjointSolver(FluidSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
 
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, dt):
-        return
+    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, dt, haloNodesLoads):
+        raise NotImplementedError
     
     def getNodalAdjointDisplacement(self):
-        return (self.nodalAdjDisp_X, self.nodalAdjDisp_Y, self.nodalAdjDisp_Z)
+        return self.nodalAdjDisp_X, self.nodalAdjDisp_Y, self.nodalAdjDisp_Z

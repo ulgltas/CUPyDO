@@ -85,13 +85,8 @@ class ExampSolver(FluidSolver):
         #return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
         return
 
-    def getNodalIndex(self, iVertex):
-        #no = 
 
-        #return no
-        return
-
-    def applyNodalDisplacements(self, dx, dy, dz, haloNodesDisplacements,dt):
+    def applyNodalDisplacements(self, dx, dy, dz,dt, haloNodesDisplacements):
 
 
         #This is just an example again

@@ -53,7 +53,7 @@ class NLoad(object):
                
 class Metafor(SolidSolver):
 
-    def __init__(self,p):
+    def __init__(self, p):
 
         titlePrint('Initializing Metafor')
 
@@ -141,7 +141,7 @@ class Metafor(SolidSolver):
 
 # Calculates One Time Step
 
-    def run(self,t1,t2):
+    def run(self, t1, t2):
         """
         Computes a time increment and/or load previous state
         """
@@ -208,12 +208,12 @@ class Metafor(SolidSolver):
 
 # Mechanical Boundary Conditions
 
-    def applyNodalForce(self,loadX,loadY,loadZ,dt):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         """
         Apply the conservative load boundary conditions
         """
 
-        self.nextLoad = np.transpose([loadX,loadY,loadZ])[:self.nNodes]
+        self.nextLoad = np.transpose([load_X,load_Y,load_Z])[:self.nNodes]
         result = (self.prevLoad+self.nextLoad)/2
 
         for i in range(self.nNodes):
@@ -225,12 +225,12 @@ class Metafor(SolidSolver):
             fz.val = result[i][2]
 
 
-    def applyNodalStress(self,sXX,sYY,sZZ,sXY,sXZ,sYZ,dt):
+    def applyNodalStress(self, load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ, dt, haloNodesLoads):
         """
         Apply the consistent load boundary conditions
         """
 
-        self.nextLoad = np.transpose([sXX,sYY,sZZ,sXY,sXZ,sYZ])[:self.nNodes]
+        self.nextLoad = np.transpose([load_XX,load_YY,load_ZZ,load_XY,load_XZ,load_YZ])[:self.nNodes]
         result = (self.prevLoad+self.nextLoad)/2
 
         for i in range(self.nNodes):
@@ -240,7 +240,7 @@ class Metafor(SolidSolver):
 
 # Thermal Boundary Conditions
 
-    def applyNodalHeatFluxes(self,HF_X,HF_Y,HF_Z,dt):
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
         """
         Apply the consistent heat flux boundary conditions
         """
@@ -290,3 +290,4 @@ class Metafor(SolidSolver):
         """
 
         titlePrint('Exit Metafor')
+        

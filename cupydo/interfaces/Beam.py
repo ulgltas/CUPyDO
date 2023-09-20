@@ -162,21 +162,13 @@ class pyBeamSolver(SolidSolver):
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
-    def getNodalIndex(self, iVertex):
-        """
-        Returns the index (identifier) of the iVertex^th interface node.
-        """
-
-        # no =
-
-        # return no
 
     def getNodalDisplacements(self):
 
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
 
 
         # --- Initialize the interface position and the nodal loads --- #

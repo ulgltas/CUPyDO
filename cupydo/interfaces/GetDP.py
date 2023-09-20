@@ -337,7 +337,7 @@ class GetDP(SolidSolver):
 
         return self.nodalInterfIndex[iVertex]
 
-    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
 
 
         if self.pythonFlag:
@@ -346,7 +346,7 @@ class GetDP(SolidSolver):
             self.__writeVecToFile("nodalForce.txt", load_X, load_Y, load_Z, self.nodalInterfIndex)
 
 
-    def applyNodalTemperatures(self, Temperature, dt):
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
 
 
         if self.pythonFlag:
@@ -362,7 +362,7 @@ class GetDP(SolidSolver):
         else:
             self.__writeScalToFile("nodalNormalHeatFlux.txt", NormalHeatFlux, self.nodalInterfIndex)
 
-    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt):
+    def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt, haloNodesHeatFlux):
 
 
         if self.pythonFlag:

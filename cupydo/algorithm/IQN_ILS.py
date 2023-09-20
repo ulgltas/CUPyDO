@@ -137,8 +137,8 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                 self.Vk = copy.deepcopy(self.V)
                 self.Wk = copy.deepcopy(self.W)
             if self.manager.thermal:
-                self.VkCHT = copy.deepcopy(self.V)
-                self.WkCHT = copy.deepcopy(self.W)
+                self.VkCHT = copy.deepcopy(self.V_CHT)
+                self.WkCHT = copy.deepcopy(self.W_CHT)
         else: # If information from previous time steps is not re-used then Vk and Wk are empty lists
             if self.manager.mechanical:
                 self.Vk = []
@@ -240,22 +240,22 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                     del self.V[-1]
                     del self.W[-1]
 
+            # --- Start the next time step by a BGS since V and W are empty --- #
             if self.nbTimeToKeep == 0 or len(self.Vk) == 0:
-                # --- Start the next time step by a BGS since V and W are empty --- #
                 self.makeBGS = True
 
         # ---  Add the current time data step to V_CHT and W_CHT, and remove out-of-range time steps --- #
         if self.manager.thermal:
             if (self.nbTimeToKeep > 0) and (self.stackCHT > 0):
                 mpiPrint('\nUpdating V_CHT and W_CHT matrices...\n', self.mpiComm)
-                self.V.insert(0, self.Vk_matCHT[:,0:self.stackCHT].T)
-                self.W.insert(0, self.Wk_matCHT[:,0:self.stackCHT].T)
+                self.V_CHT.insert(0, self.Vk_matCHT[:,0:self.stackCHT].T)
+                self.W_CHT.insert(0, self.Wk_matCHT[:,0:self.stackCHT].T)
                 while len(self.V_CHT) > self.nbTimeToKeep:
                     del self.V_CHT[-1]
                     del self.W_CHT[-1]
 
+            # --- Start the next time step by a BGS since V_CHT and W_CHT are empty --- #
             if self.nbTimeToKeep == 0 or len(self.VkCHT) == 0:
-                # --- Start the next time step by a BGS since V_CHT and W_CHT are empty --- #
                 self.makeBGS_CHT = True
 
         return True
@@ -276,30 +276,33 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
         self.solidInterfaceDisplacement_tilde.assemble()
         
+        # --- Relax the solid position --- #
         if self.makeBGS:
-            # --- Relax the solid position --- #
-            mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
+            mpiPrint('\nProcessing interface displacement...\n', self.mpiComm)
             self.relaxSolidPosition()
             self.makeBGS = False
 
+        # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
         else:
-            
-            # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
-            mpiPrint('\nCorrect solid interface displacements using IQN-ILS method...\n', self.mpiComm)
+            mpiPrint('\nCorrect solid interface displacement using IQN-ILS method...\n', self.mpiComm)
             
             # --- Start gathering on root process --- #
             res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)
             solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceResidual0, ns+d, self.mpiComm, 0)
             solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
             solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
+
+            # --- Copies for operating on, length=ns, not ns+d --- #
             if self.myid == 0:
-                res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                res_X_Gat_C = res_X_Gat[:ns]
                 res_Y_Gat_C = res_Y_Gat[:ns]
                 res_Z_Gat_C = res_Z_Gat[:ns]
-                solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns]
                 solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
                 solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
-                if self.FSIIter > 0: # Either information from previous time steps is re-used or not, Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop
+
+                # --- Vk and Wk matrices are enriched only starting from the second iteration of every FSI loop --- #
+                if self.FSIIter > 0:
                     if self.manager.nDim == 3:
                         delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
                         delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
@@ -313,9 +316,10 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
                 
                 self.Vk_mat = np.vstack(self.Vk).T
                 self.Wk_mat = np.vstack(self.Wk).T
-                
-                if (self.Vk_mat.shape[1] > self.manager.nDim*ns and self.qrFilter == 'Degroote1'): # Remove extra columns if number of iterations (i.e. columns of Vk and Wk) is larger than number of interface degrees of freedom 
-                    mpiPrint('WARNING: IQN-ILS Algorithm using \'Degroote1\' QR filter. Approximated stiffness matrix number of columns exceeds the number of degrees of freedom at FSI interface. Extra columns (the oldest ones!) are deleted for next iterations to avoid overdetermined problem!', self.mpiComm)
+
+                # --- Remove extra columns if number of iterations (i.e. columns of Vk and Wk) is larger than number of interface degrees of freedom --- #
+                if (self.Vk_mat.shape[1] > self.manager.nDim*ns and self.qrFilter == 'Degroote1'):
+                    mpiPrint('WARNING: IQN-ILS Algorithm using Degroote1 QR filter. Approximated stiffness matrix number of columns exceeds the number of degrees of freedom at FSI interface. Extra columns (the oldest ones!) are deleted for next iterations to avoid overdetermined problem!', self.mpiComm)
                     self.Vk_mat = np.delete(self.Vk_mat, np.s_[(self.manager.nDim*ns-self.Vk_mat.shape[1]):], 1)
                     self.Wk_mat = np.delete(self.Wk_mat, np.s_[(self.manager.nDim*ns-self.Wk_mat.shape[1]):], 1)
                 
@@ -362,4 +366,77 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
     def relaxInverseLeastSquare_CHT(self, res):
 
-        raise Exception('Thermal IQN-ILS coupling not implemented')
+        d = self.interfaceInterpolator.getd()
+        ns = self.interfaceInterpolator.getNs()
+        delta_ds = FlexInterfaceData(ns+d, 1, self.mpiComm)
+
+        # --- Initialize d_tilde for the construction of the WkCHT matrix -- #
+        if self.myid in self.manager.getSolidInterfaceProcessors():
+            localSolidInterfaceTemp = self.SolidSolver.getNodalTemperatures()
+            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                self.solidInterfaceTemperature_tilde[iGlobalVertex] = [localSolidInterfaceTemp[iVertex]]
+
+        self.solidInterfaceTemperature_tilde.assemble()
+        
+        # --- Relax the solid position --- #
+        if self.makeBGS_CHT:
+            mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
+            self.makeBGS_CHT = False
+            self.relax_CHT()
+
+        # --- Construct VkCHT and WkCHT matrices for the computation of the approximated tangent matrix --- #
+        else:
+            mpiPrint('\nCorrect solid interface temperature using IQN-ILS method...\n', self.mpiComm)
+            
+            # --- Start gathering on root process --- #
+            res_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)[0]
+            solidInterfaceResidual0_Gat = mpiGatherInterfaceData(self.solidInterfaceResidual0_CHT, ns+d, self.mpiComm, 0)[0]
+            solidInterfaceTemperature_tilde_Gat = mpiGatherInterfaceData(self.solidInterfaceTemperature_tilde, ns, self.mpiComm, 0)[0]
+            solidInterfaceTemperature_tilde1_Gat = mpiGatherInterfaceData(self.solidInterfaceTemperature_tilde1, ns, self.mpiComm, 0)[0]
+
+            # --- Copies for operating on, length=ns, not ns+d --- #
+            if self.myid == 0:
+                res_Gat_C = res_Gat[:ns]
+                solidInterfaceResidual0_Gat_C = solidInterfaceResidual0_Gat[:ns]
+
+                # --- VkCHT and WkCHT matrices are enriched only starting from the second iteration of every FSI loop --- #
+                if self.FSIIter > 0:
+
+                    delta_res = res_Gat_C - solidInterfaceResidual0_Gat_C
+                    delta_d = solidInterfaceTemperature_tilde_Gat - solidInterfaceTemperature_tilde1_Gat
+                    
+                    self.VkCHT.insert(0, delta_res)
+                    self.WkCHT.insert(0, delta_d)
+                    self.stackCHT += 1
+                
+                self.Vk_matCHT = np.vstack(self.VkCHT).T
+                self.Wk_matCHT = np.vstack(self.WkCHT).T
+                
+                # --- Remove extra columns if number of iterations (i.e. columns of VkCHT and WkCHT) is larger than number of interface degrees of freedom --- #
+                if (self.Vk_matCHT.shape[1] > ns and self.qrFilter == 'Degroote1'):
+                    mpiPrint('WARNING: IQN-ILS Algorithm using Degroote1 QR filter. Approximated stiffness matrix number of columns exceeds the number of degrees of freedom at FSI interface. Extra columns (the oldest ones!) are deleted for next iterations to avoid overdetermined problem!', self.mpiComm)
+                    self.Vk_matCHT = np.delete(self.Vk_matCHT, np.s_[(ns-self.Vk_matCHT.shape[1]):], 1)
+                    self.Wk_matCHT = np.delete(self.Wk_matCHT, np.s_[(ns-self.Wk_matCHT.shape[1]):], 1)
+                
+                dummy_V = self.Vk_matCHT.copy()
+                dummy_W = self.Wk_matCHT.copy()
+                c, dummy_W = self.qrSolve(dummy_V, dummy_W, res_Gat_C)
+                delta_ds_loc = np.dot(dummy_W,c).T + res_Gat_C
+
+                for iVertex in range(delta_ds_loc.shape[0]):
+                    iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                    delta_ds[iGlobalVertex] = [delta_ds_loc[iVertex]]
+            
+            # --- Go back to parallel run --- #
+            mpiBarrier(self.mpiComm)
+            delta_ds.assemble()
+            self.interfaceInterpolator.solidInterfaceTemperature += delta_ds
+        
+        if self.computeTangentMatrixBasedOnFirstIt:
+            if self.FSIIter == 0:
+                res.copy(self.solidInterfaceResidual0_CHT)
+                self.solidInterfaceTemperature_tilde.copy(self.solidInterfaceTemperature_tilde1)
+        else:
+            res.copy(self.solidInterfaceResidual0_CHT)
+            self.solidInterfaceTemperature_tilde.copy(self.solidInterfaceTemperature_tilde1)

@@ -227,16 +227,16 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
         self.solidInterfaceDisplacement_tilde.assemble()
         
+        # --- Relax the solid position --- #
         if self.makeBGS:
-            # --- Relax the solid position --- #
-            mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
+            mpiPrint('\nProcessing interface displacement...\n', self.mpiComm)
             self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.relaxSolidPosition()
             self.makeBGS = False
 
+        # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
         else:
-            # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
             mpiPrint('\nCorrect solid interface displacements using IQN-MVJ method...\n', self.mpiComm)
             
             # --- Start gathering on root process --- #
@@ -245,22 +245,22 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
             solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
 
+            # --- Copies for operating on, length=ns, not ns+d --- #
             if self.myid == 0:
-                res_X_Gat_C = res_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                res_X_Gat_C = res_X_Gat[:ns]
                 res_Y_Gat_C = res_Y_Gat[:ns]
                 res_Z_Gat_C = res_Z_Gat[:ns]
-                solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                solidInterfaceResidual0_X_Gat_C = solidInterfaceResidual0_X_Gat[:ns]
                 solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
                 solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
 
-                if self.FSIIter == 0:
 
-                    # --- Use J from the previous time step because Vk and Wk are empty --- #
+                # --- Use J from the previous time step because Vk and Wk are empty --- #
+                if self.FSIIter == 0:
                     self.invJ = self.invJprev.copy()
 
+                # -- Vk and Wk matrices are enriched only starting from the second iteration --- #
                 else:
-                    
-                    # -- Vk and Wk matrices are enriched only starting from the second iteration --- #
                     if self.manager.nDim == 3:
                         delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
                         delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
@@ -322,25 +322,25 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         ns = self.interfaceInterpolator.getNs()
         delta_ds = FlexInterfaceData(ns+d, 1, self.mpiComm)
 
-        # --- Initialize d_tilde for the construction of the Wk matrix -- #
+        # --- Initialize d_tilde for the construction of the WkCHT matrix -- #
         if self.myid in self.manager.getSolidInterfaceProcessors():
-            localSolidInterfaceDisp_X = self.SolidSolver.getNodalTemperatures()
+            localSolidInterfaceTemp = self.SolidSolver.getNodalTemperatures()
             for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceTemperature_tilde[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex]]
+                self.solidInterfaceTemperature_tilde[iGlobalVertex] = [localSolidInterfaceTemp[iVertex]]
 
         self.solidInterfaceTemperature_tilde.assemble()
         
+        # --- Relax the solid position --- #
         if self.makeBGS_CHT:
-            # --- Relax the solid position --- #
             mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
             self.invJprevCHT = np.zeros((ns,ns))
             self.invJCHT = np.zeros((ns,ns))
-            self.relax_CHT()
             self.makeBGS_CHT = False
+            self.relax_CHT()
 
+        # --- Construct VkCHT and WkCHT matrices for the computation of the approximated tangent matrix --- #
         else:
-            # --- Construct Vk and Wk matrices for the computation of the approximated tangent matrix --- #
             mpiPrint('\nCorrect solid interface temperature using IQN-MVJ method...\n', self.mpiComm)
             
             # --- Start gathering on root process --- #
@@ -349,18 +349,17 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             solidInterfaceTemperature_tilde_Gat = mpiGatherInterfaceData(self.solidInterfaceTemperature_tilde, ns, self.mpiComm, 0)[0]
             solidInterfaceTemperature_tilde1_Gat = mpiGatherInterfaceData(self.solidInterfaceTemperature_tilde1, ns, self.mpiComm, 0)[0]
 
+            # --- Copies for operating on, length=ns, not ns+d --- #
             if self.myid == 0:
-                res_Gat_C = res_Gat[:ns] # Copies for operating on, length=ns, not ns+d
-                solidInterfaceResidual0_Gat_C = solidInterfaceResidual0_Gat[:ns] # Copies for operating on, length=ns, not ns+d
+                res_Gat_C = res_Gat[:ns]
+                solidInterfaceResidual0_Gat_C = solidInterfaceResidual0_Gat[:ns]
 
+                # --- Use J from the previous time step because VkCHT and WkCHT are empty --- #
                 if self.FSIIter == 0:
-
-                    # --- Use J from the previous time step because Vk and Wk are empty --- #
                     self.invJCHT = self.invJprevCHT.copy()
 
+                # -- VkCHT and WkCHT matrices are enriched only starting from the second iteration --- #
                 else:
-                    
-                    # -- Vk and Wk matrices are enriched only starting from the second iteration --- #
                     delta_res = res_Gat_C - solidInterfaceResidual0_Gat_C
                     delta_d = solidInterfaceTemperature_tilde_Gat - solidInterfaceTemperature_tilde1_Gat
                     

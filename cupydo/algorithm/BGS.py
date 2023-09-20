@@ -438,7 +438,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
     def relaxSolidPosition(self):
 
         # --- Set the relaxation parameter --- #
-        mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
+        mpiPrint('\nProcessing interface displacement...\n', self.mpiComm)
         self.setOmega()
 
         # --- Relax the solid interface position --- #
@@ -737,7 +737,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
     def relaxSolidAdjointLoad(self):
 
         # --- Set the relaxation parameter --- #
-        mpiPrint('\nProcessing interface displacements...\n', self.mpiComm)
+        mpiPrint('\nProcessing interface displacement...\n', self.mpiComm)
         self.setOmega()
 
         # --- Relax the solid interface position --- #

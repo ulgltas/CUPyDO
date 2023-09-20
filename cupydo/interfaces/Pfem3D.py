@@ -31,6 +31,7 @@ from ..genericSolvers import FluidSolver
 from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
+import math
 
 # ----------------------------------------------------------------------
 #  Pfem3D solver interface class
@@ -52,7 +53,7 @@ class Pfem3D(FluidSolver):
             
             self.implicit = False
             self.run = self.__runExplicit
-            self.maxDivision = 2000
+            self.maxDivision = 200
 
         else:
             
@@ -134,7 +135,7 @@ class Pfem3D(FluidSolver):
         # Estimate the time step for stability
 
         self.solver.computeNextDT()
-        division = int((t2-t1)/self.solver.getTimeStep())
+        division = math.ceil((t2-t1)/self.solver.getTimeStep())
         if division > self.maxDivision: return False
         dt = (t2-t1)/division
 

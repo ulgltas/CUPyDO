@@ -40,7 +40,7 @@ def getFsiP():
     # FSI objects
 
     p['interpolator'] = 'matching'
-    p['interpType'] = 'conservative'
+    p['interpType'] = 'consistent'
     p['algorithm'] = 'aitkenBGS'
     
     # FSI parameters
@@ -50,10 +50,10 @@ def getFsiP():
     p['compType'] = 'unsteady'
     
     p['omega'] = 0.5
-    p['dtSave'] = 0
+    p['dtSave'] = 0.01
     p['maxIt'] = 20
     p['tTot'] = 0.35
-    p['tol'] = 1e-6
+    p['tol'] = 1e-8
     p['dt'] = 0.001
     p['nDim'] = 2
     

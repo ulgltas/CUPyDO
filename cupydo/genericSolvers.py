@@ -91,9 +91,6 @@ class SolidSolver(object):
 
     def applyNodalHeatFluxes(self, HeatFlux_X, HeatFlux_Y, HeatFlux_Z, dt, haloNodesHeatFlux):
         raise NotImplementedError
-    
-    def setInitialDisplacements(self):
-        raise NotImplementedError
 
     def preprocessTimeIter(self, timeIter):
         return
@@ -149,12 +146,6 @@ class FluidSolver(object):
         self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes))
 
     def setInitialMeshDeformation(self):
-        return
-
-    def setInitialInterfaceHeatFlux(self):
-        return
-
-    def setInitialInterfaceTemperature(self):
         return
 
     def preprocessTimeIter(self, timeIter):

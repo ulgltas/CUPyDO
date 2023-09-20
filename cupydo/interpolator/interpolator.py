@@ -520,7 +520,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                 self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceRobinHeatFlux, dt, haloNodesRobinTemperature)
         else:
             localSolidInterfaceTemperature = self.SolidSolver.getNodalTemperatures()
-            localSolidInterfaceRobinHeatFlux = self.heatTransferCoeff*(localSolidInterfaceTemperature-self.solidInterfaceRobinTemperature.getDataArray(0), dt)
+            localSolidInterfaceRobinHeatFlux = self.heatTransferCoeff*(localSolidInterfaceTemperature-self.solidInterfaceRobinTemperature.getDataArray(0))
             self.SolidSolver.applyNodalNormalHeatFluxes(localSolidInterfaceRobinHeatFlux, dt, {})
 
     def setHeatFluxToSolidSolver(self, dt):

@@ -53,10 +53,18 @@ def getMetafor(parm):
     
     # Finite element properties
 
-    prp = w.ElementProperties(w.Volume2DElement)
-    prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
-    prp.put(w.MATERIAL,1)
-    app.addProperty(prp)
+    prp1 = w.ElementProperties(w.Volume2DElement)
+    prp1.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
+    prp1.put(w.MATERIAL,1)
+    app.addProperty(prp1)
+
+    # Elements for surface traction
+
+    prp2 = w.ElementProperties(w.NodStress2DElement)
+    load = w.NodInteraction(2)
+    load.push(groups['FSInterface'])
+    load.addProperty(prp2)
+    interactionset.add(load)
     
     # Boundary conditions
     
@@ -82,6 +90,7 @@ def getMetafor(parm):
 
     # Parameters for CUPyDO
 
+    parm['interacM'] = load
     parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
     parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

@@ -59,7 +59,7 @@ Problem.Material.rhoStar = 1000
 
 Problem.Solver = {}
 Problem.Solver.id = 'CDS_dpdt'
-Problem.Solver.securityCoeff = 0.2
+Problem.Solver.securityCoeff = 0.1
 
 Problem.Solver.adaptDT = true
 Problem.Solver.maxDT = math.huge

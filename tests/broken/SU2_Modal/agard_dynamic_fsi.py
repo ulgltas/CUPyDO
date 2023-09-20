@@ -58,7 +58,7 @@ def getParameters(_p):
     p['rbfRadius'] = 1.0
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
-    p['computationType'] = 'unsteady'
+    p['regime'] = 'unsteady'
     p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
     p.update(_p)
@@ -81,20 +81,20 @@ def main(_p):
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], p['nodalLoadsType'], withMPI, comm)
     else:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], p['nodalLoadsType'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize modal interpreter --- #
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Modal as sItf
-        solidSolver = sItf.ModalInterface(csd_file, p['computationType'])
+        solidSolver = sItf.ModalInterface(csd_file, p['regime'])
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #

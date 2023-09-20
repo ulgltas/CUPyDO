@@ -6,10 +6,13 @@ import os
 
 def test(meanFSIIt):
 
+    output = np.loadtxt('output.txt',delimiter=',')
+    temperature = output[-1][-1]
+
     name = [file for file in os.listdir() if('solid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
-    tag = 19
+    tag = 73
 
     if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
@@ -18,9 +21,10 @@ def test(meanFSIIt):
     if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
-    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.072110, 0.01, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
+    tests.add(CTest('Center ball coordinate X', coord[0], 0.138, 1e-3, False))
+    tests.add(CTest('Center ball coordinate Y', coord[1], 0.172, 0.01, False))
+    tests.add(CTest('Center ball temperature', temperature, 168.2, 0.005, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 9, 1, True))
     tests.run()
 
 # Input Parameters
@@ -39,28 +43,29 @@ def getFsiP():
     
     # FSI objects
 
-    p['interpolator'] = 'matching'
-    p['interpType'] = 'conservative'
-    p['algorithm'] = 'IQN_ILS'
+    p['interpolator'] = 'RBF'
+    p['interpType'] = 'consistent'
+    p['chtTransferMethod'] = 'FFTB'
+    p['algorithm'] = 'IQN_MVJ'
+    p['rbfRadius'] = 0.1
     
     # FSI parameters
 
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
     p['regime'] = 'unsteady'
-    p['dtSave'] = 0
+    p['dtSave'] = 1e-1
     p['omega'] = 0.5
     p['maxIt'] = 25
-    p['nSteps'] = 10
-    p['tol'] = 1e-8
-    p['dt'] = 0.1
-    p['tTot'] = 20
+    p['tol'] = 1e-4
+    p['dt'] = 1e-2
+    p['tTot'] = 1
     p['nDim'] = 2
 
     # Coupling Type
 
     p['mechanical'] = True
-    p['thermal'] = False
+    p['thermal'] = True
     return p
 
 # Main Function

@@ -47,7 +47,7 @@ def getFsiP():
 
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
-    p['compType'] = 'unsteady'
+    p['regime'] = 'unsteady'
     
     p['omega'] = 0.5
     p['dtSave'] = 0

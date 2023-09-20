@@ -23,7 +23,7 @@ def getParameters(_p):
     p['nFSIIterMax'] = 100
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.01
-    p['computationType'] = 'unsteady'
+    p['regime'] = 'unsteady'
     p['testName'] = fileName
     p['cfdFile'] = 'waterColumnOnElasticColumn_water_Pfem'
     p['csdFile'] = 'waterColumnOnElasticColumn_elasticColumn_Mtf_rho_1500_E_2_3e5_nu_0_4'
@@ -59,12 +59,12 @@ def main(_p):
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, p['computationType'])
+        solidSolver = sItf.Metafor(csd_file, p['regime'])
         
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #

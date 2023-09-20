@@ -54,7 +54,7 @@ class Modal(SolidSolver):
 
         # initialize
         SolidSolver.__init__(self)
-        self.computationType = p['compType']
+        self.regime = p['regime']
         self.__setCurrentState()
         self.initRealTimeData()
 
@@ -74,7 +74,7 @@ class Modal(SolidSolver):
         """Run the solver between t1 and t2
         Adrien Crovato
         """
-        if self.computationType == 'steady':
+        if self.regime == 'steady':
             self.solver.runStatic()
         else:
             self.solver.runDynamic(t1, t2)

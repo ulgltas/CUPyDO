@@ -210,7 +210,8 @@ class CUPyDO(object):
 
 # FSI parameters
 # needed by all algos
-# - p['compType'], steady or unsteady
+# - p['regime'], steady or unsteady
+# - p['computation'], direct or adjoint
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
 # - p['tTot'], total time

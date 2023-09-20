@@ -105,7 +105,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         self.setFSIInitialConditions()
 
         try:
-            if self.manager.computationType == 'unsteady':
+            if self.manager.regime == 'unsteady':
                 self.__unsteadyRun()
             else:
                 self.step.dt = self.totTime
@@ -212,7 +212,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
     def getMeanNbOfFSIIt(self):
 
-        if self.manager.computationType == 'unsteady':
+        if self.manager.regime == 'unsteady':
             return float(self.totNbOfFSIIt)/self.step.timeIter
         else:
             return self.FSIIter
@@ -316,7 +316,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.relax_CHT()
 
             # --- Update the solvers for the next BGS steady iteration --- #
-            if self.manager.computationType == 'steady':
+            if self.manager.regime == 'steady':
 
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()
@@ -665,7 +665,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
                 self.relaxSolidAdjointLoad()
 
             # --- Update the solvers for the next BGS steady iteration --- #
-            if self.manager.computationType == 'steady':
+            if self.manager.regime == 'steady':
 
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()

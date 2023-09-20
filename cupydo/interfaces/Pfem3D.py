@@ -77,7 +77,7 @@ class Pfem3D(FluidSolver):
 
         for i in self.FSI:
 
-            vector = w.VectorDouble(3)
+            vector = w.VectorDouble(4)
             self.mesh.getNode(i).setExtState(vector)
             self.BC.append(vector)
 
@@ -165,7 +165,7 @@ class Pfem3D(FluidSolver):
     def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
 
         for i,result in enumerate(Temperature):
-            self.BC[i][self.dim] = result
+            self.BC[i][3] = result
 
 # Return Nodal Values
 

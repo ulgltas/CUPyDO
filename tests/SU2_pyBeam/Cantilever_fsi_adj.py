@@ -66,7 +66,7 @@ def getAdjP():
     p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
     # FSI parameters
-    p['compType'] = 'steady'
+    p['regime'] = 'steady'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05

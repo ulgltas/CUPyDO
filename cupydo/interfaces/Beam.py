@@ -61,7 +61,7 @@ class pyBeamSolver(SolidSolver):
         #self.pyBeam.Initialize()
 
         # Some options that we should keep just in case
-        self.computationType = p['compType']  # computation type : steady (default) or unsteady
+        self.regime = p['regime']  # computation type : steady (default) or unsteady
         self.nodalLoadsType = p['nodalLoadsType']  # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
@@ -114,7 +114,7 @@ class pyBeamSolver(SolidSolver):
         Run one computation of pyBeam.
         """
 
-        if self.computationType == 'unsteady':
+        if self.regime == 'unsteady':
             self.__unsteadyRun(t1, t2)
         else:
             self.__steadyRun()

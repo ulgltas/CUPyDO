@@ -70,7 +70,7 @@ class Metafor(SolidSolver):
 
         self.exporter = parm['exporter']
         self.interpType = p['interpType']
-        self.computationType = p['compType']
+        self.regime = p['regime']
 
         self.thermal = p['thermal']
         self.mechanical = p['mechanical']

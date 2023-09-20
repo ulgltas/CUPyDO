@@ -74,7 +74,7 @@ class SU2SolidSolver(SolidSolver):
             else:
                 raise Exception("Moving and CHT markes have to be the same.")
 
-        self.computationType = p['compType']  # computation type : steady (default) or unsteady
+        self.regime = p['regime']  # computation type : steady (default) or unsteady
         self.nodalLoadsType = p['nodalLoadsType']  # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
@@ -160,7 +160,7 @@ class SU2SolidSolver(SolidSolver):
         Run one computation of SU2.
         """
 
-        if self.computationType == 'unsteady':
+        if self.regime == 'unsteady':
 
             dt = t2-t1
             if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):

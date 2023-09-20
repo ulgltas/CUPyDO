@@ -71,7 +71,7 @@ class SU2(FluidSolver):
             else:
                 raise Exception("Moving and CHT markers have to be the same!\n")
 
-        self.computationType = p['compType']                                   # computation type : steady (default) or unsteady
+        self.regime = p['regime']                                   # computation type : steady (default) or unsteady
         self.nodalLoadsType = p['nodalLoadsType']                                    # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
@@ -152,7 +152,7 @@ class SU2(FluidSolver):
         Run one computation of SU2.
         """
 
-        if self.computationType == 'unsteady':
+        if self.regime == 'unsteady':
 
             dt = t2-t1
             if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
@@ -326,9 +326,9 @@ class SU2(FluidSolver):
         Perform the mesh morphing.
         """
 
-        if self.computationType == 'unsteady' and nt>0:
+        if self.regime == 'unsteady' and nt>0:
             self.SU2.DynamicMeshUpdate(nt)
-        elif self.computationType == 'steady':
+        elif self.regime == 'steady':
             self.SU2.StaticMeshUpdate()
 
     def boundaryConditionsUpdate(self):

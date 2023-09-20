@@ -64,7 +64,7 @@ class Manager(ccupydo.CManager):
 
         # --- Initialize all the parameters --- #
         self.nDim = p['nDim']
-        self.computationType = p['compType']
+        self.regime = p['regime']
         self.computation = p['computation']
         self.mechanical = p['mechanical']
         self.thermal = p['thermal']
@@ -303,7 +303,7 @@ class Manager(ccupydo.CManager):
         return self.nDim
 
     def getComputationType(self):
-        return self.computationType
+        return self.regime
 
     def getMPIComm(self):
         return self.mpiComm

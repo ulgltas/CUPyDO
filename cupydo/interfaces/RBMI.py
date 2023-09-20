@@ -44,7 +44,7 @@ class RBMI(SolidSolver):
 
 
         self.NativeSolid = NativeSolid.NativeSolidSolver(p['csdFile'], True)
-        self.computationType = p['compType']
+        self.regime = p['regime']
 
         self.interfaceID = self.NativeSolid.getFSIMarkerID()
         self.nNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
@@ -64,7 +64,7 @@ class RBMI(SolidSolver):
     def run(self, t1, t2):
 
 
-        if self.computationType == 'unsteady':
+        if self.regime == 'unsteady':
             self.NativeSolid.timeIteration(t1, t2)
         else:
             self.NativeSolid.staticComputation()

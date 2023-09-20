@@ -162,7 +162,7 @@ class AlgorithmExplicit(Algorithm):
         self.setFSIInitialConditions()
         
         try:
-            if self.manager.computationType == 'unsteady':
+            if self.manager.regime == 'unsteady':
                 self.__unsteadyRun()
             else:
                 raise Exception('Explicit coupling is only valid for unsteady computations!')

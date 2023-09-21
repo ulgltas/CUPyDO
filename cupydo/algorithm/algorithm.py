@@ -85,6 +85,7 @@ class Algorithm(object):
             self.FluidSolver.setInitialMeshDeformation()
         if self.manager.thermal:
             self.solidToFluidThermalTransfer()
+            
         self.FluidSolver.boundaryConditionsUpdate()
 
     def fluidToSolidMechaTransfer(self):
@@ -105,6 +106,7 @@ class Algorithm(object):
     def solidToFluidMechaTransfer(self):
 
         self.communicationTimer.start()
+        self.interfaceInterpolator.getDisplacementFromSolidSolver()
         self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
         self.interfaceInterpolator.setDisplacementToFluidSolver(self.step.dt)
         self.communicationTimer.stop()
@@ -240,20 +242,19 @@ class AlgorithmExplicit(Algorithm):
 
         mpiPrint("Enter Explicit FSI Coupling",self.mpiComm,titlePrint)
 
+        # --- Solid to fluid mechanical transfer --- #
         if self.manager.mechanical:
-            # --- Solid to fluid mechanical transfer --- #
-            self.interfaceInterpolator.getDisplacementFromSolidSolver()
             self.solidToFluidMechaTransfer()
-            # --- Fluid mesh morphing --- #
             mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
             self.meshDefTimer.start()
             self.FluidSolver.meshUpdate(self.step.timeIter)
             self.meshDefTimer.stop()
             self.meshDefTimer.cumul()
 
+        # --- Solid to fluid thermal transfer --- #
         if self.manager.thermal:
-            # --- Solid to fluid thermal transfer --- #
             self.solidToFluidThermalTransfer()
+
         self.FluidSolver.boundaryConditionsUpdate()
 
         # --- Fluid solver call  --- #

@@ -94,7 +94,7 @@ def main():
     cupydo.run() # run fsi process
 
     cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
-    test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
     print('')

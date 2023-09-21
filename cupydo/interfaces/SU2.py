@@ -91,7 +91,7 @@ class SU2(FluidSolver):
         self.nodalInitialPos_Z = np.zeros((self.nPhysicalNodes))
         self.haloNodesPositionsInit = {}
 
-        self.initializeVariables()
+        self.initializeVariables(p)
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
@@ -141,11 +141,11 @@ class SU2(FluidSolver):
             else:
                 print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
 
-    def initializeVariables(self):
+    def initializeVariables(self, p):
         """
         Initialize variables required by the solver
         """
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
 
     def run(self, t1, t2):
         """
@@ -378,11 +378,11 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
             else:
                 print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
     
-    def initializeVariables(self):
+    def initializeVariables(self, p):
         """
         Initialize variables required by the solver
         """
-        FluidAdjointSolver.__init__(self)
+        FluidAdjointSolver.__init__(self, p)
 
     def __setCurrentState(self):
         SU2._SU2__setCurrentState(self) # Using SU2 original __setCurrentState

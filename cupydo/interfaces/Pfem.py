@@ -78,7 +78,7 @@ class Pfem(FluidSolver):
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         
         self.displ_x_prev = np.zeros((self.nPhysicalNodes))
         self.displ_y_prev = np.zeros((self.nPhysicalNodes))

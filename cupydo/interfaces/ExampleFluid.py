@@ -46,7 +46,7 @@ class ExampSolver(FluidSolver):
         #self.nHaloNode =                           # number of ghost nodes at the f/s boundary
         #self.nPhysicalNodes =                      # number of physical nodes at the f/s boundary
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         self.coreSolver = fluidWrapper.solverDriver(config)
         
         self.initRealTimeData()

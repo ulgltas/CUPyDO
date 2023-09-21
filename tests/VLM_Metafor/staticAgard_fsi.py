@@ -6,7 +6,7 @@
 # Adrien Crovato & Mariano Sánchez Martínez
 
 def test(cupydo, tol):
-    res = cupydo.algorithm.errValue
+    res = cupydo.algorithm.criterion.epsilon
     import numpy as np
     from cupydo.testing import CTest, CTests
     # Read results from data

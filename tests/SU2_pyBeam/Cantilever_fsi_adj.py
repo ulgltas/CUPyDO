@@ -93,7 +93,7 @@ def main():
     p = getAdjP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test_adj(cupydo.algorithm.errValue, p['tol']) # check the results
+    test_adj(cupydo.algorithm.criterion.epsilon, p['tol']) # check the results
     
     # eof
     print('')

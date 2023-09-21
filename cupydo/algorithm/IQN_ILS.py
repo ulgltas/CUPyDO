@@ -150,19 +150,19 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
         while (self.FSIIter < self.nbFSIIterMax) and (self.FSIConv == False):
             mpiPrint("\n>>>> FSI iteration {} <<<<\n".format(self.FSIIter), self.mpiComm)
 
+            # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                # --- Solid to fluid mechanical transfer --- #
                 self.solidToFluidMechaTransfer()
-                # --- Fluid mesh morphing --- #
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)
                 self.meshDefTimer.stop()
                 self.meshDefTimer.cumul()
 
+            # --- Solid to fluid thermal transfer --- #
             if self.manager.thermal:
-                # --- Solid to fluid thermal transfer --- #
                 self.solidToFluidThermalTransfer()
+                
             self.FluidSolver.boundaryConditionsUpdate()
 
             # --- Fluid solver call for FSI subiteration --- #

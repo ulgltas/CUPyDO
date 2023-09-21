@@ -244,7 +244,7 @@ class SolidAdjointSolver(SolidSolver):
 class FluidAdjointSolver(FluidSolver):
     def __init__(self):
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         self.nodalAdjDisp_X = np.zeros((self.nPhysicalNodes))
         self.nodalAdjDisp_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjDisp_Z = np.zeros((self.nPhysicalNodes))

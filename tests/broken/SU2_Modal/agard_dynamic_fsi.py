@@ -112,7 +112,7 @@ def main(_p):
     algorithm.run()
 
     # --- Check the results --- #
-    test(algorithm.errValue, p['tollFSI'])
+    test(algorithm.criterion.epsilon, p['tollFSI'])
 
     # --- Exit computation --- #
     del manager

@@ -66,12 +66,10 @@ class AlgorithmBGSStaticRelax(Algorithm):
         self.omega = self.omegaBound
         self.omegaCHT = self.omegaBoundCHT
 
+        self.FSIConv = False
+        self.totNbOfFSIIt = 0
         self.writeInFSIloop = False
 
-        self.FSIIter = 0
-        self.FSIConv = False
-        self.predictor = True
-        self.totNbOfFSIIt = 0
         self.nbFSIIterMax = p['maxIt']
 
         self.solidInterfaceVelocity = None
@@ -85,7 +83,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         d = self.interfaceInterpolator.getd()
 
         # --- Initialize data for prediction (mechanical only) --- #
-        if self.predictor and self.manager.mechanical:
+        if self.manager.mechanical:
             self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
         # --- Initialize coupling residuals --- #
@@ -252,7 +250,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                self.solidToFluidMechaTransfer()
+                self.solidToFluidMechaTransfer(self.FSIIter == 0)
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)
@@ -388,13 +386,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
     def solidDisplacementPredictor(self):
 
-        if not self.predictor:
-            if not self.verified:
-
-                # --- Bring back the interface position of the previous time step --- #
-                self.interfaceInterpolator.restoreSolidInterfaceDisplacement()
-            return
-
         if self.verified:
             
             # --- Save the current interface position before predicting a new one --- #
@@ -417,7 +408,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         # --- Predict the solid position for the next time step --- #
 
         mpiPrint("First order predictor.", self.mpiComm)
-        self.interfaceInterpolator.solidInterfaceDisplacement += (self.step.dt*self.solidInterfaceVelocity)
+        self.interfaceInterpolator.solidInterfaceDisplacement += self.step.dt*self.solidInterfaceVelocity
 
     def setOmega(self):
 
@@ -615,8 +606,8 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                self.solidToFluidMechaTransfer()
                 self.solidToFluidAdjointTransfer()
+                self.solidToFluidMechaTransfer(self.FSIIter == 0)
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)

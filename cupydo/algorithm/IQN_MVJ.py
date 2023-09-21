@@ -123,7 +123,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                self.solidToFluidMechaTransfer()
+                self.solidToFluidMechaTransfer(self.FSIIter == 0)
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)
@@ -229,7 +229,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         
         # --- Relax the solid position --- #
         if self.makeBGS:
-            mpiPrint('\nProcessing interface displacement...\n', self.mpiComm)
             self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.relaxSolidPosition()
@@ -333,7 +332,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         
         # --- Relax the solid position --- #
         if self.makeBGS_CHT:
-            mpiPrint('\nProcessing interface temperature...\n', self.mpiComm)
             self.invJprevCHT = np.zeros((ns,ns))
             self.invJCHT = np.zeros((ns,ns))
             self.makeBGS_CHT = False

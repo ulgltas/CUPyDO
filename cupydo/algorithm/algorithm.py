@@ -103,10 +103,13 @@ class Algorithm(object):
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
 
-    def solidToFluidMechaTransfer(self):
+    def solidToFluidMechaTransfer(self, predictor=False):
 
         self.communicationTimer.start()
-        self.interfaceInterpolator.getDisplacementFromSolidSolver()
+        if predictor:
+            self.solidDisplacementPredictor()
+        else:
+            self.interfaceInterpolator.getDisplacementFromSolidSolver()
         self.interfaceInterpolator.interpolateSolidDisplacementOnFluidMesh()
         self.interfaceInterpolator.setDisplacementToFluidSolver(self.step.dt)
         self.communicationTimer.stop()

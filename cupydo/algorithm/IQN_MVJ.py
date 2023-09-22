@@ -123,7 +123,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                self.solidToFluidMechaTransfer(self.FSIIter == 0)
+                self.solidToFluidMechaTransfer()
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)

@@ -150,7 +150,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Displacement predictor for the next time step --- #
             mpiPrint('\nSolid displacement prediction for next time step', self.mpiComm)
-
             if self.manager.mechanical:
                 self.solidDisplacementPredictor()
 
@@ -250,7 +249,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                self.solidToFluidMechaTransfer(self.FSIIter == 0)
+                self.solidToFluidMechaTransfer()
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)
@@ -606,8 +605,8 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
+                self.solidToFluidMechaTransfer()
                 self.solidToFluidAdjointTransfer()
-                self.solidToFluidMechaTransfer(self.FSIIter == 0)
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)
@@ -692,9 +691,6 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.interfaceInterpolator.setAdjointLoadsToFluidSolver(self.step.dt)
         self.communicationTimer.stop()
         self.communicationTimer.cumul()
-
-    def __unsteadyRun(self):
-        RuntimeError("Unsteady adjoint not implemented")
 
     def computeSolidInterfaceAdjointResidual(self):
 

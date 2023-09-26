@@ -203,6 +203,7 @@ class AlgorithmExplicit(Algorithm):
                 self.SolidSolver.preprocessTimeIter(self.step.timeIter)
 
             # --- Internal FSI loop --- #
+            self.criterion.reset()
             self.verified = self.fsiCoupling()
             self.totNbOfFSIIt += self.FSIIter
             mpiBarrier(self.mpiComm)

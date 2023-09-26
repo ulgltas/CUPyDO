@@ -181,17 +181,15 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
             if self.manager.mechanical:
                 # --- Compute and monitor the FSI residual --- #
-                res = self.computeSolidInterfaceResidual()
-                self.criterion.update(res)
+                self.computeSolidInterfaceResidual()
                 mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
-                self.relaxMultiVectorJacobian(res)
+                self.relaxMultiVectorJacobian()
 
             if self.manager.thermal:
                 # --- Compute and monitor the FSI residual --- #
-                res = self.computeSolidInterfaceResidual_CHT()
-                self.criterion.update_CHT(res)
+                self.computeSolidInterfaceResidual_CHT()
                 mpiPrint('\nCHT error value : {}\n'.format(self.criterion.epsilonCHT), self.mpiComm)
-                self.relaxMultiVectorJacobian_CHT(res)
+                self.relaxMultiVectorJacobian_CHT()
 
             # --- Update the FSI iteration and history --- #
             if self.writeInFSIloop == True:
@@ -212,7 +210,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         return False
 
 
-    def relaxMultiVectorJacobian(self, res):
+    def relaxMultiVectorJacobian(self):
 
         d = self.interfaceInterpolator.getd()
         ns = self.interfaceInterpolator.getNs()
@@ -239,7 +237,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             mpiPrint('\nCorrect solid interface displacements using IQN-MVJ method...\n', self.mpiComm)
             
             # --- Start gathering on root process --- #
-            res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)
+            res_X_Gat, res_Y_Gat, res_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceResidual, ns+d, self.mpiComm, 0)
             solidInterfaceResidual0_X_Gat, solidInterfaceResidual0_Y_Gat, solidInterfaceResidual0_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceResidual0, ns+d, self.mpiComm, 0)
             solidInterfaceDisplacement_tilde_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceDisplacement_tilde, ns, self.mpiComm, 0)
             solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde1_Z_Gat = mpiGatherInterfaceData(self.solidInterfaceDisplacement_tilde1, ns, self.mpiComm, 0)
@@ -306,14 +304,14 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         
         if self.computeTangentMatrixBasedOnFirstIt:
             if self.FSIIter == 0:
-                res.copy(self.solidInterfaceResidual0)
+                self.solidInterfaceResidual.copy(self.solidInterfaceResidual0)
                 self.solidInterfaceDisplacement_tilde.copy(self.solidInterfaceDisplacement_tilde1)
         else:
-            res.copy(self.solidInterfaceResidual0)
+            self.solidInterfaceResidual.copy(self.solidInterfaceResidual0)
             self.solidInterfaceDisplacement_tilde.copy(self.solidInterfaceDisplacement_tilde1)
 
 
-    def relaxMultiVectorJacobian_CHT(self, res):
+    def relaxMultiVectorJacobian_CHT(self):
 
         if self.interfaceInterpolator.chtTransferMethod != 'FFTB': raise Exception('Only FFTB coupling is implemented with IQN-MVJ')
 
@@ -342,7 +340,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             mpiPrint('\nCorrect solid interface temperature using IQN-MVJ method...\n', self.mpiComm)
             
             # --- Start gathering on root process --- #
-            res_Gat = mpiGatherInterfaceData(res, ns+d, self.mpiComm, 0)[0]
+            res_Gat = mpiGatherInterfaceData(self.solidTemperatureResidual, ns+d, self.mpiComm, 0)[0]
             solidInterfaceResidual0_Gat = mpiGatherInterfaceData(self.solidInterfaceResidual0_CHT, ns+d, self.mpiComm, 0)[0]
             solidInterfaceTemperature_tilde_Gat = mpiGatherInterfaceData(self.solidInterfaceTemperature_tilde, ns, self.mpiComm, 0)[0]
             solidInterfaceTemperature_tilde1_Gat = mpiGatherInterfaceData(self.solidInterfaceTemperature_tilde1, ns, self.mpiComm, 0)[0]
@@ -384,8 +382,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         
         if self.computeTangentMatrixBasedOnFirstIt:
             if self.FSIIter == 0:
-                res.copy(self.solidInterfaceResidual0_CHT)
+                self.solidTemperatureResidual.copy(self.solidInterfaceResidual0_CHT)
                 self.solidInterfaceTemperature_tilde.copy(self.solidInterfaceTemperature_tilde1)
         else:
-            res.copy(self.solidInterfaceResidual0_CHT)
+            self.solidTemperatureResidual.copy(self.solidInterfaceResidual0_CHT)
             self.solidInterfaceTemperature_tilde.copy(self.solidInterfaceTemperature_tilde1)

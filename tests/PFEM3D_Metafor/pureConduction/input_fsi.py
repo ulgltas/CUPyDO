@@ -10,7 +10,7 @@ def test(meanFSIIt):
 
     tests = CTests()
     tests.add(CTest('Middle bar temperature', temperature, 311.75, 0.005, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
     tests.run()
 
 # Input Parameters

@@ -52,7 +52,7 @@ def getFsiP():
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['nSteps'] = 10
-    p['tol'] = 1e-8
+    p['tol'] = 1e-6
     p['dt'] = 0.1
     p['tTot'] = 20
     p['nDim'] = 2

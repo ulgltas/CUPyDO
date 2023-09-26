@@ -159,6 +159,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.SolidSolver.preprocessTimeIter(self.step.timeIter)
 
             # --- Internal FSI loop --- #
+            self.criterion.reset()
             self.verified = self.fsiCoupling()
             self.totNbOfFSIIt += self.FSIIter
             mpiBarrier(self.mpiComm)
@@ -302,13 +303,13 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
             if self.manager.mechanical:
                 # --- Compute the mechanical residual --- #
-                self.criterion.update(self.computeSolidInterfaceResidual())
+                self.computeSolidInterfaceResidual()
                 mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
                 self.relaxSolidPosition()
 
             if self.manager.thermal:
                 # --- Compute the thermal residual --- #
-                self.criterion.update_CHT(self.computeSolidInterfaceResidual_CHT())
+                self.computeSolidInterfaceResidual_CHT()
                 mpiPrint('\nCHT error value : {}\n'.format(self.criterion.epsilonCHT), self.mpiComm)
                 self.relax_CHT()
 
@@ -350,6 +351,7 @@ class AlgorithmBGSStaticRelax(Algorithm):
         # --- Calculate the residual (vector and norm) --- #
         mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
         self.solidInterfaceResidual.set(predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement)
+        self.criterion.update(predictedDisplacement, self.solidInterfaceResidual)
         return self.solidInterfaceResidual
 
     def computeSolidInterfaceResidual_CHT(self):
@@ -374,14 +376,16 @@ class AlgorithmBGSStaticRelax(Algorithm):
         if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
             mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
             self.solidHeatFluxResidual.set(predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux)
+            self.criterion.update_CHT(predictedHF, self.solidHeatFluxResidual)
             return self.solidHeatFluxResidual
         
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
             self.solidTemperatureResidual.set(predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature)
+            self.criterion.update_CHT(predictedTemp, self.solidTemperatureResidual)
             return self.solidTemperatureResidual
-        else:
-            return None
+        
+        else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
 
     def solidDisplacementPredictor(self):
 

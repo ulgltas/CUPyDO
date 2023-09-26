@@ -29,6 +29,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 from math import *
 import numpy as np
+from .interfaceData import FlexInterfaceData
 
 # ----------------------------------------------------------------------
 #    Criterion class
@@ -42,6 +43,13 @@ class Criterion(object):
         self.epsilonCHT = 0
         self.tol = p['tol']
 
+    # Reset all the convergence indicators
+
+    def reset(self):
+
+        self.epsilon = 0
+        self.epsilonCHT = 0
+
     def isVerified(self):
         return (self.epsilon < self.tol) and (self.epsilonCHT < self.tol)
 
@@ -50,12 +58,18 @@ class NormCriterion(Criterion):
     def __init__(self, p):
         Criterion.__init__(self, p)
 
-    def update(self, residual):
+    # Update the mechanical residual
 
-        norm = residual.norm()
-        self.epsilon = np.linalg.norm(norm)
-    
-    def update_CHT(self, residual):
+    def update(self, prediction, residual):
 
-        norm = residual.norm()
-        self.epsilonCHT = np.linalg.norm(norm)
+        res = np.array(residual.norm())
+        res /= (np.array(prediction.norm())+self.tol)
+        self.epsilon = np.linalg.norm(res)
+
+    # Update ththermal residual
+
+    def update_CHT(self, prediction, residual):
+
+        res = np.array(residual.norm())
+        res /= (np.array(prediction.norm())+self.tol)
+        self.epsilonCHT = np.linalg.norm(res)

@@ -20,7 +20,7 @@ def test(meanFSIIt):
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
     tests.add(CTest('Middle bar coordinate Y', coord[1], -0.075215, 0.01, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
     tests.run()
 
 # Input Parameters
@@ -52,7 +52,7 @@ def getFsiP():
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['nSteps'] = 10
-    p['tol'] = 1e-8
+    p['tol'] = 1e-6
     p['dt'] = 0.1
     p['tTot'] = 20
     p['nDim'] = 2

@@ -24,7 +24,7 @@ def test(meanFSIIt):
     tests.add(CTest('Center ball coordinate X', coord[0], 0.138, 1e-3, False))
     tests.add(CTest('Center ball coordinate Y', coord[1], 0.172, 0.01, False))
     tests.add(CTest('Center ball temperature', temperature, 168.2, 0.005, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 5, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
     tests.run()
 
 # Input Parameters
@@ -57,7 +57,7 @@ def getFsiP():
     p['dtSave'] = 1e-1
     p['omega'] = 0.5
     p['maxIt'] = 25
-    p['tol'] = 1e-4
+    p['tol'] = 1e-6
     p['dt'] = 1e-2
     p['tTot'] = 1
     p['nDim'] = 2

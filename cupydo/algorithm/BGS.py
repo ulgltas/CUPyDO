@@ -475,14 +475,13 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
         self.omegaCHT = self.omegaBoundCHT
 
     def setOmega(self):
-
+        
+        # --- Compute the dynamic Aitken coefficient --- #
         if self.FSIIter != 0:
-            # --- Compute the dynamic Aitken coefficient --- #
-            deltaInterfaceResidual = self.solidInterfaceResidual - self.solidInterfaceResidualkM1
 
+            deltaInterfaceResidual = self.solidInterfaceResidual - self.solidInterfaceResidualkM1
             prodScalRes_X, prodScalRes_Y, prodScalRes_Z = deltaInterfaceResidual.dot(self.solidInterfaceResidualkM1)
             prodScalRes = prodScalRes_X + prodScalRes_Y + prodScalRes_Z
-
             deltaInterfaceResidual_NormX, deltaInterfaceResidual_NormY, deltaInterfaceResidual_NormZ = deltaInterfaceResidual.norm()
             deltaResNormSquare = deltaInterfaceResidual_NormX**2 + deltaInterfaceResidual_NormY**2 + deltaInterfaceResidual_NormZ**2
 
@@ -491,8 +490,8 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
             else:
                 self.omega = self.omegaMin
 
+        # --- Initiate omega with min/max bounding --- #
         else:
-            # --- Initiate omega with min/max bounding --- #
             if self.aitkenCritMecha == 'max':
                 self.omega = max(self.omegaBound, self.omega)
             else:
@@ -508,22 +507,20 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
 
     def setOmega_CHT(self):
 
+        # --- Compute the dynamic Aitken coefficient --- #
         if self.FSIIter != 0:
-            # --- Compute the dynamic Aitken coefficient --- #
+
             if self.interfaceInterpolator.chtTransferMethod == 'hFFB' or self.interfaceInterpolator.chtTransferMethod == 'TFFB':
                 deltaHeatFluxResidual = self.solidHeatFluxResidual - self.solidHeatFluxResidualkM1
-
                 prodScalRes_X, prodScalRes_Y, prodScalRes_Z = deltaHeatFluxResidual.dot(self.solidHeatFluxResidualkM1)
                 prodScalRes = prodScalRes_X + prodScalRes_Y + prodScalRes_Z
-
                 deltaHeatFluxResidual_NormX, deltaHeatFluxResidual_NormY, deltaHeatFluxResidual_NormZ = deltaHeatFluxResidual.norm()
                 deltaResNormSquare = deltaHeatFluxResidual_NormX**2 + deltaHeatFluxResidual_NormY**2 + deltaHeatFluxResidual_NormZ**2
+
             elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
                 deltaTemperatureResidual = self.solidTemperatureResidual - self.solidTemperatureResidualkM1
-
                 tempDot = deltaTemperatureResidual.dot(self.solidTemperatureResidualkM1)
                 prodScalRes = tempDot[0]
-
                 tempNorm = deltaTemperatureResidual.norm()
                 deltaTemperatureResidual_Norm = tempNorm[0]
                 deltaResNormSquare = deltaTemperatureResidual_Norm**2
@@ -533,8 +530,8 @@ class AlgorithmBGSAitkenRelax(AlgorithmBGSStaticRelax):
             else:
                 self.omegaCHT = self.omegaMinCHT
 
+        # --- Initiate omega with min/max bounding --- #
         else:
-            # --- Initiate omega with min/max bounding --- #
             if self.aitkenCritThermal == 'max':
                 self.omegaCHT = max(self.omegaBoundCHT, self.omegaCHT)
             else:

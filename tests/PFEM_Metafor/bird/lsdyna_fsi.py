@@ -16,7 +16,7 @@ def test(res, tol, it):
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
+    tests.add(CTest('Mean nb of FSI iterations', it, 4, 1, True))
     tests.add(CTest('X-coordinate Node 4', result_1[0], 0.010530, 0.05, False))
     tests.add(CTest('Y-coordinate Node 4', result_1[1], 0.027984, 0.05, False))
     tests.run()

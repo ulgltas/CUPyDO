@@ -49,13 +49,12 @@ Plane Surface(13) = {12};
 Line Loop(14) = {9, 10, 11, -7};
 Plane Surface(15) = {14};
 
-Physical Line("Reservoir",16) = {3, 4, 6}; //Reservoir
+Physical Line("Reservoir",16) = {2, 3, 4, 6}; //Reservoir
 Physical Line("FSInterface",17) = {7};        //Obstacle surface: FSI interface
 Physical Line("FreeSurface",18) = {5, 8};              //Free surface
 Physical Line("ObstacleBase",19) = {9};             //Obstacle base
 Physical Surface("WaterColumn",20) = {13};          //Water column
 Physical Surface("Obstacle",21) = {15};          //Obstacle
-Physical Line("Outside",22) = {2};        //Outside part of the reservoir
 Physical Surface("Contact",100) = {};          //Solid-solid contact
 
 // Transfinite Line{1} = (H/A)*N;

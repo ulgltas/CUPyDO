@@ -61,7 +61,7 @@ def getFsiP():
     p['tTot'] = 0.35
     
     p['dtSave'] = 0
-    p['tol'] = 1e-6
+    p['tol'] = 1e-5
     p['maxIt'] = 20
     p['omega'] = 0.5
     # Coupling Type

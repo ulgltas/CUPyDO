@@ -652,7 +652,7 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
             if self.manager.mechanical:
                 # --- Compute the mechanical residual --- #
-                self.criterion.update(self.computeSolidInterfaceAdjointResidual())
+                self.computeSolidInterfaceAdjointResidual()
                 mpiPrint('\nFSI error value : {}\n'.format(self.criterion.epsilon), self.mpiComm)
                 self.relaxSolidAdjointLoad()
 

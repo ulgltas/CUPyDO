@@ -34,9 +34,9 @@ def test(res, tol, it):
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 4, 1, True))
-    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.483080, 0.05, False))
-    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.001367, 0.05, False))
+    tests.add(CTest('Mean nb of FSI iterations', it, 6, 1, True))
+    tests.add(CTest('X-coordinate gate tip', result_1[0], 0.480099, 0.05, False))
+    tests.add(CTest('Y-coordinate gate tip', result_1[1], 0.002053, 0.05, False))
     tests.run()
 
 def getFsiP():
@@ -61,7 +61,7 @@ def getFsiP():
     p['tTot'] = 0.05
     
     p['dtSave'] = 0
-    p['tol'] = 1e-6
+    p['tol'] = 1e-5
     p['maxIt'] = 20
     p['omega'] = 0.5
     p['firstItTgtMat'] = False

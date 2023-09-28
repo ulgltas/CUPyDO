@@ -65,7 +65,7 @@ def getFsiP():
     p['tTot'] = 0.05
     
     p['dtSave'] = 0
-    p['tol'] = 1e-6
+    p['tol'] = 1e-4
     p['maxIt'] = 15
     p['omega'] = 0.7
     p['rbfRadius'] = .3

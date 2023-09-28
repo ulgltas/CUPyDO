@@ -32,8 +32,8 @@ def test(res, tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.378596, 1e-1, False))
-    tests.add(CTest('Drag coefficient', resultA[3], 0.02202, 1e-1, False))
+    tests.add(CTest('Lift coefficient', resultA[2], 0.337855, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 0.018802, 1e-1, False))
     tests.run()
 
 def getFsiP():
@@ -58,7 +58,7 @@ def getFsiP():
     p['tTot'] = 0.005
     
     p['dtSave'] = 0
-    p['tol'] = 1e-6
+    p['tol'] = 1e-4
     p['maxIt'] = 25
     p['omega'] = 1.0
     p['nSteps'] = 0

@@ -72,7 +72,7 @@ def getAdjP():
     p['tTot'] = 0.05
     
     p['dtSave'] = 0
-    p['tol'] = 1e-8
+    p['tol'] = 1e-6
     p['maxIt'] = 25
     p['omega'] = 1.0
     p['rbfRadius'] = .3

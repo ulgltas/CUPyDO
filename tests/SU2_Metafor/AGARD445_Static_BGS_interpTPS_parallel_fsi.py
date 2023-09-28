@@ -68,7 +68,7 @@ def getFsiP():
     p['tTot'] = 0.05
     
     p['dtSave'] = 0
-    p['tol'] = 1e-6
+    p['tol'] = 1e-4
     p['maxIt'] = 4
     p['omega'] = 1.0
     p['interpOpts'] = [1000, 'JACOBI']

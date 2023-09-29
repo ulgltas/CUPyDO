@@ -40,7 +40,7 @@ def test(res,tol,it):
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X', result[0], 0.5 , 1e-3, False))
     tests.add(CTest('Middle bar coordinate Y', result[1], -0.053139, 0.05, False))
-    tests.add(CTest('Mean number of ISI iterations', it, 4, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', it, 6, 1, True))
     tests.run()
 
 # Input Parameters

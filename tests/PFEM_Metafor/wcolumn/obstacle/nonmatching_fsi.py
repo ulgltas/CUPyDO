@@ -34,9 +34,9 @@ def test(res, tol, it):
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
-    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.296695, 0.05, False))
-    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.080249, 0.05, False))
+    tests.add(CTest('Mean nb of FSI iterations', it, 5, 1, True))
+    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.297746, 0.05, False))
+    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.080302, 0.05, False))
     tests.run()
 
 def getFsiP():

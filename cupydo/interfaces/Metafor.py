@@ -89,8 +89,6 @@ class Metafor(SolidSolver):
         if self.interpType == 'conservative':
 
             self.Fnods = dict()
-            self.prevLoad = np.zeros((self.nNodes,3))
-
             for i in range(self.nNodes):
                 
                 load = list()
@@ -107,21 +105,11 @@ class Metafor(SolidSolver):
 
         self.interacM = None
         if 'interacM' in parm:
-
             self.interacM = parm['interacM']
-            self.prevLoad = np.zeros((self.nNodes,6))
 
         self.interacT = None
         if 'interacT' in parm:
-
             self.interacT = parm['interacT']
-            self.prevHeat = np.zeros((self.nNodes,3))
-
-        # Creates the array for external communication
-
-        self.vel = np.zeros((self.nNodes,3))
-        self.acc = np.zeros((self.nNodes,3))
-        self.dis = np.zeros((self.nNodes,3))
 
         # Initialization of domain and output
 
@@ -213,9 +201,7 @@ class Metafor(SolidSolver):
         Apply the conservative load boundary conditions
         """
 
-        self.nextLoad = np.transpose([load_X,load_Y,load_Z])[:self.nNodes]
-        result = (self.prevLoad+self.nextLoad)/2
-
+        result = np.transpose([load_X,load_Y,load_Z])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
@@ -230,9 +216,7 @@ class Metafor(SolidSolver):
         Apply the consistent load boundary conditions
         """
 
-        self.nextLoad = np.transpose([load_XX,load_YY,load_ZZ,load_XY,load_XZ,load_YZ])[:self.nNodes]
-        result = (self.prevLoad+self.nextLoad)/2
-
+        result = np.transpose([load_XX,load_YY,load_ZZ,load_XY,load_XZ,load_YZ])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
@@ -245,9 +229,7 @@ class Metafor(SolidSolver):
         Apply the consistent heat flux boundary conditions
         """
 
-        self.nextHeat = np.transpose([HF_X,HF_Y,HF_Z])[:self.nNodes]
-        result = (self.prevHeat+self.nextHeat)/2
-
+        result = np.transpose([HF_X,HF_Y,HF_Z])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
@@ -260,8 +242,6 @@ class Metafor(SolidSolver):
         Save the current state in the RAM and update the load
         """
 
-        if self.mechanical: self.prevLoad = np.copy(self.nextLoad)
-        if self.thermal: self.prevHeat = np.copy(self.nextHeat)
         self.metaFac.save(self.mfac)
         SolidSolver.update(self)
         self.reload = False
@@ -271,8 +251,6 @@ class Metafor(SolidSolver):
         Save the current state in the RAM and update the load
         """
 
-        if self.mechanical: self.prevLoad = np.copy(self.nextLoad)
-        if self.thermal: self.prevHeat = np.copy(self.nextHeat)
         self.metaFac.save(self.mfac)
         self.reload = True
 

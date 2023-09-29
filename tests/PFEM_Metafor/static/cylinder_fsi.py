@@ -19,7 +19,7 @@ def test(res, tol, it):
     result_2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 6, 1, True))
+    tests.add(CTest('Mean nb of FSI iterations', it, 5, 1, True))
     tests.add(CTest('Y-coordinate Node 6', result_1[1], 0.25, 0.05, False))
     tests.add(CTest('Total force on cylinder', result_2[1], -0.1197, 0.05, False))
     tests.run()

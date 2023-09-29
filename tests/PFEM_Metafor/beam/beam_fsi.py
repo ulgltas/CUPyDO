@@ -67,19 +67,19 @@ def getFsiP():
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
     p['regime'] = 'unsteady'
-    
     p['dtSave'] = 0
     p['omega'] = 0.5
     p['maxIt'] = 25
     p['nSteps'] = 10
-    p['tol'] = 1e-8
     p['dt'] = 0.1
     p['tTot'] = 20
+    p['criterion'] = 'relative'
     p['nDim'] = 2
 
     # Coupling Type
 
     p['mechanical'] = True
+    p['mechanicalTol'] = 1e-8
     p['thermal'] = False
     return p
 
@@ -94,7 +94,7 @@ def main():
     cupydo.run() # run fsi process
 
     cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
-    test(cupydo.algorithm.criterion.epsilon, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
     print('')

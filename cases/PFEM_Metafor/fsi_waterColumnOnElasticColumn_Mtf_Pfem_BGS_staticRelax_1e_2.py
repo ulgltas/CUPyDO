@@ -16,6 +16,7 @@ import cupydo.algorithm as cupyalgo
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['tollFSI'] = 1e-7
     p['dt'] = 1e-5

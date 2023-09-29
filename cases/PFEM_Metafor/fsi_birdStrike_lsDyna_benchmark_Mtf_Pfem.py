@@ -18,6 +18,7 @@ def getParameters(_p):
     p['U0'] = 0.05
     p['N'] = 10
     p['a'] = 0.0034
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
     p['dt'] = 0.0068 # (a/N)/U0

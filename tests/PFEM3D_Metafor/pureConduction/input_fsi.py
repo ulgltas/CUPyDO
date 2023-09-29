@@ -43,15 +43,16 @@ def getFsiP():
     p['dtSave'] = 0.1
     p['omega'] = 0.5
     p['maxIt'] = 25
-    p['tol'] = 1e-6
     p['dt'] = 0.1
     p['tTot'] = 20
+    p['criterion'] = 'relative'
     p['nDim'] = 2
 
     # Coupling Type
 
     p['mechanical'] = False
     p['thermal'] = True
+    p['thermalTol'] = 1e-6
     return p
 
 # Main Function

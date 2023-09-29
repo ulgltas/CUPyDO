@@ -50,6 +50,7 @@ def test(res, tol):
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['tollFSI'] = 1e-6
     p['dt'] = 6.392969e-04

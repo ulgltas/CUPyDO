@@ -80,7 +80,12 @@ class CUPyDO(object):
 
         # --- Initialize the FSI criterion --- #
 
-        criterion = cupycrit.NormCriterion(p)
+        if p['criterion'] == 'relative':
+            criterion = cupycrit.RelativeCriterion(p)
+        elif p['criterion'] == 'norm':
+            criterion = cupycrit.NormCriterion(p)
+        else:
+            raise RuntimeError(p['criterion'], 'not available! (avail: relative or norm).\n')
         cupyutil.mpiBarrier()
 
         # --- Initialize the FSI algorithm --- #
@@ -90,7 +95,7 @@ class CUPyDO(object):
             else:
                 raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: staticBGS).\n')
 
-        else:
+        elif p['computation'] == 'direct':
             if p['algorithm'] == 'explicit':
                 self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator, p, comm)
             elif p['algorithm'] == 'staticBGS':
@@ -103,6 +108,8 @@ class CUPyDO(object):
                 self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             else:
                 raise RuntimeError(p['algorithm'], 'not available! (avail: explicit, staticBGS, aitkenBGS, IQN_ILS or IQN_MVJ).\n')
+        else:
+            raise RuntimeError(p['computation'], 'not available! (avail: direct or adjoint).\n')
         cupyutil.mpiBarrier()
 
     def run(self):
@@ -207,6 +214,8 @@ class CUPyDO(object):
 # - p['interpType'], loading type available: Conservative, Consistent
 # - p['criterion'], convergence criterion available: Displacements
 # - p['algorithm'], FSI algorithms available: Explicit, StaticBGS, AitkenBGS, IQN_ILS
+# - p['mechanical'], enable mechanical coupling
+# - p['thermal'], enable thermal coupling
 
 # FSI parameters
 # needed by all algos
@@ -217,7 +226,8 @@ class CUPyDO(object):
 # - p['tTot'], total time
 # - p['dtSave'], time between each result save()
 # needed by BGS
-# - p['tol'], tolerance on displacements
+# - p['mechanicalTol'], tolerance on displacements
+# - p['thermalTol'], tolerance on temperature
 # - p['maxIt'], maximum number of iterations
 # - p['omega'], relaxation parameter
 # needed by IQN-ILS

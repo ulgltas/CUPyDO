@@ -45,29 +45,36 @@ def getFsiP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = os.path.join(filePath, 'CantileverSquareChannel_BGS_parallel_SU2Conf.cfg')
     p['csdFile'] = 'CantileverSquareChannel_BGS_parallel_MetaforConf'
+
     # FSI objects
+
     p['interpolator'] = 'matching'
     p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
+
     # FSI parameters
+
     p['regime'] = 'unsteady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.0025
     p['tTot'] = 0.01
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-3
     p['maxIt'] = 20
     p['omega'] = 1.0
+
     # Coupling Type
 
     p['mechanical'] = True
+    p['mechanicalTol'] = 1e-3
     p['thermal'] = False
     return p
 
@@ -76,7 +83,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.criterion.epsilon, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

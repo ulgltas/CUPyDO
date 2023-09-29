@@ -17,6 +17,7 @@ def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['tollFSI'] = 1e-7
     p['dt'] = 1e-4

@@ -29,7 +29,6 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 from math import *
 import numpy as np
-from .interfaceData import FlexInterfaceData
 
 # ----------------------------------------------------------------------
 #    Criterion class
@@ -39,19 +38,53 @@ class Criterion(object):
 
     def __init__(self, p):
 
-        self.epsilon = 0
-        self.epsilonCHT = 0
-        self.tol = p['tol']
+        self.mechanical = p['mechanical']
+        self.thermal = p['thermal']
+        self.reset()
+
+        if self.mechanical:
+            self.tol = p['mechanicalTol']
+
+        if self.thermal:
+            self.tolCHT = p['thermalTol']
 
     # Reset all the convergence indicators
 
     def reset(self):
 
-        self.epsilon = 0
-        self.epsilonCHT = 0
+        self.epsilon = np.inf
+        self.epsilonCHT = np.inf
 
     def isVerified(self):
-        return (self.epsilon < self.tol) and (self.epsilonCHT < self.tol)
+
+        verified = list()
+        if self.mechanical:
+            verified.append(self.epsilon < self.tol)
+        if self.thermal:
+            verified.append(self.epsilonCHT < self.tolCHT)
+
+        return np.all(verified)
+
+class RelativeCriterion(Criterion):
+    
+    def __init__(self, p):
+        Criterion.__init__(self, p)
+
+    # Update the mechanical residual
+
+    def update(self, residual, prediction):
+
+        res = np.array(residual.norm())
+        res /= (np.array(prediction.norm())+self.tol)
+        self.epsilon = np.linalg.norm(res)
+
+    # Update the thermal residual
+
+    def update_CHT(self, residual, prediction):
+
+        res = np.array(residual.norm())
+        res /= (np.array(prediction.norm())+self.tolCHT)
+        self.epsilonCHT = np.linalg.norm(res)
 
 class NormCriterion(Criterion):
     
@@ -60,16 +93,14 @@ class NormCriterion(Criterion):
 
     # Update the mechanical residual
 
-    def update(self, prediction, residual):
+    def update(self, residual, prediction):
 
         res = np.array(residual.norm())
-        res /= (np.array(prediction.norm())+self.tol)
         self.epsilon = np.linalg.norm(res)
 
-    # Update ththermal residual
+    # Update the thermal residual
 
-    def update_CHT(self, prediction, residual):
+    def update_CHT(self, residual, prediction):
 
         res = np.array(residual.norm())
-        res /= (np.array(prediction.norm())+self.tol)
         self.epsilonCHT = np.linalg.norm(res)

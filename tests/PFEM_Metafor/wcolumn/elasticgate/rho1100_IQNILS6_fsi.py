@@ -44,30 +44,36 @@ def getFsiP():
     import os
     p = {}
     # Solvers and config files
+
     p['fluidSolver'] = 'Pfem'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = 'rho1100_fluid'
     p['csdFile'] = 'rho1100_solid'
+
     # FSI objects
+
     p['interpolator'] = 'matching'
     p['interpType'] = 'conservative'
     p['algorithm'] = 'IQN_ILS'
+
     # FSI parameters
+
     p['regime'] = 'unsteady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.001
     p['tTot'] = 0.05
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-5
     p['maxIt'] = 10
     p['omega'] = 0.5
     p['firstItTgtMat'] = False
     p['nSteps'] = 6
+
     # Coupling Type
 
     p['mechanical'] = True
+    p['mechanicalTol'] = 1e-5
     p['thermal'] = False
     return p
 
@@ -76,7 +82,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.criterion.epsilon, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
     print('')

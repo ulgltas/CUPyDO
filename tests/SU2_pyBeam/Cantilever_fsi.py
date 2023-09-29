@@ -69,7 +69,6 @@ def getFsiP():
     p['maxIt'] = 15
     p['omega'] = 1.0
     p['rbfRadius'] = .3
-    p['nodalLoadsType'] = 'force'
     # Solid parameters
     p['extractors'] = [20]
     # Coupling Type

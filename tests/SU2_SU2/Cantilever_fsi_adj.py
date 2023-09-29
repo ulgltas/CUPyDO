@@ -65,7 +65,6 @@ def getAdjP():
     p['maxIt'] = 16
     p['omega'] = 1.0
     p['rbfRadius'] = .3
-    p['nodalLoadsType'] = 'force'
     # Solid parameters
     p['extractors'] = [2, 3]
     p['surfaceFilename'] = 'surface_solid'

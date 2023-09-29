@@ -62,7 +62,6 @@ class pyBeamSolver(SolidSolver):
 
         # Some options that we should keep just in case
         self.regime = p['regime']  # computation type : steady (default) or unsteady
-        self.nodalLoadsType = p['nodalLoadsType']  # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = self.pyBeam.nPoint

@@ -70,7 +70,6 @@ def getFsiP():
     p['omega'] = 0.7
     p['rbfRadius'] = .3
     p['interpOpts'] = [1000, 'JACOBI']
-    p['nodalLoadsType'] = 'force'
     p['extractors'] = [19]
     # Coupling Type
 

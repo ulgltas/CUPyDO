@@ -59,7 +59,6 @@ def getParameters(_p):
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
     p['regime'] = 'unsteady'
-    p['nodalLoadsType'] = 'force'
     p['nZones_SU2'] = 0
     p.update(_p)
     return p
@@ -81,9 +80,9 @@ def main(_p):
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], p['nodalLoadsType'], withMPI, comm)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], withMPI, comm)
     else:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], p['nodalLoadsType'], withMPI, 0)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize modal interpreter --- #

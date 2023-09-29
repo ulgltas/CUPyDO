@@ -229,7 +229,6 @@ class CUPyDO(object):
 # - p['interpOpts'], optional options for interpolator, [0] = max number of iterations, [1] = preconditionner type
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
-# - p['nodalLoadsType'], SU2
 # - p['extractors'], SU2Solid, pyBeam
 # - p['surfaceFilename'], SU2Solid, filename of the output surface file, as defined in the CFG file
 # - p['surfaceExtension'], SU2Solid, extension of the output surface file: vtu, vtk, dat

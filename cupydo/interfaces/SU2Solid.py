@@ -75,7 +75,6 @@ class SU2SolidSolver(SolidSolver):
                 raise Exception("Moving and CHT markes have to be the same.")
 
         self.regime = p['regime']  # computation type : steady (default) or unsteady
-        self.nodalLoadsType = p['nodalLoadsType']  # nodal loads type to extract : force (in N, default) or pressure (in Pa)
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = 0

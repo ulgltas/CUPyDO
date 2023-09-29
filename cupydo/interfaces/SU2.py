@@ -71,8 +71,7 @@ class SU2(FluidSolver):
             else:
                 raise Exception("Moving and CHT markers have to be the same!\n")
 
-        self.regime = p['regime']                                   # computation type : steady (default) or unsteady
-        self.nodalLoadsType = p['nodalLoadsType']                                    # nodal loads type to extract : force (in N, default) or pressure (in Pa)
+        self.regime = p['regime']                                   # computation type : steady or unsteady
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = 0
@@ -198,12 +197,7 @@ class SU2(FluidSolver):
             halo = self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex)
             # self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
             if halo == False:
-                if self.nodalLoadsType == 'pressure':
-                    Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID, iVertex)
-                    Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID, iVertex)
-                    Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID, iVertex)
-                else:
-                    Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
+                Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
                 Qx, Qy, Qz = self.SU2.GetVertexHeatFluxes(self.fluidInterfaceID, iVertex)

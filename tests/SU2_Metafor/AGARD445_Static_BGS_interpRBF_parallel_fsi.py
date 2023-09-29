@@ -73,7 +73,6 @@ def getFsiP():
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['interpOpts'] = [1000, 'JACOBI']
-    p['nodalLoadsType'] = 'force'
     # Coupling Type
 
     p['mechanical'] = True

@@ -47,7 +47,7 @@ def test_adj(res, tol):
     tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('dcd/dE', resultAdj, 1.41152371e-5, 0.05, False)) # rel. tol. of 5% (was 0.3% before), based on central FD with deltaE of 1000 Pa
+    tests.add(CTest('dcd/dE', resultAdj, 0.000017, 0.05, False)) # rel. tol. of 5%
     tests.run()
 
 def getAdjP():

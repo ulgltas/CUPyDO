@@ -411,7 +411,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
     
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, dt, haloNodesLoads):
+    def applyNodalAdjointForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
@@ -419,8 +419,8 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
             if GlobalIndex in list(self.haloNodeList.keys()):
                 loadX, loadY, loadZ = haloNodesLoads[GlobalIndex]
             else:
-                loadX = load_adj_X[PhysicalIndex]
-                loadY = load_adj_Y[PhysicalIndex]
-                loadZ = load_adj_Z[PhysicalIndex]
+                loadX = load_X[PhysicalIndex]
+                loadY = load_Y[PhysicalIndex]
+                loadZ = load_Z[PhysicalIndex]
                 PhysicalIndex += 1
             self.SU2.SetFlowLoad_Adjoint(self.fluidInterfaceID, iVertex, loadX, loadY, loadZ)

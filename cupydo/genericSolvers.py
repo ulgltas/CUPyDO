@@ -231,11 +231,11 @@ class SolidAdjointSolver(SolidSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, dt, haloNodesDisplacements):
+    def applyNodalAdjointDisplacement(self, disp_X, disp_Y, disp_Z, dt, haloNodesDisplacements):
         raise NotImplementedError
     
-    def getNodalAdjointLoads(self):
-        return self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjDisp_Z
+    def getNodalAdjointForce(self):
+        return self.nodalAdjLoad_X, self.nodalAdjLoad_Y, self.nodalAdjLoad_Z
 
 # ----------------------------------------------------------------------
 #  Generic fluid adjoint solver class
@@ -253,7 +253,10 @@ class FluidAdjointSolver(FluidSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes))
 
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, dt, haloNodesLoads):
+    def applyNodalAdjointForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
+        raise NotImplementedError
+    
+    def applyNodalAdjointStress(self, load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ, dt, haloNodesLoads):
         raise NotImplementedError
     
     def getNodalAdjointDisplacement(self):

@@ -82,13 +82,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
-        # --- Initialize data for prediction (mechanical only) --- #
+        # --- Initialize data for mechanical coupling --- #
         if self.manager.mechanical:
             self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
-
-        # --- Initialize coupling residuals --- #
-        if self.manager.mechanical:
             self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+
+        # --- Initialize data for thermal coupling --- #
         if self.manager.thermal:
             self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
             self.solidTemperatureResidual = FlexInterfaceData(ns+d, 1, self.mpiComm)
@@ -352,7 +351,6 @@ class AlgorithmBGSStaticRelax(Algorithm):
         mpiPrint("\nCompute FSI residual based on solid interface displacement.", self.mpiComm)
         self.solidInterfaceResidual.set(predictedDisplacement - self.interfaceInterpolator.solidInterfaceDisplacement)
         self.criterion.update(self.solidInterfaceResidual, predictedDisplacement)
-        return self.solidInterfaceResidual
 
     def computeSolidInterfaceResidual_CHT(self):
 
@@ -377,13 +375,11 @@ class AlgorithmBGSStaticRelax(Algorithm):
             mpiPrint("\nCompute CHT residual based on solid interface heat flux.", self.mpiComm)
             self.solidHeatFluxResidual.set(predictedHF - self.interfaceInterpolator.solidInterfaceHeatFlux)
             self.criterion.update_CHT(self.solidHeatFluxResidual, predictedHF)
-            return self.solidHeatFluxResidual
         
         elif self.interfaceInterpolator.chtTransferMethod == 'hFTB' or self.interfaceInterpolator.chtTransferMethod == 'FFTB':
             mpiPrint("\nCompute CHT residual based on solid interface temperature.", self.mpiComm)
             self.solidTemperatureResidual.set(predictedTemp - self.interfaceInterpolator.solidInterfaceTemperature)
             self.criterion.update_CHT(self.solidTemperatureResidual, predictedTemp)
-            return self.solidTemperatureResidual
         
         else: raise Exception('Wrong CHT transfer method, use: TFFB, FFTB, hFTB, hFFB')
 
@@ -675,48 +671,44 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
         return False
 
-    def fluidToSolidAdjointTransfer(self):
-
-        self.communicationTimer.start()
-        self.interfaceInterpolator.getAdjointDisplacementFromFluidSolver()
-        self.interfaceInterpolator.interpolateFluidAdjointDisplacementOnSolidMesh()
-        self.interfaceInterpolator.setAdjointDisplacementToSolidSolver(self.step.dt)
-        self.communicationTimer.stop()
-        self.communicationTimer.cumul()
-
-    def solidToFluidAdjointTransfer(self):
-
-        self.communicationTimer.start()
-        self.interfaceInterpolator.getAdjointLoadsFromSolidSolver()
-        self.interfaceInterpolator.interpolateSolidAdjointLoadsOnFluidMesh()
-        self.interfaceInterpolator.setAdjointLoadsToFluidSolver(self.step.dt)
-        self.communicationTimer.stop()
-        self.communicationTimer.cumul()
-
     def computeSolidInterfaceAdjointResidual(self):
 
         ns = self.interfaceInterpolator.getNs()
         d = self.interfaceInterpolator.getd()
 
-        # --- Get the predicted (computed) solid interface adjoint loads from the solid solver --- #
-        predictedAdjointLoad = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        # --- Get the predicted solid interface adjoint loads from the solid solver --- #
+        if self.interpType == 'conservative':
 
-        if self.myid in self.manager.getSolidInterfaceProcessors():
-            localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointLoads()
-            for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
-                iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceAdjointLoad_X[iVertex], localSolidInterfaceAdjointLoad_Y[iVertex], localSolidInterfaceAdjointLoad_Z[iVertex]]
+            predictedAdjointLoad = FlexInterfaceData(ns+d, 3, self.mpiComm)
 
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+                localSolidInterfaceLoad_X, localSolidInterfaceLoad_Y, localSolidInterfaceLoad_Z = self.SolidSolver.getNodalAdjointForce()
+                for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                    iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                    predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceLoad_X[iVertex], localSolidInterfaceLoad_Y[iVertex], localSolidInterfaceLoad_Z[iVertex]]
+
+        # --- Get the predicted solid interface adjoint stresses from the solid solver --- #
+        elif self.interpType == 'consistent':
+
+            predictedAdjointLoad = FlexInterfaceData(ns+d, 6, self.mpiComm)
+
+            if self.myid in self.manager.getSolidInterfaceProcessors():
+
+                localSolidInterfaceLoad_XX, localSolidInterfaceLoad_YY, localSolidInterfaceLoad_ZZ, localSolidInterfaceLoad_XY, localSolidInterfaceLoad_XZ, localSolidInterfaceLoad_YZ = self.SolidSolver.getNodalAdjointStress()
+                for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
+                    iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
+                    predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceLoad_XX[iVertex], localSolidInterfaceLoad_YY[iVertex], localSolidInterfaceLoad_ZZ[iVertex], localSolidInterfaceLoad_XY[iVertex], localSolidInterfaceLoad_XZ[iVertex], localSolidInterfaceLoad_YZ[iVertex]]
+
+        else: raise Exception('Wrong interpolation type, use: conservative, consistent')
         predictedAdjointLoad.assemble()
 
         # --- Calculate the residual (vector and norm) --- #
         mpiPrint("\nCompute FSI residual based on solid adjoint load displacement.", self.mpiComm)
         self.solidInterfaceResidual.set(predictedAdjointLoad - self.interfaceInterpolator.solidInterfaceAdjointLoads)
-
-        return self.solidInterfaceResidual
+        self.criterion.update(self.solidInterfaceResidual, predictedAdjointLoad)
     
     def computeSolidInterfaceAdjointResidual_CHT(self):
-        raise Exception('Thermal Coupling not implemented')
+        raise Exception('Thermal coupling not implemented')
 
     def relaxSolidAdjointLoad(self):
 
@@ -728,4 +720,4 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         self.interfaceInterpolator.solidInterfaceAdjointLoads += (self.omega*self.solidInterfaceResidual)
 
     def relaxSolidAdjoint_CHT(self):
-        raise Exception('Thermal Coupling not implemented')
+        raise Exception('Thermal coupling not implemented')

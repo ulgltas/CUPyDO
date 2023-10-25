@@ -43,7 +43,7 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class Algorithm(object):
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, p, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, p, mpiComm):
 
         mpiPrint("Initializing FSI Algorithm",mpiComm,titlePrint)
 
@@ -63,7 +63,7 @@ class Algorithm(object):
 
         self.totTime = p['tTot']
         self.interpType = p['interpType']
-        self.step = TimeStep(Manager, FluidSolver, SolidSolver, p)
+        self.step = TimeStep(Manager, FluidSolver, SolidSolver, p, mpiComm)
         
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
@@ -150,7 +150,7 @@ class Algorithm(object):
 # ----------------------------------------------------------------------
 
 class AlgorithmExplicit(Algorithm):
-    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, p, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, p, mpiComm):
         Algorithm.__init__(self, Manager, FluidSolver, SolidSolver, InterfaceInterpolator, p, mpiComm)
 
     def run(self):

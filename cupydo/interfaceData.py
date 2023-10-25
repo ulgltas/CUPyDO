@@ -40,7 +40,7 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class FlexInterfaceData(ccupydo.CFlexInterfaceData):
-    def __init__(self, val_nPoint, val_nDim, mpiComm=None):
+    def __init__(self, val_nPoint, val_nDim, mpiComm):
 
         self.mpiComm = mpiComm
         ccupydo.CFlexInterfaceData.__init__(self, val_nPoint, val_nDim, mpiComm)
@@ -230,7 +230,7 @@ class InterfaceMatrix(ccupydo.CInterfaceMatrix):
         -getMat()
     """
 
-    def __init__(self, sizes, mpiComm=None):
+    def __init__(self, sizes, mpiComm):
         """
         Overloaded constructor
         """

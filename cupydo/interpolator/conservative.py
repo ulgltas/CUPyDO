@@ -256,7 +256,7 @@ class ConservativeRBFInterpolator(ConservativeInterpolator):
 # ----------------------------------------------------------------------
 
 class ConservativeTPSInterpolator(ConservativeInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm):
 
         ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting interpolation with Thin Plate Spline...', self.mpiComm)

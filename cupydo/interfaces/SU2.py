@@ -45,7 +45,7 @@ class SU2(FluidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, p, have_MPI, MPIComm=None):
+    def __init__(self, p, have_MPI, MPIComm):
         """
         Initialize the SU2 solver and all the required interface variables.
         """

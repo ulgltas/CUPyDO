@@ -47,7 +47,7 @@ class Manager(ccupydo.CManager):
         -getGlobalIndex()
     """
 
-    def __init__(self, FluidSolver, SolidSolver, p, mpiComm=None):
+    def __init__(self, FluidSolver, SolidSolver, p, mpiComm):
 
         ccupydo.CManager.__init__(self)
 

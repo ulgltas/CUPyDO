@@ -238,7 +238,7 @@ class ConsistentInterpolator(InterfaceInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentRBFInterpolator(ConsistentInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm):
 
         ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
@@ -289,7 +289,7 @@ class ConsistentRBFInterpolator(ConsistentInterpolator):
 # ----------------------------------------------------------------------
 
 class ConsistentTPSInterpolator(ConsistentInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm=None):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm):
 
         ConsistentInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting consistent interpolation with Thin Plate Spline...', self.mpiComm)

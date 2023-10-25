@@ -34,7 +34,7 @@ import math
 # ----------------------------------------------------------------------
 
 class TimeStep(object):
-    def __init__(self,Manager, FluidSolver, SolidSolver, p, mpiComm=None):
+    def __init__(self,Manager, FluidSolver, SolidSolver, p, mpiComm):
 
         self.mpiComm = mpiComm
 
@@ -63,8 +63,6 @@ class TimeStep(object):
         Get [t1, t2] for fluid and solid run
         """
         return self.time,self.time+self.dt
-    
-    # I need the Algorithm class because the solid solver is on a specific process
 
     def updateSave(self):
         """

@@ -28,7 +28,6 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 # ----------------------------------------------------------------------
 
 import numpy as np
-import scipy as sp
 import scipy.sparse.linalg as splinalg
 import sys
 
@@ -48,7 +47,7 @@ class LinearSolver(ccupydo.CLinearSolver):
         -solve()
     """
 
-    def __init__(self, MatrixOperator, mpiComm=None):
+    def __init__(self, MatrixOperator, mpiComm):
         """
         Constructor.
         MatrixOperator is of type InterfaceMatrix

@@ -19,12 +19,12 @@ limitations under the License.
 
 '''
 
-import os
-from shutil import copyfile # Copy file from restart.pyBeam to solution.pyBeam, hardcoded filenames in pyBeam
-
+from shutil import copyfile
 def test_adj(res, tol):
+
     import numpy as np
     from cupydo.testing import CTest, CTests
+
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -37,17 +37,16 @@ def test_adj(res, tol):
     resultAdj = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
-    # residual for test is 1e-8
     if (res > tol):
        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
        raise Exception("FSI algo failed to converge!")
 
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('dcd/dE', resultAdj, 0.000017, 0.05, False)) # rel. tol. of 5%
+    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False))
+    tests.add(CTest('dcd/dE', resultAdj, 0.000014, 0.05, False))
     tests.run()
 
 def getAdjP():

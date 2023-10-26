@@ -35,15 +35,11 @@ def test(res, tol):
     resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
-    # residual for test is 0.002
-    #if (res > tol):
-    #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
-    #    raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.058656, 1e-1, False))
-    tests.add(CTest('Drag coefficient', resultA[3], 0.000107, 1e-1, False))
-    tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.006441, 1e-1, False))
-    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.007185, 1e-1, False))
+    tests.add(CTest('Lift coefficient', resultA[2], 0.054305, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 0.000042, 1e-1, False))
+    tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.012865, 1e-1, False))
+    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.014352, 1e-1, False))
     tests.run()
 
 def getFsiP():

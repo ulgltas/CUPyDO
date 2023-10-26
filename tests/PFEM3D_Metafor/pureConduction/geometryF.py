@@ -47,7 +47,7 @@ sh.addPhysicalGroup(2,[s],name='Fluid')
 sh.addPhysicalGroup(1,[l[2]],name='FSInterface')
 sh.addPhysicalGroup(1,[l[0],l[1],l[3]],name='Wall')
 
-## |--------------------------|
+# |--------------------------|
 # |   Write the Mesh File    |
 # |--------------------------|
 

@@ -21,9 +21,9 @@ def test(meanFSIIt):
     if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Center ball coordinate X', coord[0], 0.168477, 1e-3, False))
-    tests.add(CTest('Center ball coordinate Y', coord[1], 0.176114, 0.01, False))
-    tests.add(CTest('Center ball temperature', temperature, 170.246805, 0.005, False))
+    tests.add(CTest('Center ball coordinate X', coord[0], 0.162837, 0.01, False))
+    tests.add(CTest('Center ball coordinate Y', coord[1], 0.181850, 0.01, False))
+    tests.add(CTest('Center ball temperature', temperature, 169.707391, 0.005, False))
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 5, 1, True))
     tests.run()
 

@@ -70,9 +70,9 @@ Problem.Solver.maxRemeshDT = math.huge
 
 Problem.Solver.MomEq = {}
 Problem.Solver.ContEq = {}
-Problem.Solver.ContEq.pExt = 0
+Problem.Solver.MomEq.pExt = 0
 Problem.Solver.MomEq.bodyForce = {0,-9.81}
-Problem.Solver.ContEq.stabilization = 'Meduri'
+Problem.Solver.ContEq.stabilization = 'CLS'
 
 -- Momentum Continuity BC
 

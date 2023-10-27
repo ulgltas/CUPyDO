@@ -40,8 +40,8 @@ def getFsiP():
     # FSI objects
 
     p['interpolator'] = 'matching'
-    p['interpType'] = 'consistent'
-    p['algorithm'] = 'aitkenBGS'
+    p['interpType'] = 'conservative'
+    p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters
 

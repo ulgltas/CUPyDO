@@ -9,18 +9,17 @@ Problem.id = 'WCompNewtonNoT'
 -- Mesh Parameters
 
 Problem.Mesh = {}
-Problem.Mesh.alpha = 1.2
+Problem.Mesh.alpha = 1
 Problem.Mesh.omega = 0.7
-Problem.Mesh.gamma = 0.3
-Problem.Mesh.hchar = 0.015
-Problem.Mesh.gammaFS = 0.2
-Problem.Mesh.addOnFS = false
-Problem.Mesh.minAspectRatio = 1e-2
+Problem.Mesh.gamma = 0.5
+Problem.Mesh.hchar = 0.01
+Problem.Mesh.gammaFS = 0.5
+Problem.Mesh.addOnFS = true
+Problem.Mesh.minAspectRatio = 1e-3
 Problem.Mesh.keepFluidElements = true
-Problem.Mesh.deleteFlyingNodes = false
+Problem.Mesh.deleteFlyingNodes = true
 Problem.Mesh.deleteBoundElements = false
-Problem.Mesh.laplacianSmoothingBoundaries = false
-Problem.Mesh.boundingBox = {-0.01,-0.01,0.6,100}
+Problem.Mesh.boundingBox = {0,0,0.6,100}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
@@ -51,15 +50,15 @@ Problem.Material = {}
 Problem.Material.p0 = 0
 Problem.Material.mu = 1e-3
 Problem.Material.K0p = 7.6
-Problem.Material.gamma = 0
 Problem.Material.K0 = 2.2e+7
+Problem.Material.gamma = 7e-2
 Problem.Material.rhoStar = 1000
 
 -- Solver Parameters
 
 Problem.Solver = {}
 Problem.Solver.id = 'CDS_dpdt'
-Problem.Solver.securityCoeff = 0.1
+Problem.Solver.securityCoeff = 0.2
 
 Problem.Solver.adaptDT = true
 Problem.Solver.maxDT = math.huge

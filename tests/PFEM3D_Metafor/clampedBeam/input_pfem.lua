@@ -19,8 +19,7 @@ Problem.Mesh.minAspectRatio = 1e-2
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = false
-Problem.Mesh.laplacianSmoothingBoundaries = false
-Problem.Mesh.boundingBox = {-0.01,-1,1.01,1}
+Problem.Mesh.boundingBox = {0,-1,1,1}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'

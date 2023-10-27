@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 Pfem3D.py
-Python interface between the wrapper of Metafor and CUPyDO.
+Python interface between the wrapper of PFEM3D and CUPyDO.
 Authors M. Lacroix, S. Février
 
 '''
@@ -53,7 +53,7 @@ class Pfem3D(FluidSolver):
             
             self.implicit = False
             self.run = self.__runExplicit
-            self.maxDivision = 200
+            self.maxDivision = 1000
 
         else:
             

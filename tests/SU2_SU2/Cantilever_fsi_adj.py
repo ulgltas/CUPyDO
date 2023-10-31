@@ -44,32 +44,44 @@ def getAdjP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'SU2'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
     p['csdFile'] = os.path.join(filePath, 'config_cantilever_adj.cfg')
     p['computation'] = 'adjoint'
+
     # FSI objects
+
     p['interpolator'] = 'matching'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-8
     p['maxIt'] = 16
     p['omega'] = 1.0
     p['rbfRadius'] = .3
-    p['nodalLoadsType'] = 'force'
+
     # Solid parameters
+
     p['extractors'] = [2, 3]
     p['surfaceFilename'] = 'surface_solid'
     p['surfaceExtension'] = 'vtu'
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-8
+    p['thermal'] = False
     return p
 
 def main():
@@ -79,7 +91,7 @@ def main():
     p = getAdjP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test_adj(cupydo.algorithm.errValue, p['tol']) # check the results
+    test_adj(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

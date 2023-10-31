@@ -43,9 +43,9 @@ np.set_printoptions(threshold=sys.maxsize)
 # ----------------------------------------------------------------------
 
 class ConservativeInterpolator(InterfaceInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None):
 
-        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        InterfaceInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting non-matching conservative interpolator...', mpiComm)
 
         self.d = self.nDim+1
@@ -211,13 +211,13 @@ class ConservativeInterpolator(InterfaceInterpolator):
 #    RBF Conservative Interpolator class
 # ----------------------------------------------------------------------
 
-class RBFInterpolator(ConservativeInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, RBFradius=0.1, mpiComm = None, chtTransferMethod=None, heatTransferCoeff=1.0):
+class ConservativeRBFInterpolator(ConservativeInterpolator):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm = None):
 
-        ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting interpolation with Radial Basis Functions...', mpiComm)
 
-        self.radius = RBFradius
+        self.radius = p['rbfRadius']
         self.generateInterfaceData()
         self.generateMapping()
 
@@ -255,10 +255,10 @@ class RBFInterpolator(ConservativeInterpolator):
 #    TPS Conservative Interpolator class
 # ----------------------------------------------------------------------
 
-class TPSInterpolator(ConservativeInterpolator):
-    def __init__(self, Manager, FluidSolver, SolidSolver, mpiComm=None, chtTransferMethod=None, heatTransferCoeff=1.0):
+class ConservativeTPSInterpolator(ConservativeInterpolator):
+    def __init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm):
 
-        ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, mpiComm, chtTransferMethod, heatTransferCoeff)
+        ConservativeInterpolator.__init__(self, Manager, FluidSolver, SolidSolver, p, mpiComm)
         mpiPrint('\nSetting interpolation with Thin Plate Spline...', self.mpiComm)
         
         self.generateInterfaceData()

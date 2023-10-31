@@ -38,11 +38,11 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
                
 class VLMSolver(FluidSolver):
-    def __init__(self, _module):
+    def __init__(self, p):
 
         titlePrint("Initializing VLM")
         
-        module = __import__(_module)
+        module = __import__(p['cfdFile'])
         pars = module.getParams()
         if not os.path.exists("models"):
             os.mkdir("models") # Needs to exist to write airfoil data
@@ -94,7 +94,7 @@ class VLMSolver(FluidSolver):
         self.nHaloNode = 0                                                                  # number of ghost nodes at the f/s boundary
         self.nPhysicalNodes = self.nNodes-self.nHaloNode                                    # number of physical nodes at the f/s boundary
 
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         
         self.initRealTimeData()
 
@@ -159,7 +159,7 @@ class VLMSolver(FluidSolver):
             index = iVertex
         return index
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
         for ii in range(self.coreSolver.m): # For each row of panels
             kk = ii*self.coreSolver.n # Starting index of row
             # Current vertex: complete displacement

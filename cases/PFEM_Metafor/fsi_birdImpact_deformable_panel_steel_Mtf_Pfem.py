@@ -19,6 +19,7 @@ def getParameters(_p):
     p['N'] = 10
     p['R'] = 0.01
     p['d'] = 0.0025 # 2.5*(R/N)
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['tollFSI'] = 1e-6
     p['dt'] = 2e-6
@@ -26,7 +27,7 @@ def getParameters(_p):
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
-    p['computationType'] = 'unsteady'
+    p['regime'] = 'unsteady'
     p['extractor'] = None
     p.update(_p)
     return p
@@ -57,12 +58,12 @@ def main(_p):
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, p['computationType'])
+        solidSolver = sItf.Metafor(csd_file, p['regime'])
         
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #

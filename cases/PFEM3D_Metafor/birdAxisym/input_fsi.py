@@ -1,7 +1,10 @@
 import cupydo.interfaces.Cupydo as cupy
 from cupydo.testing import CTest,CTests
 import numpy as np
+import gmsh
 import os
+
+import time
 
 def test(meanFSIIt):
 
@@ -9,12 +12,11 @@ def test(meanFSIIt):
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
 
-    import gmsh
-    gmsh.initialize()
+    if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
     coord = gmsh.model.mesh.getNode(4)[0]
-    gmsh.finalize()
+    if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X', coord[0], 0, 1e-9, True))
@@ -22,7 +24,7 @@ def test(meanFSIIt):
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
     tests.run()
 
-# %% Input Parameters
+# Input Parameters
 
 def getFsiP():
 
@@ -38,27 +40,31 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'displacement'
     p['interpolator'] = 'matching'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'aitkenBGS'
     
     # FSI parameters
 
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
-    p['compType'] = 'unsteady'
-    p['timeItTresh'] = 0
+    p['regime'] = 'unsteady'
     p['dtSave'] = 0
     p['omega'] = 0.5
     p['maxIt'] = 25
-    p['tol'] = 1e-8
     p['dt'] = 1.5e-6
     p['tTot'] = 1e-4
+    p['criterion'] = 'relative'
     p['nDim'] = 2
 
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-8
+    p['thermal'] = False
     return p
 
-# %% Main Function
+# Main Function
 
 def main():
 
@@ -66,7 +72,6 @@ def main():
     cupydo = cupy.CUPyDO(param)
     cupydo.run()
 
-    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
     test(cupydo.algorithm.getMeanNbOfFSIIt())
 
 if __name__=='__main__':

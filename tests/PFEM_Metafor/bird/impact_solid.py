@@ -34,15 +34,6 @@ def params(q={}):
     p['tend'] = 2.            # final time
     p['dtmax'] = 0.005         # max time step
     p['bndno'] = 13            # interface boundary number
-    p['saveAllFacs'] = False # keep the Fac corresponding to the end of the time step
-
-    # BC type
-    # p['bctype']     = 'pressure'     # uniform pressure
-    # p['bctype']     = 'deadload'     # uniform nodal load
-    # p['bctype']     = 'pydeadload1'  # uniform nodal load (python)
-    p['bctype'] = 'pydeadloads'  # variable loads
-    # p['bctype']     = 'slave'     # variable loads (mpi)
-
     p['exporter'] = Extractor()
 
     p.update(q)

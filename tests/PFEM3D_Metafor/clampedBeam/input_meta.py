@@ -2,22 +2,23 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# %% Physical group 1 = FSInterface
+# Physical group 3 = FSInterface
 
-def params(input):
+def params(parm):
 
-    input['bndno'] = 1
-    input['saveAllFacs'] = False
-    input['bctype'] = 'pydeadloads'
-    return input
+    parm['bndno'] = 2
+    return parm
 
-# %% Parallel Computing
+# Parallel Computing
 
 metafor = None
+w.StrVectorBase.useTBB()
+w.StrMatrixBase.useTBB()
+w.ContactInteraction.useTBB()
 
-# %% Main Function
+# Main Function
 
-def getMetafor(input):
+def getMetafor(parm):
 
     global metafor
     if metafor: return metafor
@@ -45,30 +46,30 @@ def getMetafor(input):
     groups = importer.groups
     importer.execute()
 
-    # Defines the solid domain
+    # Defines the ball domain
 
     app = w.FieldApplicator(1)
     app.push(groups['Solid'])
     interactionset.add(app)
-    
-    # Material parameters
+
+    # Solid material parameters
 
     materset.define(1,w.ElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e6)
-    materset(1).put(w.MASS_DENSITY,2500)
+    materset(1).put(w.ELASTIC_MODULUS,1e7)
+    materset(1).put(w.MASS_DENSITY,8e3)
     materset(1).put(w.POISSON_RATIO,0)
-    
+
     # Finite element properties
 
     prp = w.ElementProperties(w.Volume2DElement)
     prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
     prp.put(w.MATERIAL,1)
     app.addProperty(prp)
-    
+
     # Boundary conditions
     
-    loadingset.define(groups['SolidBase'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['SolidBase'],w.Field1D(w.TY,w.RE))
+    loadingset.define(groups['Clamped'],w.Field1D(w.TX,w.RE))
+    loadingset.define(groups['Clamped'],w.Field1D(w.TY,w.RE))
 
     # Mechanical time integration
 
@@ -77,11 +78,11 @@ def getMetafor(input):
 
     # Mechanical iterations
 
-    mim.setMaxNbOfIterations(4)
-    mim.setResidualTolerance(1e-7)
+    mim.setMaxNbOfIterations(25)
+    mim.setResidualTolerance(1e-8)
 
     # Time step iterations
-
+    
     tscm = w.NbOfMechNRIterationsTimeStepComputationMethod(metafor)
     tsm.setTimeStepComputationMethod(tscm)
     tscm.setTimeStepDivisionFactor(2)
@@ -89,6 +90,6 @@ def getMetafor(input):
 
     # Parameters for CUPyDO
 
-    input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
+    parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

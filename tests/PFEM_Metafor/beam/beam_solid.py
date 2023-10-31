@@ -3,25 +3,23 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# %% Physical group 3 = FSInterface
+# Physical group 3 = FSInterface
 
 def params(p):
 
     p['bndno'] = 3
-    p['saveAllFacs'] = False
-    p['bctype'] = 'pydeadloads'
     p['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
     p['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return p
 
-# %% Parallel Computing
+# Parallel Computing
 
 metafor = None
 w.StrVectorBase.useTBB()
 w.StrMatrixBase.useTBB()
 w.ContactInteraction.useTBB()
 
-# %% Main Function
+# Main Function
 
 def getMetafor(p):
 

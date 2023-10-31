@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 
 Pfem3D.py
-Python interface between the wrapper of Metafor and CUPyDO.
+Python interface between the wrapper of PFEM3D and CUPyDO.
 Authors M. Lacroix, S. Février
 
 '''
@@ -31,29 +31,34 @@ from ..genericSolvers import FluidSolver
 from ..utilities import titlePrint
 import pfem3Dw as w
 import numpy as np
+import math
 
 # ----------------------------------------------------------------------
 #  Pfem3D solver interface class
 # ----------------------------------------------------------------------
 
 class Pfem3D(FluidSolver):
-    def __init__(self,param):
+    def __init__(self, p):
 
         titlePrint('Initializing PFEM3D')
-        self.problem = w.getProblem(param['cfdFile'])
+        self.problem = w.getProblem(p['cfdFile'])
+
+        self.thermal = p['thermal']
+        self.mechanical = p['mechanical']
+        self.interpType = p['interpType']
 
         # Incompressible or weakly compressible solver
 
         if 'WC' in self.problem.getID():
             
             self.implicit = False
-            self.run = self.runExplicit
-            self.maxDivision = 2000
+            self.run = self.__runExplicit
+            self.maxDivision = 1000
 
         else:
             
             self.implicit = True
-            self.run = self.runImplicit
+            self.run = self.__runImplicit
             self.maxDivision = 10
 
         # Stores the important objects and variables
@@ -72,7 +77,7 @@ class Pfem3D(FluidSolver):
 
         for i in self.FSI:
 
-            vector = w.VectorDouble(3)
+            vector = w.VectorDouble(4)
             self.mesh.getNode(i).setExtState(vector)
             self.BC.append(vector)
 
@@ -85,16 +90,17 @@ class Pfem3D(FluidSolver):
 
         # Store temporary simulation variables
 
-        self.disp = np.zeros((self.nPhysicalNodes,3))
-        self.initPos = self.getPosition()
-        self.vel = self.getVelocity()
-        self.dt = param['dt']
+        if self.mechanical:
+            self.disp = np.zeros((self.nPhysicalNodes,3))
+            self.vel = self.__getVelocity()
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self,p)
+        self.initPos = self.__getPosition()
+        self.__setCurrentState()
 
-# %% Run for implicit integration scheme
+# Run for implicit integration scheme
 
-    def runImplicit(self,t1,t2):
+    def __runImplicit(self, t1, t2):
 
         print('\nt = {:.5e} - dt = {:.5e}'.format(t2,t2-t1))
         self.problem.loadSolution(self.prevSolution)
@@ -114,12 +120,13 @@ class Pfem3D(FluidSolver):
                 continue
 
             count = count-1
+
         self.__setCurrentState()
         return True
 
-# %% Run for explicit integration scheme
+# Run for explicit integration scheme
 
-    def runExplicit(self,t1,t2):
+    def __runExplicit(self, t1, t2):
 
         print('\nt = {:.5e} - dt = {:.5e}'.format(t2,t2-t1))
         self.problem.loadSolution(self.prevSolution)
@@ -128,7 +135,7 @@ class Pfem3D(FluidSolver):
         # Estimate the time step for stability
 
         self.solver.computeNextDT()
-        division = int((t2-t1)/self.solver.getTimeStep())
+        division = math.ceil((t2-t1)/self.solver.getTimeStep())
         if division > self.maxDivision: return False
         dt = (t2-t1)/division
 
@@ -143,9 +150,9 @@ class Pfem3D(FluidSolver):
         self.__setCurrentState()
         return True
 
-# %% Apply Boundary Conditions
+# Apply Mechanical Boundary Conditions
 
-    def applyNodalDisplacements(self,dx,dy,dz,dx_nM1,dy_nM1,dz_nM1,haloNodesDisplacements,dt):
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
 
         BC = (np.transpose([dx,dy,dz])-self.disp)/dt
         if not self.implicit: BC = 2*(BC-self.vel)/dt
@@ -153,69 +160,112 @@ class Pfem3D(FluidSolver):
         for i,vector in enumerate(BC):
             for j,val in enumerate(vector): self.BC[i][j] = val
 
-# %% Return Nodal Values
+# Apply Thermal Boundary Conditions
 
-    def getPosition(self):
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
 
-        vector = np.zeros(self.disp.shape)
+        for i,result in enumerate(Temperature):
+            self.BC[i][3] = result
+
+# Return Nodal Values
+
+    def __getPosition(self):
+
+        result = np.zeros((self.nPhysicalNodes,3))
 
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                vector[j,i] = self.mesh.getNode(k).getCoordinate(i)
+                result[j,i] = self.mesh.getNode(k).getCoordinate(i)
 
-        return vector
+        return result
 
     # Computes the nodal velocity vector
 
-    def getVelocity(self):
+    def __getVelocity(self):
 
-        vector = np.zeros(self.disp.shape)
+        result = np.zeros((self.nPhysicalNodes,3))
         
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                vector[j,i] = self.mesh.getNode(k).getState(i)
+                result[j,i] = self.mesh.getNode(k).getState(i)
 
-        return vector
+        return result
 
     # Computes the reaction nodal loads
 
     def __setCurrentState(self):
 
-        vector = w.VectorVectorDouble()
-        self.solver.computeLoads('FSInterface',self.FSI,vector)
+        result = w.VectorVectorDouble()
 
-        for i in range(self.nNodes):
+        if self.mechanical: 
+            if self.interpType == 'conservative':
 
-            self.nodalLoad_X[i] = -vector[i][0]
-            self.nodalLoad_Y[i] = -vector[i][1]
-            if self.dim == 3: self.nodalLoad_Z[i] = -vector[i][2]
+                self.solver.computeLoads('FSInterface',self.FSI,result)
+                for i in range(self.nNodes):
 
-# %% Other Functions
+                    self.nodalLoad_X[i] = -result[i][0]
+                    self.nodalLoad_Y[i] = -result[i][1]
+                    if self.dim == 3: self.nodalLoad_Z[i] = -result[i][2]
 
-    def update(self,dt):
+            elif self.dim == 3:
+
+                self.solver.computeStress('FSInterface',self.FSI,result)
+                for i in range(self.nNodes):
+
+                    self.nodalLoad_XX[i] = result[i][0]
+                    self.nodalLoad_YY[i] = result[i][1]
+                    self.nodalLoad_ZZ[i] = result[i][2]
+                    self.nodalLoad_XY[i] = result[i][3]
+                    self.nodalLoad_XZ[i] = result[i][4]
+                    self.nodalLoad_YZ[i] = result[i][5]
+
+            elif self.mesh.isAxiSym():
+
+                self.solver.computeStress('FSInterface',self.FSI,result)
+                for i in range(self.nNodes):
+
+                    self.nodalLoad_XX[i] = result[i][0]
+                    self.nodalLoad_YY[i] = result[i][1]
+                    self.nodalLoad_ZZ[i] = result[i][2]
+                    self.nodalLoad_XY[i] = result[i][3]
+
+            else:
+
+                self.solver.computeStress('FSInterface',self.FSI,result)
+                for i in range(self.nNodes):
+
+                    self.nodalLoad_XX[i] = result[i][0]
+                    self.nodalLoad_YY[i] = result[i][1]
+                    self.nodalLoad_XY[i] = result[i][2]
+
+        if self.thermal:
+            self.solver.computeHeatFlux('FSInterface',self.FSI,result)
+
+            for i in range(self.nNodes):
+
+                self.nodalHeatFlux_X[i] = result[i][0]
+                self.nodalHeatFlux_Y[i] = result[i][1]
+                if self.dim == 3: self.nodalHeatFlux_Z[i] = result[i][2]
+
+# Other Functions
+
+    def update(self, dt):
 
         self.mesh.remesh(False)
         if self.implicit: self.solver.precomputeMatrix()
         self.problem.copySolution(self.prevSolution)
-        self.disp = self.getPosition()-self.initPos
-        self.vel = self.getVelocity()
-
-    # Other utilitary functions
-
-    def getNodalIndex(self,index):
-        return index
+        self.disp = self.__getPosition()-self.initPos
+        self.vel = self.__getVelocity()
 
     def getNodalInitialPositions(self):
         return np.transpose(self.initPos)
 
-# %% Print Functions
-
+# Print Functions
+    
     def exit(self):
 
         self.problem.displayTimeStats()
         titlePrint('Exit PFEM3D')
-
-    # Save te results into a file
 
     def save(self,_):
         self.problem.dump()

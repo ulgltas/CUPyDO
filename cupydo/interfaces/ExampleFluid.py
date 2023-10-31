@@ -37,9 +37,7 @@ from ..genericSolvers import FluidSolver
                
 class ExampSolver(FluidSolver):
     def __init__(self, config): # You are free to add any arguments here
-        """
-        Des.
-        """
+
         
         print('\n***************************** Initializing Example *****************************')
         
@@ -48,15 +46,13 @@ class ExampSolver(FluidSolver):
         #self.nHaloNode =                           # number of ghost nodes at the f/s boundary
         #self.nPhysicalNodes =                      # number of physical nodes at the f/s boundary
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         self.coreSolver = fluidWrapper.solverDriver(config)
         
         self.initRealTimeData()
 
     def run(self, t1, t2):
-        """
-        Des.
-        """
+
 
         #Run the solver for one iteration, e.g. :
         #self.coreSolver.run()
@@ -65,20 +61,17 @@ class ExampSolver(FluidSolver):
         return True
 
     def __setCurrentState(self):
-        """
-        Des.
-        """
+
 
         #This is an example, you are free to do it your own way
         #for iVertex in range(self.nPhysicalNodes):
             #self.nodalLoad_X[iVertex] = self.coreSolver.getLoadX(iVertex)
             #self.nodalLoad_Y[iVertex] = self.coreSolver.getLoadY(iVertex)
             #self.nodalLoad_Z[iVertex] = self.coreSolver.getLoadZ(iVertex)
+        return
 
     def getNodalInitialPositions(self):
-        """
-        Des.
-        """
+
 
         #nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
         #nodalInitialPos_Y = np.zeros(self.nPhysicalNodes)
@@ -90,74 +83,54 @@ class ExampSolver(FluidSolver):
             #nodalInitialPos_Z[ii] = 
 
         #return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
+        return
 
-    def getNodalIndex(self, iVertex):
-        """
-        Des.
-        """
 
-        #no = 
+    def applyNodalDisplacements(self, dx, dy, dz,dt, haloNodesDisplacements):
 
-        #return no
-
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,dt):
-        """
-        Des.
-        """
 
         #This is just an example again
         #for iVertex in range(self.nPhysicalNodes):
             #self.coreSolver.applyNodalDispX(dx[iVertex], iVertex)
             #self.coreSolver.applyNodalDispY(dy[iVertex], iVertex)
             #self.coreSolver.applyNodalDispZ(dz[iVertex], iVertex)
+        return
 
     def update(self, dt):
-        """
-        Des.
-        """
+
 
         FluidSolver.update(self)
 
         #overload here
 
     def save(self, nt):
-        """
-        Des.
-        """
+
 
         #overload here
 
         return
 
     def initRealTimeData(self):
-        """
-        Des.
-        """
+
         
         solFile = open('ExampleSolution.ascii', "w")
         solFile.write("Time\tnIter\tValue\n")
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
         
         solFile = open('ExampleSolution.ascii', "a")
         solFile.write(str(time) + '\t' + str(nFSIIter) + str(1.0) + '\n')
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
         
         toPrint = 'RES-FSI-' + 'ExampleSolution' + ': ' + str(1.0) + '\n'
         print(toPrint)
     
     def exit(self):
-        """
-        Des.
-        """
+
 
         print("***************************** Exit Example solver *****************************")

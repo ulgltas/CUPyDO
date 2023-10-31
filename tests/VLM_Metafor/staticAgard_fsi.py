@@ -6,7 +6,7 @@
 # Adrien Crovato & Mariano Sánchez Martínez
 
 def test(cupydo, tol):
-    res = cupydo.algorithm.errValue
+    res = cupydo.algorithm.criterion.epsilon
     import numpy as np
     from cupydo.testing import CTest, CTests
     # Read results from data
@@ -35,28 +35,39 @@ def getFsiP():
     import os
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'VLM'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['dt'] = 0.1
     p['tTot'] = 0.1
-    
     p['dtSave'] = 0
     p['dtSave'] = 0
-    p['tol'] = 1e-4
     p['maxIt'] = 50
     p['omega'] = 1.0
     p['rbfRadius'] = .5
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-4
+    p['thermal'] = False
     return p
 
 def main():
@@ -66,7 +77,7 @@ def main():
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     cupydo.algorithm.FluidSolver.coreSolver.save()
-    test(cupydo, p['tol']) # check the results
+    test(cupydo, p['mechanicalTol']) # check the results
     
     # eof
     print('')

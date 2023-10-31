@@ -42,7 +42,7 @@ def main(_p):
     tTot = 10.
     nFSIIterMax = 10
     omegaMax = 1.0
-    computationType = 'unsteady'
+    regime = 'unsteady'
     
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.Pfem as fItf
@@ -54,13 +54,13 @@ def main(_p):
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, computationType)
+        solidSolver = sItf.Metafor(csd_file, regime)
     # ---
         
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, nDim, computationType, comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, nDim, regime, comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #

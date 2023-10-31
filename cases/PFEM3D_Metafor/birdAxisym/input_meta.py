@@ -2,7 +2,7 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# %% Physical group 2 = FSInterface
+# Physical group 2 = FSInterface
 
 def params(input):
 
@@ -10,14 +10,14 @@ def params(input):
     input['bctype'] = 'pydeadloads'
     return input
 
-# %% Parallel Computing
+# Parallel Computing
 
 metafor = None
 w.StrVectorBase.useTBB()
 w.StrMatrixBase.useTBB()
 w.ContactInteraction.useTBB()
 
-# %% Main Function
+# Main Function
 
 def getMetafor(input):
 

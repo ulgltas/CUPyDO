@@ -34,9 +34,9 @@ def test(res, tol, it):
     result_1 = np.genfromtxt(lines[-1:], delimiter=None)
     
     tests = CTests()
-    tests.add(CTest('Mean nb of FSI iterations', it, 3, 1, True))
-    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.296695, 0.05, False))
-    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.080249, 0.05, False))
+    tests.add(CTest('Mean nb of FSI iterations', it, 5, 1, True))
+    tests.add(CTest('X-coordinate obstacle tip', result_1[0], 0.297746, 0.05, False))
+    tests.add(CTest('Y-coordinate obstacle tip', result_1[1], 0.080302, 0.05, False))
     tests.run()
 
 def getFsiP():
@@ -44,27 +44,38 @@ def getFsiP():
     import os
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'Pfem'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'aitkenBGS'
+
     # FSI parameters
-    p['compType'] = 'unsteady'
+
+    p['regime'] = 'unsteady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.001
     p['tTot'] = 0.35
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-6
     p['maxIt'] = 20
     p['omega'] = 0.5
     p['rbfRadius'] = 100
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-5
+    p['thermal'] = False
     return p
 
 def main():
@@ -72,7 +83,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol'], cupydo.algorithm.getMeanNbOfFSIIt()) # check the results
     
     # eof
     print('')

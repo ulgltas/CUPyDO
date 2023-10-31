@@ -47,7 +47,7 @@ class Manager(ccupydo.CManager):
         -getGlobalIndex()
     """
 
-    def __init__(self, FluidSolver, SolidSolver, nDim, computationType='steady', computation='direct', mpiComm=None):
+    def __init__(self, FluidSolver, SolidSolver, p, mpiComm):
 
         ccupydo.CManager.__init__(self)
 
@@ -63,11 +63,11 @@ class Manager(ccupydo.CManager):
             mpiSize = 1
 
         # --- Initialize all the parameters --- #
-        self.nDim = nDim
-        self.computationType = computationType
-        self.computation = computation
-        self.mechanical = True
-        self.thermal = False
+        self.nDim = p['nDim']
+        self.regime = p['regime']
+        self.computation = p['computation']
+        self.mechanical = p['mechanical']
+        self.thermal = p['thermal']
 
         self.haveFluidSolver = False
         self.nLocalFluidInterfaceNodes = 0
@@ -303,7 +303,7 @@ class Manager(ccupydo.CManager):
         return self.nDim
 
     def getComputationType(self):
-        return self.computationType
+        return self.regime
 
     def getMPIComm(self):
         return self.mpiComm

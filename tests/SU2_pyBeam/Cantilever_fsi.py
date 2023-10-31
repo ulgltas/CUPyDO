@@ -48,30 +48,39 @@ def getFsiP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel.cfg')
     p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
     p['computation'] = 'direct'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-10
     p['maxIt'] = 15
     p['omega'] = 1.0
     p['rbfRadius'] = .3
-    p['nodalLoadsType'] = 'force'
-    # Solid parameters
     p['extractors'] = [20]
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-6
+    p['thermal'] = False
     return p
 
 def main():
@@ -79,7 +88,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     # eof
     #print('')
 

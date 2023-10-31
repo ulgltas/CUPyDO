@@ -34,7 +34,7 @@ import math
 # ----------------------------------------------------------------------
 
 class TimeStep(object):
-    def __init__(self,Manager, FluidSolver, SolidSolver, deltaT, dtSave, mpiComm=None):
+    def __init__(self,Manager, FluidSolver, SolidSolver, p, mpiComm):
 
         self.mpiComm = mpiComm
 
@@ -55,16 +55,14 @@ class TimeStep(object):
         self.timeIter = 0
         self.minDt = 1e-9
         self.division = int(2)
-        self.maxDt = self.dt = deltaT
-        self.next = self.dtSave = dtSave
+        self.maxDt = self.dt = p['dt']
+        self.next = self.dtSave = p['dtSave']
 
     def timeFrame(self):
         """
         Get [t1, t2] for fluid and solid run
         """
         return self.time,self.time+self.dt
-    
-    # I need the Algorithm class because the solid solver is on a specific process
 
     def updateSave(self):
         """

@@ -28,6 +28,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 # ----------------------------------------------------------------------
 
 from math import *
+import numpy as np
 
 # ----------------------------------------------------------------------
 #    Criterion class
@@ -35,55 +36,71 @@ from math import *
 
 class Criterion(object):
 
-    def __init__(self, tolerance, thermalTolerance = 1e12):
+    def __init__(self, p):
 
-        self.tol = tolerance
-        self.epsilon = 0
+        self.mechanical = p['mechanical']
+        self.thermal = p['thermal']
+        self.reset()
 
-        self.tolthermal = thermalTolerance
-        self.epsilonThermal = 0
+        if self.mechanical:
+            self.tol = p['mechanicalTol']
 
-    def isVerified(self, epsilon, epsilonThermal=0):
+        if self.thermal:
+            self.tolCHT = p['thermalTol']
 
-        verifList = [False, False]
+    # Reset all the convergence indicators
 
-        if epsilon < self.tol:
-            verifList[0] = True
+    def reset(self):
 
-        if epsilonThermal < self.tolthermal:
-            verifList[1] = True
+        self.epsilon = np.inf
+        self.epsilonCHT = np.inf
 
-        if False in verifList:
-            return False
-        else:
-            return True
+    def isVerified(self):
 
-class DispNormCriterion(Criterion):
-    def __init__(self, tolerance, thermalTolerance = 1e12):
+        verified = list()
+        if self.mechanical:
+            verified.append(self.epsilon < self.tol)
+        if self.thermal:
+            verified.append(self.epsilonCHT < self.tolCHT)
 
-        Criterion.__init__(self, tolerance, thermalTolerance)
+        return np.all(verified)
 
-    def update(self, res):
+class RelativeCriterion(Criterion):
+    
+    def __init__(self, p):
+        Criterion.__init__(self, p)
 
-        normX, normY, normZ = res.norm()
-        norm = sqrt(normX**2 + normY**2 + normZ**2)
-        self.epsilon = norm
-        return self.epsilon
+    # Update the mechanical residual
 
-    def updateThermal(self, resThermal):
+    def update(self, residual, prediction):
 
-        if resThermal != None:
-            #normX, normY, normZ = resHeatFlux.norm()
-            normList = resThermal.norm()
-            normSquare = 0.0
-            for ii in range(len(normList)):
-                normSquare += normList[ii]**2
+        res = np.array(residual.norm())
+        res /= (np.array(prediction.norm())+self.tol)
+        self.epsilon = np.linalg.norm(res)
 
-            #norm = sqrt(normX**2 + normY**2 + normZ**2)
-            norm = sqrt(normSquare)
-        else:
-            norm = 1.0
+    # Update the thermal residual
 
-        self.epsilonThermal = norm
+    def update_CHT(self, residual, prediction):
 
-        return self.epsilonThermal
+        res = np.array(residual.norm())
+        res /= (np.array(prediction.norm())+self.tolCHT)
+        self.epsilonCHT = np.linalg.norm(res)
+
+class NormCriterion(Criterion):
+    
+    def __init__(self, p):
+        Criterion.__init__(self, p)
+
+    # Update the mechanical residual
+
+    def update(self, residual, prediction):
+
+        res = np.array(residual.norm())
+        self.epsilon = np.linalg.norm(res)
+
+    # Update the thermal residual
+
+    def update_CHT(self, residual, prediction):
+
+        res = np.array(residual.norm())
+        self.epsilonCHT = np.linalg.norm(res)

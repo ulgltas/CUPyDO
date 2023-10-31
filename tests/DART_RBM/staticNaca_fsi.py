@@ -56,28 +56,39 @@ def getFsiP():
     filePath = os.path.abspath(os.path.dirname(__file__))
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'DART'
     p['solidSolver'] = 'RBMI'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = os.path.join(filePath, fileName[:-3] + 'solid.cfg')
+
     # FSI objects
+
     p['interpolator'] = 'matching'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'IQN_ILS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.0
     p['tTot'] = 0.0
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-4
     p['maxIt'] = 50
     p['omega'] = 1.0
     p['nSteps'] = 0
     p['firstItTgtMat'] = False
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-4
+    p['thermal'] = False
     return p
 
 def main():
@@ -85,7 +96,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

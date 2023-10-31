@@ -17,6 +17,7 @@ def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['tollFSI'] = 1e-7
     p['dt'] = 1e-4
@@ -28,7 +29,7 @@ def getParameters(_p):
     p['nbTimeToKeep'] = 0
     p['QR_filter'] = 'Haelterman'
     p['tollQR'] = 1.0e-1
-    p['computationType'] = 'unsteady'
+    p['regime'] = 'unsteady'
     p['testName'] = fileName
     p['cfdFile'] = 'waterColumnOnElasticColumn_water_Pfem'
     p['csdFile'] = 'waterColumnOnElasticColumn_elasticColumn_Mtf'
@@ -64,12 +65,12 @@ def main(_p):
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, p['computationType'])
+        solidSolver = sItf.Metafor(csd_file, p['regime'])
         
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #

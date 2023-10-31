@@ -50,6 +50,7 @@ def test(res, tol):
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['tollFSI'] = 1e-6
     p['dt'] = 6.392969e-04
@@ -58,8 +59,7 @@ def getParameters(_p):
     p['rbfRadius'] = 1.0
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
-    p['computationType'] = 'unsteady'
-    p['nodalLoadsType'] = 'force'
+    p['regime'] = 'unsteady'
     p['nZones_SU2'] = 0
     p.update(_p)
     return p
@@ -81,24 +81,24 @@ def main(_p):
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], withMPI, comm)
     else:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize modal interpreter --- #
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Modal as sItf
-        solidSolver = sItf.ModalInterface(csd_file, p['computationType'])
+        solidSolver = sItf.ModalInterface(csd_file, p['regime'])
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+    interpolator = cupyinterp.ConservativeRBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
 
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])
@@ -112,7 +112,7 @@ def main(_p):
     algorithm.run()
 
     # --- Check the results --- #
-    test(algorithm.errValue, p['tollFSI'])
+    test(algorithm.criterion.epsilon, p['tollFSI'])
 
     # --- Exit computation --- #
     del manager

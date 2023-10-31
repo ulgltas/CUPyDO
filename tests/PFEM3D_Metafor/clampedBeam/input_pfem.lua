@@ -4,28 +4,27 @@ Problem = {}
 Problem.autoRemeshing = false
 Problem.verboseOutput = false
 Problem.simulationTime = math.huge
-Problem.id = 'WCompNewtonNoT'
+Problem.id = 'IncompNewtonNoT'
 
 -- Mesh Parameters
 
 Problem.Mesh = {}
 Problem.Mesh.alpha = 1.2
-Problem.Mesh.omega = 0.7
-Problem.Mesh.gamma = 0.3
-Problem.Mesh.hchar = 0.015
+Problem.Mesh.omega = 0.5
+Problem.Mesh.gamma = 0.6
+Problem.Mesh.hchar = 0.03
 Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.addOnFS = false
 Problem.Mesh.minAspectRatio = 1e-2
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = false
-Problem.Mesh.laplacianSmoothingBoundaries = false
-Problem.Mesh.boundingBox = {-0.01,-0.01,0.6,100}
+Problem.Mesh.boundingBox = {0,-1,1,1}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
 Problem.Mesh.mshFile = 'geometryF.msh'
-Problem.Mesh.exclusionGroups = {'Polytope'}
+Problem.Mesh.exclusionGroups = {}
 Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
@@ -48,47 +47,46 @@ Problem.Extractors[1].timeBetweenWriting = math.huge
 -- Material Parameters
 
 Problem.Material = {}
-Problem.Material.p0 = 0
-Problem.Material.mu = 1e-3
-Problem.Material.K0p = 7.6
+Problem.Material.mu = 1000
 Problem.Material.gamma = 0
-Problem.Material.K0 = 2.2e+7
-Problem.Material.rhoStar = 1000
+Problem.Material.rho = 1000
 
 -- Solver Parameters
 
 Problem.Solver = {}
-Problem.Solver.id = 'CDS_dpdt'
-Problem.Solver.securityCoeff = 0.2
+Problem.Solver.id = 'PSPG'
 
 Problem.Solver.adaptDT = true
 Problem.Solver.maxDT = math.huge
 Problem.Solver.initialDT = math.huge
-Problem.Solver.maxRemeshDT = math.huge
+Problem.Solver.coeffDTDecrease = math.huge
+Problem.Solver.coeffDTincrease = math.huge
 
 -- Momentum Continuity Equation
 
-Problem.Solver.MomEq = {}
-Problem.Solver.ContEq = {}
-Problem.Solver.ContEq.pExt = 0
-Problem.Solver.MomEq.bodyForce = {0,-9.81}
-Problem.Solver.ContEq.stabilization = 'Meduri'
+Problem.Solver.MomContEq = {}
+Problem.Solver.MomContEq.residual = 'Ax_f'
+Problem.Solver.MomContEq.nlAlgo = 'Picard'
+Problem.Solver.MomContEq.sparseSolverLib = 'Eigen'
+Problem.Solver.MomContEq.PStepSparseSolver = 'LLT'
+
+Problem.Solver.MomContEq.pExt = 0
+Problem.Solver.MomContEq.maxIter = 25
+Problem.Solver.MomContEq.gammaFS = 0.5
+Problem.Solver.MomContEq.minRes = 1e-8
+Problem.Solver.MomContEq.cgTolerance = 1e-12
+Problem.Solver.MomContEq.bodyForce = {0,-9.81}
 
 -- Momentum Continuity BC
 
 Problem.IC = {}
-Problem.Solver.MomEq.BC = {}
-Problem.Solver.ContEq.BC = {}
-Problem.Solver.MomEq.BC['FSInterfaceVExt'] = true
+Problem.Solver.MomContEq.BC = {}
+Problem.Solver.MomContEq.BC['FSInterfaceVExt'] = true
 
 function Problem.IC.initStates(x,y,z)
-	return {0,0,0,Problem.Material.rhoStar,0,0}
+	return {0,0,0}
 end
 
-function Problem.Solver.MomEq.BC.ReservoirV(x,y,z,t)
-	return 0,0
-end
-
-function Problem.Solver.MomEq.BC.PolytopeV(x,y,z,t)
+function Problem.Solver.MomContEq.BC.WallV(x,y,z,t)
 	return 0,0
 end

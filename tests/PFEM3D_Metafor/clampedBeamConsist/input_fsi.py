@@ -1,6 +1,7 @@
 import cupydo.interfaces.Cupydo as cupy
 from cupydo.testing import CTest,CTests
 import numpy as np
+import gmsh
 import os
 
 def test(meanFSIIt):
@@ -8,21 +9,21 @@ def test(meanFSIIt):
     name = [file for file in os.listdir() if('solid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
+    tag = 49
 
-    import gmsh
-    gmsh.initialize()
+    if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
     gmsh.open(lastFile)
-    coord = gmsh.model.mesh.getNode(2)[0]
-    gmsh.finalize()
+    coord = gmsh.model.mesh.getNode(tag)[0]
+    if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Solid tip coordinate X', coord[0], 0.311361, 0.05, False))
-    tests.add(CTest('Solid tip coordinate Y', coord[1], 0.079275, 0.05, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
+    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
+    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.075215, 0.01, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
     tests.run()
 
-# %% Input Parameters
+# Input Parameters
 
 def getFsiP():
 
@@ -38,27 +39,33 @@ def getFsiP():
     
     # FSI objects
 
-    p['criterion'] = 'displacement'
-    p['interpolator'] = 'matching'
-    p['algorithm'] = 'aitkenBGS'
+    p['interpolator'] = 'RBF'
+    p['interpType'] = 'consistent'
+    p['algorithm'] = 'IQN_ILS'
     
     # FSI parameters
 
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
-    p['compType'] = 'unsteady'
-    
-    p['omega'] = 0.5
+    p['regime'] = 'unsteady'
     p['dtSave'] = 0
-    p['maxIt'] = 20
-    p['tTot'] = 0.35
-    p['tol'] = 1e-6
-    p['dt'] = 0.001
+    p['omega'] = 0.5
+    p['maxIt'] = 25
+    p['nSteps'] = 10
+    p['dt'] = 0.1
+    p['tTot'] = 20
+    p['criterion'] = 'relative'
     p['nDim'] = 2
-    
+    p['rbfRadius'] = 100
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-6
+    p['thermal'] = False
     return p
 
-# %% Main Function
+# Main Function
 
 def main():
 
@@ -66,7 +73,6 @@ def main():
     cupydo = cupy.CUPyDO(param)
     cupydo.run()
 
-    cupydo.algorithm.FluidSolver.save(cupydo.algorithm.step.timeIter)
     test(cupydo.algorithm.getMeanNbOfFSIIt())
 
 if __name__=='__main__':

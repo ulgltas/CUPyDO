@@ -35,15 +35,11 @@ def test(res, tol):
     resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
-    # residual for test is 0.002
-    #if (res > tol):
-    #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
-    #    raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.054305, 1e-1, False))
     tests.add(CTest('Drag coefficient', resultA[3], 0.000042, 1e-1, False))
     tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.012865, 1e-1, False))
-    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.014354, 1e-1, False))
+    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.014352, 1e-1, False))
     tests.run()
 
 def getFsiP():
@@ -51,29 +47,39 @@ def getFsiP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = os.path.join(filePath, 'AGARD445_Static_SU2Conf.cfg')
     p['csdFile'] = 'AGARD445_Static_MetaforConf'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.05
-    
     p['dtSave'] = 0
-    p['tol'] = 1e-6
     p['maxIt'] = 4
     p['omega'] = 1.0
     p['rbfRadius'] = .3
     p['interpOpts'] = [1000, 'JACOBI']
-    p['nodalLoadsType'] = 'force'
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-4
+    p['thermal'] = False
     return p
 
 def main():
@@ -81,7 +87,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

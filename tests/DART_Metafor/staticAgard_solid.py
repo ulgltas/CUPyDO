@@ -10,7 +10,6 @@ def params(_p):
     p['relTol'] = 1e-6
     p['maxIt'] = 20
     p['bndno'] = 111
-    p['saveAllFacs'] = False
     p['exporter'] = Extractor()
                        
     p.update(_p)

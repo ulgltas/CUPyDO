@@ -28,9 +28,7 @@ def params(q={}):
     """
     p={}
     p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
-
     p['bndno'] = 102
-    p['saveAllFacs'] = False
     p['exporter'] = Extractor()
                                        
     p.update(q)

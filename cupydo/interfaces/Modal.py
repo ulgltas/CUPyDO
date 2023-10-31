@@ -40,11 +40,11 @@ class Modal(SolidSolver):
     Modal interface for CUPyDO
     """
 
-    def __init__(self, _module, _computationType):
+    def __init__(self, p):
 
         titlePrint('Initialize Modal Interface')
         # load the python module and initialize modal solver
-        module = __import__(_module)
+        module = __import__(p['csdFile'])
         self.initModal(module.getParams())
 
         # get number of nodes
@@ -54,8 +54,8 @@ class Modal(SolidSolver):
 
         # initialize
         SolidSolver.__init__(self)
-        self.computationType = _computationType
-        self.setInitialDisplacements()
+        self.regime = p['regime']
+        self.__setCurrentState()
         self.initRealTimeData()
 
     def initModal(self, p):
@@ -70,17 +70,11 @@ class Modal(SolidSolver):
         self.solver.setInitial(p['x_i'], p['v_i'], p['f_i']) # initial conditions
         self.solver.setExtractor(p['Extractors']) # extractor list
 
-    def setInitialDisplacements(self):
-        """Set initial displacements
-        Adrien Crovato
-        """
-        self.__setCurrentState()
-
     def run(self, t1, t2):
         """Run the solver between t1 and t2
         Adrien Crovato
         """
-        if self.computationType == 'steady':
+        if self.regime == 'steady':
             self.solver.runStatic()
         else:
             self.solver.runDynamic(t1, t2)
@@ -96,7 +90,7 @@ class Modal(SolidSolver):
         self.nodalDisp_Y = self.solver.dispY
         self.nodalDisp_Z = self.solver.dispZ
            
-    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         """Update the loads
         Adrien Crovato
         """

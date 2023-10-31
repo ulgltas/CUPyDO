@@ -46,13 +46,13 @@ class pyBeamSolver(SolidSolver):
     pyBeam solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, extractors):
+    def __init__(self, p):
         """
         Initialize the pyBeam solver and all the required interface variables.
         """
 
         # Initialize pyBeam
-        self.initializeSolver(confFile)
+        self.initializeSolver(p['csdFile'])
 
         # Set thickness (Temporary, until we have a config file in place)
         #self.pyBeam.SetThickness(0.02)
@@ -61,8 +61,7 @@ class pyBeamSolver(SolidSolver):
         #self.pyBeam.Initialize()
 
         # Some options that we should keep just in case
-        self.computationType = computationType  # computation type : steady (default) or unsteady
-        self.nodalLoadsType = nodalLoadsType  # nodal loads type to extract : force (in N, default) or pressure (in Pa)
+        self.regime = p['regime']  # computation type : steady (default) or unsteady
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = self.pyBeam.nPoint
@@ -91,8 +90,8 @@ class pyBeamSolver(SolidSolver):
             self.nodalInitialPos_Z[PhysicalIndex] = posZ
             PhysicalIndex += 1
 
-        self.extractors = extractors
-
+        self.extractors = p['extractors']
+        self.__setCurrentState()
         self.initRealTimeData()
 
         # print("\n -------------------------- SOLID NODES ------------------------------ \n")
@@ -114,7 +113,7 @@ class pyBeamSolver(SolidSolver):
         Run one computation of pyBeam.
         """
 
-        if self.computationType == 'unsteady':
+        if self.regime == 'unsteady':
             self.__unsteadyRun(t1, t2)
         else:
             self.__steadyRun()
@@ -137,12 +136,6 @@ class pyBeamSolver(SolidSolver):
 
         self.pyBeam.run()
 
-    def setInitialDisplacements(self):
-        """
-        Set initial displacements
-        """
-        self.__setCurrentState()
-
     def __setCurrentState(self):
         """
         Get the nodal (physical) displacements and velocities from pyBeam structural solver.
@@ -160,40 +153,22 @@ class pyBeamSolver(SolidSolver):
             # self.nodalVel_X[PhysicalIndex] = vel[0]
             # self.nodalVel_Y[PhysicalIndex] = vel[1]
             # self.nodalVel_Z[PhysicalIndex] = vel[2]
-            #
-            # self.nodalVel_XNm1[PhysicalIndex] = vel_n[0]
-            # self.nodalVel_YNm1[PhysicalIndex] = vel_n[1]
-            # self.nodalVel_ZNm1[PhysicalIndex] = vel_n[2]
 
             PhysicalIndex += 1
 
     def getNodalInitialPositions(self):
-        """
-        Description.
-        """
+
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
-    def getNodalIndex(self, iVertex):
-        """
-        Returns the index (identifier) of the iVertex^th interface node.
-        """
-
-        # no =
-
-        # return no
 
     def getNodalDisplacements(self):
-        """
-        Des.
-        """
+
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, dt, haloNodesLoads = {}):
-        """
-        Des.
-        """
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
+
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
@@ -214,16 +189,12 @@ class pyBeamSolver(SolidSolver):
         SolidSolver.update(self)
 
     def save(self):
-        """
-        Des.
-        """
+
 
         return
 
     def initRealTimeData(self):
-        """
-        Des.
-        """
+
 
         solFile = open('SolidSolution.ascii', "w")
         solFile.write('{:>12s}   {:>12s}'.format('Time', 'Iteration'))
@@ -233,9 +204,7 @@ class pyBeamSolver(SolidSolver):
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         solFile = open('SolidSolution.ascii', "a")
         solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
@@ -245,17 +214,13 @@ class pyBeamSolver(SolidSolver):
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         toPrint = 'RES-FSI-' + 'pyBeam' + ': ' + str(1.0) + '\n'
         print(toPrint)
 
     def exit(self):
-        """
-        Des.
-        """
+
 
         print("***************************** Exit pyBeam solver *****************************")
 

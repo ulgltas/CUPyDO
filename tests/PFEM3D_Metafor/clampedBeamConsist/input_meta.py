@@ -2,25 +2,23 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# %% Physical group 3 = FSInterface
+# Physical group 2 = FSInterface
 
-def params(input):
+def params(parm):
 
-    input['bndno'] = 2
-    input['saveAllFacs'] = False
-    input['bctype'] = 'pydeadloads'
-    return input
+    parm['bndno'] = 2
+    return parm
 
-# %% Parallel Computing
+# Parallel Computing
 
 metafor = None
 w.StrVectorBase.useTBB()
 w.StrMatrixBase.useTBB()
 w.ContactInteraction.useTBB()
 
-# %% Main Function
+# Main Function
 
-def getMetafor(input):
+def getMetafor(parm):
 
     global metafor
     if metafor: return metafor
@@ -68,6 +66,14 @@ def getMetafor(input):
     prp.put(w.MATERIAL,1)
     app.addProperty(prp)
 
+    # Elements for surface traction
+
+    prp2 = w.ElementProperties(w.NodStress2DElement)
+    load = w.NodInteraction(2)
+    load.push(groups['FSInterface'])
+    load.addProperty(prp2)
+    interactionset.add(load)
+
     # Boundary conditions
     
     loadingset.define(groups['Clamped'],w.Field1D(w.TX,w.RE))
@@ -92,6 +98,7 @@ def getMetafor(input):
 
     # Parameters for CUPyDO
 
-    input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    parm['interacM'] = load
+    parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
+    parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
     return metafor

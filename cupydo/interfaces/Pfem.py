@@ -36,21 +36,17 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Pfem(FluidSolver):
-    def __init__(self, testname, nthreads, dt):
+    def __init__(self, p, nthreads):
         
         titlePrint('Initializing Pfem')
         
-        self.testname = testname  # string (name of the module of the fluid model)
-        
-        # internal vars
-        self.vnods = []           # dict of interface nodes / prescribed velocities
-        self.t1      = 0.0        # last reference time        
-        self.t2      = 0.0        # last calculated time
-                 
-        # loads the python module
-        #load(self.testname)         # use toolbox.utilities
+        self.testname = p['cfdFile']  # string (name of the module of the fluid model)
+        self.vnods = [] # dict of interface nodes / prescribed velocities
+        self.t1 = 0.0 # last reference time        
+        self.t2 = 0.0 # last calculated time
+
         exec("import %s" % self.testname, globals())
-        exec("module = %s" % self.testname, globals()) # link to Pfem object
+        exec("module = %s" % self.testname, globals())
 
         # create an instance of Pfem
         self.pfem = module.getPfem()
@@ -76,24 +72,17 @@ class Pfem(FluidSolver):
         self.nHaloNode = 0 # numbers of nodes at the f/s interface (halo)
         self.nPhysicalNodes = self.nNodes - self.nHaloNode # numbers of nodes at the f/s interface (physical)
         
-        # Pfem scheme initialization
-        #self.u = self.pfem.w.DoubleVector()
-        #self.v = self.pfem.w.DoubleVector()
-        #self.p = self.pfem.w.DoubleVector()
-        #self.velocity = self.pfem.w.DoubleVector()
-        #self.matID = self.pfem.w.IntVector()
-        
         self.pfem.scheme.t = 0.
-        self.pfem.scheme.dt = dt
+        self.pfem.scheme.dt = p['dt']
         self.pfem.scheme.init()
         # [AC] I moved the following 3 lines from the test cases definition to the interface
         self.pfem.scheme.nthreads = nthreads
         
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         
-        self.displ_x_Nm1 = np.zeros((self.nPhysicalNodes))
-        self.displ_y_Nm1 = np.zeros((self.nPhysicalNodes))
-        self.displ_z_Nm1 = np.zeros((self.nPhysicalNodes))
+        self.displ_x_prev = np.zeros((self.nPhysicalNodes))
+        self.displ_y_prev = np.zeros((self.nPhysicalNodes))
+        self.displ_z_prev = np.zeros((self.nPhysicalNodes))
         
     def run(self, t1, t2):
         """
@@ -132,7 +121,7 @@ class Pfem(FluidSolver):
             fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
             fy[i] = -(node.fIne.x[1] + node.fInt.x[1] - node.fExt.x[1])
             fz[i] = 0.
-        
+
         self.nodalLoad_X = fx
         self.nodalLoad_Y = fy
         self.nodalLoad_Z = fz
@@ -169,33 +158,29 @@ class Pfem(FluidSolver):
             
         self.applydefo(out)
     
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, dt):
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
         """
         Prescribes given nodal positions and velocities coming from solid solver to node #no
         """
-        # if self.pfem.scheme.t < time:
-        #     self.pfem.scheme.resetNodalPositions()
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = (dx[i] - self.displ_x_Nm1[i])/dt
-            node.imposedV = (dy[i] - self.displ_y_Nm1[i])/dt
+            node.imposedU = (dx[i] - self.displ_x_prev[i])/dt
+            node.imposedV = (dy[i] - self.displ_y_prev[i])/dt
         
     def update(self, dt):
         self.pfem.scheme.t += dt
         self.pfem.scheme.nt += 1
         self.pfem.scheme.updateSolutionVectors()
-        #self.pfem.scheme.updateMatIDVector()
-        #self.u = self.pfem.scheme.u
-        #self.v = self.pfem.scheme.v
-        
-        #---
+
         for i in range(len(self.vnods)):
-            displ_x = self.displ_x_Nm1[i] + self.pfem.scheme.u[self.vnods[i].rowU]*dt
-            displ_y = self.displ_y_Nm1[i] + self.pfem.scheme.v[self.vnods[i].rowU]*dt
-            self.displ_x_Nm1[i] = displ_x
-            self.displ_y_Nm1[i] = displ_y
-        # ---
+            displ_x = self.displ_x_prev[i] + self.pfem.scheme.u[self.vnods[i].rowU]*dt
+            displ_y = self.displ_y_prev[i] + self.pfem.scheme.v[self.vnods[i].rowU]*dt
+            self.displ_x_prev[i] = displ_x
+            self.displ_y_prev[i] = displ_y
+
+        self.pfem.scheme.remeshing()
+        self.pfem.scheme.updateNodalRefValues()
         
     def save(self, nt):
             self.pfem.scheme.archive()
@@ -236,10 +221,6 @@ class Pfem(FluidSolver):
                 buff = buff + '\t' + str(d)
             toPrint = 'RES-FSI-' + extractorName + ': ' + buff + '\n'
             print(toPrint)
-    
-    def remeshing(self):
-        self.pfem.scheme.remeshing()
-        self.pfem.scheme.updateNodalRefValues()
     
     def exit(self):
         """

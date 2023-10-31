@@ -39,23 +39,13 @@ import importlib
 
 class NLoad(object):
     """
-    Class representing the nodal loads/temperatures
+    Class representing the nodal forces
     """
-    def __init__(self,val1,t1,val2,t2):
-
-        self.t1 = t1
-        self.t2 = t2
-        self.val1 = val1
-        self.val2 = val2
+    def __init__(self,val):
+        self.val = float(val)
 
     def __call__(self,time):
-
-        return self.val1+(time-self.t1)/(self.t2-self.t1)*(self.val2-self.val1)
-
-    def nextstep(self):
-
-        self.t1 = self.t2
-        self.val1 = self.val2
+        return float(self.val)
 
 # ----------------------------------------------------------------------
 #  Metafor solver interface class
@@ -63,65 +53,70 @@ class NLoad(object):
                
 class Metafor(SolidSolver):
 
-    def __init__(self,param):
+    def __init__(self, p):
 
         titlePrint('Initializing Metafor')
 
-        input = dict()
-        module = importlib.import_module(param['csdFile'])
-        self.metafor = module.getMetafor(input)
+        parm = dict()
+        module = importlib.import_module(p['csdFile'])
+        self.metafor = module.getMetafor(parm)
         domain = self.metafor.getDomain()
-        input = module.params(input)
+        parm = module.params(parm)
 
         # Defines some internal variables
 
-        self.Fnods = dict()
-        self.Tnods = dict()
-        self.neverRun = True
         self.reload = True
+        self.neverRun = True
 
-        # Defines some internal variables
+        self.exporter = parm['exporter']
+        self.interpType = p['interpType']
+        self.regime = p['regime']
 
-        self.exporter = input['exporter']
+        self.thermal = p['thermal']
+        self.mechanical = p['mechanical']
+
+        # Get Metafor Python objects
+
+        geometry = domain.getGeometry()
         loadingset = domain.getLoadingSet()
-        self.computationType = param['compType']
         self.tsm = self.metafor.getTimeStepManager()
-        self.FSI = domain.getGeometry().getGroupSet()(input['bndno'])
+        self.FSI = geometry.getGroupSet()(parm['bndno'])
         self.nNodes = self.FSI.getNumberOfMeshPoints()
         self.nPhysicalNodes = self.nNodes
 
-        # Creates the nodal load container
+        # Creates the conservative nodal load container
 
-        for i in range(self.nNodes):
-            
-            load = list()
-            temp = NLoad(0,0,0,0)
-            node = self.FSI.getMeshPoint(i)
-            self.Fnods[node.getNo()] = load
-            self.Tnods[node.getNo()] = temp
+        if self.interpType == 'conservative':
 
-            fct = w.PythonOneParameterFunction(temp)
-            # loadingset.define(node,w.Field1D(w.TO,w.AB),1,fct)
-            # loadingset.define(node,w.Field1D(w.TO,w.RE),1,fct,0)
+            self.Fnods = dict()
+            for i in range(self.nNodes):
+                
+                load = list()
+                node = self.FSI.getMeshPoint(i)
+                self.Fnods[node.getNo()] = load
 
-            for F in [w.TX,w.TY,w.TZ]:
+                for F in w.TX,w.TY,w.TZ:
 
-                load.append(NLoad(0,0,0,0))
-                fct = w.PythonOneParameterFunction(load[-1])
-                loadingset.define(node,w.Field1D(F,w.GF1),1,fct)
+                    load.append(NLoad(0))
+                    fct = w.PythonOneParameterFunction(load[-1])
+                    loadingset.define(node,w.Field1D(F,w.GF1),1,fct)
 
-        # Creates the array for external communication
+        # Create the consistent nodal stress/heat containers
 
-        self.vel = np.zeros((self.nNodes,3))
-        self.acc = np.zeros((self.nNodes,3))
-        self.dis = np.zeros((self.nNodes,3))
+        self.interacM = None
+        if 'interacM' in parm:
+            self.interacM = parm['interacM']
+
+        self.interacT = None
+        if 'interacT' in parm:
+            self.interacT = parm['interacT']
 
         # Initialization of domain and output
 
         SolidSolver.__init__(self)
         self.metafor.getDomain().build()
         self.metafor.getInitialConditionSet().update(0)
-        self.__setCurrentState(True)
+        self.__setCurrentState()
         self.save()
 
         # Manages time step restart functions
@@ -132,9 +127,9 @@ class Metafor(SolidSolver):
         self.metaFac.save(self.mfac)
         self.tsm.setVerbose(False)
 
-# %% Calculates One Time Step
+# Calculates One Time Step
 
-    def run(self,t1,t2):
+    def run(self, t1, t2):
         """
         Computes a time increment and/or load previous state
         """
@@ -152,13 +147,13 @@ class Metafor(SolidSolver):
             self.tsm.setNextTime(t2,0,t2-t1)
             ok = self.metafor.getTimeIntegration().restart(self.mfac)
 
-        if ok: self.__setCurrentState(False)
+        if ok: self.__setCurrentState()
         self.reload = True
         return ok
 
-# %% Gets Nodal Values
+# Gets Nodal Values
 
-    def __setCurrentState(self,initialize):
+    def __setCurrentState(self):
         """
         Save the current nodal states in vectors
         """
@@ -174,15 +169,7 @@ class Metafor(SolidSolver):
             self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY,w.RE))
             self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ,w.RE))
 
-            if not initialize:
-
-                HF_X_extractor = w.IFNodalValueExtractor(node,w.IF_FLUX_X)
-                HF_Y_extractor = w.IFNodalValueExtractor(node,w.IF_FLUX_Y)
-                HF_Z_extractor = w.IFNodalValueExtractor(node,w.IF_FLUX_Z)
-
-                self.nodalHeatFlux_X[i] = HF_X_extractor.extract()[0]
-                self.nodalHeatFlux_Y[i] = HF_Y_extractor.extract()[0]
-                self.nodalHeatFlux_Z[i] = HF_Z_extractor.extract()[0]
+            self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO,w.AB)) + node.getValue(w.Field1D(w.TO,w.RE))
 
     def getNodalInitialPositions(self):
         """
@@ -207,45 +194,54 @@ class Metafor(SolidSolver):
         node = self.FSI.getMeshPoint(index)
         return node.getNo()
 
-# %% Set Nodal Loads
+# Mechanical Boundary Conditions
 
-    def applyNodalLoads(self,loadX,loadY,loadZ,dt,*_):
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         """
-        Apply the load boundary conditions on the mesh
+        Apply the conservative load boundary conditions
         """
 
+        result = np.transpose([load_X,load_Y,load_Z])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
             fx,fy,fz = self.Fnods[node.getNo()]
-            fx.val2 = loadX[i]
-            fy.val2 = loadY[i]
-            fz.val2 = loadZ[i]
-            fx.t2 = fx.t1+dt
-            fy.t2 = fy.t1+dt
-            fz.t2 = fz.t1+dt
+            fx.val = result[i][0]
+            fy.val = result[i][1]
+            fz.val = result[i][2]
 
-    def applyNodalTemperatures(self,temp,dt):
+
+    def applyNodalStress(self, load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ, dt, haloNodesLoads):
         """
-        Apply the temperature boundary conditions on the mesh
+        Apply the consistent load boundary conditions
         """
 
+        result = np.transpose([load_XX,load_YY,load_ZZ,load_XY,load_XZ,load_YZ])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            temp = self.Tnods[node.getNo()]
-            temp.val2 = temp[i]
-            temp.t2 = temp.t1+dt
+            self.interacM.setNodTensor3D(node,*result[i])
 
-# %% Other Functions
+# Thermal Boundary Conditions
+
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
+        """
+        Apply the consistent heat flux boundary conditions
+        """
+
+        result = np.transpose([HF_X,HF_Y,HF_Z])[:self.nNodes]
+        for i in range(self.nNodes):
+
+            node = self.FSI.getMeshPoint(i)
+            self.interacT.setNodVector(node,*result[i])
+
+# Other Functions
 
     def update(self):
         """
         Save the current state in the RAM and update the load
         """
 
-        for F in self.Fnods.values(): [F[i].nextstep() for i in range(3)]
-        for T in self.Tnods.values(): T.nextstep()
         self.metaFac.save(self.mfac)
         SolidSolver.update(self)
         self.reload = False
@@ -255,8 +251,6 @@ class Metafor(SolidSolver):
         Save the current state in the RAM and update the load
         """
 
-        for F in self.Fnods.values(): [F[i].nextstep() for i in range(3)]
-        for T in self.Tnods.values(): T.nextstep()
         self.metaFac.save(self.mfac)
         self.reload = True
 
@@ -274,3 +268,4 @@ class Metafor(SolidSolver):
         """
 
         titlePrint('Exit Metafor')
+        

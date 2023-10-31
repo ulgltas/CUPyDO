@@ -32,28 +32,38 @@ def getFsiP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'Modal'
     p['cfdFile'] = os.path.join(filePath,'staticAgard_fluid.cfg')
     p['csdFile'] = 'agard_solid'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'displacement'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.
-    
     p['dtSave'] = 0
-    p['tol'] = 5e-3
     p['maxIt'] = 6
     p['omega'] = 1.0
     p['rbfRadius'] = 1.
-    p['nodalLoadsType'] = 'force'
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 5e-3
+    p['thermal'] = False
     return p
 
 def main():
@@ -61,7 +71,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

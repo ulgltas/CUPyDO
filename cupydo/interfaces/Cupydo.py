@@ -52,6 +52,9 @@ class CUPyDO(object):
         # --- Initialize the FSI manager --- #
         manager = cupyman.Manager(fluidSolver, solidSolver, p, comm)
         cupyutil.mpiBarrier()
+        
+        if (not manager.mechanical) and (not manager.thermal):
+            raise RuntimeError('Mechanical and thermal couplings are both disabled.\n')
 
         # --- Initialize the interpolator --- #
         if p['interpolator'] == 'matching':

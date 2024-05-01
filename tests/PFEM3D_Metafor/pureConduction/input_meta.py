@@ -124,10 +124,13 @@ def getMetafor(parm):
     tscm.setTimeStepDivisionFactor(2)
     tscm.setNbOptiIte(25)
 
-    # Parameters for FSPC
+    # Parameters for CUPyDO
 
-    parm['interacT'] = heat
+    parm['interactionT'] = heat
     parm['FSInterface'] = groups['FSInterface']
-    parm['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
-    parm['exporter'].addDataBaseField([w.TO])
+
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.TO))
+    parm['exporter'] = ext
+
     return metafor

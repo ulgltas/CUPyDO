@@ -2,11 +2,11 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 2 = FSInterface
+# Physical group 1 = FSInterface
 
 def params(parm):
 
-    parm['bndno'] = 2
+    parm['bndno'] = 1
     return parm
 
 # Parallel Computing
@@ -46,19 +46,19 @@ def getMetafor(parm):
     groups = importer.groups
     importer.execute()
 
-    # Defines the ball domain
+    # Defines the solid domain
 
     app = w.FieldApplicator(1)
     app.push(groups['Solid'])
     interactionset.add(app)
-
-    # Solid material parameters
+    
+    # Material parameters
 
     materset.define(1,w.ElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e7)
-    materset(1).put(w.MASS_DENSITY,8e3)
+    materset(1).put(w.ELASTIC_MODULUS,1e6)
+    materset(1).put(w.MASS_DENSITY,2500)
     materset(1).put(w.POISSON_RATIO,0)
-
+    
     # Finite element properties
 
     prp = w.ElementProperties(w.Volume2DElement)
@@ -73,11 +73,11 @@ def getMetafor(parm):
     load.push(groups['FSInterface'])
     load.addProperty(prp2)
     interactionset.add(load)
-
+    
     # Boundary conditions
     
-    loadingset.define(groups['Clamped'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['Clamped'],w.Field1D(w.TY,w.RE))
+    loadingset.define(groups['SolidBase'],w.Field1D(w.TX,w.RE))
+    loadingset.define(groups['SolidBase'],w.Field1D(w.TY,w.RE))
 
     # Mechanical time integration
 
@@ -87,10 +87,10 @@ def getMetafor(parm):
     # Mechanical iterations
 
     mim.setMaxNbOfIterations(25)
-    mim.setResidualTolerance(1e-8)
+    mim.setResidualTolerance(1e-7)
 
     # Time step iterations
-    
+
     tscm = w.NbOfMechNRIterationsTimeStepComputationMethod(metafor)
     tsm.setTimeStepComputationMethod(tscm)
     tscm.setTimeStepDivisionFactor(2)
@@ -99,6 +99,8 @@ def getMetafor(parm):
     # Parameters for CUPyDO
 
     parm['interactionM'] = load
+    parm['polytope'] = load.getElementSet()
+    domain.build()
 
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))

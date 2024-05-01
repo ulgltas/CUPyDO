@@ -15,7 +15,7 @@ Problem.Mesh.gamma = 0.5
 Problem.Mesh.hchar = 0.01
 Problem.Mesh.gammaFS = 0.5
 Problem.Mesh.addOnFS = true
-Problem.Mesh.minAspectRatio = 1e-3
+Problem.Mesh.minHeightFactor = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = true
 Problem.Mesh.deleteBoundElements = false
@@ -24,8 +24,6 @@ Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
 Problem.Mesh.mshFile = 'geometryF.msh'
-Problem.Mesh.exclusionGroups = {'Polytope'}
-Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 

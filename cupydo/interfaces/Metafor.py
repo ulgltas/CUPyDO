@@ -41,10 +41,10 @@ class NLoad(object):
     """
     Class representing the nodal forces
     """
-    def __init__(self,val):
+    def __init__(self, val):
         self.val = float(val)
 
-    def __call__(self,time):
+    def __call__(self, time):
         return float(self.val)
 
 # ----------------------------------------------------------------------
@@ -81,6 +81,8 @@ class Metafor(SolidSolver):
         loadingset = domain.getLoadingSet()
         self.tsm = self.metafor.getTimeStepManager()
         self.FSI = geometry.getGroupSet()(parm['bndno'])
+
+        self.dim = geometry.getDimension().getNdim()
         self.nNodes = self.FSI.getNumberOfMeshPoints()
         self.nPhysicalNodes = self.nNodes
 
@@ -103,13 +105,14 @@ class Metafor(SolidSolver):
 
         # Create the consistent nodal stress/heat containers
 
-        self.interacM = None
-        if 'interacM' in parm:
-            self.interacM = parm['interacM']
+        if 'polytope' in parm:
+            self.polytope = np.atleast_1d(parm['polytope'])
 
-        self.interacT = None
-        if 'interacT' in parm:
-            self.interacT = parm['interacT']
+        if 'interactionM' in parm:
+            self.interactionM = parm['interactionM']
+
+        if 'interactionT' in parm:
+            self.interactionT = parm['interactionT']
 
         # Initialization of domain and output
 
@@ -220,7 +223,7 @@ class Metafor(SolidSolver):
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            self.interacM.setNodTensor3D(node,*result[i])
+            self.interactionM.setNodTensor3D(node,*result[i])
 
 # Thermal Boundary Conditions
 
@@ -233,7 +236,7 @@ class Metafor(SolidSolver):
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            self.interacT.setNodVector(node,*result[i])
+            self.interactionT.setNodVector(node,*result[i])
 
 # Other Functions
 
@@ -260,7 +263,7 @@ class Metafor(SolidSolver):
         """
 
         if self.exporter is not None:
-            self.exporter.execute()
+            self.exporter.write()
     
     def exit(self):
         """
@@ -268,4 +271,3 @@ class Metafor(SolidSolver):
         """
 
         titlePrint('Exit Metafor')
-        

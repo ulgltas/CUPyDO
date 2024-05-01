@@ -144,6 +144,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             self.fluidSolverTimer.cumul()
             mpiBarrier(self.mpiComm)
 
+            print('\n\n----------- verif =',verif,'\n\n')
+
             # --- Check if the fluid solver succeeded --- #
             if not verif:
                 self.resetInternalVars()

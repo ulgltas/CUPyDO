@@ -115,30 +115,31 @@ def getMetafor(parm):
     tscm.setTimeStepDivisionFactor(2)
     tscm.setNbOptiIte(25)
 
-    # Parameters for FSPC
+    # Parameters for CUPyDO
 
     node = groups['Solid'].getMeshPoint(72)
-    gmshExport = gmsh.GmshExport('solid.msh',metafor)
-    gmshExport.addDataBaseField([w.TO])
 
-    parm['interacT'] = heat
-    parm['interacM'] = load
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.TO))
+
+    parm['interactionT'] = heat
+    parm['interactionM'] = load
     parm['FSInterface'] = groups['FSInterface']
-    parm['exporter'] = Extractor(gmshExport, node)
+    parm['exporter'] = Extractor(ext, node)
     return metafor
 
 class Extractor(object):
-    def __init__(self, gmshExport, node):
+    def __init__(self, gmshExporter, node):
 
         global metafor
         self.metafor = metafor
         self.groupset = metafor.getDomain().getGeometry().getGroupSet()
-        self.gmshExport = gmshExport
+        self.ext = gmshExporter
         self.node = node
 
-    def execute(self):
+    def write(self):
 
-        self.gmshExport.execute()
+        self.ext.write()
         
         AB = w.DbNodalValueExtractor(self.node, w.Field1D(w.TO,w.AB))
         RE = w.DbNodalValueExtractor(self.node, w.Field1D(w.TO,w.RE))

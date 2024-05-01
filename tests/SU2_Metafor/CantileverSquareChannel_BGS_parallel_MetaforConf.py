@@ -96,7 +96,7 @@ class Extractor(object):
         self.metafor = metafor
         
 
-    def write(self,extractor):
+    def to_ascii(self,extractor):
 
         file = open(extractor.buildName()+'.ascii', 'a')
         
@@ -104,10 +104,10 @@ class Extractor(object):
         file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
         file.close()
 
-    def execute(self):
+    def write(self):
 
         groupset = self.metafor.getDomain().getGeometry().getGroupSet()
-        self.write(DbNodalValueExtractor(groupset(104), Field1D(TY,RE)))
+        self.to_ascii(DbNodalValueExtractor(groupset(104), Field1D(TY,RE)))
         
 
 

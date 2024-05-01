@@ -90,7 +90,11 @@ def getMetafor(parm):
 
     # Parameters for CUPyDO
 
-    parm['interacM'] = load
-    parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    parm['interactionM'] = load
+
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_P))
+    parm['exporter'] = ext
+
     return metafor

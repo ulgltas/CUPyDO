@@ -15,7 +15,7 @@ Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.01
 Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.addOnFS = false
-Problem.Mesh.minAspectRatio = 1e-3
+Problem.Mesh.minHeightFactor = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = false
@@ -24,8 +24,6 @@ Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
 Problem.Mesh.mshFile = 'geometryF.msh'
-Problem.Mesh.exclusionGroups = {}
-Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 
@@ -77,11 +75,12 @@ Problem.Solver = {}
 Problem.Solver.id = 'PSPG'
 
 Problem.Solver.adaptDT = true
+Problem.Solver.solveHeatFirst = true
+
 Problem.Solver.maxDT = math.huge
 Problem.Solver.initialDT = math.huge
-Problem.Solver.coeffDTDecrease = math.huge
-Problem.Solver.coeffDTincrease = math.huge
-Problem.Solver.solveHeatFirst = true
+Problem.Solver.coeffDTDecrease = 2
+Problem.Solver.coeffDTincrease = 1
 
 -- Heat Equation
 
@@ -92,7 +91,7 @@ Problem.Solver.HeatEq.sparseSolver = 'CG'
 
 Problem.Solver.HeatEq.maxIter = 25
 Problem.Solver.HeatEq.minRes = 1e-8
-Problem.Solver.HeatEq.cgTolerance = 1e-16
+Problem.Solver.HeatEq.tolerance = 1e-16
 
 -- Heat Momentum Continuity BC
 

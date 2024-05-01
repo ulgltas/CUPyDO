@@ -1,5 +1,4 @@
 import toolbox.gmshOld as gmshOld
-import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
@@ -8,8 +7,14 @@ import os
 def params(p):
 
     p['bndno'] = 3
-    p['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
-    p['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    domain = metafor.getDomain()
+    groupset = domain.getGeometry().getGroupSet()
+
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groupset(1), w.IF_EVMS))
+    ext.add(w.IFNodalValueExtractor(groupset(1), w.IF_P))
+    p['exporter'] = ext
+    
     return p
 
 # Parallel Computing

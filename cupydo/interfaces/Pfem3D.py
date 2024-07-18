@@ -54,12 +54,12 @@ class Pfem3D(FluidSolver):
         if 'WC' in self.problem.getID():
 
             self.WC = True
-            self.max_division = 1000
+            self.max_division = 100
 
         else:
 
             self.WC = False
-            self.max_division = 10
+            self.max_division = 1
 
         # Initialize the boundary conditions
 
@@ -136,7 +136,7 @@ class Pfem3D(FluidSolver):
 
         return result
 
-    # Computes the nodal velocity vector
+# Computes the nodal velocity vector
 
     def __getVelocity(self):
 
@@ -148,7 +148,7 @@ class Pfem3D(FluidSolver):
 
         return result
 
-    # Computes the reaction nodal loads
+# Computes the reaction nodal loads
 
     def __setCurrentState(self):
 

@@ -38,8 +38,8 @@ def getMetafor(parm):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),'geometryS.msh')
-    importer = gmsh.GmshImport(mshFile,domain)
+    mshFile = os.path.join(os.path.dirname(__file__), 'geometryS.msh')
+    importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
 
@@ -51,23 +51,23 @@ def getMetafor(parm):
 
     # Solid material parameters
 
-    materset.define(1,w.TmElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e7)
-    materset(1).put(w.THERM_EXPANSION,0)
-    materset(1).put(w.HEAT_CAPACITY,100)
-    materset(1).put(w.MASS_DENSITY,950)
-    materset(1).put(w.POISSON_RATIO,0)
-    materset(1).put(w.CONDUCTIVITY,10)
-    materset(1).put(w.DISSIP_TE,0)
-    materset(1).put(w.DISSIP_TQ,0)
+    materset.define(1, w.TmElastHypoMaterial)
+    materset(1).put(w.ELASTIC_MODULUS, 1e7)
+    materset(1).put(w.THERM_EXPANSION, 0)
+    materset(1).put(w.HEAT_CAPACITY, 100)
+    materset(1).put(w.MASS_DENSITY, 950)
+    materset(1).put(w.POISSON_RATIO, 0)
+    materset(1).put(w.CONDUCTIVITY, 10)
+    materset(1).put(w.DISSIP_TE, 0)
+    materset(1).put(w.DISSIP_TQ, 0)
 
     # Finite element properties
 
     prp1 = w.ElementProperties(w.TmVolume2DElement)
-    prp1.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_SRIPR)
-    prp1.put(w.STIFFMETHOD,w.STIFF_ANALYTIC)
-    prp1.put(w.GRAVITY_Y,-9.81)
-    prp1.put(w.MATERIAL,1)
+    prp1.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_SRIPR)
+    prp1.put(w.STIFFMETHOD, w.STIFF_ANALYTIC)
+    prp1.put(w.GRAVITY_Y, -9.81)
+    prp1.put(w.MATERIAL, 1)
     app.addProperty(prp1)
 
     # Elements for surface heat flux
@@ -88,7 +88,7 @@ def getMetafor(parm):
 
     # Initial and boundary conditions
 
-    initcondset.define(groups['Solid'],w.Field1D(w.TO,w.AB),120)
+    initcondset.define(groups['Solid'], w.Field1D(w.TO, w.AB), 120)
 
     # Mechanical and thermal time integration
 
@@ -141,8 +141,8 @@ class Extractor(object):
 
         self.ext.write()
         
-        AB = w.DbNodalValueExtractor(self.node, w.Field1D(w.TO,w.AB))
-        RE = w.DbNodalValueExtractor(self.node, w.Field1D(w.TO,w.RE))
+        AB = w.DbNodalValueExtractor(self.node, w.Field1D(w.TO, w.AB))
+        RE = w.DbNodalValueExtractor(self.node, w.Field1D(w.TO, w.RE))
         result = AB.extract()[0] + RE.extract()[0]
 
         file = open('output.txt', 'a')

@@ -18,8 +18,8 @@ Problem.Mesh.addOnFS = false
 Problem.Mesh.minHeightFactor = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
-Problem.Mesh.deleteBoundElements = false
-Problem.Mesh.boundingBox = {0,-10,1,1}
+Problem.Mesh.deleteBoundElements = {'FSInterface'}
+Problem.Mesh.boundingBox = {0, -10, 1, 1}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
@@ -46,7 +46,7 @@ Problem.Extractors[2] = {}
 Problem.Extractors[2].kind = 'Point'
 Problem.Extractors[2].whatToWrite = 'T'
 Problem.Extractors[2].outputFile = 'output.txt'
-Problem.Extractors[2].points = {{0.5,0.2}}
+Problem.Extractors[2].points = {{0.5, 0.2}}
 Problem.Extractors[2].timeBetweenWriting = math.huge
 
 -- Material Parameters
@@ -99,10 +99,10 @@ Problem.IC = {}
 Problem.Solver.HeatEq.BC = {}
 Problem.Solver.HeatEq.BC['FSInterfaceTExt'] = true
 
-function Problem.IC.initStates(x,y,z)
+function Problem.IC.initStates(x, y, z)
 	return {300}
 end
 
-function Problem.Solver.HeatEq.BC.WallQ(x,y,z,t) 
-    return 0,0
+function Problem.Solver.HeatEq.BC.WallQ(x, y, z, t) 
+    return 0, 0
 end

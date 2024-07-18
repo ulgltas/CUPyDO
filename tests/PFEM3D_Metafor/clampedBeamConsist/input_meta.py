@@ -41,8 +41,8 @@ def getMetafor(parm):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),"geometryS.msh")
-    importer = gmsh.GmshImport(mshFile,domain)
+    mshFile = os.path.join(os.path.dirname(__file__), "geometryS.msh")
+    importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
 
@@ -54,16 +54,16 @@ def getMetafor(parm):
 
     # Solid material parameters
 
-    materset.define(1,w.ElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e7)
-    materset(1).put(w.MASS_DENSITY,8e3)
-    materset(1).put(w.POISSON_RATIO,0)
+    materset.define(1, w.ElastHypoMaterial)
+    materset(1).put(w.ELASTIC_MODULUS, 1e7)
+    materset(1).put(w.MASS_DENSITY, 8e3)
+    materset(1).put(w.POISSON_RATIO, 0)
 
     # Finite element properties
 
     prp = w.ElementProperties(w.Volume2DElement)
-    prp.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
-    prp.put(w.MATERIAL,1)
+    prp.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_STD)
+    prp.put(w.MATERIAL, 1)
     app.addProperty(prp)
 
     # Elements for surface traction
@@ -76,8 +76,8 @@ def getMetafor(parm):
 
     # Boundary conditions
     
-    loadingset.define(groups['Clamped'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['Clamped'],w.Field1D(w.TY,w.RE))
+    loadingset.define(groups['Clamped'], w.Field1D(w.TX, w.RE))
+    loadingset.define(groups['Clamped'], w.Field1D(w.TY, w.RE))
 
     # Mechanical time integration
 

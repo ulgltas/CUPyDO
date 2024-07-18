@@ -18,8 +18,8 @@ Problem.Mesh.addOnFS = true
 Problem.Mesh.minHeightFactor = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = true
-Problem.Mesh.deleteBoundElements = false
-Problem.Mesh.boundingBox = {0,0,0.6,100}
+Problem.Mesh.deleteBoundElements = {'FSInterface'}
+Problem.Mesh.boundingBox = {0, 0, 0.6, 100}
 Problem.Mesh.exclusionZones = {}
 
 Problem.Mesh.remeshAlgo = 'GMSH'
@@ -33,7 +33,7 @@ Problem.Extractors[0] = {}
 Problem.Extractors[0].kind = 'GMSH'
 Problem.Extractors[0].writeAs = 'NodesElements'
 Problem.Extractors[0].outputFile = 'pfem/fluid.msh'
-Problem.Extractors[0].whatToWrite = {'p','velocity'}
+Problem.Extractors[0].whatToWrite = {'p', 'velocity'}
 Problem.Extractors[0].timeBetweenWriting = math.huge
 
 Problem.Extractors[1] = {}
@@ -68,7 +68,7 @@ Problem.Solver.maxRemeshDT = math.huge
 Problem.Solver.MomEq = {}
 Problem.Solver.ContEq = {}
 Problem.Solver.MomEq.pExt = 0
-Problem.Solver.MomEq.bodyForce = {0,-9.81}
+Problem.Solver.MomEq.bodyForce = {0, -9.81}
 Problem.Solver.ContEq.stabilization = 'CLS'
 
 -- Momentum Continuity BC
@@ -78,14 +78,14 @@ Problem.Solver.MomEq.BC = {}
 Problem.Solver.ContEq.BC = {}
 Problem.Solver.MomEq.BC['FSInterfaceVExt'] = true
 
-function Problem.IC.initStates(x,y,z)
-	return {0,0,0,Problem.Material.rhoStar,0,0}
+function Problem.IC.initStates(x, y, z)
+	return {0, 0, 0, Problem.Material.rhoStar, 0, 0}
 end
 
-function Problem.Solver.MomEq.BC.ReservoirV(x,y,z,t)
-	return 0,0
+function Problem.Solver.MomEq.BC.ReservoirV(x, y, z, t)
+	return 0, 0
 end
 
-function Problem.Solver.MomEq.BC.PolytopeV(x,y,z,t)
-	return 0,0
+function Problem.Solver.MomEq.BC.PolytopeV(x, y, z, t)
+	return 0, 0
 end

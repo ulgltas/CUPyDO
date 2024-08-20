@@ -15,7 +15,7 @@ Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.25/33
 Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.alphaOut = 0.6
-Problem.Mesh.gammaBound = 0.2
+Problem.Mesh.gammaBound = 0.3
 Problem.Mesh.minHeightFactor = 1e-2
 
 Problem.Mesh.addOnFS = true
@@ -25,7 +25,7 @@ Problem.Mesh.deleteBoundElements = {'FSInterface'}
 Problem.Mesh.boundingBox = {0, 0, 0.9, 1}
 Problem.Mesh.exclusionZones = {}
 
-Problem.Mesh.remeshAlgo = 'GMSH'
+Problem.Mesh.remeshAlgo = 'CGAL'
 Problem.Mesh.mshFile = 'geometryF.msh'
 
 -- Extractor Parameters

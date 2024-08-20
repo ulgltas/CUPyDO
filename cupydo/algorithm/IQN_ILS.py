@@ -59,7 +59,7 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
         # --- Tolerance and type of filtering : None, Degroote1, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1
-        self.qrFilter = 'Haelterman'
+        self.qrFilter = p['qrFilter']
     
     def qrSolve(self, V, W, res):
 

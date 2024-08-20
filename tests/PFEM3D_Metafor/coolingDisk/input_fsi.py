@@ -57,10 +57,11 @@ def getFsiP():
     p['dtSave'] = 1e-1
     p['omega'] = 0.5
     p['maxIt'] = 25
-    p['dt'] = 1e-2
+    p['dt'] = 5e-3
     p['tTot'] = 1
     p['criterion'] = 'relative'
     p['nDim'] = 2
+    p['qrFilter'] = None
 
     # Coupling Type
 

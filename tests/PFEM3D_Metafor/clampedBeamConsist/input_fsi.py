@@ -57,6 +57,7 @@ def getFsiP():
     p['criterion'] = 'relative'
     p['nDim'] = 2
     p['rbfRadius'] = 100
+    p['qrFilter'] = 'Haelterman'
 
     # Coupling Type
 

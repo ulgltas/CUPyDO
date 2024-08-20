@@ -24,7 +24,7 @@ Problem.Mesh.deleteBoundElements = {'FSInterface'}
 Problem.Mesh.boundingBox = {0, 0, 0.6, 100}
 Problem.Mesh.exclusionZones = {}
 
-Problem.Mesh.remeshAlgo = 'GMSH'
+Problem.Mesh.remeshAlgo = 'CGAL'
 Problem.Mesh.mshFile = 'geometryF.msh'
 
 -- Extractor Parameters

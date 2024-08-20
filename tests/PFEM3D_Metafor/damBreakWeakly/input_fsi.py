@@ -56,6 +56,7 @@ def getFsiP():
     p['dt'] = 0.001
     p['criterion'] = 'relative'
     p['nDim'] = 2
+    p['qrFilter'] = None
     
     # Coupling Type
 

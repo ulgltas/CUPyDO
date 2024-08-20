@@ -50,7 +50,7 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
         # --- Tolerance and type of filtering : None, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1
-        self.qrFilter = 'Haelterman'
+        self.qrFilter = p['qrFilter']
 
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
         self.computeTangentMatrixBasedOnFirstIt = p['firstItTgtMat']

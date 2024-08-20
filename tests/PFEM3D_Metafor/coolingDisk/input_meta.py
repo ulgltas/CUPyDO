@@ -120,7 +120,8 @@ def getMetafor(parm):
     node = groups['Solid'].getMeshPoint(72)
 
     ext = w.GmshExporter(metafor, 'solid')
-    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.TO))
+    ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))
+    ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.RE)))
 
     parm['interactionT'] = heat
     parm['interactionM'] = load

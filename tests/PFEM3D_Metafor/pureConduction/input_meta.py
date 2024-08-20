@@ -129,8 +129,10 @@ def getMetafor(parm):
     parm['interactionT'] = heat
     parm['FSInterface'] = groups['FSInterface']
 
-    ext = w.GmshExporter(metafor,  'solid')
-    ext.add(w.IFNodalValueExtractor(groups['Solid'],  w.TO))
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))
+    ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.RE)))
+
     parm['exporter'] = ext
 
     return metafor

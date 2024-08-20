@@ -14,8 +14,10 @@ Problem.Mesh.omega = 0.5
 Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.03
 Problem.Mesh.gammaFS = 0.2
-Problem.Mesh.addOnFS = false
+Problem.Mesh.gammaBound = 0.2
 Problem.Mesh.minHeightFactor = 1e-2
+
+Problem.Mesh.addOnFS = false
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = {'FSInterface'}

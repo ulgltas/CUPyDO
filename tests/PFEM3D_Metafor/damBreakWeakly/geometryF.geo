@@ -30,7 +30,6 @@ Line(8) = {9,10};
 Line(9) = {10,11};
 Line(10) = {11,2};
 Line(11) = {2,3};
-Line(12) = {8,11};
 
 // Fluid Surface
 
@@ -39,7 +38,6 @@ Plane Surface(1) = {1};
 
 // Physical Boundaries
 
-Physical Curve("Polytope") = {7,8,9,12};
 Physical Curve("FSInterface") = {7,8,9};
 Physical Curve("Reservoir") = {1,2,3,6,10,11};
 Physical Curve("FreeSurface") = {5,4};

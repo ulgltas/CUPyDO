@@ -99,7 +99,6 @@ def getMetafor(parm):
     # Parameters for CUPyDO
 
     parm['interactionM'] = load
-    parm['polytope'] = load.getElementSet()
     domain.build()
 
     ext = w.GmshExporter(metafor, 'solid')

@@ -89,7 +89,3 @@ end
 function Problem.Solver.MomContEq.BC.ReservoirV(x, y, z, t)
 	return 0, 0
 end
-
-function Problem.Solver.MomContEq.BC.PolytopeV(x, y, z, t)
-	return 0, 0
-end

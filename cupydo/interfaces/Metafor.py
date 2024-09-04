@@ -105,9 +105,6 @@ class Metafor(SolidSolver):
 
         # Create the consistent nodal stress/heat containers
 
-        if 'polytope' in parm:
-            self.polytope = np.atleast_1d(parm['polytope'])
-
         if 'interactionM' in parm:
             self.interactionM = parm['interactionM']
 

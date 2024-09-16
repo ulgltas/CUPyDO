@@ -75,11 +75,20 @@ class CUPyDO(object):
                 raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         else:
             raise RuntimeError(p['interpolator'], 'not available! (avail: matching, RBF or TPS).\n')
-        # if petsc is used, then some options can be set
-        if withMPI and 'interpOpts' in p:
+
+        # --- Options for PETSC solver --- #
+
+        if withMPI and 'interpMaxIt' in p:
             for linSolver in interpolator.getLinearSolvers():
-                linSolver.setMaxNumberIterations(p['interpOpts'][0])
-                linSolver.setPreconditioner(p['interpOpts'][1])
+                linSolver.setMaxNumberIterations(p['interpMaxIt'])
+
+        if withMPI and 'interpPrecond' in p:
+            for linSolver in interpolator.getLinearSolvers():
+                linSolver.setPreconditioner(p['interpPrecond'])
+
+        if withMPI and 'interpTol' in p:
+            for linSolver in interpolator.getLinearSolvers():
+                linSolver.setRelativeTolerance(p['interpTol'])
 
         # --- Initialize the FSI criterion --- #
 
@@ -239,7 +248,9 @@ class CUPyDO(object):
 # needed by RBF interpolator
 # - p['rbfRadius'], radius of interpolation for RBF
 # optional for RBF/TPS interpolators
-# - p['interpOpts'], optional options for interpolator, [0] = max number of iterations, [1] = preconditionner type
+# - p['interpMaxIt'], maximum number of iterations
+# - p['interpPrecond'], preconditionner
+# - p['interpTol'], solver tolerance
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['extractors'], SU2Solid, pyBeam

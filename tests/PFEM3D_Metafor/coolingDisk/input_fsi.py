@@ -63,6 +63,11 @@ def getFsiP():
     p['nDim'] = 2
     p['qrFilter'] = None
 
+    # PETSC parameters
+
+    p['interpMaxIt'] = 100
+    p['interpTol'] = 1e-8
+
     # Coupling Type
 
     p['mechanical'] = True

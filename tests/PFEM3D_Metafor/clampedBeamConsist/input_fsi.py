@@ -58,6 +58,7 @@ def getFsiP():
     p['nDim'] = 2
     p['rbfRadius'] = 100
     p['qrFilter'] = 'Haelterman'
+    p['interpTol'] = 1e-8
 
     # Coupling Type
 

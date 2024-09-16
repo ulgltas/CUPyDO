@@ -97,11 +97,11 @@ class Metafor(SolidSolver):
                 node = self.FSI.getMeshPoint(i)
                 self.Fnods[node.getNo()] = load
 
-                for F in w.TX,w.TY,w.TZ:
+                for F in w.TX, w.TY, w.TZ:
 
                     load.append(NLoad(0))
                     fct = w.PythonOneParameterFunction(load[-1])
-                    loadingset.define(node,w.Field1D(F,w.GF1),1,fct)
+                    loadingset.define(node,w.Field1D(F, w.GF1), 1, fct)
 
         # Create the consistent nodal stress/heat containers
 
@@ -123,7 +123,7 @@ class Metafor(SolidSolver):
 
         self.mfac = w.MemoryFac()
         self.metaFac = w.MetaFac(self.metafor)
-        self.metaFac.mode(False,False,True)
+        self.metaFac.mode(False,False, True)
         self.metaFac.save(self.mfac)
         self.tsm.setVerbose(False)
 
@@ -136,15 +136,15 @@ class Metafor(SolidSolver):
 
         if(self.neverRun):
 
-            self.tsm.setInitialTime(t1,t2-t1)
-            self.tsm.setNextTime(t2,0,t2-t1)
+            self.tsm.setInitialTime(t1, t2-t1)
+            self.tsm.setNextTime(t2, 0, t2-t1)
             ok = self.metafor.getTimeIntegration().integration()
             self.neverRun = False
 
         else:
 
             if self.reload: self.tsm.removeLastStage()
-            self.tsm.setNextTime(t2,0,t2-t1)
+            self.tsm.setNextTime(t2, 0, t2-t1)
             ok = self.metafor.getTimeIntegration().restart(self.mfac)
 
         if ok: self.__setCurrentState()
@@ -161,28 +161,31 @@ class Metafor(SolidSolver):
         for i in range(self.nNodes):
             node = self.FSI.getMeshPoint(i)
 
-            self.nodalVel_X[i] = node.getValue(w.Field1D(w.TX,w.GV))
-            self.nodalVel_Y[i] = node.getValue(w.Field1D(w.TY,w.GV))
-            self.nodalVel_Z[i] = node.getValue(w.Field1D(w.TZ,w.GV))
+            if self.mechanical:
 
-            self.nodalDisp_X[i] = node.getValue(w.Field1D(w.TX,w.RE))
-            self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY,w.RE))
-            self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ,w.RE))
+                self.nodalVel_X[i] = node.getValue(w.Field1D(w.TX, w.GV))
+                self.nodalVel_Y[i] = node.getValue(w.Field1D(w.TY, w.GV))
+                self.nodalVel_Z[i] = node.getValue(w.Field1D(w.TZ, w.GV))
 
-            self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO,w.AB)) + node.getValue(w.Field1D(w.TO,w.RE))
+                self.nodalDisp_X[i] = node.getValue(w.Field1D(w.TX, w.RE))
+                self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY, w.RE))
+                self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ, w.RE))
+
+            if self.thermal:
+                self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO, w.AB)) + node.getValue(w.Field1D(w.TO, w.RE))
 
     def getNodalInitialPositions(self):
         """
         Return the position vector of the solver interface
         """
 
-        pos = np.zeros((3,self.nNodes))
+        pos = np.zeros((3, self.nNodes))
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            pos[0,i] = node.getValue(w.Field1D(w.TX,w.AB))
-            pos[1,i] = node.getValue(w.Field1D(w.TY,w.AB))
-            pos[2,i] = node.getValue(w.Field1D(w.TZ,w.AB))
+            pos[0,i] = node.getValue(w.Field1D(w.TX, w.AB))
+            pos[1,i] = node.getValue(w.Field1D(w.TY, w.AB))
+            pos[2,i] = node.getValue(w.Field1D(w.TZ, w.AB))
 
         return pos
 
@@ -201,7 +204,7 @@ class Metafor(SolidSolver):
         Apply the conservative load boundary conditions
         """
 
-        result = np.transpose([load_X,load_Y,load_Z])[:self.nNodes]
+        result = np.transpose([load_X, load_Y, load_Z])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
@@ -216,11 +219,11 @@ class Metafor(SolidSolver):
         Apply the consistent load boundary conditions
         """
 
-        result = np.transpose([load_XX,load_YY,load_ZZ,load_XY,load_XZ,load_YZ])[:self.nNodes]
+        result = np.transpose([load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            self.interactionM.setNodTensor3D(node,*result[i])
+            self.interactionM.setNodTensor3D(node, *result[i])
 
 # Thermal Boundary Conditions
 
@@ -229,11 +232,11 @@ class Metafor(SolidSolver):
         Apply the consistent heat flux boundary conditions
         """
 
-        result = np.transpose([HF_X,HF_Y,HF_Z])[:self.nNodes]
+        result = np.transpose([HF_X, HF_Y, HF_Z])[:self.nNodes]
         for i in range(self.nNodes):
 
             node = self.FSI.getMeshPoint(i)
-            self.interactionT.setNodVector(node,*result[i])
+            self.interactionT.setNodVector(node, *result[i])
 
 # Other Functions
 

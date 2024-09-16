@@ -157,7 +157,7 @@ class Pfem3D(FluidSolver):
         if self.mechanical: 
             if self.interpType == 'conservative':
 
-                self.solver.computeLoads('FSInterface',self.FSI,result)
+                self.solver.computeLoads('FSInterface', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_X[i] = -result[i][0]
@@ -166,7 +166,7 @@ class Pfem3D(FluidSolver):
 
             elif self.dim == 3:
 
-                self.solver.computeStress('FSInterface',self.FSI,result)
+                self.solver.computeStress('FSInterface', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_XX[i] = result[i][0]
@@ -178,7 +178,7 @@ class Pfem3D(FluidSolver):
 
             elif self.mesh.isAxiSym():
 
-                self.solver.computeStress('FSInterface',self.FSI,result)
+                self.solver.computeStress('FSInterface', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_XX[i] = result[i][0]
@@ -188,7 +188,7 @@ class Pfem3D(FluidSolver):
 
             else:
 
-                self.solver.computeStress('FSInterface',self.FSI,result)
+                self.solver.computeStress('FSInterface', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_XX[i] = result[i][0]
@@ -196,7 +196,7 @@ class Pfem3D(FluidSolver):
                     self.nodalLoad_XY[i] = result[i][2]
 
         if self.thermal:
-            self.solver.computeHeatFlux('FSInterface',self.FSI,result)
+            self.solver.computeHeatFlux('FSInterface', self.FSI,result)
 
             for i in range(self.nNodes):
 
@@ -233,7 +233,7 @@ class Pfem3D(FluidSolver):
         self.vel = self.__getVelocity()
 
     def getNodalInitialPositions(self):
-        return np.transpose(self.initPos)
+        return np.transpose(self.initPos).copy()
 
 # Print Functions
     

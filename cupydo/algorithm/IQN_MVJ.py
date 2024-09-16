@@ -57,14 +57,17 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
     def filter(self, V, W):
 
-        if self.qrFilter == None: # No filtering is applied to V and W
+        #  --- No filtering is applied to V and W  --- #
+        if self.qrFilter == None:
             return V, W
 
-        if self.qrFilter == 'Degroote2': # QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010).
+        # --- QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010) --- #
+        elif self.qrFilter == 'Degroote2':
             Q, R, V, W = QRfiltering(V, W, self.tollQR)
             return V, W
         
-        elif self.qrFilter == 'Haelterman': # 'Modified' QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016).
+         # -- QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016) -- #
+        elif self.qrFilter == 'Haelterman':
             Q, R, V, W = QRfiltering_mod(V, W, self.tollQR)
             return V, W
         

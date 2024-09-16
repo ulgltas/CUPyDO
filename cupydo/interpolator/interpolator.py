@@ -533,9 +533,9 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
     def setHeatFluxToSolidSolver(self, dt):
 
         if self.mpiComm != None:
-            (localSolidInterfaceHeatFlux, haloNodesHeatFlux) =  self.redistributeDataToSolidSolver(self.solidInterfaceHeatFlux)
+            (localSolidInterfaceHeatFlux, haloNodesHeatFlux) = self.redistributeDataToSolidSolver(self.solidInterfaceHeatFlux)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                self.SolidSolver.applyNodalHeatFluxes(localSolidInterfaceHeatFlux.getDataArray(0), localSolidInterfaceHeatFlux.getDataArray(1), localSolidInterfaceHeatFlux.getDataArray(2), dt, haloNodesHeatFlux)
+                self.SolidSolver.applyNodalHeatFluxes(localSolidInterfaceHeatFlux[0], localSolidInterfaceHeatFlux[1], localSolidInterfaceHeatFlux[2], dt, haloNodesHeatFlux)
         else:
             self.SolidSolver.applyNodalHeatFluxes(self.solidInterfaceHeatFlux.getDataArray(0), self.solidInterfaceHeatFlux.getDataArray(1), self.solidInterfaceHeatFlux.getDataArray(2), dt, {})
 

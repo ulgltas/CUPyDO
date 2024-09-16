@@ -73,7 +73,11 @@ def getFsiP():
     p['dtSave'] = 0
     p['maxIt'] = 4
     p['omega'] = 1.0
-    p['interpOpts'] = [1000, 'JACOBI']
+
+    # PETSC parameters
+
+    p['interpMaxIt'] = 1000
+    p['interpPrecond'] = 'JACOBI'
 
     # Coupling Type
 

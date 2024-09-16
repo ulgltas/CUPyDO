@@ -62,7 +62,7 @@ class TimeStep(object):
         """
         Get [t1, t2] for fluid and solid run
         """
-        return self.time,self.time+self.dt
+        return self.time, self.time+self.dt
 
     def updateSave(self):
         """
@@ -93,5 +93,5 @@ class TimeStep(object):
             
             self.timeIter += 1
             self.time += self.dt
-            self.dt = math.pow(self.division,1/7)*self.dt
-            self.dt = min(self.dt,self.maxDt)
+            self.dt = math.pow(self.division, 1/7)*self.dt
+            self.dt = min(self.dt, self.maxDt)

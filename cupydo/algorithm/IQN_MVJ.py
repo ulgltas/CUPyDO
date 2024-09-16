@@ -50,21 +50,24 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
         # --- Tolerance and type of filtering : None, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1
-        self.qrFilter = 'Haelterman'
+        self.qrFilter = p['qrFilter']
 
         # --- Option which allows to build the tangent matrix of a given time step using differences with respect to the first FSI iteration (delta_r_k = r_k+1 - r_0) instead of the previous iteration (delta_r_k = r_k+1 - r_k) --- #
         self.computeTangentMatrixBasedOnFirstIt = p['firstItTgtMat']
 
     def filter(self, V, W):
 
-        if self.qrFilter == None: # No filtering is applied to V and W
+        #  --- No filtering is applied to V and W  --- #
+        if self.qrFilter == None:
             return V, W
 
-        if self.qrFilter == 'Degroote2': # QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010).
+        # --- QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010) --- #
+        elif self.qrFilter == 'Degroote2':
             Q, R, V, W = QRfiltering(V, W, self.tollQR)
             return V, W
         
-        elif self.qrFilter == 'Haelterman': # 'Modified' QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016).
+         # -- QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016) -- #
+        elif self.qrFilter == 'Haelterman':
             Q, R, V, W = QRfiltering_mod(V, W, self.tollQR)
             return V, W
         

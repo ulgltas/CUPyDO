@@ -74,8 +74,12 @@ def getFsiP():
     p['maxIt'] = 15
     p['omega'] = 0.7
     p['rbfRadius'] = .3
-    p['interpOpts'] = [1000, 'JACOBI']
     p['extractors'] = [19]
+
+    # PETSC parameters
+
+    p['interpMaxIt'] = 1000
+    p['interpPrecond'] = 'JACOBI'
 
     # Coupling Type
 

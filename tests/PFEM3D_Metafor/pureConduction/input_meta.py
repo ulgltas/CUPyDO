@@ -40,8 +40,8 @@ def getMetafor(parm):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),'geometryS.msh')
-    importer = gmsh.GmshImport(mshFile,domain)
+    mshFile = os.path.join(os.path.dirname(__file__), 'geometryS.msh')
+    importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
 
@@ -53,22 +53,22 @@ def getMetafor(parm):
 
     # Solid material parameters
 
-    materset.define(1,w.TmElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e7)
-    materset(1).put(w.THERM_EXPANSION,0)
-    materset(1).put(w.HEAT_CAPACITY,1)
-    materset(1).put(w.MASS_DENSITY,8e3)
-    materset(1).put(w.POISSON_RATIO,0)
-    materset(1).put(w.CONDUCTIVITY,10)
-    materset(1).put(w.DISSIP_TE,0)
-    materset(1).put(w.DISSIP_TQ,0)
+    materset.define(1, w.TmElastHypoMaterial)
+    materset(1).put(w.ELASTIC_MODULUS, 1e7)
+    materset(1).put(w.THERM_EXPANSION, 0)
+    materset(1).put(w.HEAT_CAPACITY, 1)
+    materset(1).put(w.MASS_DENSITY, 8e3)
+    materset(1).put(w.POISSON_RATIO, 0)
+    materset(1).put(w.CONDUCTIVITY, 10)
+    materset(1).put(w.DISSIP_TE, 0)
+    materset(1).put(w.DISSIP_TQ, 0)
 
     # Finite element properties
 
     prp1 = w.ElementProperties(w.TmVolume2DElement)
-    prp1.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_SRIPR)
-    prp1.put(w.STIFFMETHOD,w.STIFF_ANALYTIC)
-    prp1.put(w.MATERIAL,1)
+    prp1.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_SRIPR)
+    prp1.put(w.STIFFMETHOD, w.STIFF_ANALYTIC)
+    prp1.put(w.MATERIAL, 1)
     app.addProperty(prp1)
 
     # Elements for surface heat flux
@@ -85,8 +85,8 @@ def getMetafor(parm):
     F = w.PythonOneParameterFunction(fun)
 
     prp3 = w.ElementProperties(w.TmHeatFlux2DElement)
-    prp3.put(w.HEATEL_VALUE,1e3)
-    prp3.depend(w.HEATEL_VALUE,F,w.Field1D(w.TX,w.AB))
+    prp3.put(w.HEATEL_VALUE, 1e3)
+    prp3.depend(w.HEATEL_VALUE, F, w.Field1D(w.TX, w.AB))
 
     inter = w.HeatInteraction(3)
     inter.push(groups['Top'])
@@ -95,9 +95,9 @@ def getMetafor(parm):
 
     # Other boundary conditions
 
-    initcondset.define(groups['Solid'],w.Field1D(w.TO,w.AB),300)
-    loadingset.define(groups['FSInterface'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['FSInterface'],w.Field1D(w.TY,w.RE))
+    initcondset.define(groups['Solid'], w.Field1D(w.TO, w.AB), 300)
+    loadingset.define(groups['FSInterface'], w.Field1D(w.TX, w.RE))
+    loadingset.define(groups['FSInterface'], w.Field1D(w.TY, w.RE))
 
     # Mechanical and thermal time integration
 
@@ -124,10 +124,15 @@ def getMetafor(parm):
     tscm.setTimeStepDivisionFactor(2)
     tscm.setNbOptiIte(25)
 
-    # Parameters for FSPC
+    # Parameters for CUPyDO
 
-    parm['interacT'] = heat
+    parm['interactionT'] = heat
     parm['FSInterface'] = groups['FSInterface']
-    parm['exporter'] = gmsh.GmshExport('metafor/solid.msh',metafor)
-    parm['exporter'].addDataBaseField([w.TO])
+
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))
+    ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.RE)))
+
+    parm['exporter'] = ext
+
     return metafor

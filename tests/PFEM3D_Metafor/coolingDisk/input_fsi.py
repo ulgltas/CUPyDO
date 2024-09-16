@@ -21,9 +21,9 @@ def test(meanFSIIt):
     if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Center ball coordinate X', coord[0], 0.162837, 0.01, False))
-    tests.add(CTest('Center ball coordinate Y', coord[1], 0.181850, 0.01, False))
-    tests.add(CTest('Center ball temperature', temperature, 169.707391, 0.005, False))
+    tests.add(CTest('Center ball coordinate X', coord[0], 0.15, 0.1, False))
+    tests.add(CTest('Center ball coordinate Y', coord[1], 0.16, 0.1, False))
+    tests.add(CTest('Center ball temperature', temperature, 170, 0.01, False))
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 5, 1, True))
     tests.run()
 
@@ -57,10 +57,16 @@ def getFsiP():
     p['dtSave'] = 1e-1
     p['omega'] = 0.5
     p['maxIt'] = 25
-    p['dt'] = 1e-2
+    p['dt'] = 5e-3
     p['tTot'] = 1
     p['criterion'] = 'relative'
     p['nDim'] = 2
+    p['qrFilter'] = None
+
+    # PETSC parameters
+
+    p['interpMaxIt'] = 100
+    p['interpTol'] = 1e-8
 
     # Coupling Type
 

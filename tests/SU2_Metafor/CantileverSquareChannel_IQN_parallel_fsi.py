@@ -72,6 +72,7 @@ def getFsiP():
     p['omega'] = 1.0
     p['nSteps'] = 0
     p['firstItTgtMat'] = False
+    p['qrFilter'] = 'Haelterman'
 
     # Coupling Type
 

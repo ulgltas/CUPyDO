@@ -16,17 +16,15 @@ Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.0054
 Problem.Mesh.gammaFS = 0.2
 Problem.Mesh.addOnFS = true
-Problem.Mesh.minAspectRatio = 1e-3
+Problem.Mesh.minHeightFactor = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
 Problem.Mesh.deleteBoundElements = false
 Problem.Mesh.boundingBox = {0,-10,1,1}
 Problem.Mesh.exclusionZones = {}
 
-Problem.Mesh.remeshAlgo = 'GMSH'
+Problem.Mesh.remeshAlgo = 'CGAL'
 Problem.Mesh.mshFile = 'geometryF.msh'
-Problem.Mesh.exclusionGroups = {}
-Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 
@@ -60,8 +58,8 @@ Problem.Solver.id = 'PSPG'
 Problem.Solver.adaptDT = true
 Problem.Solver.maxDT = math.huge
 Problem.Solver.initialDT = math.huge
-Problem.Solver.coeffDTDecrease = math.huge
-Problem.Solver.coeffDTincrease = math.huge
+Problem.Solver.coeffDTDecrease = 2
+Problem.Solver.coeffDTincrease = 1
 
 -- Momentum Continuity Equation
 
@@ -74,7 +72,7 @@ Problem.Solver.MomContEq.pExt = 0
 Problem.Solver.MomContEq.maxIter = 25
 Problem.Solver.MomContEq.gammaFS = 0.5
 Problem.Solver.MomContEq.minRes = 1e-6
-Problem.Solver.MomContEq.cgTolerance = 1e-12
+Problem.Solver.MomContEq.tolerance = 1e-12
 Problem.Solver.MomContEq.bodyForce = {0,-9.81}
 
 -- Momentum Continuity BC

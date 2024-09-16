@@ -59,25 +59,29 @@ class AlgorithmIQN_ILS(AlgorithmBGSStaticRelax):
 
         # --- Tolerance and type of filtering : None, Degroote1, Degroote2, and Haelterman.
         self.tollQR = 1.0e-1
-        self.qrFilter = 'Haelterman'
+        self.qrFilter = p['qrFilter']
     
     def qrSolve(self, V, W, res):
 
-        if self.qrFilter == None: # Classical least squares without QR filtering
+         # --- Classical least squares without QR filtering --- #
+        if self.qrFilter == None:
             c = np.linalg.lstsq(V, -res, rcond=-1)[0]
         
-        if self.qrFilter == 'Degroote1': # QR filtering as described by J. Degroote et al. Computers and Structures, 87, 793-801 (2009).
+         # --- QR filtering as described by J. Degroote et al. Computers and Structures, 87, 793-801 (2009) --- #
+        elif self.qrFilter == 'Degroote1':
             Q, R = sp.linalg.qr(V, mode='economic')
             s = np.dot(np.transpose(Q), -res)
             toll = self.tollQR*sp.linalg.norm(R, 2)
             c = solve_upper_triangular_mod(R, s, toll)
         
-        elif self.qrFilter == 'Degroote2': # QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010).
+         # --- QR filtering as described by J. Degroote et al. CMAME, 199, 2085-2098 (2010) --- #
+        elif self.qrFilter == 'Degroote2':
             Q, R, V, W = QRfiltering(V, W, self.tollQR)
             s = np.dot(np.transpose(Q), -res)
             c = np.linalg.solve(R, s)
         
-        elif self.qrFilter == 'Haelterman': # 'Modified' QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016).
+        # --- QR filtering as described by R. Haelterman et al. Computers and Structures, 171, 9-17 (2016) --- #
+        elif self.qrFilter == 'Haelterman':
             Q, R, V, W = QRfiltering_mod(V, W, self.tollQR)
             s = np.dot(np.transpose(Q), -res)
             c = np.linalg.solve(R, s)

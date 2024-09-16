@@ -9,7 +9,15 @@ def params(parm):
     parm['bndno'] = 1
     return parm
 
+# Parallel Computing
+
 metafor = None
+w.StrVectorBase.useTBB()
+w.StrMatrixBase.useTBB()
+w.ContactInteraction.useTBB()
+
+# Main Function
+
 def getMetafor(parm):
 
     global metafor
@@ -33,8 +41,8 @@ def getMetafor(parm):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),"geometryS.msh")
-    importer = gmsh.GmshImport(mshFile,domain)
+    mshFile = os.path.join(os.path.dirname(__file__), "geometryS.msh")
+    importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
 
@@ -46,17 +54,17 @@ def getMetafor(parm):
     
     # Material parameters
 
-    materset.define(1,w.ElastHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,1e6)
-    materset(1).put(w.MASS_DENSITY,2500)
-    materset(1).put(w.POISSON_RATIO,0)
+    materset.define(1, w.ElastHypoMaterial)
+    materset(1).put(w.ELASTIC_MODULUS, 1e6)
+    materset(1).put(w.MASS_DENSITY, 2500)
+    materset(1).put(w.POISSON_RATIO, 0)
     
     # Finite element properties
 
-    prp1 = w.ElementProperties(w.Volume2DElement)
-    prp1.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_STD)
-    prp1.put(w.MATERIAL,1)
-    app.addProperty(prp1)
+    prp = w.ElementProperties(w.Volume2DElement)
+    prp.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_STD)
+    prp.put(w.MATERIAL, 1)
+    app.addProperty(prp)
 
     # Elements for surface traction
 
@@ -68,8 +76,8 @@ def getMetafor(parm):
     
     # Boundary conditions
     
-    loadingset.define(groups['SolidBase'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['SolidBase'],w.Field1D(w.TY,w.RE))
+    loadingset.define(groups['SolidBase'], w.Field1D(w.TX, w.RE))
+    loadingset.define(groups['SolidBase'], w.Field1D(w.TY, w.RE))
 
     # Mechanical time integration
 
@@ -78,7 +86,7 @@ def getMetafor(parm):
 
     # Mechanical iterations
 
-    mim.setMaxNbOfIterations(4)
+    mim.setMaxNbOfIterations(25)
     mim.setResidualTolerance(1e-7)
 
     # Time step iterations
@@ -90,7 +98,12 @@ def getMetafor(parm):
 
     # Parameters for CUPyDO
 
-    parm['interacM'] = load
-    parm['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    parm['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    parm['interactionM'] = load
+    domain.build()
+
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_P))
+    parm['exporter'] = ext
+
     return metafor

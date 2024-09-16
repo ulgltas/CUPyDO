@@ -121,7 +121,7 @@ class Extractor(object):
         self.metafor = metafor
         
 
-    def write(self,extractor):
+    def to_ascii(self,extractor):
 
         file = open(extractor.buildName()+'.ascii', 'a')
         
@@ -129,9 +129,9 @@ class Extractor(object):
         file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
         file.close()
 
-    def execute(self):
+    def to_ascii(self):
 
         groupset = self.metafor.getDomain().getGeometry().getGroupSet()
-        self.write(TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FINT))
-        self.write(DbNodalValueExtractor(groupset(17), Field1D(TY,RE)))
+        self.to_ascii(TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FINT))
+        self.to_ascii(DbNodalValueExtractor(groupset(17), Field1D(TY,RE)))
         

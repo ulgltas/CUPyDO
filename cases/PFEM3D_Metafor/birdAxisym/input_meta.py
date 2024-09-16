@@ -19,7 +19,7 @@ w.ContactInteraction.useTBB()
 
 # Main Function
 
-def getMetafor(input):
+def getMetafor(parm):
 
     global metafor
     if metafor: return metafor
@@ -43,8 +43,8 @@ def getMetafor(input):
     
     # Imports the mesh
 
-    mshFile = os.path.join(os.path.dirname(__file__),'geometryS.msh')
-    importer = gmsh.GmshImport(mshFile,domain)
+    mshFile = os.path.join(os.path.dirname(__file__), 'geometryS.msh')
+    importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
 
@@ -56,29 +56,29 @@ def getMetafor(input):
 
     # Solid material parameters
 
-    materset.define(1,w.EvpIsoHHypoMaterial)
-    materset(1).put(w.ELASTIC_MODULUS,69e9)
-    materset(1).put(w.MASS_DENSITY,2700)
-    materset(1).put(w.POISSON_RATIO,0.3)
-    materset(1).put(w.YIELD_NUM,1)
+    materset.define(1, w.EvpIsoHHypoMaterial)
+    materset(1).put(w.ELASTIC_MODULUS, 69e9)
+    materset(1).put(w.MASS_DENSITY, 2700)
+    materset(1).put(w.POISSON_RATIO, 0.3)
+    materset(1).put(w.YIELD_NUM, 1)
 
-    lawset.define(1,w.LinearIsotropicHardening)
-    lawset(1).put(w.IH_SIGEL,3e8)
-    lawset(1).put(w.IH_H,1e9)
+    lawset.define(1, w.LinearIsotropicHardening)
+    lawset(1).put(w.IH_SIGEL, 3e8)
+    lawset(1).put(w.IH_H, 1e9)
 
     # Finite element properties
 
     prp1 = w.ElementProperties(w.Volume2DElement)
-    prp1.put(w.CAUCHYMECHVOLINTMETH,w.VES_CMVIM_SRIPR)
-    prp1.put(w.STIFFMETHOD,w.STIFF_ANALYTIC)
-    prp1.put(w.MATERIAL,1)
+    prp1.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_SRIPR)
+    prp1.put(w.STIFFMETHOD, w.STIFF_ANALYTIC)
+    prp1.put(w.MATERIAL, 1)
     app.addProperty(prp1)
 
     # Boundary conditions
     
-    loadingset.define(groups['Clamped'],w.Field1D(w.TX,w.RE))
-    loadingset.define(groups['Clamped'],w.Field1D(w.TY,w.RE))
-    loadingset.define(groups['Axis'],w.Field1D(w.TX,w.RE))
+    loadingset.define(groups['Clamped'], w.Field1D(w.TX, w.RE))
+    loadingset.define(groups['Clamped'], w.Field1D(w.TY, w.RE))
+    loadingset.define(groups['Axis'], w.Field1D(w.TX, w.RE))
 
     # Mechanical time integration
 
@@ -99,6 +99,9 @@ def getMetafor(input):
 
     # Parameters for CUPyDO
 
-    input['exporter'] = gmsh.GmshExport('solid.msh',metafor)
-    input['exporter'].addInternalField([w.IF_EVMS,w.IF_P])
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))
+    ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_P))
+    parm['exporter'] = ext
+    
     return metafor

@@ -18,8 +18,8 @@ def test(meanFSIIt):
     if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Solid tip coordinate X', coord[0], 0.333640, 0.05, False))
-    tests.add(CTest('Solid tip coordinate Y', coord[1], 0.075579, 0.05, False))
+    tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))
+    tests.add(CTest('Solid tip coordinate Y', coord[1], 0.080027, 0.05, False))
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
     tests.run()
 
@@ -56,6 +56,7 @@ def getFsiP():
     p['dt'] = 0.001
     p['criterion'] = 'relative'
     p['nDim'] = 2
+    p['qrFilter'] = None
     
     # Coupling Type
 

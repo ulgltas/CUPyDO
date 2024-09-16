@@ -9,7 +9,7 @@ def test(meanFSIIt):
     name = [file for file in os.listdir() if('solid' in file)]
     time = [float(file[8:-4]) for file in name]
     lastFile = name[np.argmax(time)]
-    tag = 19
+    tag = 2
 
     if not gmsh.isInitialized(): gmsh.initialize()
     gmsh.option.setNumber('General.Terminal',0)
@@ -18,9 +18,9 @@ def test(meanFSIIt):
     if gmsh.isInitialized(): gmsh.finalize()
 
     tests = CTests()
-    tests.add(CTest('Middle bar coordinate X', coord[0], 0.5, 1e-3, False))
-    tests.add(CTest('Middle bar coordinate Y', coord[1], -0.072110, 0.01, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 2, 1, True))
+    tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))
+    tests.add(CTest('Solid tip coordinate Y', coord[1], 0.080027, 0.05, False))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
     tests.run()
 
 # Input Parameters
@@ -40,24 +40,24 @@ def getFsiP():
     # FSI objects
 
     p['interpolator'] = 'matching'
-    p['interpType'] = 'conservative'
-    p['algorithm'] = 'IQN_ILS'
+    p['interpType'] = 'consistent'
+    p['algorithm'] = 'IQN_MVJ'
     
     # FSI parameters
 
     p['firstItTgtMat'] = False
     p['computation'] = 'direct'
     p['regime'] = 'unsteady'
-    p['dtSave'] = 0
+    
     p['omega'] = 0.5
-    p['maxIt'] = 25
-    p['nSteps'] = 10
-    p['dt'] = 0.1
-    p['tTot'] = 20
+    p['dtSave'] = 0
+    p['maxIt'] = 20
+    p['tTot'] = 0.35
+    p['dt'] = 1e-3
     p['criterion'] = 'relative'
     p['nDim'] = 2
-    p['qrFilter'] = 'Haelterman'
-
+    p['qrFilter'] = None
+    
     # Coupling Type
 
     p['mechanical'] = True

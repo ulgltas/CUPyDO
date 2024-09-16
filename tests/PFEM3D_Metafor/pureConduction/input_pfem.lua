@@ -14,18 +14,18 @@ Problem.Mesh.omega = 0.5
 Problem.Mesh.gamma = 0.6
 Problem.Mesh.hchar = 0.01
 Problem.Mesh.gammaFS = 0.2
+Problem.Mesh.gammaBound = 0.2
+Problem.Mesh.minHeightFactor = 1e-2
+
 Problem.Mesh.addOnFS = false
-Problem.Mesh.minAspectRatio = 1e-3
 Problem.Mesh.keepFluidElements = true
 Problem.Mesh.deleteFlyingNodes = false
-Problem.Mesh.deleteBoundElements = false
-Problem.Mesh.boundingBox = {0,-10,1,1}
+Problem.Mesh.deleteBoundElements = {'FSInterface'}
+Problem.Mesh.boundingBox = {0, -10, 1, 1}
 Problem.Mesh.exclusionZones = {}
 
-Problem.Mesh.remeshAlgo = 'GMSH'
+Problem.Mesh.remeshAlgo = 'CGAL'
 Problem.Mesh.mshFile = 'geometryF.msh'
-Problem.Mesh.exclusionGroups = {}
-Problem.Mesh.ignoreGroups = {}
 
 -- Extractor Parameters
 
@@ -48,7 +48,7 @@ Problem.Extractors[2] = {}
 Problem.Extractors[2].kind = 'Point'
 Problem.Extractors[2].whatToWrite = 'T'
 Problem.Extractors[2].outputFile = 'output.txt'
-Problem.Extractors[2].points = {{0.5,0.2}}
+Problem.Extractors[2].points = {{0.5, 0.2}}
 Problem.Extractors[2].timeBetweenWriting = math.huge
 
 -- Material Parameters
@@ -77,11 +77,12 @@ Problem.Solver = {}
 Problem.Solver.id = 'PSPG'
 
 Problem.Solver.adaptDT = true
+Problem.Solver.solveHeatFirst = true
+
 Problem.Solver.maxDT = math.huge
 Problem.Solver.initialDT = math.huge
-Problem.Solver.coeffDTDecrease = math.huge
-Problem.Solver.coeffDTincrease = math.huge
-Problem.Solver.solveHeatFirst = true
+Problem.Solver.coeffDTDecrease = 2
+Problem.Solver.coeffDTincrease = 1
 
 -- Heat Equation
 
@@ -92,7 +93,7 @@ Problem.Solver.HeatEq.sparseSolver = 'CG'
 
 Problem.Solver.HeatEq.maxIter = 25
 Problem.Solver.HeatEq.minRes = 1e-8
-Problem.Solver.HeatEq.cgTolerance = 1e-16
+Problem.Solver.HeatEq.tolerance = 1e-16
 
 -- Heat Momentum Continuity BC
 
@@ -100,10 +101,10 @@ Problem.IC = {}
 Problem.Solver.HeatEq.BC = {}
 Problem.Solver.HeatEq.BC['FSInterfaceTExt'] = true
 
-function Problem.IC.initStates(x,y,z)
+function Problem.IC.initStates(x, y, z)
 	return {300}
 end
 
-function Problem.Solver.HeatEq.BC.WallQ(x,y,z,t) 
-    return 0,0
+function Problem.Solver.HeatEq.BC.WallQ(x, y, z, t) 
+    return 0, 0
 end

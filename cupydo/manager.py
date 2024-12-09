@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -47,14 +47,11 @@ class Manager(ccupydo.CManager):
         -getGlobalIndex()
     """
 
-    def __init__(self, FluidSolver, SolidSolver, nDim, computationType='steady', mpiComm=None):
-        """
-        Description.
-        """
+    def __init__(self, FluidSolver, SolidSolver, p, mpiComm):
 
         ccupydo.CManager.__init__(self)
 
-        mpiPrint('\n***************************** Initializing FSI interface *****************************', mpiComm)
+        mpiPrint("Initializing FSI Interface",mpiComm,titlePrint)
 
         if mpiComm != None:
             self.mpiComm = mpiComm
@@ -66,11 +63,11 @@ class Manager(ccupydo.CManager):
             mpiSize = 1
 
         # --- Initialize all the parameters --- #
-        self.nDim = nDim
-        self.computationType = computationType
-        self.mechanical = True
-        self.adjoint = False
-        self.thermal = False
+        self.nDim = p['nDim']
+        self.regime = p['regime']
+        self.computation = p['computation']
+        self.mechanical = p['mechanical']
+        self.thermal = p['thermal']
 
         self.haveFluidSolver = False
         self.nLocalFluidInterfaceNodes = 0
@@ -248,9 +245,6 @@ class Manager(ccupydo.CManager):
         del fluidIndexing_temp, solidIndexing_temp
 
     def getGlobalIndex(self, domain, iProc, iLocalVertex):
-        """
-        Description.
-        """
 
         if domain == 'fluid':
             globalStartIndex = self.fluidGlobalIndexRange[iProc][0]
@@ -261,127 +255,55 @@ class Manager(ccupydo.CManager):
         return globalIndex
 
     def getNumberOfFluidInterfaceNodes(self):
-        """
-        Description.
-        """
-
         return self.nFluidInterfacePhysicalNodes
 
     def getNumberOfLocalFluidInterfaceNodes(self):
-        """
-        Description.
-        """
-
         return self.nLocalFluidInterfacePhysicalNodes
 
     def getNumberOfSolidInterfaceNodes(self):
-        """
-        Description.
-        """
-
         return self.nSolidInterfacePhysicalNodes
 
     def getNumberOfLocalSolidInterfaceNodes(self):
-        """
-        Description.
-        """
-
         return self.nLocalSolidInterfacePhysicalNodes
 
     def getSolidSolverProcessors(self):
-        """
-        Des.
-        """
-
         return self.solidSolverProcessors
 
     def getSolidInterfaceProcessors(self):
-        """
-        Description.
-        """
-
         return self.solidInterfaceProcessors
 
     def getFluidInterfaceProcessors(self):
-        """
-        Description.
-        """
-
         return self.fluidInterfaceProcessors
 
     def getSolidPhysicalInterfaceNodesDistribution(self):
-        """
-        Des.
-        """
-
         return self.solidPhysicalInterfaceNodesDistribution
 
     def getFluidPhysicalInterfaceNodesDistribution(self):
-        """
-        Des.
-        """
-
         return self.fluidPhysicalInterfaceNodesDistribution
 
     def getSolidGlobalIndexRange(self):
-        """
-        Des.
-        """
-
         return self.solidGlobalIndexRange
 
     def getFluidGlobalIndexRange(self):
-        """
-        Des.
-        """
-
         return self.fluidGlobalIndexRange
 
     def getFluidHaloNodesList(self):
-        """
-        Des.
-        """
-
         return self.fluidHaloNodesList
 
     def getSolidHaloNodesList(self):
-        """
-        Des.
-        """
-
         return self.solidHaloNodesList
 
     def getFluidIndexing(self):
-        """
-        Des.
-        """
-
         return self.fluidIndexing
 
     def getSolidIndexing(self):
-        """
-        Des.
-        """
-
         return self.solidIndexing
 
     def getnDim(self):
-        """
-        Des.
-        """
-
         return self.nDim
 
     def getComputationType(self):
-        """
-        des.
-        """
-
-        return self.computationType
+        return self.regime
 
     def getMPIComm(self):
-        """
-        Description.
-        """
-
         return self.mpiComm

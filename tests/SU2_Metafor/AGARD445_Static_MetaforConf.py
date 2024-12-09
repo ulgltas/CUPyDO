@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -33,18 +33,10 @@ def params(q={}):
     #p['tolNR']      = 1.0e-6        # Newton-Raphson tolerance
     p['tend']       = 0.05           # final time
     p['dtmax']      = 0.05          # max time step
-    p['saveAllFacs'] = False
-    
-    # BC type
-    #p['bctype']     = 'pressure'     # uniform pressure
-    #p['bctype']     = 'deadload'     # uniform nodal load
-    #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
-    #p['bctype']     = 'pydeadloads'  # variable loads
-    #p['bctype']     = 'slave'     # variable loads (mpi)
-
     p['bndno'] = 111
     p['extractNode'] = 180
     p['unsteady'] = False
+    p['exporter'] = Extractor()
                                        
     p.update(q)
     return p
@@ -63,7 +55,7 @@ def getMetafor(p={}):
     geometry.setDim3D()
 
     # -- Import the geometry .geo and mesh it with GMSH ---
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "models/agard445_solid.geo")
     importer = GmshImport(f, domain)
     importer.execute()
@@ -143,18 +135,23 @@ def getMetafor(p={}):
     
     return metafor
 
-def getRealTimeExtractorsList(Mtf):
+class Extractor(object):
+    def __init__(self):
 
-    extractorsList = list()
-    domain = Mtf.getDomain()
-    groupset = domain.getGeometry().getGroupSet()  
+        self.metafor = metafor
+        
 
-    # --- Extractors list starts --- #
-    extractor1 = DbNodalValueExtractor(groupset(180), Field1D(TZ,RE))
-    extractorsList.append(extractor1)
-    extractor2 = DbNodalValueExtractor(groupset(181), Field1D(TZ,RE))
-    extractorsList.append(extractor2)
-    # --- Extractors list ends --- #
+    def to_ascii(self,extractor):
 
-    return extractorsList
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
+    def write(self):
+
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.to_ascii(DbNodalValueExtractor(groupset(180), Field1D(TZ,RE)))
+        self.to_ascii(DbNodalValueExtractor(groupset(181), Field1D(TZ,RE)))
+        

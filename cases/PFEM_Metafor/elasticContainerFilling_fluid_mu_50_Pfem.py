@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: latin-1; -*-
 
 ''' 
@@ -33,7 +33,7 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
@@ -43,7 +43,6 @@ class Module:
        self.convCriterion = convCriterion
        self.scheme = scheme
        self.extManager = extManager
-       self.gui = gui
 
 def getPfem():
     global w
@@ -65,7 +64,7 @@ def getPfem():
     
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
     
     toll = 1e-6
     nItMax = 20
@@ -94,9 +93,7 @@ def getPfem():
     w.Boundary(msh, 4, 2, 0.0)
     w.Boundary(msh, 5, 1, 0.0)
     w.Boundary(msh, 5, 2, 0.0)
-    
-    scheme.savefreq=1
-    scheme.nthreads=4
+
     scheme.gamma = 0.6
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True
@@ -106,9 +103,7 @@ def getPfem():
     extManager.add(1,w.PositionExtractor(msh,462))
     extManager.add(2,w.PositionExtractor(msh,463))
     
-    gui = v.MeshViewer(msh, scheme, True) 
-    
-    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager, gui)
+    return Module(w, msh, pbl, contactTag, solScheme, nonLinAlgo, convCriterion, scheme, extManager)
     
 def getRealTimeExtractorsList(pfem):
     

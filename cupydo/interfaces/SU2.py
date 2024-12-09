@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -33,7 +33,6 @@ try: # Try to import the AD-capable SU2 module first
 except ModuleNotFoundError as error:
     import pysu2
     adjoint = False
-import math
 import numpy as np
 from ..genericSolvers import FluidSolver, FluidAdjointSolver
 
@@ -46,12 +45,12 @@ class SU2(FluidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, have_MPI, MPIComm=None):
+    def __init__(self, p, have_MPI, MPIComm):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
 
-        self.initializeSolver(confFile, have_MPI, MPIComm)
+        self.initializeSolver(p['cfdFile'], have_MPI, MPIComm)
         allMovingMarkersTags = self.SU2.GetAllDeformMeshMarkersTag()                    # list containing the tags of all moving markers
         allCHTMarkersTags = self.SU2.GetAllCHTMarkersTag()
         allMarkersID = self.SU2.GetAllBoundaryMarkers()                             # dic : allMarkersID['marker_tag'] = marker_ID
@@ -72,8 +71,7 @@ class SU2(FluidSolver):
             else:
                 raise Exception("Moving and CHT markers have to be the same!\n")
 
-        self.computationType = computationType                                    # computation type : steady (default) or unsteady
-        self.nodalLoadsType = nodalLoadsType                                      # nodal loads type to extract : force (in N, default) or pressure (in Pa)
+        self.regime = p['regime']                                   # computation type : steady or unsteady
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = 0
@@ -92,12 +90,15 @@ class SU2(FluidSolver):
         self.nodalInitialPos_Z = np.zeros((self.nPhysicalNodes))
         self.haloNodesPositionsInit = {}
 
-        self.initializeVariables()
+        self.initializeVariables(p)
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             posX, posY, posZ = self.SU2.GetInitialMeshCoord(self.fluidInterfaceID, iVertex)
+            # posX = self.SU2.GetVertexCoordX(self.fluidInterfaceID, iVertex)
+            # posY = self.SU2.GetVertexCoordY(self.fluidInterfaceID, iVertex)
+            # posZ = self.SU2.GetVertexCoordZ(self.fluidInterfaceID, iVertex)
             if self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
                 self.haloNodeList[GlobalIndex] = iVertex
@@ -139,24 +140,29 @@ class SU2(FluidSolver):
             else:
                 print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
 
-    def initializeVariables(self):
+    def initializeVariables(self, p):
         """
         Initialize variables required by the solver
         """
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
 
     def run(self, t1, t2):
         """
         Run one computation of SU2.
         """
 
-        if self.computationType == 'unsteady':
-            nt = int(t2/(t2-t1))
+        if self.regime == 'unsteady':
+
+            dt = t2-t1
+            if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
+                raise Exception('SU2 and FSI time step do not match')
+            nt = int(t2/dt)
             self.__unsteadyRun(nt)
         else:
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, nt):
         """
@@ -191,12 +197,7 @@ class SU2(FluidSolver):
             halo = self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex)
             # self.SU2.ComputeVertexHeatFluxes(self.fluidInterfaceID, iVertex)
             if halo == False:
-                if self.nodalLoadsType == 'pressure':
-                    Fx = self.SU2.GetVertexForceDensityX(self.fluidInterfaceID, iVertex)
-                    Fy = self.SU2.GetVertexForceDensityY(self.fluidInterfaceID, iVertex)
-                    Fz = self.SU2.GetVertexForceDensityZ(self.fluidInterfaceID, iVertex)
-                else:
-                    Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
+                Fx, Fy, Fz = self.SU2.GetFlowLoad(self.fluidInterfaceID, iVertex)
                 Temp = self.SU2.GetVertexTemperature(self.fluidInterfaceID, iVertex)
                 WallHF = self.SU2.GetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex)
                 Qx, Qy, Qz = self.SU2.GetVertexHeatFluxes(self.fluidInterfaceID, iVertex)
@@ -224,7 +225,7 @@ class SU2(FluidSolver):
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
-    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dispnM1_X, dispnM1_Y, dispnM1_Z, haloNodesDisplacements, time):
+    def applyNodalDisplacements(self, disp_X, disp_Y, disp_Z, dt, haloNodesDisplacements):
         """
         Set the displacement of the f/s boundary before mesh morphing.
         """
@@ -249,7 +250,7 @@ class SU2(FluidSolver):
                 PhysicalIndex += 1
             self.SU2.SetMeshDisplacement(self.fluidInterfaceID, iVertex, dispX, dispY, dispZ)
 
-    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, time):
+    def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
         """
         Set the heat fluxes on the f/s boundary and update the multi-grid structure (if any).
         """
@@ -264,37 +265,13 @@ class SU2(FluidSolver):
                 self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, WallHF)
                 PhysicalIndex += 1
 
-    def applyNodalTemperatures(self, Temperature, time):
-        """
-        Des.
-        """
+    def applyNodalTemperatures(self, Temperature, dt, haloNodesTemperature):
+
 
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
                 self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, Temperature[PhysicalIndex])
-                PhysicalIndex += 1
-
-    def setInitialInterfaceHeatFlux(self):
-        """
-        Set an initial (first guess) and uniform heat flux on the f/s boundary.
-        """
-
-        PhysicalIndex = 0
-        for iVertex in range(self.nNodes):
-            if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
-                self.SU2.SetVertexNormalHeatFlux(self.fluidInterfaceID, iVertex, self.QWallInit)
-                PhysicalIndex += 1
-
-    def setInitialInterfaceTemperature(self):
-        """
-        Des
-        """
-
-        PhysicalIndex = 0
-        for iVertex in range(self.nNodes):
-            if not self.SU2.IsAHaloNode(self.fluidInterfaceID, iVertex):
-                self.SU2.SetVertexTemperature(self.fluidInterfaceID, iVertex, self.TWallInit)
                 PhysicalIndex += 1
 
     def update(self, dt):
@@ -315,18 +292,12 @@ class SU2(FluidSolver):
         return stopComp
 
     def initRealTimeData(self):
-        """
-        Description.
-        """
 
         solFile = open('AerodynamicCoeff.ascii', "w")
         solFile.write("{0:>12s}   {1:>12s}   {2:>12s}   {3:>12s}\n".format("Time", "FSI_Iter", "C_Lift", "C_Drag"))
         solFile.close()
     
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Description.
-        """
 
         CLift = self.SU2.Get_LiftCoeff()
         CDrag = self.SU2.Get_DragCoeff()
@@ -336,9 +307,7 @@ class SU2(FluidSolver):
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         CLift = self.SU2.Get_LiftCoeff()
         CDrag = self.SU2.Get_DragCoeff()
@@ -351,15 +320,12 @@ class SU2(FluidSolver):
         Perform the mesh morphing.
         """
 
-        if self.computationType == 'unsteady' and nt>0:
+        if self.regime == 'unsteady' and nt>0:
             self.SU2.DynamicMeshUpdate(nt)
-        elif self.computationType == 'steady':
+        elif self.regime == 'steady':
             self.SU2.StaticMeshUpdate()
 
     def boundaryConditionsUpdate(self):
-        """
-        Des.
-        """
 
         self.SU2.BoundaryConditionsUpdate()
 
@@ -375,15 +341,7 @@ class SU2(FluidSolver):
         Preprocessing routine before each time step.
         """
 
-        if timeIter > 0:
-            self.SU2.Preprocess(timeIter)
-
-    def remeshing(self):
-        """
-        Desctiption.
-        """
-
-        return
+        self.SU2.Preprocess(timeIter)
  
     def exit(self):
         """
@@ -392,10 +350,7 @@ class SU2(FluidSolver):
 
         self.SU2.Postprocessing()
 
-    def fakeSolidSolver(self, time):
-        """
-        Des.
-        """
+    def fakeSolidSolver(self, dt):
 
         return
 
@@ -417,11 +372,11 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
             else:
                 print('ERROR : You are trying to launch a computation without initializing MPI but the wrapper has been built in parallel. Please add the --parallel option in order to initialize MPI for the wrapper.')
     
-    def initializeVariables(self):
+    def initializeVariables(self, p):
         """
         Initialize variables required by the solver
         """
-        FluidAdjointSolver.__init__(self)
+        FluidAdjointSolver.__init__(self, p)
 
     def __setCurrentState(self):
         SU2._SU2__setCurrentState(self) # Using SU2 original __setCurrentState
@@ -441,6 +396,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __steadyRun(self):
         """
@@ -455,7 +411,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
     
-    def applyNodalAdjointLoads(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+    def applyNodalAdjointForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.fluidInterfaceID, iVertex)
@@ -463,8 +419,8 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
             if GlobalIndex in list(self.haloNodeList.keys()):
                 loadX, loadY, loadZ = haloNodesLoads[GlobalIndex]
             else:
-                loadX = load_adj_X[PhysicalIndex]
-                loadY = load_adj_Y[PhysicalIndex]
-                loadZ = load_adj_Z[PhysicalIndex]
+                loadX = load_X[PhysicalIndex]
+                loadY = load_Y[PhysicalIndex]
+                loadZ = load_Z[PhysicalIndex]
                 PhysicalIndex += 1
             self.SU2.SetFlowLoad_Adjoint(self.fluidInterfaceID, iVertex, loadX, loadY, loadZ)

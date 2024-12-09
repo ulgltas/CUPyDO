@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # original name: birdImpact_deformable_panel_bird_Pfem_Axisym
 
@@ -36,7 +36,7 @@ w = None
 class Module(object):
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
                  convCriterion, bird, loadingset,
-                 scheme, extManager, gui, bndno):
+                 scheme, extManager, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -47,7 +47,6 @@ class Module(object):
         self.loadingset = loadingset
         self.scheme = scheme
         self.extManager = extManager
-        self.gui = gui
         self.bndno = bndno
 
 
@@ -87,16 +86,16 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 13 # fsi boundary no
+    bndno = "FSInterface" # fsi boundary no
 
-    w.Medium(msh, 13, 0., 0., 3)
-    w.Medium(msh, 17, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Bird", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 15, 7, 0.0)
-    w.Boundary(msh, 16, 3, 0.0)
-    w.Boundary(msh, 13, 1, 0.0)
-    w.Boundary(msh, 13, 2, 0.0)
+    w.Boundary(msh, "Axis", 7, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     # --- Necessary for the correct elimination of nodes along the axis of symmetry ---
     n4 = msh.getNode(4)
@@ -104,11 +103,10 @@ def getPfem():
     # ---
 
     # Initial velocity
-    bird = w.Group(msh, 17)
+    bird = w.Group(msh, "Bird")
     loadingset = w.LoadingSet(msh)
     loadingset.add(1, w.InitialVelocity(msh, bird, 0., -U0, 0.))
 
-    scheme.savefreq = 10
     scheme.nthreads = 3
     scheme.gamma = 0.5
     scheme.omega = 0.5
@@ -123,10 +121,7 @@ def getPfem():
     extManager.add(8, wt.PressureWorkExtractor(msh, pbl, scheme, 17))
     extManager.add(9, w.MassExtractor(msh, pbl, 17))
 
-    import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, False, True)
-
-    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

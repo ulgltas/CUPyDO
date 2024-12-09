@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # original name:
 
@@ -34,14 +34,7 @@ def params(q={}):
     p['tend'] = 2.            # final time
     p['dtmax'] = 0.005         # max time step
     p['bndno'] = 13            # interface boundary number
-    p['saveAllFacs'] = False # keep the Fac corresponding to the end of the time step
-
-    # BC type
-    # p['bctype']     = 'pressure'     # uniform pressure
-    # p['bctype']     = 'deadload'     # uniform nodal load
-    # p['bctype']     = 'pydeadload1'  # uniform nodal load (python)
-    p['bctype'] = 'pydeadloads'  # variable loads
-    # p['bctype']     = 'slave'     # variable loads (mpi)
+    p['exporter'] = Extractor()
 
     p.update(q)
     return p
@@ -60,7 +53,7 @@ def getMetafor(p={}):
     geometry.setDimPlaneStrain(1.0)
 
     # import .geo
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "impact.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()
@@ -139,19 +132,23 @@ def getMetafor(p={}):
 
     return metafor
 
+class Extractor(object):
+    def __init__(self):
 
-def getRealTimeExtractorsList(mtf):
+        self.metafor = metafor
+        
 
-    extractorsList = []
+    def to_ascii(self,extractor):
 
-    # --- Extractors list starts --- #
-    groupset = mtf.getDomain().getGeometry().getGroupSet()
-    extractor1 = TdFieldValueExtractor(
-        metafor, groupset(17), THERMODYN_TRAV_FINT)
-    extractor2 = DbNodalValueExtractor(groupset(17), Field1D(TY, RE), SortByDist0(
-        0., 0., 0.), 1)  # Vertical displacement of the center (upper skin) of the panel
-    extractorsList.append(extractor1)
-    extractorsList.append(extractor2)
-    # --- Extractors list ends --- #
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
-    return extractorsList
+    def write(self):
+
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.to_ascii(TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FINT))
+        self.to_ascii(DbNodalValueExtractor(groupset(17), Field1D(TY, RE), SortByDist0(0,0,0), 1))
+        

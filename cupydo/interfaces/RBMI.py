@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -31,6 +31,7 @@ import NativeSolid
 
 import math
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import SolidSolver
 
 # ----------------------------------------------------------------------
@@ -39,13 +40,11 @@ from ..genericSolvers import SolidSolver
 
 class RBMI(SolidSolver):
 
-    def __init__(self, confFile, computationType):
-        """
-        Des.
-        """
+    def __init__(self, p):
 
-        self.NativeSolid = NativeSolid.NativeSolidSolver(confFile, True)
-        self.computationType = computationType
+
+        self.NativeSolid = NativeSolid.NativeSolidSolver(p['csdFile'], True)
+        self.regime = p['regime']
 
         self.interfaceID = self.NativeSolid.getFSIMarkerID()
         self.nNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
@@ -54,44 +53,27 @@ class RBMI(SolidSolver):
 
         SolidSolver.__init__(self)
 
+        self.NativeSolid.setInitialDisplacements()
         self.__setCurrentState()
-        self.nodalVel_XNm1 = self.nodalVel_X.copy()
-        self.nodalVel_YNm1 = self.nodalVel_Y.copy()
-        self.nodalVel_ZNm1 = self.nodalVel_Z.copy()
-
         self.initRealTimeData()
 
     def preprocessTimeIter(self, timeIter):
-        """
-        Des.
-        """
 
         self.NativeSolid.preprocessIteration(timeIter)
-
-    def setInitialDisplacements(self):
-        """
-        Des.
-        """
-
-        self.NativeSolid.setInitialDisplacements()
-        self.__setCurrentState()
         
     def run(self, t1, t2):
-        """
-        Des.
-        """
 
-        if self.computationType == 'unsteady':
+
+        if self.regime == 'unsteady':
             self.NativeSolid.timeIteration(t1, t2)
         else:
             self.NativeSolid.staticComputation()
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
-        """
-        Des.
-        """
+
 
         for iVertex in range(self.nPhysicalNodes):
             self.nodalDisp_X[iVertex] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
@@ -102,9 +84,7 @@ class RBMI(SolidSolver):
             self.nodalVel_Z[iVertex] = self.NativeSolid.getInterfaceNodeVelZ(self.interfaceID, iVertex)
 
     def getNodalInitialPositions(self):
-        """
-        des.
-        """
+
 
         nodalInitialPos_X = np.zeros((self.nPhysicalNodes)) # initial position of the f/s interface
         nodalInitialPos_Y = np.zeros((self.nPhysicalNodes))
@@ -118,16 +98,12 @@ class RBMI(SolidSolver):
         return (nodalInitialPos_X, nodalInitialPos_Y, nodalInitialPos_Z)
 
     def getNodalIndex(self, iVertex):
-        """
-        Des.
-        """
+
 
         self.NativeSolid.getInterfaceNodeGlobalIndex(self.interfaceID, iVertex)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, time, haloNodesLoads = {}):
-        """
-        Des.
-        """
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
+
 
         for iVertex in range(self.nPhysicalNodes):
             self.NativeSolid.applyload(iVertex, load_X[iVertex], load_Y[iVertex], load_Z[iVertex])
@@ -136,36 +112,23 @@ class RBMI(SolidSolver):
         self.NativeSolid.setGeneralisedMoment()
 
     def update(self):
-        """
-        Des.
-        """
+
 
         SolidSolver.update(self)
 
         self.NativeSolid.updateSolution()
 
-    def initRealTimeData(self):
-        """
-        Des.
-        """
-
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         self.NativeSolid.writeSolution(time, nFSIIter)
 
     def save(self):
-        """
-        Des.
-        """
+
 
         self.NativeSolid.saveSolution()
 
     def exit(self):
-        """
-        Des.
-        """
 
-        print("***************************** Exit RBM Integrator *****************************")
+
+        titlePrint("Exit RBM Integrator")

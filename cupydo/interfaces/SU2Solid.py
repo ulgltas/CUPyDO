@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8; -*-
 
 '''
@@ -56,12 +56,12 @@ class SU2SolidSolver(SolidSolver):
     SU2 solver interface.
     """
 
-    def __init__(self, confFile, nDim, computationType, nodalLoadsType, extractors, surfaceFilename, surfaceExtension, have_MPI, MPIComm=None):
+    def __init__(self, p, have_MPI, MPIComm):
         """
         Initialize the SU2 solver and all the required interface variables.
         """
 
-        self.initializeSolver(confFile, have_MPI, MPIComm)
+        self.initializeSolver(p['csdFile'], have_MPI, MPIComm)
         allFluidLoadMarkersTags = self.SU2.GetAllDeformMeshMarkersTag()  # list containing the tags of all fluid load markers
         allMarkersID = self.SU2.GetAllBoundaryMarkers()  # dic : allMarkersID['marker_tag'] = marker_ID
         self.solidInterfaceID = None  # identification of the f/s boundary, currently limited to one boundary, by default the first tag in allFluidLoadMarkersTags
@@ -74,8 +74,7 @@ class SU2SolidSolver(SolidSolver):
             else:
                 raise Exception("Moving and CHT markes have to be the same.")
 
-        self.computationType = computationType  # computation type : steady (default) or unsteady
-        self.nodalLoadsType = nodalLoadsType  # nodal loads type to extract : force (in N, default) or pressure (in Pa)
+        self.regime = p['regime']  # computation type : steady (default) or unsteady
 
         # --- Calculate the number of nodes (on each partition) --- #
         self.nNodes = 0
@@ -116,9 +115,11 @@ class SU2SolidSolver(SolidSolver):
                 self.nodalTemperature[PhysicalIndex] = Temp
                 PhysicalIndex += 1
 
-        self.extractors = extractors # List of points to extract 
-        self.filename = surfaceFilename # Filename (no extension) of surface output file
-        self.extension = surfaceExtension # Extension of surface output file
+        self.extractors = p['extractors'] # List of points to extract 
+        self.filename = p['surfaceFilename'] # Filename (no extension) of surface output file
+        self.extension = p['surfaceExtension'] # Extension of surface output file
+
+        self.__setCurrentState()
         self.initRealTimeData()
 
         # print("\n -------------------------- SOLID NODES ------------------------------ \n")
@@ -152,18 +153,22 @@ class SU2SolidSolver(SolidSolver):
         Run one computation of SU2.
         """
 
-        if self.computationType == 'unsteady':
+        if self.regime == 'unsteady':
+
+            dt = t2-t1
+            if not np.allclose(self.SU2.GetUnsteady_TimeStep(),dt):
+                raise Exception('SU2 and FSI time step do not match')
             self.__unsteadyRun(t1, t2)
         else:
             self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __unsteadyRun(self, t1, t2):
         """
         Run SU2 on one time step.
         """
-
         self.SU2.ResetConvergence()
         self.SU2.Run()
 
@@ -177,12 +182,6 @@ class SU2SolidSolver(SolidSolver):
         self.SU2.Run()
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
-
-    def setInitialDisplacements(self):
-        """
-        Set initial displacements
-        """
-        self.__setCurrentState()
 
     def __setCurrentState(self):
         """
@@ -207,16 +206,10 @@ class SU2SolidSolver(SolidSolver):
                 self.nodalVel_Y[PhysicalIndex] = vel[1]
                 self.nodalVel_Z[PhysicalIndex] = vel[2]
 
-                self.nodalVel_XNm1[PhysicalIndex] = vel_n[0]
-                self.nodalVel_YNm1[PhysicalIndex] = vel_n[1]
-                self.nodalVel_ZNm1[PhysicalIndex] = vel_n[2]
-
                 PhysicalIndex += 1
 
     def getNodalInitialPositions(self):
-        """
-        Description.
-        """
+
 
         return (self.nodalInitialPos_X, self.nodalInitialPos_Y, self.nodalInitialPos_Z)
 
@@ -228,16 +221,12 @@ class SU2SolidSolver(SolidSolver):
         return self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, int(iVertex))
 
     def getNodalDisplacements(self):
-        """
-        Des.
-        """
+
 
         return (self.nodalDisp_X, self.nodalDisp_Y, self.nodalDisp_Z)
 
-    def applyNodalLoads(self, load_X, load_Y, load_Z, val_time, haloNodesLoads = {}):
-        """
-        Des.
-        """
+    def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
+
 
         # --- Initialize the interface position and the nodal loads --- #
         PhysicalIndex = 0
@@ -260,21 +249,8 @@ class SU2SolidSolver(SolidSolver):
 
         self.SU2.Update()
 
-        # overload here
-
-    def bgsUpdate(self):
-        """
-        Des.
-        """
-
-        # overload here
-
-        return
-
     def save(self):
-        """
-        Des.
-        """
+
 
         stopComp = self.SU2.Monitor(1)
         self.SU2.Output(1)
@@ -282,9 +258,7 @@ class SU2SolidSolver(SolidSolver):
         return stopComp
 
     def initRealTimeData(self):
-        """
-        Des.
-        """
+
 
         if not vtk is None:
             if self.extension == 'vtu':
@@ -314,9 +288,7 @@ class SU2SolidSolver(SolidSolver):
         solFile.close()
 
     def saveRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         solFile = open('SolidSolution.ascii', "a")
         solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
@@ -332,17 +304,13 @@ class SU2SolidSolver(SolidSolver):
         solFile.close()
 
     def printRealTimeData(self, time, nFSIIter):
-        """
-        Des.
-        """
+
 
         toPrint = 'RES-FSI-' + 'SU2SolidSolution' + ': ' + str(1.0) + '\n'
         print(toPrint)
 
     def exit(self):
-        """
-        Des.
-        """
+
         self.SU2.Output(1) # Temporary hack
         self.SU2.Postprocessing()
         print("***************************** Exit SU2 Solid solver *****************************")
@@ -371,7 +339,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         """
         SolidAdjointSolver.__init__(self)
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)
@@ -392,6 +360,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         self.__steadyRun()
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
         """
@@ -415,10 +384,6 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
                 self.nodalVel_X[PhysicalIndex] = vel[0]
                 self.nodalVel_Y[PhysicalIndex] = vel[1]
                 self.nodalVel_Z[PhysicalIndex] = vel[2]
-
-                self.nodalVel_XNm1[PhysicalIndex] = vel_n[0]
-                self.nodalVel_YNm1[PhysicalIndex] = vel_n[1]
-                self.nodalVel_ZNm1[PhysicalIndex] = vel_n[2]
 
                 load = self.SU2.GetFlowLoad_Sensitivity(self.solidInterfaceID, iVertex)
 

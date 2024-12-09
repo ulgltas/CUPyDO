@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ''' 
@@ -22,12 +22,6 @@ Test classes to use CTest in CUPyDO.
 Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 
 '''
-
-class ccolors(object):
-    ANSI_RED    = '\x1b[1;31m'
-    ANSI_GREEN  = '\x1b[1;32m'
-    ANSI_BLUE   = '\x1b[1;34m'
-    ANSI_RESET  = '\x1b[0m'
 
 class CTest(object):
     def __init__(self, name, val, expected, maxdiff=1e-10, forceabs=False):
@@ -76,10 +70,10 @@ class CTests(object):
             ok = t.run() and ok
             
         if ok:
-            print(ccolors.ANSI_GREEN + '** All tests are OK!' + ccolors.ANSI_RESET)
+            print('All tests are OK!')
         else:
             print('\n\n')
-            raise Exception(ccolors.ANSI_RED + '** Some tests failed!' + ccolors.ANSI_RESET)
+            raise Exception('Some tests failed!')
           
     
     

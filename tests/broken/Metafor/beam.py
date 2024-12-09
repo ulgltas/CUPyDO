@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -40,6 +40,8 @@ def params(q={}):
     #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
     p['bctype']     = 'pydeadloads'  # variable loads
     #p['bctype']     = 'slave'     # variable loads (mpi)
+
+    p['exporter'] = None
                                        
     p.update(q)
     return p
@@ -56,7 +58,7 @@ def getMetafor(p={}):
     geometry.setDimPlaneStrain(1.0)
 
     # import .geo
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "beam.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()
@@ -111,12 +113,3 @@ def getMetafor(p={}):
     vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
 
     return metafor
-
-def getRealTimeExtractorsList(mtf):
-
-    extractorsList = list()
-    
-    # --- Extractors list starts --- #
-    # --- Extractors list ends --- #
-
-    return extractorsList

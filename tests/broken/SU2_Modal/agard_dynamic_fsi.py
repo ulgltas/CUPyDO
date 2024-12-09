@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
 # ----------------------------------------------------------------------
@@ -39,7 +39,7 @@ def test(res, tol):
     # residual for test is xxx
     #if (res > tol):
     #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
-    #    raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+    #    raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', resultA[2], 0.1, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('Drag coefficient', resultA[3], 0.1, 1e-1, False)) # rel. tol. of 10%
@@ -50,6 +50,7 @@ def test(res, tol):
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['tollFSI'] = 1e-6
     p['dt'] = 6.392969e-04
@@ -58,13 +59,12 @@ def getParameters(_p):
     p['rbfRadius'] = 1.0
     p['timeIterTreshold'] = -1
     p['omegaMax'] = 1.0
-    p['computationType'] = 'unsteady'
-    p['nodalLoadsType'] = 'force'
+    p['regime'] = 'unsteady'
     p['nZones_SU2'] = 0
     p.update(_p)
     return p
 
-def main(_p, nogui):
+def main(_p):
     # --- Get FSI parameters ---#
     p = getParameters(_p)
 
@@ -81,24 +81,24 @@ def main(_p, nogui):
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.SU2 as fItf
     if comm != None:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, comm)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], withMPI, comm)
     else:
-        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['computationType'], p['nodalLoadsType'], withMPI, 0)
+        fluidSolver = fItf.SU2(cfd_file, p['nZones_SU2'], p['nDim'], p['regime'], withMPI, 0)
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize modal interpreter --- #
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Modal as sItf
-        solidSolver = sItf.ModalInterface(csd_file, p['computationType'])
+        solidSolver = sItf.ModalInterface(csd_file, p['regime'])
     cupyutil.mpiBarrier(comm)
 
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
-    interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+    interpolator = cupyinterp.ConservativeRBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
 
     # --- Initialize the FSI criterion --- #
     criterion = cupycrit.DispNormCriterion(p['tollFSI'])
@@ -112,7 +112,7 @@ def main(_p, nogui):
     algorithm.run()
 
     # --- Check the results --- #
-    test(algorithm.errValue, p['tollFSI'])
+    test(algorithm.criterion.epsilon, p['tollFSI'])
 
     # --- Exit computation --- #
     del manager
@@ -124,7 +124,7 @@ def main(_p, nogui):
     cupyutil.mpiBarrier(comm)
 
     # eof
-    print ''
+    print('')
 
 # -------------------------------------------------------------------
 #  Run Main Program
@@ -132,15 +132,10 @@ def main(_p, nogui):
 
 # this is only accessed if running from command prompt
 if __name__ == '__main__':
-    p = {}
-    
-    parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of process", dest="nprocess", default=1) # not used
 
+    p = {}
+    parser=OptionParser()
+    parser.add_option("-k", type="int", help="Number of threads", dest="nthreads", default=1)
     (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    
-    main(p, nogui)
+    p['nthreads'] = options.nthreads
+    main(p)

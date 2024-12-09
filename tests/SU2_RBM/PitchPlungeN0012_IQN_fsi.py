@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -21,7 +21,7 @@ limitations under the License.
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -30,10 +30,10 @@ def test(res, tol):
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.257, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 0.0021, 0.001, True)) # Absolute tolerance
+    tests.add(CTest('Lift coefficient', resultA[2], 0.257192, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 0.005141, 1e-1, False))
     tests.run()
 
 def getFsiP():
@@ -41,29 +41,41 @@ def getFsiP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'RBMI'
     p['cfdFile'] = os.path.join(filePath, 'PitchPlungeN0012_IQN_fsi_SU2Conf.cfg')
     p['csdFile'] = os.path.join(filePath, 'PitchPlungeN0012_IQN_fsi_RBMConf.cfg')
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
+    p['interpType'] = 'conservative'
     p['algorithm'] = 'IQN_ILS'
+
     # FSI parameters
-    p['compType'] = 'unsteady'
-    p['computation'] = 'Direct'
+
+    p['regime'] = 'unsteady'
+    p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
-    p['dt'] = 0.001
+    p['dt'] = 0.0005
     p['tTot'] = 0.005
-    p['timeItTresh'] = 0
-    p['tol'] = 1e-7
-    p['maxIt'] = 10
+    p['dtSave'] = 0
+    p['maxIt'] = 25
     p['omega'] = 1.0
     p['nSteps'] = 0
     p['firstItTgtMat'] = False
-    p['rbfRadius'] = .1
-    p['nodalLoadsType'] = 'force'
+    p['rbfRadius'] = 0.1
+    p['qrFilter'] = 'Haelterman'
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-4
+    p['thermal'] = False
     return p
 
 def main():
@@ -71,7 +83,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

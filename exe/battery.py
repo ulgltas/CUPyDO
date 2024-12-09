@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -64,7 +64,7 @@ def runOne(donfile, nbProcs, nthreads):
             cmd += ["python"]
             cmd += [donfile]
         
-        print '\t[%s] %s => %s %s' % (exe, os.path.basename(donfile), os.path.basename(logfile), precise)
+        print('\t[%s] %s => %s %s' % (exe, os.path.basename(donfile), os.path.basename(logfile), precise))
         flog = open(logfile,'w')
         
         try:
@@ -98,7 +98,7 @@ def runOne(donfile, nbProcs, nthreads):
         fres.close()
         
         if not verifOne(donfile): # tsc or not checkOneRun(tsc): # check for results
-            print '\tFAILURE!'
+            print('\tFAILURE!')
             os.utime(donfile, (time.time()+1.0,time.time()+1.0)) # touch donfile
 
 def cleanOne(donfile):
@@ -106,7 +106,7 @@ def cleanOne(donfile):
         rmfile = donfile.replace('.py',ext)
         if os.path.isfile(rmfile):
             printDir(donfile)
-            print "\trm %s" % os.path.basename(rmfile)
+            print("\trm {}" % os.path.basename(rmfile))
             os.remove(rmfile)
 
 def verifOne(donfile):
@@ -180,7 +180,7 @@ def machineid():
         return uname[0]
 
 def verif(args):
-    print "gathering the results in fsi/verif"
+    print("gathering the results in fsi/verif")
     global defArgs
     if not args: args=defArgs
     
@@ -204,7 +204,7 @@ def verif(args):
         for line in tsc:
             files['results'].write("%s: %s" %(donfile.replace(fsiPth,''), line))
 
-    print "%d/%d tests OK (%d failed)" %(ntest-nfailed, ntest, nfailed)
+    print("%d/%d tests OK (%d failed)" %(ntest-nfailed, ntest, nfailed))
     for ext in fext:
         files[ext].close()
 

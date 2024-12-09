@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -30,6 +30,7 @@ import os
 
 # CUPyDO imports
 import numpy as np
+from ..utilities import titlePrint
 from ..genericSolvers import FluidSolver
 
 # ----------------------------------------------------------------------
@@ -37,10 +38,11 @@ from ..genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
                
 class VLMSolver(FluidSolver):
-    def __init__(self, _module):
-        print("\n***************************** Initializing VLM *****************************")
+    def __init__(self, p):
+
+        titlePrint("Initializing VLM")
         
-        module = __import__(_module)
+        module = __import__(p['cfdFile'])
         pars = module.getParams()
         if not os.path.exists("models"):
             os.mkdir("models") # Needs to exist to write airfoil data
@@ -92,7 +94,7 @@ class VLMSolver(FluidSolver):
         self.nHaloNode = 0                                                                  # number of ghost nodes at the f/s boundary
         self.nPhysicalNodes = self.nNodes-self.nHaloNode                                    # number of physical nodes at the f/s boundary
 
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
         
         self.initRealTimeData()
 
@@ -100,6 +102,9 @@ class VLMSolver(FluidSolver):
         """
         Run the VLM code for one full iteration
         """
+
+        self.coreSolver.data.dt = t2-t1
+
         if self.isRun:
             self.update(t2-t1)
         else:
@@ -107,6 +112,7 @@ class VLMSolver(FluidSolver):
         self.coreSolver.run()
 
         self.__setCurrentState()       # use to fill the arrays with nodal values after each run
+        return True
 
     def __setCurrentState(self):
         """
@@ -153,7 +159,7 @@ class VLMSolver(FluidSolver):
             index = iVertex
         return index
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements,time):
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
         for ii in range(self.coreSolver.m): # For each row of panels
             kk = ii*self.coreSolver.n # Starting index of row
             # Current vertex: complete displacement
@@ -216,4 +222,4 @@ class VLMSolver(FluidSolver):
         solFile.close()
     
     def exit(self):
-        print("***************************** Exit VLM solver *****************************")
+        titlePrint("Exit VLM solver")

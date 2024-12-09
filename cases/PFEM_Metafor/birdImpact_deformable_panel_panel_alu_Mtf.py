@@ -20,6 +20,8 @@ def params(q={}):
     #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
     p['bctype']     = 'pydeadloads'  # variable loads
     #p['bctype']     = 'slave'     # variable loads (mpi)
+
+    p['exporter'] = Extractor()
                                        
     p.update(q)
     return p
@@ -36,7 +38,7 @@ def getMetafor(p={}):
     geometry.setDimPlaneStrain(1.0)
 
     # import .geo
-    from toolbox.gmsh import GmshImport
+    from toolbox.gmshOld import GmshImport
     f = os.path.join(os.path.dirname(__file__), "birdImpact_deformable_panel_Mtf_Pfem.msh")
     importer = GmshImport(f, domain)
     importer.execute2D()
@@ -111,20 +113,23 @@ def getMetafor(p={}):
     
     return metafor
 
-def getRealTimeExtractorsList(mtf):
-    
-    extractorsList = []
+class Extractor(object):
+    def __init__(self):
 
-    # --- Extractors list starts --- #
-    groupset = mtf.getDomain().getGeometry().getGroupSet()
-    extractor1 = TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FINT)
-    extractor2 = DbNodalValueExtractor(groupset(17), Field1D(TY,RE), SortByDist0(0.,0.,0.), 1) #Vertical displacement of the center (upper skin) of the panel
-    extractorsList.append(extractor1)
-    extractorsList.append(extractor2)
-    # --- Extractors list ends --- #
+        self.metafor = metafor
+        
 
-    return extractorsList
+    def to_ascii(self,extractor):
 
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
+    def write(self):
 
-
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.to_ascii(TdFieldValueExtractor(metafor, groupset(17), THERMODYN_TRAV_FINT))
+        self.to_ascii(DbNodalValueExtractor(groupset(17), Field1D(TY,RE), SortByDist0(0.,0.,0.), 1))
+        

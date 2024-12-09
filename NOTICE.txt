@@ -3,7 +3,7 @@
 =========================================================================
 
 CUPyDO
-Copyright 2018-2019 University of Liège.
+Copyright 2018-2021 University of Liège.
 
 This software was developed at the University of Liège (Belgium) by: 
 

@@ -40,6 +40,7 @@ class Criterion(object):
 
         self.mechanical = p['mechanical']
         self.thermal = p['thermal']
+        self.harmonic = p['regime'] == 'harmonic'
         self.reset()
 
         if self.mechanical:
@@ -47,6 +48,9 @@ class Criterion(object):
 
         if self.thermal:
             self.tolCHT = p['thermalTol']
+        
+        if self.harmonic:
+            self.tolFrequency = p['omegaTol']
 
     # Reset all the convergence indicators
 
@@ -54,6 +58,7 @@ class Criterion(object):
 
         self.epsilon = np.inf
         self.epsilonCHT = np.inf
+        self.epsilonFrequency = np.inf
 
     def isVerified(self):
 
@@ -62,6 +67,8 @@ class Criterion(object):
             verified.append(self.epsilon < self.tol)
         if self.thermal:
             verified.append(self.epsilonCHT < self.tolCHT)
+        if self.harmonic:
+            verified.append(self.epsilon < self.tolFrequency)
 
         return np.all(verified)
 

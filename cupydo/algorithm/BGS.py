@@ -51,6 +51,11 @@ class AlgorithmBGSStaticRelax(Algorithm):
 
         self.criterion = Criterion
 
+        # Initial guess for the harmonic balance base frequency
+        if p['regime'] == 'harmonic':
+            self.omegaHB = p['omegaHB']
+            self.interfaceInterpolator.omegaHB = p['omegaHB']
+
         # A list specified by the user or the default one
         if type(p['omega']) == list:
             self.omegaBound = p['omega'][0]
@@ -85,12 +90,12 @@ class AlgorithmBGSStaticRelax(Algorithm):
         # --- Initialize data for mechanical coupling --- #
         if self.manager.mechanical:
             self.solidInterfaceVelocity = FlexInterfaceData(ns+d, 3, self.mpiComm)
-            self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
+            self.solidInterfaceResidual = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
 
         # --- Initialize data for thermal coupling --- #
         if self.manager.thermal:
-            self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3, self.mpiComm)
-            self.solidTemperatureResidual = FlexInterfaceData(ns+d, 1, self.mpiComm)
+            self.solidHeatFluxResidual = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
+            self.solidTemperatureResidual = FlexInterfaceData(ns+d, self.manager.nInst, self.mpiComm)
 
     def run(self):
 
@@ -250,6 +255,8 @@ class AlgorithmBGSStaticRelax(Algorithm):
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
                 self.solidToFluidMechaTransfer()
+                if self.manager.regime == 'harmonic':
+                    self.omegaHB = self.interfaceInterpolator.omegaHB
                 mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
                 self.meshDefTimer.start()
                 self.FluidSolver.meshUpdate(self.step.timeIter)
@@ -289,9 +296,21 @@ class AlgorithmBGSStaticRelax(Algorithm):
             mpiPrint('\nLaunching solid solver...\n', self.mpiComm)
             if self.myid in self.manager.getSolidSolverProcessors():
                 self.solidSolverTimer.start()
+                if self.manager.regime == 'harmonic':
+                    self.SolidSolver.setOmegaHB(self.omegaHB)
                 verif = self.SolidSolver.run(*self.step.timeFrame())
+                if self.manager.regime == 'harmonic':
+                    localOmega = self.SolidSolver.getDeltaOmega()
+                    self.interfaceInterpolator.deltaOmega = localOmega*self.omegaBound
+                    self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                    self.omegaHB = self.deltaOmega*self.omegaBound + self.omegaHB
+                    self.SolidSolver.setOmegaHB(self.omegaHB)
                 self.solidSolverTimer.stop()
                 self.solidSolverTimer.cumul()
+            elif self.manager.regime == 'harmonic':
+                localOmega = 0.
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.omegaHB = self.deltaOmega*self.omegaBound + self.omegaHB
 
             # --- Check if the solid solver succeeded --- #
             try: solidProc = int(self.manager.getSolidSolverProcessors())
@@ -311,9 +330,13 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.computeSolidInterfaceResidual_CHT()
                 mpiPrint('\nCHT error value : {}\n'.format(self.criterion.epsilonCHT), self.mpiComm)
                 self.relax_CHT()
+            
+            if self.manager.regime == 'harmonic':
+                    self.errValue_HB = self.criterion.updateFrequency(self.deltaOmega)
+                    mpiPrint('\nFrequency error value : {}\n'.format(self.errValue_HB), self.mpiComm)
 
             # --- Update the solvers for the next BGS steady iteration --- #
-            if self.manager.regime == 'steady':
+            if self.manager.regime == 'steady' or self.manager.regime == 'harmonic':
 
                 if self.myid in self.manager.getSolidSolverProcessors():
                     self.SolidSolver.steadyUpdate()
@@ -337,13 +360,16 @@ class AlgorithmBGSStaticRelax(Algorithm):
         d = self.interfaceInterpolator.getd()
 
         # --- Get the predicted (computed) solid interface displacement from the solid solver --- #
-        predictedDisplacement = FlexInterfaceData(ns+d, 3, self.mpiComm)
+        predictedDisplacement = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
 
         if self.myid in self.manager.getSolidInterfaceProcessors():
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
             for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                predictedDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localSolidInterfaceDisp_X[iVertex,jInst], localSolidInterfaceDisp_Y[iVertex,jInst], localSolidInterfaceDisp_Z[iVertex,jInst]])
+                predictedDisplacement[iGlobalVertex] = temp
 
         predictedDisplacement.assemble()
 
@@ -560,6 +586,12 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
             # --- Internal FSI loop --- #
             self.verified = self.fsiCoupling()
             self.totNbOfFSIIt = self.FSIIter
+            self.objectiveFunction = self.FluidSolver.getObjectiveFunction()
+            if self.myid in self.manager.getSolidSolverProcessors():
+                self.objectiveFunction += self.SolidSolver.getObjectiveFunction()
+                for i in range(self.SolidSolver.getNumberDesignVariables()):
+                    self.gradients[i] = self.SolidSolver.getDesignVariableDerivative(i)
+            mpiPrint('Gradient vector: {}'.format(self.gradients))
             if not self.verified: raise Exception('The adjoint FSI coupling did not converge')
 
             self.FluidSolver.save(self.step.timeIter)
@@ -602,13 +634,15 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
 
             # --- Solid to fluid mechanical transfer --- #
             if self.manager.mechanical:
-                self.solidToFluidMechaTransfer()
                 self.solidToFluidAdjointTransfer()
-                mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
-                self.meshDefTimer.start()
-                self.FluidSolver.meshUpdate(self.step.timeIter)
-                self.meshDefTimer.stop()
-                self.meshDefTimer.cumul()
+                # Boundary displacements are only transferred once
+                if self.FSIIter == 0:
+                    self.solidToFluidMechaTransfer()
+                    mpiPrint('\nPerforming mesh deformation...\n', self.mpiComm)
+                    self.meshDefTimer.start()
+                    self.FluidSolver.meshUpdate(self.step.timeIter)
+                    self.meshDefTimer.stop()
+                    self.meshDefTimer.cumul()
 
             self.FluidSolver.boundaryConditionsUpdate()
 
@@ -679,14 +713,16 @@ class AlgorithmBGSStaticRelaxAdjoint(AlgorithmBGSStaticRelax):
         # --- Get the predicted solid interface adjoint loads from the solid solver --- #
         if self.interpType == 'conservative':
 
-            predictedAdjointLoad = FlexInterfaceData(ns+d, 3, self.mpiComm)
+            predictedAdjointLoad = FlexInterfaceData(ns+d, 3*self.manager.nInst, self.mpiComm)
 
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                localSolidInterfaceLoad_X, localSolidInterfaceLoad_Y, localSolidInterfaceLoad_Z = self.SolidSolver.getNodalAdjointForce()
+                localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointForce()
                 for iVertex in range(self.manager.getNumberOfLocalSolidInterfaceNodes()):
                     iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                    predictedAdjointLoad[iGlobalVertex] = [localSolidInterfaceLoad_X[iVertex], localSolidInterfaceLoad_Y[iVertex], localSolidInterfaceLoad_Z[iVertex]]
-
+                    temp = []
+                    for jInst in range(self.manager.nInst):
+                        temp.extend([localSolidInterfaceAdjointLoad_X[iVertex,jInst], localSolidInterfaceAdjointLoad_Y[iVertex,jInst], localSolidInterfaceAdjointLoad_Z[iVertex,jInst]])
+                    predictedAdjointLoad[iGlobalVertex] = temp
         # --- Get the predicted solid interface adjoint stresses from the solid solver --- #
         elif self.interpType == 'consistent':
 

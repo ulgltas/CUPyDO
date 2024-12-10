@@ -82,6 +82,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.nf_loc = int(self.manager.getNumberOfLocalFluidInterfaceNodes())
         self.ns_loc = int(self.manager.getNumberOfLocalSolidInterfaceNodes())
         self.nDim = self.manager.getnDim()
+        self.nInst = self.manager.getnInst()
 
         if self.mpiComm != None:
             self.myid = self.mpiComm.Get_rank()
@@ -95,6 +96,8 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceDisplacement = None
         self.solidInterfaceLoads = None
         self.fluidInterfaceLoads = None
+        self.deltaOmega = 0.0
+        self.omegaHB = 0.0
 
         self.solidInterfaceHeatFlux = None
         self.fluidInterfaceHeatFlux = None
@@ -109,6 +112,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         self.fluidInterfaceAdjointDisplacement = None
         self.solidInterfaceAdjointLoads = None
         self.fluidInterfaceAdjointLoads = None
+        self.adjointFrequency = 0.0
 
     def checkTotalLoad(self):
 
@@ -125,7 +129,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             localSolidInterfaceDisp_X, localSolidInterfaceDisp_Y, localSolidInterfaceDisp_Z = self.SolidSolver.getNodalDisplacements()
             for iVertex in range(self.ns_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceDisplacement[iGlobalVertex] = [localSolidInterfaceDisp_X[iVertex], localSolidInterfaceDisp_Y[iVertex], localSolidInterfaceDisp_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localSolidInterfaceDisp_X[iVertex, jInst], localSolidInterfaceDisp_Y[iVertex, jInst], localSolidInterfaceDisp_Z[iVertex, jInst]])
+                self.solidInterfaceDisplacement[iGlobalVertex] = temp
 
         self.solidInterfaceDisplacement.assemble()
 
@@ -155,7 +162,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             localSolidInterfaceAdjointLoad_X, localSolidInterfaceAdjointLoad_Y, localSolidInterfaceAdjointLoad_Z = self.SolidSolver.getNodalAdjointForce()
             for iVertex in range(self.ns_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)
-                self.solidInterfaceAdjointLoads[iGlobalVertex] = [localSolidInterfaceAdjointLoad_X[iVertex], localSolidInterfaceAdjointLoad_Y[iVertex], localSolidInterfaceAdjointLoad_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localSolidInterfaceAdjointLoad_X[iVertex, jInst], localSolidInterfaceAdjointLoad_Y[iVertex, jInst], localSolidInterfaceAdjointLoad_Z[iVertex, jInst]])
+                self.solidInterfaceAdjointLoads[iGlobalVertex] = temp
 
         self.solidInterfaceAdjointLoads.assemble()
 
@@ -165,7 +175,10 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             localFluidInterfaceLoad_X, localFluidInterfaceLoad_Y, localFluidInterfaceLoad_Z = self.FluidSolver.getNodalForce()
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
-                self.fluidInterfaceLoads[iGlobalVertex] = [localFluidInterfaceLoad_X[iVertex], localFluidInterfaceLoad_Y[iVertex], localFluidInterfaceLoad_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localFluidInterfaceLoad_X[iVertex, jInst], localFluidInterfaceLoad_Y[iVertex, jInst], localFluidInterfaceLoad_Z[iVertex, jInst]])
+                self.fluidInterfaceLoads[iGlobalVertex] = temp
 
         self.fluidInterfaceLoads.assemble()
 
@@ -216,11 +229,16 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
     def getAdjointDisplacementFromFluidSolver(self):
 
+        if self.myid == 0:
+            self.adjointFrequency = self.FluidSolver.getFrequencyDerivative()
         if self.myid in self.manager.getFluidInterfaceProcessors():
             localFluidInterfaceAdjDisp_X, localFluidInterfaceAdjDisp_Y, localFluidInterfaceAdjDisp_Z = self.FluidSolver.getNodalAdjointDisplacement()
             for iVertex in range(self.nf_loc):
                 iGlobalVertex = self.manager.getGlobalIndex('fluid', self.myid, iVertex)
-                self.fluidInterfaceAdjointDisplacement[iGlobalVertex] = [localFluidInterfaceAdjDisp_X[iVertex], localFluidInterfaceAdjDisp_Y[iVertex], localFluidInterfaceAdjDisp_Z[iVertex]]
+                temp = []
+                for jInst in range(self.manager.nInst):
+                    temp.extend([localFluidInterfaceAdjDisp_X[iVertex, jInst], localFluidInterfaceAdjDisp_Y[iVertex, jInst], localFluidInterfaceAdjDisp_Z[iVertex, jInst]])
+                self.fluidInterfaceAdjointDisplacement[iGlobalVertex] = temp
 
         self.fluidInterfaceAdjointDisplacement.assemble()
 
@@ -228,6 +246,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
         localFluidInterfaceData_array = None
         haloNodesData = {}
+        nDim = fluidInterfaceData.nDim
 
         if self.mpiComm != None:
             localSize = fluidInterfaceData.getDataArray(0).shape[0]
@@ -238,6 +257,9 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             haloNodesData = {}
             haloNodesData_bis = {}
             if self.myid == 0:
+                localOmega = self.deltaOmega
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.omegaHB += self.deltaOmega
                 for iProc in self.manager.getFluidInterfaceProcessors():
                     fluidPhysicalInterfaceNodesDistribution = self.manager.getFluidPhysicalInterfaceNodesDistribution()
                     fluidGlobalIndexRange = self.manager.getFluidGlobalIndexRange()
@@ -264,7 +286,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                             self.mpiComm.Isend(sendBuff[iDim], dest=iProc, tag = iTagSend)
                             iTagSend += 1
                         sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
-                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, nDim),dtype=float)
                         for ii in range(sendBuffHalo_key.size):
                             sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
                         self.mpiComm.Isend(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
@@ -283,7 +305,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                         rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
                         req = self.mpiComm.Irecv(rcvBuffHalo_keyBuff, source=0, tag=102)
                         req.Wait()
-                        rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                        rcvBuffHalo_values = np.empty((nHaloNodesRcv[0], nDim), dtype=float)
                         req = self.mpiComm.Irecv(rcvBuffHalo_values, source=0, tag=103)
                         req.Wait()
                         for ii in range(len(rcvBuffHalo_keyBuff)):
@@ -295,13 +317,16 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                             iTagSend += 1
                         #self.mpiComm.send(sendBuffHalo, dest = iProc, tag=iTagSend)
                         sendBuffHalo_key = np.array(list(sendBuffHalo.keys()))
-                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, 3),dtype=float)
+                        sendBuffHalo_values = np.empty((sendBuffHalo_key.size, nDim),dtype=float)
                         for ii in range(sendBuffHalo_key.size):
                             sendBuffHalo_values[ii] = np.array(sendBuffHalo[sendBuffHalo_key[ii]])
                         self.mpiComm.Send(np.array(sendBuffHalo_key.size), dest=iProc, tag=101)
                         self.mpiComm.Send(sendBuffHalo_key, dest=iProc, tag=102)
                         self.mpiComm.Send(sendBuffHalo_values, dest=iProc, tag=103)
             elif self.myid in self.manager.getFluidInterfaceProcessors():
+                localOmega = 0.0
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.omegaHB += self.deltaOmega
                 localFluidInterfaceData_array = []
                 iTagRec = 1
                 for iDim in range(fluidInterfaceData.nDim):
@@ -314,11 +339,15 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
                 self.mpiComm.Recv(nHaloNodesRcv, source=0, tag=101)
                 rcvBuffHalo_keyBuff = np.empty(nHaloNodesRcv[0], dtype=int)
                 self.mpiComm.Recv(rcvBuffHalo_keyBuff, source=0, tag=102)
-                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0],3), dtype=float)
+                rcvBuffHalo_values = np.empty((nHaloNodesRcv[0], nDim), dtype=float)
                 self.mpiComm.Recv(rcvBuffHalo_values, source=0, tag=103)
                 for ii in range(len(rcvBuffHalo_keyBuff)):
                     haloNodesData_bis[rcvBuffHalo_keyBuff[ii]] = list(rcvBuffHalo_values[ii])
                 haloNodesData = haloNodesData_bis
+            else:
+                localOmega = 0.0
+                self.deltaOmega = mpiAllReduce(self.mpiComm, localOmega)
+                self.omegaHB += self.deltaOmega
 
 
         return (localFluidInterfaceData_array, haloNodesData)
@@ -415,7 +444,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
     def setForceToSolidSolver(self, dt):
 
-        FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()
+        FFX, FFY, FFZ = self.fluidInterfaceLoads.sum()[:3]
 
         FX = 0.
         FY = 0.
@@ -428,7 +457,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.mpiComm != None:
             (localSolidLoads_array, haloNodesSolidLoads) = self.redistributeDataToSolidSolver(self.solidInterfaceLoads)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                self.SolidSolver.applyNodalForce(localSolidLoads_array[0], localSolidLoads_array[1], localSolidLoads_array[2], dt, haloNodesSolidLoads)
+                self.SolidSolver.applyNodalForce(localSolidLoads_array[0::3], localSolidLoads_array[1::3], localSolidLoads_array[2::3], dt, haloNodesSolidLoads)
                 FX = localSolidLoads_array[0].sum()
                 FY = localSolidLoads_array[1].sum()
                 FZ = localSolidLoads_array[2].sum()
@@ -437,7 +466,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
             FZT = mpiAllReduce(self.mpiComm, FZ)
         else:
             self.SolidSolver.applyNodalForce(self.solidInterfaceLoads.getDataArray(0), self.solidInterfaceLoads.getDataArray(1), self.solidInterfaceLoads.getDataArray(2), dt, {})
-            FXT, FYT, FZT = self.solidInterfaceLoads.sum()
+            FXT, FYT, FZT = self.solidInterfaceLoads.sum()[:3]
 
         mpiPrint("Checking f/s interface total force...", self.mpiComm)
         mpiPrint('Solid side (Fx, Fy, Fz) = ({}, {}, {})'.format(FXT, FYT, FZT), self.mpiComm)
@@ -456,21 +485,28 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
     def setAdjointDisplacementToSolidSolver(self, dt):
 
         if self.mpiComm != None:
+            if self.myid == 0:
+                self.SolidSolver.applyFrequencyDerivative(self.adjointFrequency)
             (localSolidInterfaceAdjointDisplacement, haloNodesDisplacements) = self.redistributeDataToSolidSolver(self.solidInterfaceAdjointDisplacement)
             if self.myid in self.manager.getSolidInterfaceProcessors():
-                self.SolidSolver.applyNodalAdjointDisplacement(localSolidInterfaceAdjointDisplacement[0], localSolidInterfaceAdjointDisplacement[1], localSolidInterfaceAdjointDisplacement[2], dt, haloNodesDisplacements)
+                self.SolidSolver.applyNodalAdjointDisplacement(localSolidInterfaceAdjointDisplacement[0::3], localSolidInterfaceAdjointDisplacement[1::3], localSolidInterfaceAdjointDisplacement[2::3], dt, haloNodesDisplacements)
         else:
+            # TODO make this work with HB
             self.SolidSolver.applyNodalAdjointDisplacement(self.solidInterfaceAdjointDisplacement.getDataArray(0), self.solidInterfaceAdjointDisplacement.getDataArray(1), self.solidInterfaceAdjointDisplacement.getDataArray(2), dt, {})
+            self.SolidSolver.applyFrequencyDerivative(self.adjointFrequency)
 
 
     def setDisplacementToFluidSolver(self, dt):
 
         if self.mpiComm != None:
             (localFluidInterfaceDisplacement, haloNodesDisplacements) = self.redistributeDataToFluidSolver(self.fluidInterfaceDisplacement)
+            self.FluidSolver.setOmegaHB(self.omegaHB)
             if self.myid in self.manager.getFluidInterfaceProcessors():
-                self.FluidSolver.applyNodalDisplacements(localFluidInterfaceDisplacement[0], localFluidInterfaceDisplacement[1], localFluidInterfaceDisplacement[2], dt, haloNodesDisplacements)
+                self.FluidSolver.applyNodalDisplacements(localFluidInterfaceDisplacement[0::3], localFluidInterfaceDisplacement[1::3], localFluidInterfaceDisplacement[2::3], dt, haloNodesDisplacements)
         else:
+            # TODO make this work with HB
             self.FluidSolver.applyNodalDisplacements(self.fluidInterfaceDisplacement.getDataArray(0), self.fluidInterfaceDisplacement.getDataArray(1), self.fluidInterfaceDisplacement.getDataArray(2), dt, {})
+            self.FluidSolver.setOmegaHB(self.omegaHB)
 
     def setHeatFluxToFluidSolver(self, dt):
 
@@ -495,7 +531,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.mpiComm != None:
             (localFluidInterfaceAdjointLoad, haloNodesAdjointLoads) = self.redistributeDataToFluidSolver(self.fluidInterfaceAdjointLoads)
             if self.myid in self.manager.getFluidInterfaceProcessors():
-                self.FluidSolver.applyNodalAdjointForce(localFluidInterfaceAdjointLoad[0], localFluidInterfaceAdjointLoad[1], localFluidInterfaceAdjointLoad[2], dt, haloNodesAdjointLoads)
+                self.FluidSolver.applyNodalAdjointForce(localFluidInterfaceAdjointLoad[0::3], localFluidInterfaceAdjointLoad[1::3], localFluidInterfaceAdjointLoad[2::3], dt, haloNodesAdjointLoads)
         else:
             self.FluidSolver.applyNodalAdjointForce(self.fluidInterfaceAdjointLoads.getDataArray(0), self.fluidInterfaceAdjointLoads.getDataArray(1), self.fluidInterfaceAdjointLoads.getDataArray(2), dt, {})
 
@@ -504,7 +540,7 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
         if self.mpiComm != None:
             (localFluidInterfaceAdjointLoad, haloNodesAdjointLoads) = self.redistributeDataToFluidSolver(self.fluidInterfaceAdjointLoads)
             if self.myid in self.manager.getFluidInterfaceProcessors():
-                self.FluidSolver.applyNodalAdjointStress(localFluidInterfaceAdjointLoad[0], localFluidInterfaceAdjointLoad[1], localFluidInterfaceAdjointLoad[2], localFluidInterfaceAdjointLoad[3], localFluidInterfaceAdjointLoad[4], localFluidInterfaceAdjointLoad[5], dt, haloNodesAdjointLoads)
+                self.FluidSolver.applyNodalAdjointStress(localFluidInterfaceAdjointLoad[0::6], localFluidInterfaceAdjointLoad[1::6], localFluidInterfaceAdjointLoad[2::6], localFluidInterfaceAdjointLoad[3::6], localFluidInterfaceAdjointLoad[4::6], localFluidInterfaceAdjointLoad[5::6], dt, haloNodesAdjointLoads)
         else:
             self.FluidSolver.applyNodalAdjointStress(self.fluidInterfaceAdjointLoads.getDataArray(0), self.fluidInterfaceAdjointLoads.getDataArray(1), self.fluidInterfaceAdjointLoads.getDataArray(2), self.fluidInterfaceAdjointLoads.getDataArray(3), self.fluidInterfaceAdjointLoads.getDataArray(4), self.fluidInterfaceAdjointLoads.getDataArray(5), dt, {})
 

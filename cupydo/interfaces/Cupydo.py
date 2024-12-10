@@ -147,10 +147,16 @@ class CUPyDO(object):
         else:
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
-                if comm != None:
-                    fluidSolver = fItf.SU2(p, withMPI, comm)
+                if p['regime'] == "harmonic":
+                    if comm != None:
+                        fluidSolver = fItf.SU2HarmonicBalance(p, withMPI, comm)
+                    else:
+                        fluidSolver = fItf.SU2HarmonicBalance(p, withMPI, 0)
                 else:
-                    fluidSolver = fItf.SU2(p, withMPI, 0)
+                    if comm != None:
+                        fluidSolver = fItf.SU2(p, withMPI, comm)
+                    else:
+                        fluidSolver = fItf.SU2(p, withMPI, 0)
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
                 fluidSolver = fItf.Pfem(p, args.k)
@@ -183,6 +189,9 @@ class CUPyDO(object):
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 solidSolver = sItf.pyBeamAdjointSolver(p)
+            elif myId == 0 and p['solidSolver'] == 'RBMI':
+                from . import RBMI as sItf
+                solidSolver = sItf.RBMIAdjoint(p)
             elif myId == 0:
                 raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
         else:
@@ -231,7 +240,7 @@ class CUPyDO(object):
 
 # FSI parameters
 # needed by all algos
-# - p['regime'], steady or unsteady
+# - p['regime'], steady, unsteady or harmonic
 # - p['computation'], direct or adjoint
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
@@ -249,8 +258,13 @@ class CUPyDO(object):
 # - p['rbfRadius'], radius of interpolation for RBF
 # optional for RBF/TPS interpolators
 # - p['interpMaxIt'], maximum number of iterations
-# - p['interpPrecond'], preconditionner
+# - p['interpPrecond'], preconditioner
 # - p['interpTol'], solver tolerance
+
+# needed for Harmonic Balance
+# - p['HBomega'], initial base frequency for HB
+# - p['HBupdateIt'], number of FSI iterations between each update to HB frequency
+# Maybe add one for updating HB frequency after n initial iterations
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['extractors'], SU2Solid, pyBeam

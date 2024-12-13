@@ -2,7 +2,7 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 4 = FSInterface
+# Physical group 4 = FSI
 
 def params(parm):
 
@@ -29,7 +29,7 @@ def getMetafor(parm):
     solvermanager = metafor.getSolverManager()
     interactionset = domain.getInteractionSet()
     mim = metafor.getMechanicalIterationManager()
-    initcondset = metafor.getInitialConditionSet()
+    initcondset = domain.getInitialConditionSet()
 
     # Dimension and DSS solver
 
@@ -74,7 +74,7 @@ def getMetafor(parm):
 
     prp2 = w.ElementProperties(w.NodHeatFlux2DElement)
     heat = w.NodInteraction(2)
-    heat.push(groups['FSInterface'])
+    heat.push(groups['FSI'])
     heat.addProperty(prp2)
     interactionset.add(heat)
 
@@ -82,7 +82,7 @@ def getMetafor(parm):
 
     prp3 = w.ElementProperties(w.NodStress2DElement)
     load = w.NodInteraction(3)
-    load.push(groups['FSInterface'])
+    load.push(groups['FSI'])
     load.addProperty(prp3)
     interactionset.add(load)
 
@@ -125,7 +125,7 @@ def getMetafor(parm):
 
     parm['interactionT'] = heat
     parm['interactionM'] = load
-    parm['FSInterface'] = groups['FSInterface']
+    parm['FSI'] = groups['FSI']
     parm['exporter'] = Extractor(ext, node)
     return metafor
 

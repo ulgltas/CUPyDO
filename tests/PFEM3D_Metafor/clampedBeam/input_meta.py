@@ -2,7 +2,7 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 3 = FSInterface
+# Physical group 3 = FSI
 
 def params(parm):
 

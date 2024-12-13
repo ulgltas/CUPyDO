@@ -3,7 +3,7 @@ s = 0.012;
 h = 0.08;
 d = 0.01;
 
-N = 9;
+N = 12;
 M = 3;
 
 // Points List
@@ -35,7 +35,7 @@ Recombine Surface{1};
 
 // Physical Boundaries
 
-Physical Curve("FSInterface") = {1,2,3};
+Physical Curve("FSI") = {1,2,3};
 Physical Curve("SolidBase") = {4};
 Physical Surface("Solid") = {1};
 

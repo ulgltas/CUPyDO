@@ -2,7 +2,7 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 1 = FSInterface
+# Physical group 1 = FSI
 
 def params(parm):
 
@@ -62,7 +62,7 @@ def getMetafor(parm):
 
     prp2 = w.ElementProperties(w.NodStress2DElement)
     load = w.NodInteraction(2)
-    load.push(groups['FSInterface'])
+    load.push(groups['FSI'])
     load.addProperty(prp2)
     interactionset.add(load)
     

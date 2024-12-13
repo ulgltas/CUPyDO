@@ -3,7 +3,7 @@ $MeshFormat
 $EndMeshFormat
 $PhysicalNames
 2
-1 2 "FSInterface"
+1 2 "FSI"
 2 1 "Solid"
 $EndPhysicalNames
 $Entities

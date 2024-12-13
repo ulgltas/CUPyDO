@@ -35,7 +35,7 @@ Recombine Surface{1};
 
 // Physical Boundaries
 
-Physical Curve("FSInterface") = {1,2,3};
+Physical Curve("FSI") = {1,2,3};
 Physical Curve("SolidBase") = {4};
 Physical Surface("Solid") = {1};
 

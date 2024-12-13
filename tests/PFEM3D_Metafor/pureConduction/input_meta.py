@@ -3,7 +3,7 @@ import numpy as np
 import wrap as w
 import os
 
-# Physical group 2 = FSInterface
+# Physical group 2 = FSI
 
 def params(parm):
 
@@ -31,7 +31,7 @@ def getMetafor(parm):
     solvermanager = metafor.getSolverManager()
     interactionset = domain.getInteractionSet()
     mim = metafor.getMechanicalIterationManager()
-    initcondset = metafor.getInitialConditionSet()
+    initcondset = domain.getInitialConditionSet()
 
     # Dimension and DSS solver
 
@@ -75,7 +75,7 @@ def getMetafor(parm):
 
     prp2 = w.ElementProperties(w.NodHeatFlux2DElement)
     heat = w.NodInteraction(2)
-    heat.push(groups['FSInterface'])
+    heat.push(groups['FSI'])
     heat.addProperty(prp2)
     interactionset.add(heat)
 
@@ -96,8 +96,8 @@ def getMetafor(parm):
     # Other boundary conditions
 
     initcondset.define(groups['Solid'], w.Field1D(w.TO, w.AB), 300)
-    loadingset.define(groups['FSInterface'], w.Field1D(w.TX, w.RE))
-    loadingset.define(groups['FSInterface'], w.Field1D(w.TY, w.RE))
+    loadingset.define(groups['FSI'], w.Field1D(w.TX, w.RE))
+    loadingset.define(groups['FSI'], w.Field1D(w.TY, w.RE))
 
     # Mechanical and thermal time integration
 
@@ -127,7 +127,7 @@ def getMetafor(parm):
     # Parameters for CUPyDO
 
     parm['interactionT'] = heat
-    parm['FSInterface'] = groups['FSInterface']
+    parm['FSI'] = groups['FSI']
 
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))

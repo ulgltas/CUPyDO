@@ -43,6 +43,7 @@ class Pfem3D(FluidSolver):
         
         self.problem = w.getProblem(p['cfdFile'])
         self.solver = self.problem.getSolver()
+        self.solverType = self.solver.getType()
         self.mesh = self.problem.getMesh()
 
         self.thermal = p['thermal']
@@ -51,14 +52,10 @@ class Pfem3D(FluidSolver):
 
         # Incompressible or weakly compressible solver
 
-        if 'WC' in self.problem.getID():
-
-            self.WC = True
+        if self.solverType ==  w.SolverType_Explicit:
             self.max_division = 100
 
-        else:
-
-            self.WC = False
+        elif self.solverType == w.SolverType_Implicit:
             self.max_division = 1
 
         # Initialize the boundary conditions
@@ -98,8 +95,11 @@ class Pfem3D(FluidSolver):
         self.problem.setMinTimeStep((t2-t1)/self.max_division)
         self.problem.setMaxSimTime(t2)
 
-        if self.WC: self.solver.computeNextDT()
-        else: self.solver.setTimeStep(t2-t1)
+        if self.solverType ==  w.SolverType_Explicit:
+            self.solver.computeNextDT()
+        
+        elif self.solverType == w.SolverType_Implicit:
+            self.solver.setTimeStep(t2-t1)
 
         if self.problem.simulate():
             self.__setCurrentState()
@@ -112,7 +112,9 @@ class Pfem3D(FluidSolver):
     def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
 
         BC = (np.transpose([dx,dy,dz])-self.disp)/dt
-        if self.WC: BC = 2*(BC-self.vel)/dt
+        
+        if self.solverType ==  w.SolverType_Explicit:
+            BC = 2*(BC-self.vel)/dt
 
         for i,vector in enumerate(BC):
             for j,val in enumerate(vector): self.BC[i][j] = val
@@ -157,7 +159,7 @@ class Pfem3D(FluidSolver):
         if self.mechanical: 
             if self.interpType == 'conservative':
 
-                self.solver.computeLoads('FSInterface', self.FSI,result)
+                self.solver.computeLoads('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_X[i] = -result[i][0]
@@ -166,7 +168,7 @@ class Pfem3D(FluidSolver):
 
             elif self.dim == 3:
 
-                self.solver.computeStress('FSInterface', self.FSI,result)
+                self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_XX[i] = result[i][0]
@@ -178,7 +180,7 @@ class Pfem3D(FluidSolver):
 
             elif self.mesh.isAxiSym():
 
-                self.solver.computeStress('FSInterface', self.FSI,result)
+                self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_XX[i] = result[i][0]
@@ -188,7 +190,7 @@ class Pfem3D(FluidSolver):
 
             else:
 
-                self.solver.computeStress('FSInterface', self.FSI,result)
+                self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
                     self.nodalLoad_XX[i] = result[i][0]
@@ -196,7 +198,7 @@ class Pfem3D(FluidSolver):
                     self.nodalLoad_XY[i] = result[i][2]
 
         if self.thermal:
-            self.solver.computeHeatFlux('FSInterface', self.FSI,result)
+            self.solver.computeHeatFlux('FSI', self.FSI,result)
 
             for i in range(self.nNodes):
 
@@ -209,7 +211,7 @@ class Pfem3D(FluidSolver):
     def _resetInterfaceBC(self):
 
         self.BC = list()
-        self.mesh.getNodesIndex('FSInterface', self.FSI)
+        self.mesh.getNodesIndex('FSI', self.FSI)
 
         for i in self.FSI:
 
@@ -226,7 +228,9 @@ class Pfem3D(FluidSolver):
 
         # Update the backup and precompute matrices
 
-        if not self.WC: self.solver.precomputeMatrix()
+        if self.solverType ==  w.SolverType_Implicit:
+            self.solver.precomputeMatrix()
+
         self.problem.copySolution(self.prevSolution)
 
         self.disp = self.__getPosition()-self.initPos

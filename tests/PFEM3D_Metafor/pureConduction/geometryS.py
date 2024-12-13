@@ -51,7 +51,7 @@ sh.mesh.setRecombine(2,s)
 # Physical Boundary
 
 sh.addPhysicalGroup(2,[s],name='Solid')
-sh.addPhysicalGroup(1,[l[0]],name='FSInterface')
+sh.addPhysicalGroup(1,[l[0]],name='FSI')
 sh.addPhysicalGroup(1,[l[1],l[3]],name='Clamped')
 sh.addPhysicalGroup(1,[l[2]],name='Top')
 

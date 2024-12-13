@@ -115,7 +115,7 @@ class Metafor(SolidSolver):
 
         SolidSolver.__init__(self)
         self.metafor.getDomain().build()
-        self.metafor.getInitialConditionSet().update(0)
+        domain.getInitialConditionSet().update(0)
         self.__setCurrentState()
         self.save()
 

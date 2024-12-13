@@ -46,9 +46,8 @@ Plane Surface(1) = {1};
 
 // Physical Boundaries
 
-Physical Curve("FSInterface") = {7,8,9};
+Physical Curve("FSI") = {7,8,9};
 Physical Curve("Reservoir") = {1,2,3,6,10,11};
-Physical Curve("FreeSurface") = {5,4};
 Physical Surface("Fluid") = {1};
 
 Mesh 2;

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -28,9 +28,8 @@ def params(q={}):
     """
     p={}
     p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
-
     p['bndno'] = 102
-    p['saveAllFacs'] = False
+    p['exporter'] = Extractor()
                                        
     p.update(q)
     return p
@@ -91,21 +90,24 @@ def getMetafor(p={}):
 
     return metafor
 
-def getRealTimeExtractorsList(Mtf):
+class Extractor(object):
+    def __init__(self):
 
-    extractorsList = list()
-    domain = Mtf.getDomain()
-    groupset = domain.getGeometry().getGroupSet()  
+        self.metafor = metafor
+        
 
-    # --- Extractors list starts --- #
-    extractor1 = DbNodalValueExtractor(groupset(104), Field1D(TY,RE))
-    extractorsList.append(extractor1)
-    # --- Extractors list ends --- #
+    def to_ascii(self,extractor):
 
-    return extractorsList
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
 
+    def write(self):
 
-
-
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.to_ascii(DbNodalValueExtractor(groupset(104), Field1D(TY,RE)))
+        
 
 

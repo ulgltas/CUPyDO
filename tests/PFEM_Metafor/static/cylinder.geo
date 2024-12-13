@@ -31,9 +31,9 @@ Delete {
 Delete {
   Point{6};
 }
-Physical Line(7) = {1, 2, 4};
-Physical Line(8) = {3};
-Physical Line(9) = {6, 5};
+Physical Line("Wall",7) = {1, 2, 4};
+Physical Line("Free",8) = {3};
+Physical Line("Cylinder",9) = {6, 5};
 
 Line Loop(10) = {1, 2, 3, 4};
 Line Loop(11) = {5, 6};
@@ -41,8 +41,8 @@ Line Loop(11) = {5, 6};
 Plane Surface(12) = {10, 11};
 Plane Surface(13) = {11};
 
-Physical Surface(14) = {12};
-Physical Surface(15) = {13};
+Physical Surface("Face1",14) = {12};
+Physical Surface("Face2",15) = {13};
 
 Transfinite Line {1} = N;
 Transfinite Line {2} = N;

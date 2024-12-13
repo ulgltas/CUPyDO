@@ -29,7 +29,7 @@ CONV_CRITERIUM = 0.00000000001
 TOLERANCE_LINSOL = 1e-7
 
 % Kind of linear solver (FullPivHouseholderQr, PartialPivLu, FullPivLu, HouseholderQr, ColPivHouseholderQr, LLT, LDLT)
-KIND_LINSOL = FullPivLu
+KIND_LINSOL = PartialPivLu
 
 % MESH file 
 MESH_FILE = ../../tests/SU2_pyBeam/models/mesh_cantilever.pyBeam

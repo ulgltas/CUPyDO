@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -30,10 +30,9 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN, Adrien CROVATO
 from math import *
 import numpy as np
 import scipy as sp
-import os, os.path, sys, string
+import os, os.path, sys
 import time as tm
-
-import socket, fnmatch
+import json
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -46,6 +45,18 @@ _theWDirRoot = os.getcwd()  # base directory du workspace
 #  Utilities
 # ----------------------------------------------------------------------
 
+def titlePrint(text):
+
+    # Prints a title in the terminal with formatting
+
+    size = 50
+    space = int((size-len(text))/2)
+    size = 2*space+len(text)
+
+    print("\n"+"-"*(size+2))
+    print("|"+" "*space+text+" "*space+"|")
+    print("-"*(size+2)+"\n")
+
 def solve_upper_triangular_mod(U, y, toll):
 
     # 'Modified' backward solve Ux = y with U upper triangular. 'Modified' because if the value of a diagonal element is close to zero (i.e. <= toll) the corresponding element in the solution is set to zero
@@ -57,7 +68,7 @@ def solve_upper_triangular_mod(U, y, toll):
         if abs(U[i, i]) <= toll:
             x[i] = 0.
         else:
-            x[i] = y[i];
+            x[i] = y[i]
             for j in range (i + 1, n):
                   x[i] -= U[i, j] * x[j]
             x[i] /= U[i, i]
@@ -122,18 +133,21 @@ def QRfiltering_mod(V, W, toll):
 # ------------------------------------------------------------------------------
 
 def parseArgs():
-    """Parse arguments specific to CUPyDO
     """
+    Parse arguments specific to CUPyDO
+    """
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs=1, help='Python input file')
-    parser.add_argument('-n', dest='n', help='Number of threads', default=1, type=int)
-    parser.add_argument('--nogui', action='store_true', help='Disable GUI', default=False)
+    parser.add_argument('-k', dest='k', help='Number of threads', default=1, type=int)
     return parser.parse_args()
 
 def setDirs(fpath):
-    """Add file dir to python path and setup the working directory
     """
+    Add file dir to python path and setup the working directory
+    """
+
     import os, sys
     # get MPI status
     haveMpi, comm, rank, size = getMpi()
@@ -167,6 +181,7 @@ def getMpi():
     """
     Get MPI parameters
     """
+
     from ccupydo import CMpi
     cmpi = CMpi()
     if cmpi.haveMPI:
@@ -184,10 +199,7 @@ def getMpi():
 #    MPI Functions
 # ----------------------------------------------------------------------
 
-def mpiPrint(message, mpiComm = None):
-    """
-    Description.
-    """
+def mpiPrint(message, mpiComm = None, function = None):
 
     if mpiComm != None:
         myid = mpiComm.Get_rank()
@@ -195,22 +207,27 @@ def mpiPrint(message, mpiComm = None):
         myid = 0
 
     if myid == 0:
-        print(message)
+
+        if function == None: print(message)
+        else: function(message)
 
     mpiBarrier(mpiComm)
 
+def mpiScatter(message, mpiComm = None, rootProcess = 0):
+
+    if mpiComm != None:
+        vec = [message for i in range(mpiComm.Get_size())]
+        message = mpiComm.scatter(vec,root=rootProcess)
+    return message
+
+
 def mpiBarrier(mpiComm = None):
-    """
-    Description.
-    """
 
     if mpiComm != None:
         mpiComm.barrier()
 
 def mpiAllReduce(mpiComm = None, value = 0):
-    """
-    Description.
-    """
+
     sendBuff = np.array(value)
     if mpiComm != None:
         from mpi4py import MPI
@@ -221,9 +238,6 @@ def mpiAllReduce(mpiComm = None, value = 0):
         return value
 
 def mpiAllGather(mpiComm = None, value = 0):
-    """
-    Description
-    """
 
     sendBuff = np.array(value)
     if mpiComm != None:
@@ -235,11 +249,8 @@ def mpiAllGather(mpiComm = None, value = 0):
         return sendBuff
 
 def mpiGatherv(sendBuff, localSize, globalSize, mpiComm = None, rootProcess=0):
-    """
-    Des.
-    """
 
-    #sendBuff must be a numpy array
+    # sendBuff must be a numpy array
 
     rcvBuff = None
 
@@ -263,9 +274,7 @@ def mpiGatherv(sendBuff, localSize, globalSize, mpiComm = None, rootProcess=0):
         return sendBuff
 
 def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess = 0):
-    """
-    Des.
-    """
+
     interfData_Gat = []
 
     if mpiComm != None :
@@ -284,14 +293,7 @@ def mpiGatherInterfaceData(interfData, globalSize, mpiComm = None, rootProcess =
 # ----------------------------------------------------------------------
 
 class Timer(object):
-    """
-    Description
-    """
-
     def __init__(self):
-        """
-        Des.
-        """
 
         self.startTime = 0.0
         self.stopTime = 0.0
@@ -300,9 +302,6 @@ class Timer(object):
         self.isRunning = False
 
     def start(self):
-        """
-        Des.
-        """
 
         if not self.isRunning:
             self.startTime = tm.time()
@@ -311,9 +310,6 @@ class Timer(object):
             print('[WARNING] Calling Timer.start() but the Timer is already running !')
 
     def stop(self):
-        """
-        Des.
-        """
 
         if self.isRunning:
             self.stopTime = tm.time()
@@ -321,23 +317,102 @@ class Timer(object):
             self.isRunning = False
 
     def cumul(self):
-        """
-        Des.
-        """
 
         self.cumulTime += self.elapsedTime
         self.elapsedTime = 0.0
 
     def getElapsedTime(self):
-        """
-        Des.
-        """
-
         return self.elapsedTime
 
     def getCumulTime(self):
-        """
-        Des.
-        """
-
         return self.cumulTime
+
+# ----------------------------------------------------------------------
+#   Solver path class
+# ----------------------------------------------------------------------
+
+class solverPath(object):
+    def __init__(self):
+
+        # Path to the base folder of CUPyDO
+
+        baseFolder = __file__
+        for i in range(3): baseFolder = os.path.split(baseFolder)[0]
+        self.addedPaths = {}
+
+        # Look for cupydoExtProgs.json in CUPyDO folder
+
+        try:
+            with open(os.path.join(baseFolder,'.cupydoExtProgs.json')) as file:
+                self.solverPaths = json.load(file)
+
+        # LIf not found, looks for cupydoExtProgs.json in home folder
+        
+        except:
+            try:
+                with open(os.path.join(os.path.expanduser('~'),'.cupydoExtProgs.json')) as file:
+                    self.solverPaths = json.load(file)
+            except: self.solverPaths = {}
+
+        # Relative paths for solvers located next to CUPyDO
+
+        self.basePaths = {}
+        self.basePaths['Metafor'] = ['Metafor/oo_metaB/bin','Metafor/oo_meta','Metafor/linuxbin']
+        self.basePaths['RBMI'] = ['NativeSolid/bin']
+        self.basePaths['Modal'] = ['modali']
+        self.basePaths['DART'] = ['dartflo', 'dartflo/ext/amfe']
+        self.basePaths['Pfem'] = ['PFEM', 'PFEM/ext/amfe']
+        self.basePaths['SU2'] = ['SU2/build/bin']
+        self.basePaths['VLM'] = ['VLM']
+        self.basePaths['Pfem3D'] = ['PFEM3D/build/bin']
+        self.basePaths['pyBeam'] = ['pyBeam/build/bin']
+        
+        # Makes the absolute paths for solvers next to CUPyDO
+
+        for key,value in self.basePaths.items():
+            for i in range(len(value)):
+
+                value[i] = os.path.join(baseFolder,value[i])
+                release = os.path.join(value[i],'Release')
+                if os.path.isdir(release): value[i] = release
+
+    # Adds the path to the solver in sys.path
+
+    def add(self, solverName):
+
+        # Check next to the solver first, then in the Json
+
+        try: pathList = self.solverPaths[solverName]
+        except:
+            try: pathList = self.basePaths[solverName]
+            except: raise Exception('%s is not found' % solverName)
+        
+        if not isinstance(pathList,list): pathList = [pathList]
+
+        # Memorize the paths that have been added under that name
+
+        if solverName in self.addedPaths:
+            self.addedPaths[solverName] += pathList
+        else: self.addedPaths[solverName] = pathList
+
+        # Actually adds the paths to the system
+
+        for path in pathList:
+            if os.path.isdir(path):
+                sys.path.append(path)
+                print('Add to path :',path)
+            else:
+                raise Exception('%s not found' % path)
+
+    # Remove the path to the solver from sys.path
+
+    def remove(self, solverName):
+        
+        try: pathList = self.addedPaths[solverName]
+        except: raise Exception('%s has not been added' % solverName)
+
+        if not isinstance(pathList,list): pathList = [pathList]
+
+        for path in pathList:
+            sys.path.remove(path)
+            print('Remove from path :',path)

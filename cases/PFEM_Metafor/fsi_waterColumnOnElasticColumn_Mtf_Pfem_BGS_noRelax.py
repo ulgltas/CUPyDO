@@ -16,7 +16,7 @@ import cupydo.algorithm as cupyalgo
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
-    p['nthreads'] = 1
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['tollFSI'] = 1e-7
     p['dt'] = 1e-5
@@ -24,9 +24,7 @@ def getParameters(_p):
     p['nFSIIterMax'] = 20
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 1.0
-    p['computationType'] = 'unsteady'
-    p['saveFreqPFEM'] = 100
-    p['mtfSaveAllFacs'] = True
+    p['regime'] = 'unsteady'
     p['testName'] = fileName
     p['cfdFile'] = 'waterColumnOnElasticColumn_water_Pfem'
     p['csdFile'] = 'waterColumnOnElasticColumn_elasticColumn_Mtf_rho_1500_E_2_3e5_nu_0_4'
@@ -34,7 +32,7 @@ def getParameters(_p):
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
+def main(_p):
     
     p = getParameters(_p)
     
@@ -56,28 +54,18 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     fluidSolver = fItf.Pfem(cfd_file, 14, p['dt'])
     fluidSolver.pfem.pbl.betaFSI = p['betaFSI']
     
-    # --- This part is specific to PFEM ---
-    fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    if nogui:
-        fluidSolver.pfem.gui = None
-    # ---
-    
     cupyutil.mpiBarrier(comm)
     
     # --- Initialize the solid solver --- #
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, p['computationType'])
-        
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
-        
+        solidSolver = sItf.Metafor(csd_file, p['regime'])
+
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['computationType'], comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['regime'], comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
@@ -101,18 +89,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 if __name__ == '__main__':
     
     p = {}
-    
     parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
-
-
+    parser.add_option("-k", type="int", help="Number of threads", dest="nthreads", default=1)
     (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    nthreads = options.nthreads
-    
-    p['nthreads'] = nthreads
-    
-    main(p, nogui)
+    p['nthreads'] = options.nthreads
+    main(p)

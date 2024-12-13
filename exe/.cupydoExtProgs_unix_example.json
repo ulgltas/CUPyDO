@@ -1,0 +1,16 @@
+{
+    "Pfem3D": "/home/username/battery_CUPyDO/PFEM3D/build/bin",
+    "Modal": "/home/username/battery_CUPyDO/modali",
+    "VLM": "/home/username/battery_CUPyDO/VLM",
+    "Flow": "/home/username/battery_CUPyDO/waves",
+    "SU2": "/home/username/battery_CUPyDO/SU2/build/bin",
+    "RBMI": "/home/username/battery_CUPyDO/NativeSolid/bin",
+    "pyBeam": "/home/username/battery_CUPyDO/pyBeam/build/bin",
+
+    "Pfem": ["/home/username/battery_CUPyDO/PFEM",
+        "/home/username/battery_CUPyDO/waves"],
+
+    "Metafor": ["/home/username/battery_CUPyDO/Metafor/build/bin",
+        "/home/username/battery_CUPyDO/Metafor/oo_meta",
+        "/home/username/battery_CUPyDO/Metafor/linuxbin"]
+}

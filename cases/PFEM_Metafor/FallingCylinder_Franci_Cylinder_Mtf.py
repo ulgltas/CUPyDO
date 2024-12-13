@@ -20,6 +20,8 @@ def params(q={}):
     #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
     p['bctype']     = 'pydeadloads'  # variable loads
     #p['bctype']     = 'slave'     # variable loads (mpi)
+    
+    p['extractor'] = None
                                        
     p.update(q)
     return p
@@ -87,14 +89,6 @@ def getMetafor(p={}):
     
     return metafor
 
-def getRealTimeExtractorsList(mtf):
-    
-    extractorsList = []
-
-    # --- Extractors list starts --- #
-    # --- Extractors list ends --- #
-
-    return extractorsList
 
 
 

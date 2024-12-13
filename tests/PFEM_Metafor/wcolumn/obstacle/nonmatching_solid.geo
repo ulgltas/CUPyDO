@@ -17,9 +17,9 @@ Line(11) = {8, 5};
 Line Loop(14) = {6, 7, 8, 11};
 Plane Surface(15) = {14};
 
-Physical Line(17) = {6, 7, 8};        //Obstacle surface: FSI interface
-Physical Line(19) = {11};             //Obstacle base
-Physical Surface(21) = {15};          //Obstacle
+Physical Line("FSInterface",17) = {6, 7, 8};        //Obstacle surface: FSI interface
+Physical Line("ObstacleBase",19) = {11};             //Obstacle base
+Physical Surface("Obstacle",21) = {15};          //Obstacle
 
 Transfinite Line{6} = 2*(b/L)*N;
 Transfinite Line{7} = (a/L)*N+3;

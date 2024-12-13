@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from wrap import *
@@ -10,12 +10,13 @@ def params(_p):
     p['relTol'] = 1e-6
     p['maxIt'] = 20
     p['bndno'] = 111
-    p['saveAllFacs'] = False
+    p['exporter'] = Extractor()
                        
     p.update(_p)
     return p
 
 def getMetafor(p={}):
+    global metafor
     metafor = Metafor()
     p = params(p)
 
@@ -148,16 +149,23 @@ def getMetafor(p={}):
   
     return metafor
 
-def getRealTimeExtractorsList(Mtf):
+class Extractor(object):
+    def __init__(self):
 
-    extractorsList = list()
-    groupset = Mtf.getDomain().getGeometry().getGroupSet()
+        self.metafor = metafor
+        
 
-    # --- Extractors list starts --- #
-    extractor0 = DbNodalValueExtractor(groupset(121), Field1D(TZ,RE))
-    extractorsList.append(extractor0)
-    extractor1 = DbNodalValueExtractor(groupset(122), Field1D(TZ,RE))
-    extractorsList.append(extractor1)
-    # --- Extractors list ends --- #
+    def to_ascii(self,extractor):
 
-    return extractorsList
+        file = open(extractor.buildName()+'.ascii', 'a')
+        
+        file.write('{0:12.6f}\t'.format(self.metafor.getCurrentTime()))
+        file.write('{0:12.6f}\n'.format(extractor.extract()[0]))
+        file.close()
+
+    def write(self):
+
+        groupset = self.metafor.getDomain().getGeometry().getGroupSet()
+        self.to_ascii(DbNodalValueExtractor(groupset(121), Field1D(TZ,RE)))
+        self.to_ascii(DbNodalValueExtractor(groupset(122), Field1D(TZ,RE)))
+        

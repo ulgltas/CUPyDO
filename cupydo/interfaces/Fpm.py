@@ -29,9 +29,9 @@ from cupydo.genericSolvers import FluidSolver
 # ----------------------------------------------------------------------
 
 class Fpm(FluidSolver):
-    def __init__(self, _module):
+    def __init__(self, p):
         # load the python module and initialize the solver
-        module = __import__(_module)
+        module = __import__(p['cfdFile'])
         fpmP = module.getParams()
         self.__initFpm(fpmP)
 

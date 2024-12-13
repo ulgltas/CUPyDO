@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -22,7 +22,7 @@ limitations under the License.
 
 def test(res, tol):
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -35,15 +35,11 @@ def test(res, tol):
     resultS2 = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
-    # residual for test is 0.0017
-    #if (res > tol):
-    #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
-    #    raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], 0.0537, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 0.00035, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (180, TZ)', resultS1[2], 0.0116, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (181, TZ)', resultS2[2], 0.0132, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Lift coefficient', resultA[2], 0.054409, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 0.000042, 1e-1, False))
+    tests.add(CTest('Displacement (180, TZ)', resultS1[-1], 0.012873, 1e-1, False))
+    tests.add(CTest('Displacement (181, TZ)', resultS2[-1], 0.014388, 1e-1, False))
     tests.run()
 
 def getFsiP():
@@ -51,27 +47,43 @@ def getFsiP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = os.path.join(filePath, 'AGARD445_Static_SU2Conf.cfg')
     p['csdFile'] = 'AGARD445_Static_MetaforConf'
+
     # FSI objects
+
     p['interpolator'] = 'TPS'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['interpType'] = 'conservative'
+    p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
     p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['dt'] = 0.
     p['tTot'] = 0.05
-    p['timeItTresh'] = -1
-    p['tol'] = 1e-6
+    
+    p['dtSave'] = 0
     p['maxIt'] = 4
     p['omega'] = 1.0
-    p['interpOpts'] = [1000, 'JACOBI']
-    p['nodalLoadsType'] = 'force'
+
+    # PETSC parameters
+
+    p['interpMaxIt'] = 1000
+    p['interpPrecond'] = 'JACOBI'
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-4
+    p['thermal'] = False
     return p
 
 def main():
@@ -79,7 +91,7 @@ def main():
     p = getFsiP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test(cupydo.algorithm.errValue, p['tol']) # check the results
+    test(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

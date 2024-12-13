@@ -44,11 +44,11 @@ Plane Surface(10) = {9};
 Line Loop(11) = {5, 6, 7, 8};
 Plane Surface(12) = {11};
 
-Physical Line(13) = {1};          // Clamping
-Physical Line(14) = {5, 6, 7, 8}; // Free surface
-Physical Line(15) = {4};	  // FSI interface
-Physical Surface(16) = {10};	  // Beam
-Physical Surface(17) = {12};      // Bird 
+Physical Line("Clamping", 13) = {1};          // Clamping
+Physical Line("FreeSurface", 14) = {5, 6, 7, 8}; // Free surface
+Physical Line("FSInterface", 15) = {4};	  // FSI interface
+Physical Surface("Beam", 16) = {10};	  // Beam
+Physical Surface("Bird", 17) = {12};      // Bird 
 
 Transfinite Line{1} = (h/a)*N+2;
 Transfinite Line{2} = (3/2)*(L/a)*N+1;

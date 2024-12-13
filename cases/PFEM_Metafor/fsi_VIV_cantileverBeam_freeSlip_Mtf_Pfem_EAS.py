@@ -15,13 +15,10 @@ import cupydo.algorithm as cupyalgo
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
-    p['nthreads'] = 1
-    p['mtfSaveAllFacs'] = True
-    p['saveFreqPFEM'] = 13333 # tTot/dt --> Never
     p.update(_p)
     return p
 
-def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
+def main(_p):
     
     p = getParameters(_p)
 
@@ -42,18 +39,11 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     tTot = 10.
     nFSIIterMax = 10
     omegaMax = 1.0
-    computationType = 'unsteady'
+    regime = 'unsteady'
     
     # --- Initialize the fluid solver --- #
     import cupydo.interfaces.Pfem as fItf
     fluidSolver = fItf.Pfem(cfd_file, 23, dt)
-    
-    # --- This part is specific to PFEM ---
-    fluidSolver.pfem.scheme.nthreads = p['nthreads']
-    fluidSolver.pfem.scheme.savefreq = p['saveFreqPFEM']
-    if nogui:
-        fluidSolver.pfem.gui = None
-    # ---
     
     cupyutil.mpiBarrier(comm)
     
@@ -61,16 +51,12 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
     solidSolver = None
     if myid == rootProcess:
         import cupydo.interfaces.Metafor as sItf
-        solidSolver = sItf.Metafor(csd_file, computationType)
-        
-        # --- This part is specific to Metafor ---
-        solidSolver.saveAllFacs = p['mtfSaveAllFacs']
-        # ---
+        solidSolver = sItf.Metafor(csd_file, regime)
         
     cupyutil.mpiBarrier(comm)
         
     # --- Initialize the FSI manager --- #
-    manager = cupyman.Manager(fluidSolver, solidSolver, nDim, computationType, comm)
+    manager = cupyman.Manager(fluidSolver, solidSolver, nDim, regime, comm)
     cupyutil.mpiBarrier()
 
     # --- Initialize the interpolator --- #
@@ -94,17 +80,8 @@ def main(_p, nogui): # NB, the argument 'nogui' is specific to PFEM only!
 if __name__ == '__main__':
     
     p = {}
-    p['nthreads'] = nthreads
-    
     parser=OptionParser()
-    parser.add_option("--nogui", action="store_true",
-                        help="Specify if we need to use the GUI", dest="nogui", default=False)
-    parser.add_option("-n", type="int", help="Number of threads", dest="nthreads", default=1)
-
-
+    parser.add_option("-k", type="int", help="Number of threads", dest="nthreads", default=1)
     (options, args)=parser.parse_args()
-    
-    nogui = options.nogui
-    nthreads = options.nthreads
-    
-    main(p, nogui)
+    p['nthreads'] = options.nthreads
+    main(p)

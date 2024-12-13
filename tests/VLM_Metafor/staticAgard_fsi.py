@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # CUPyDO configuration file
@@ -6,9 +6,9 @@
 # Adrien Crovato & Mariano Sánchez Martínez
 
 def test(cupydo, tol):
-    res = cupydo.algorithm.errValue
+    res = cupydo.algorithm.criterion.epsilon
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
     # Read results from data
     cl = cupydo.algorithm.FluidSolver.coreSolver.getCl()
     cd = cupydo.algorithm.FluidSolver.coreSolver.getCd()
@@ -22,12 +22,12 @@ def test(cupydo, tol):
     # Check convergence and results
     if (res > tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-        raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+        raise Exception("FSI algo failed to converge!")
     tests = CTests()
     tests.add(CTest('Lift coefficient', cl, 0.0460, 1e-2, True)) # abs. tol
     tests.add(CTest('Drag coefficient', cd, 0.00080, 1e-4, True))
-    tests.add(CTest('LE vertical displacement', resultS2[2], 0.009, 5e-3, True))
-    tests.add(CTest('TE vertical displacement', resultS1[2], 0.010, 5e-3, True))
+    tests.add(CTest('LE vertical displacement', resultS2[-1], 0.009, 5e-3, True))
+    tests.add(CTest('TE vertical displacement', resultS1[-1], 0.010, 5e-3, True))
     tests.run()
 
 def getFsiP():
@@ -35,26 +35,39 @@ def getFsiP():
     import os
     fileName = os.path.splitext(os.path.basename(__file__))[0]
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'VLM'
     p['solidSolver'] = 'Metafor'
     p['cfdFile'] = fileName[:-3] + 'fluid'
     p['csdFile'] = fileName[:-3] + 'solid'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['interpType'] = 'conservative'
+    p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
-    p['computation'] = 'Direct'
+
+    p['regime'] = 'steady'
+    p['computation'] = 'direct'
+    p['criterion'] = 'relative'
     p['nDim'] = 3
     p['dt'] = 0.1
     p['tTot'] = 0.1
-    p['timeItTresh'] = -1
-    p['tol'] = 1e-4
+    p['dtSave'] = 0
+    p['dtSave'] = 0
     p['maxIt'] = 50
     p['omega'] = 1.0
     p['rbfRadius'] = .5
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-4
+    p['thermal'] = False
     return p
 
 def main():
@@ -64,7 +77,7 @@ def main():
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
     cupydo.algorithm.FluidSolver.coreSolver.save()
-    test(cupydo, p['tol']) # check the results
+    test(cupydo, p['mechanicalTol']) # check the results
     
     # eof
     print('')

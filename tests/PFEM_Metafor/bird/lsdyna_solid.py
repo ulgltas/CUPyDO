@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # original name: birdStrike_lsDyna_benchmark_beam_Mtf
 
@@ -34,14 +34,7 @@ def params(q={}):
     p['tend'] = 2.            # final time
     p['dtmax'] = 0.005          # max time step
     p['bndno'] = 15            # interface boundary number
-    p['saveAllFacs'] = False # keep the Fac corresponding to the end of the time step
-
-    # BC type
-    # p['bctype']     = 'pressure'     # uniform pressure
-    # p['bctype']     = 'deadload'     # uniform nodal load
-    # p['bctype']     = 'pydeadload1'  # uniform nodal load (python)
-    p['bctype'] = 'pydeadloads'  # variable loads
-    # p['bctype']     = 'slave'     # variable loads (mpi)
+    p['exporter'] = None
 
     p.update(q)
     return p
@@ -116,7 +109,3 @@ def getMetafor(p={}):
     #vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
 
     return metafor
-
-
-def getRealTimeExtractorsList(mtf):
-    return []

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: latin-1; -*-
 # $Id: $
 
@@ -16,13 +16,12 @@ import viewer as v
 w = None
 
 class Module:
-    def __init__(self, w, msh, pbl, scheme, extManager, gui):
+    def __init__(self, w, msh, pbl, scheme, extManager):
        self.w = w
        self.msh = msh
        self.pbl = pbl       
        self.scheme = scheme
        self.extManager = extManager
-       self.gui = gui
 
 def getPfem():
     global w
@@ -45,7 +44,7 @@ def getPfem():
     
     msh = w.MshData(pbl)
     msh.load(mshFile)
-    print msh
+    print(msh)
     
     scheme = w.BackwardEuler(msh, pbl)
     
@@ -57,9 +56,6 @@ def getPfem():
     w.Boundary(msh, "Walls", 1, 0.0)
     w.Boundary(msh, "Walls", 2, 0.0)
     
-    scheme.ttot = 1.0
-    scheme.savefreq=1
-    scheme.nthreads=3
     scheme.gamma = 0.5
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True
@@ -80,6 +76,4 @@ def getPfem():
     extManager.add(11,wt.KineticEnergyExtractor(msh,pbl,"Face1"))
     extManager.add(12,wt.ViscousEnergyExtractor(msh,pbl,scheme,"Face1"))
     
-    gui = v.MeshViewer(msh, scheme, True) 
-    
-    return Module(w, msh, pbl, scheme, extManager, gui)
+    return Module(w, msh, pbl, scheme, extManager)

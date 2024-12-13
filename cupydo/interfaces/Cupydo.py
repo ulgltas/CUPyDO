@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ''' 
@@ -22,7 +22,6 @@ Drive (create and run) an FSI computation
 Authors: Adrien CROVATO
 
 '''
-
 from .. import utilities as cupyutil
 from .. import manager as cupyman
 from .. import interpolator as cupyinterp
@@ -31,67 +30,98 @@ from .. import algorithm as cupyalgo
 
 class CUPyDO(object):
     def __init__(self, p):
+
+        # --- Reads the solver paths --- #
+        path = cupyutil.solverPath()
+
         # --- Set up MPI --- #
         withMPI, comm, myId, numberPart = cupyutil.getMpi()
-        rootProcess = 0
 
-        # --- Initialize the fluid and solid solvers --- #
+        # --- Initialize the fluid solver --- #
+        path.add(p['fluidSolver'])
         fluidSolver = self.__initFluid(p, withMPI, comm)
+        path.remove(p['fluidSolver'])
+
+        # --- Initialize the solid solver --- #
+        path.add(p['solidSolver'])
         cupyutil.mpiBarrier(comm)
         solidSolver = self.__initSolid(p, myId, withMPI, comm)
         cupyutil.mpiBarrier(comm)
+        path.remove(p['solidSolver'])
 
         # --- Initialize the FSI manager --- #
-        manager = cupyman.Manager(fluidSolver, solidSolver, p['nDim'], p['compType'], comm)
+        manager = cupyman.Manager(fluidSolver, solidSolver, p, comm)
         cupyutil.mpiBarrier()
+        
+        if (not manager.mechanical) and (not manager.thermal):
+            raise RuntimeError('Mechanical and thermal couplings are both disabled.\n')
 
         # --- Initialize the interpolator --- #
-        if p['interpolator'] == 'Matching':
-            interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, comm)
+        if p['interpolator'] == 'matching':
+            interpolator = cupyinterp.MatchingMeshesInterpolator(manager, fluidSolver, solidSolver, p, comm)
         elif p['interpolator'] == 'RBF':
-            interpolator = cupyinterp.RBFInterpolator(manager, fluidSolver, solidSolver, p['rbfRadius'], comm)
+            if p['interpType'] == 'consistent':
+                interpolator = cupyinterp.ConsistentRBFInterpolator(manager, fluidSolver, solidSolver, p, comm)
+            elif p['interpType'] == 'conservative':
+                interpolator = cupyinterp.ConservativeRBFInterpolator(manager, fluidSolver, solidSolver, p, comm)
+            else:
+                raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         elif p['interpolator'] == 'TPS':
-            interpolator = cupyinterp.TPSInterpolator(manager, fluidSolver, solidSolver, comm)
+            if p['interpType'] == 'consistent':
+                interpolator = cupyinterp.ConsistentTPSInterpolator(manager, fluidSolver, solidSolver, p, comm)
+            elif p['interpType'] == 'conservative':
+                interpolator = cupyinterp.ConservativeTPSInterpolator(manager, fluidSolver, solidSolver, p, comm)
+            else:
+                raise RuntimeError(p['interpType'], 'not available! (avail: conservative or consistent).\n')
         else:
-            raise RuntimeError(p['interpolator'], 'not available! (avail: "Matching", "RBF" or "TPS").\n')
-        # if petsc is used, then some options can be set
-        if withMPI and 'interpOpts' in p:
+            raise RuntimeError(p['interpolator'], 'not available! (avail: matching, RBF or TPS).\n')
+
+        # --- Options for PETSC solver --- #
+
+        if withMPI and 'interpMaxIt' in p:
             for linSolver in interpolator.getLinearSolvers():
-                linSolver.setMaxNumberIterations(p['interpOpts'][0])
-                linSolver.setPreconditioner(p['interpOpts'][1])
+                linSolver.setMaxNumberIterations(p['interpMaxIt'])
+
+        if withMPI and 'interpPrecond' in p:
+            for linSolver in interpolator.getLinearSolvers():
+                linSolver.setPreconditioner(p['interpPrecond'])
+
+        if withMPI and 'interpTol' in p:
+            for linSolver in interpolator.getLinearSolvers():
+                linSolver.setRelativeTolerance(p['interpTol'])
 
         # --- Initialize the FSI criterion --- #
-        if p['algorithm'] == 'Explicit':
-            print('Explicit simulations requested, criterion redefined to None.')
-        if p['criterion'] == 'Displacements':
-            criterion = cupycrit.DispNormCriterion(p['tol'])
+
+        if p['criterion'] == 'relative':
+            criterion = cupycrit.RelativeCriterion(p)
+        elif p['criterion'] == 'norm':
+            criterion = cupycrit.NormCriterion(p)
         else:
-            raise RuntimeError(p['criterion'], 'not available! (avail: "Displacements").\n')
+            raise RuntimeError(p['criterion'], 'not available! (avail: relative or norm).\n')
         cupyutil.mpiBarrier()
 
         # --- Initialize the FSI algorithm --- #
-        if p['computation'] == 'Adjoint':
-            if p['algorithm'] == 'StaticBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+        if p['computation'] == 'adjoint':
+            if p['algorithm'] == 'staticBGS':
+                self.algorithm = cupyalgo.AlgorithmBGSStaticRelaxAdjoint(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             else:
-                raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: "StaticBGS").\n')
+                raise RuntimeError(p['algorithm'], 'not available in adjoint calculations! (avail: staticBGS).\n')
 
-        else:
-            if p['algorithm'] == 'Explicit':
-                self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator,
-                    p['dt'], p['tTot'], p['timeItTresh'], comm)
-            elif p['algorithm'] == 'StaticBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
-            elif p['algorithm'] == 'AitkenBGS':
-                self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], comm)
+        elif p['computation'] == 'direct':
+            if p['algorithm'] == 'explicit':
+                self.algorithm = cupyalgo.AlgorithmExplicit(manager, fluidSolver, solidSolver, interpolator, p, comm)
+            elif p['algorithm'] == 'staticBGS':
+                self.algorithm = cupyalgo.AlgorithmBGSStaticRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+            elif p['algorithm'] == 'aitkenBGS':
+                self.algorithm = cupyalgo.AlgorithmBGSAitkenRelax(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             elif p ['algorithm'] == 'IQN_ILS':
-                self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion,
-                    p['maxIt'], p['dt'], p['tTot'], p['timeItTresh'], p['omega'], p['nSteps'], p['firstItTgtMat'], comm)
+                self.algorithm = cupyalgo.AlgorithmIQN_ILS(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
+            elif p ['algorithm'] == 'IQN_MVJ':
+                self.algorithm = cupyalgo.AlgorithmIQN_MVJ(manager, fluidSolver, solidSolver, interpolator, criterion, p, comm)
             else:
-                raise RuntimeError(p['algorithm'], 'not available! (avail: "Explicit", "StaticBGS", "AitkenBGS" or "IQN_ILS").\n')
+                raise RuntimeError(p['algorithm'], 'not available! (avail: explicit, staticBGS, aitkenBGS, IQN_ILS or IQN_MVJ).\n')
+        else:
+            raise RuntimeError(p['computation'], 'not available! (avail: direct or adjoint).\n')
         cupyutil.mpiBarrier()
 
     def run(self):
@@ -105,34 +135,37 @@ class CUPyDO(object):
         Adrien Crovato
         """
         args = cupyutil.parseArgs()
-        if p['computation'] == 'Adjoint':
+        if p['computation'] == 'adjoint':
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
                 if comm != None:
-                    fluidSolver = fItf.SU2Adjoint(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                    fluidSolver = fItf.SU2Adjoint(p, withMPI, comm)
                 else:
-                    fluidSolver = fItf.SU2Adjoint(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                    fluidSolver = fItf.SU2Adjoint(p, withMPI, 0)
             else:
                 raise RuntimeError('Adjoint interface for', p['fluidSolver'], 'not found!\n')
         else:
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
                 if comm != None:
-                    fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, comm)
+                    fluidSolver = fItf.SU2(p, withMPI, comm)
                 else:
-                    fluidSolver = fItf.SU2(p['cfdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], withMPI, 0)
+                    fluidSolver = fItf.SU2(p, withMPI, 0)
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
-                fluidSolver = fItf.Pfem(p['cfdFile'], args.n, args.nogui, p['dt'])
-            elif p['fluidSolver'] == 'Flow':
-                from . import Flow as fItf
-                fluidSolver = fItf.Flow(p['cfdFile'], args.n)
+                fluidSolver = fItf.Pfem(p, args.k)
+            elif p['fluidSolver'] == 'DART':
+                from dart.api.cupydo import Dart
+                fluidSolver = Dart(p, args.k)
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
-                fluidSolver = fItf.VLMSolver(p['cfdFile'])
+                fluidSolver = fItf.VLMSolver(p)
             elif p['fluidSolver'] == 'Fpm':
                 from . import Fpm as fItf
-                fluidSolver = fItf.Fpm(p['cfdFile'])
+                fluidSolver = fItf.Fpm(p)
+            elif p['fluidSolver'] == 'Pfem3D':
+                from . import Pfem3D as fItf
+                fluidSolver = fItf.Pfem3D(p)
             else:
                 raise RuntimeError('Interface for', p['fluidSolver'], 'not found!\n')
         return fluidSolver
@@ -142,41 +175,41 @@ class CUPyDO(object):
         Adrien Crovato
         """
         solidSolver = None
-        # IMPORTANT! only master can instantiate the solid solver except SU2Solid. GetDP is to be updated
-        if p['computation'] == 'Adjoint': # Adjoint calculations only support SU2Solid
+        # IMPORTANT! only master can instantiate the solid solver except SU2Solid.
+        if p['computation'] == 'adjoint': # Adjoint calculations only support SU2Solid
             if p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
-                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
+                    solidSolver = sItf.SU2SolidAdjoint(p, withMPI, comm)
                 else:
-                    solidSolver = sItf.SU2SolidAdjoint(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
+                    solidSolver = sItf.SU2SolidAdjoint(p, withMPI, 0)
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
-                solidSolver = sItf.pyBeamAdjointSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
+                solidSolver = sItf.pyBeamAdjointSolver(p)
             elif myId == 0:
                 raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
         else:
             if myId == 0 and p['solidSolver'] == 'Metafor':
                 from . import Metafor as sItf
-                solidSolver = sItf.Metafor(p['csdFile'], p['compType'])
+                solidSolver = sItf.Metafor(p)
             elif myId == 0 and p['solidSolver'] == 'RBMI':
                 from . import RBMI as sItf
-                solidSolver = sItf.RBMI(p['csdFile'], p['compType'])
+                solidSolver = sItf.RBMI(p)
             elif myId == 0 and p['solidSolver'] == 'Modal':
                 from . import Modal as sItf
-                solidSolver = sItf.Modal(p['csdFile'], p['compType'])
+                solidSolver = sItf.Modal(p)
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
-                solidSolver = sItf.pyBeamSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'])
+                solidSolver = sItf.pyBeamSolver(p)
             elif p['solidSolver'] == 'SU2':
                 from . import SU2Solid as sItf
                 if comm != None:
-                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, comm)
+                    solidSolver = sItf.SU2SolidSolver(p, withMPI, comm)
                 else:
-                    solidSolver = sItf.SU2SolidSolver(p['csdFile'], p['nDim'], p['compType'], p['nodalLoadsType'], p['extractors'], p['surfaceFilename'], p['surfaceExtension'], withMPI, 0)
+                    solidSolver = sItf.SU2SolidSolver(p, withMPI, 0)
             elif p['solidSolver'] == 'GetDP':
                 from . import GetDP as sItf
-                raise RuntimeError('GetDP interface not up-to-date!\n')
+                raise RuntimeError('GetDP interface not up-to-date!')
             elif myId == 0:
                 raise RuntimeError('Interface for', p['solidSolver'], 'not found!\n')
         return solidSolver
@@ -185,27 +218,32 @@ class CUPyDO(object):
 # Sample parameters list
 
 # Solvers
-# - p['fluidSolver'], fluid solvers available: SU2, Pfem, Flow, VLM
+# - p['fluidSolver'], fluid solvers available: SU2, Pfem, DART, VLM, Pfem3D
 # - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 
-# - p['csdFile'], path to solid cfg file'
+# - p['csdFile'], path to solid cfg file
 
 # FSI objects
 # - p['interpolator'], interpolator type available: Matching, RBF, TPS
+# - p['interpType'], loading type available: Conservative, Consistent
 # - p['criterion'], convergence criterion available: Displacements
 # - p['algorithm'], FSI algorithms available: Explicit, StaticBGS, AitkenBGS, IQN_ILS
+# - p['mechanical'], enable mechanical coupling
+# - p['thermal'], enable thermal coupling
 
 # FSI parameters
 # needed by all algos
-# - p['compType'], steady or unsteady
+# - p['regime'], steady or unsteady
+# - p['computation'], direct or adjoint
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
 # - p['tTot'], total time
-# - p['timeItTresh'], ??????
+# - p['dtSave'], time between each result save()
 # needed by BGS
-# - p['tol'], tolerance on displacements
-# - p['maxIt'], maximu number of iterations
+# - p['mechanicalTol'], tolerance on displacements
+# - p['thermalTol'], tolerance on temperature
+# - p['maxIt'], maximum number of iterations
 # - p['omega'], relaxation parameter
 # needed by IQN-ILS
 # - p['firstItTgtMat'], compute the Tangent matrix based on first iteration (True or False)
@@ -213,10 +251,11 @@ class CUPyDO(object):
 # needed by RBF interpolator
 # - p['rbfRadius'], radius of interpolation for RBF
 # optional for RBF/TPS interpolators
-# - p['interpOpts'], optional options for interpolator, [0] = max number of iterations, [1] = preconditionner type
+# - p['interpMaxIt'], maximum number of iterations
+# - p['interpPrecond'], preconditionner
+# - p['interpTol'], solver tolerance
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
-# - p['nodalLoadsType'], SU2
 # - p['extractors'], SU2Solid, pyBeam
 # - p['surfaceFilename'], SU2Solid, filename of the output surface file, as defined in the CFG file
 # - p['surfaceExtension'], SU2Solid, extension of the output surface file: vtu, vtk, dat

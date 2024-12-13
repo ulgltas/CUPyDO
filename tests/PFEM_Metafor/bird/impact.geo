@@ -1,4 +1,4 @@
-// Copyright 2018 University of Liège
+// Copyright 2018 University of Liï¿½ge
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,11 +43,11 @@ Plane Surface(10) = {9};
 Line Loop(11) = {1, 2, 3, 4};
 Plane Surface(12) = {11};
 
-Physical Line(13) = {3};          //FSI surface
-Physical Line(14) = {2, 4};       //Clamping
-Physical Line(15) = {5, 6, 7, 8}; //Free surface
-Physical Surface(16) = {10};      //Bird
-Physical Surface(17) = {12};      //Panel
+Physical Line("FSInterface",13) = {3};          //FSI surface
+Physical Line("Clamping",14) = {2, 4};       //Clamping
+Physical Line("FreeSurface",15) = {5, 6, 7, 8}; //Free surface
+Physical Surface("Bird",16) = {10};      //Bird
+Physical Surface("Panel",17) = {12};      //Panel
 
 Transfinite Line{1} = 3*(L/R)*N+1;
 Transfinite Line{2} = 4*(h/R)*N+1;

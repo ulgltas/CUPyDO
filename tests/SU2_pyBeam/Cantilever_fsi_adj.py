@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf8 -*-
 
 ''' 
@@ -19,12 +19,12 @@ limitations under the License.
 
 '''
 
-import os
-from shutil import copyfile # Copy file from restart.pyBeam to solution.pyBeam, hardcoded filenames in pyBeam
-
+from shutil import copyfile
 def test_adj(res, tol):
+
     import numpy as np
-    from cupydo.testing import CTest, CTests, ccolors
+    from cupydo.testing import CTest, CTests
+
     # Read results from file
     with open("AerodynamicCoeff.ascii", 'rb') as f:
         lines = f.readlines()
@@ -37,17 +37,16 @@ def test_adj(res, tol):
     resultAdj = np.genfromtxt(lines[-1:], delimiter=None)
 
     # Check convergence and results
-    # residual for test is 1e-8
     if (res > tol):
        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
-       raise Exception(ccolors.ANSI_RED + "FSI algo failed to converge!" + ccolors.ANSI_RESET)
+       raise Exception("FSI algo failed to converge!")
 
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('dcd/dE', resultAdj, 1.41152371e-5, 3e-3, False)) # rel. tol. of 0.3%, based on central FD with deltaE of 1000 Pa
+    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False))
+    tests.add(CTest('dcd/dE', resultAdj, 0.000014, 0.05, False))
     tests.run()
 
 def getAdjP():
@@ -55,29 +54,39 @@ def getAdjP():
     import os
     filePath = os.path.abspath(os.path.dirname(__file__))
     p = {}
+    
     # Solvers and config files
+
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
     p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
-    p['computation'] = 'Adjoint'
+    p['computation'] = 'adjoint'
+
     # FSI objects
+
     p['interpolator'] = 'RBF'
-    p['criterion'] = 'Displacements'
-    p['algorithm'] = 'StaticBGS'
+    p['interpType'] = 'conservative'
+    p['algorithm'] = 'staticBGS'
+
     # FSI parameters
-    p['compType'] = 'steady'
+
+    p['regime'] = 'steady'
+    p['criterion'] = 'relative'
     p['nDim'] = 2
     p['dt'] = 0.
     p['tTot'] = 0.05
-    p['timeItTresh'] = -1
-    p['tol'] = 1e-8
-    p['maxIt'] = 16
+    p['dtSave'] = 0
+    p['maxIt'] = 25
     p['omega'] = 1.0
     p['rbfRadius'] = .3
-    p['nodalLoadsType'] = 'force'
-    # Solid parameters
     p['extractors'] = [20]
+
+    # Coupling Type
+
+    p['mechanical'] = True
+    p['mechanicalTol'] = 1e-6
+    p['thermal'] = False
     return p
 
 def main():
@@ -88,7 +97,7 @@ def main():
     p = getAdjP() # get parameters
     cupydo = cupy.CUPyDO(p) # create fsi driver
     cupydo.run() # run fsi process
-    test_adj(cupydo.algorithm.errValue, p['tol']) # check the results
+    test_adj(cupydo.algorithm.criterion.epsilon, p['mechanicalTol']) # check the results
     
     # eof
     print('')

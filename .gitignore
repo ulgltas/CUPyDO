@@ -5,10 +5,10 @@
 *.log
 *.res
 *.old
+*.pos
+*.exe
 
 workspace/
-exe/*.sh
-
 apps/
 
 *.bfac.gz

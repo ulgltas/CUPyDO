@@ -1,4 +1,4 @@
-// Copyright 2018 University of Liège
+// Copyright 2018 University of LiÃ¨ge
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,13 +48,13 @@ Plane Surface(13) = {12};
 Line Loop(14) = {6, 7, 8, 11};
 Plane Surface(15) = {14};
 
-Physical Line(16) = {1, 2, 5, 9, 10, 12}; //Reservoir
-Physical Line(17) = {6, 7, 8};        //Obstacle surface: FSI interface
-Physical Line(18) = {3, 4};           //Free surface
-Physical Line(19) = {11};             //Obstacle base
-Physical Surface(20) = {13};          //Water column
-Physical Surface(21) = {15};          //Obstacle
-Physical Surface(100) = {};          //Solid-solid contact
+Physical Line("Reservoir",16) = {1, 2, 5, 9, 10, 12}; //Reservoir
+Physical Line("FSInterface",17) = {6, 7, 8};        //Obstacle surface: FSI interface
+Physical Line("FreeSurface",18) = {3, 4};           //Free surface
+Physical Line("ObstacleBase",19) = {11};             //Obstacle base
+Physical Surface("WaterColumn",20) = {13};          //Water column
+Physical Surface("Obstacle",21) = {15};          //Obstacle
+Physical Surface("Contact",100) = {};          //Solid-solid contact
 
 Transfinite Line{1} = 2*N;
 Transfinite Line{2} = N;

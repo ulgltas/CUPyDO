@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # original name: birdStrike_lsDyna_benchmark_bird_Pfem
 
@@ -35,7 +35,7 @@ w = None
 
 class Module(object):
     def __init__(self, w, msh, pbl, solScheme, nonLinAlgo,
-                 convCriterion, bird, loadingset, scheme, extManager, gui, bndno):
+                 convCriterion, bird, loadingset, scheme, extManager, bndno):
         self.w = w
         self.msh = msh
         self.pbl = pbl
@@ -46,7 +46,6 @@ class Module(object):
         self.loadingset = loadingset
         self.scheme = scheme
         self.extManager = extManager
-        self.gui = gui
         self.bndno = bndno
 
 
@@ -87,22 +86,21 @@ def getPfem():
 
     scheme = w.TimeIntegration(msh, pbl, solScheme)
 
-    bndno = 15 # fsi boundary
+    bndno = "FSInterface" # fsi boundary
 
-    w.Medium(msh, 15, 0., 0., 3)
-    w.Medium(msh, 17, mu, rho0, 1)
+    w.Medium(msh, "FSInterface", w.SOLID, 0., 0.)
+    w.Medium(msh, "Bird", w.MASTER_FLUID, mu, rho0)
 
     # boundaries
-    w.Boundary(msh, 14, 3, 0.0)
-    w.Boundary(msh, 15, 1, 0.0)
-    w.Boundary(msh, 15, 2, 0.0)
+    w.Boundary(msh, "FreeSurface", 3, 0.0)
+    w.Boundary(msh, "FSInterface", 1, 0.0)
+    w.Boundary(msh, "FSInterface", 2, 0.0)
 
     # Initial velocity
-    bird = w.Group(msh, 17)
+    bird = w.Group(msh, "Bird")
     loadingset = w.LoadingSet(msh)
     loadingset.add(1, w.InitialVelocity(msh, bird, U0, V0, 0.))
 
-    scheme.savefreq = 1
     scheme.gamma = 0.5
     scheme.omega = 0.5
     scheme.addRemoveNodesOption = True
@@ -120,12 +118,7 @@ def getPfem():
     extManager.add(6,wt.KineticEnergyExtractor(msh,pbl,"Body"))
     extManager.add(7,wt.ViscousEnergyExtractor(msh,pbl,scheme,"Body"))'''
 
-    import pfem.tools.link2vtk as v
-    gui = v.Link2VTK(msh, scheme, False, True)
-
-    return Module(w, msh, pbl, solScheme, nonLinAlgo,
-                  convCriterion, bird, loadingset,
-                  scheme, extManager, gui, bndno)
+    return Module(w, msh, pbl, solScheme, nonLinAlgo, convCriterion, bird, loadingset, scheme, extManager, bndno)
 
 
 def getRealTimeExtractorsList(pfem):

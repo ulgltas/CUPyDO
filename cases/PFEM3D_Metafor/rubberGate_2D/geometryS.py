@@ -8,7 +8,7 @@ H = 0.079
 S = 0.005
 L1 = 0.1
 
-E = 1e-5
+eps = 1e-5
 N = 120
 M = 10
 
@@ -18,8 +18,8 @@ p = list()
 
 p.append(sh.occ.addPoint(L1, H, 0))
 p.append(sh.occ.addPoint(L1+S, H, 0))
-p.append(sh.occ.addPoint(L1, E, 0))
-p.append(sh.occ.addPoint(L1+S, E, 0))
+p.append(sh.occ.addPoint(L1, eps, 0))
+p.append(sh.occ.addPoint(L1+S, eps, 0))
 
 # Lines list
 

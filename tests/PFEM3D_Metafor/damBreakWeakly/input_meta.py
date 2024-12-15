@@ -2,13 +2,6 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 1 = FSI
-
-def params(parm):
-
-    parm['bndno'] = 1
-    return parm
-
 metafor = None
 def getMetafor(parm):
 
@@ -37,6 +30,8 @@ def getMetafor(parm):
     importer = gmsh.GmshImport(mshFile,domain)
     groups = importer.groups
     importer.execute()
+
+    parm['FSI'] = groups['FSI']
 
     # Defines the solid domain
 

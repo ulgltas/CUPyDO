@@ -102,7 +102,9 @@ class Pfem3D(FluidSolver):
             self.solver.setTimeStep(t2-t1)
 
         if self.problem.simulate():
+
             self.__setCurrentState()
+            self.problem.getMesh().savePredictor(True)
             return True
 
         else: return False

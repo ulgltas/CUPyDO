@@ -61,16 +61,15 @@ class Metafor(SolidSolver):
         module = importlib.import_module(p['csdFile'])
         self.metafor = module.getMetafor(parm)
         domain = self.metafor.getDomain()
-        parm = module.params(parm)
 
         # Defines some internal variables
 
         self.reload = True
         self.neverRun = True
+        self.__dict__.update(parm)
 
-        self.exporter = parm['exporter']
-        self.interpType = p['interpType']
         self.regime = p['regime']
+        self.interpType = p['interpType']
 
         self.thermal = p['thermal']
         self.mechanical = p['mechanical']
@@ -80,7 +79,6 @@ class Metafor(SolidSolver):
         geometry = domain.getGeometry()
         loadingset = domain.getLoadingSet()
         self.tsm = self.metafor.getTimeStepManager()
-        self.FSI = geometry.getGroupSet()(parm['bndno'])
 
         self.dim = geometry.getDimension().getNdim()
         self.nNodes = self.FSI.getNumberOfMeshPoints()
@@ -102,14 +100,6 @@ class Metafor(SolidSolver):
                     load.append(NLoad(0))
                     fct = w.PythonOneParameterFunction(load[-1])
                     loadingset.define(node,w.Field1D(F, w.GF1), 1, fct)
-
-        # Create the consistent nodal stress/heat containers
-
-        if 'interactionM' in parm:
-            self.interactionM = parm['interactionM']
-
-        if 'interactionT' in parm:
-            self.interactionT = parm['interactionT']
 
         # Initialization of domain and output
 

@@ -4,8 +4,6 @@ import numpy as np
 import gmsh
 import os
 
-import time
-
 def test(meanFSIIt):
 
     name = [file for file in os.listdir() if('solid' in file)]

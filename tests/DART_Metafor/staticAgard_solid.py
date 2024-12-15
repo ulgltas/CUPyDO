@@ -5,20 +5,9 @@ from wrap import *
 from wrap.mtCompositesw import *
 from math import *
 
-def params(_p):
-    p={}
-    p['relTol'] = 1e-6
-    p['maxIt'] = 20
-    p['bndno'] = 111
-    p['exporter'] = Extractor()
-                       
-    p.update(_p)
-    return p
-
 def getMetafor(p={}):
     global metafor
     metafor = Metafor()
-    p = params(p)
 
     # -- Geometry container and computation type
     domain = metafor.getDomain()
@@ -31,6 +20,7 @@ def getMetafor(p={}):
     importer = GmshImport(f, domain)
     importer.execute()    
     groupset = domain.getGeometry().getGroupSet()
+    p['FSI'] = groupset(111)
 
     # -- Define the material
     matset = domain.getMaterialSet()
@@ -84,7 +74,7 @@ def getMetafor(p={}):
     # -- Numerical parameters
     mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(p['maxIt'])
-    mim.setResidualTolerance(p['relTol'])
+    mim.setResidualTolerance(1e-6)
 
     # -- for pure Metafor testing
     if 0:         
@@ -107,6 +97,7 @@ def getMetafor(p={}):
         tsm.setInitialTime(0.0, 0.1)
         tsm.setNextTime(1.0, 1, 0.1)
   
+    p['exporter'] = Extractor()
     return metafor
     
 class Extractor(object):

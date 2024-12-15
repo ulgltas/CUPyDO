@@ -2,13 +2,6 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 2 = FSI
-
-def params(parm):
-
-    parm['bndno'] = 2
-    return parm
-
 # Parallel Computing
 
 metafor = None
@@ -45,6 +38,8 @@ def getMetafor(parm):
     importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
+
+    parm['FSI'] = groups['FSI']
 
     # Defines the ball domain
 

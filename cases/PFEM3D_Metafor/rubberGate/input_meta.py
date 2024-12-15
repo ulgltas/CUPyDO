@@ -2,13 +2,6 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 2 = FSI
-
-def params(parm):
-
-    parm['bndno'] = 2
-    return parm
-
 metafor = None
 def getMetafor(parm):
     '''

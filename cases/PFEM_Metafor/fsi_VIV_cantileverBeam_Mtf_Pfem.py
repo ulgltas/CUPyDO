@@ -16,7 +16,7 @@ import cupydo.algorithm as cupyalgo
 def getParameters(_p):
     # --- Input parameters --- #
     p = {}
-    p['extractor'] = None
+    p['exporter'] = None
     p.update(_p)
     return p
 

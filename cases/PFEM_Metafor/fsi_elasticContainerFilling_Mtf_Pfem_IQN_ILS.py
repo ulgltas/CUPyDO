@@ -29,7 +29,7 @@ def getParameters(_p):
     p['computeTangentMatrixBasedOnFirstIt'] = False
     p['QR_filter'] = 'Haelterman'
     p['tollQR'] = 1.0e-1
-    p['extractor'] = None
+    p['exporter'] = None
     p.update(_p)
     return p
 

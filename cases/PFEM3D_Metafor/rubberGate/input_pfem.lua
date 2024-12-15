@@ -22,17 +22,17 @@ Problem.Mesh = {
     -- Remeshing internal parameters
 
     alpha = 1.2,
-    omega = 0.7,
-    gamma = 0.3,
+    omega = 1.0,
+    gamma = 0.4,
     hchar = 1e-3,
-    gammaFS = 0.3,
-    gammaEdge = 0.3,
+    gammaFS = 0.4,
+    gammaEdge = 0.2,
     minHeightFactor = 1e-3,
 
     -- Enable or disable algorithms
 
     addOnFS = true,
-    keepFluidElements = true,
+    keepFluidElements = false,
     deleteFlyingNodes = true
 }
 

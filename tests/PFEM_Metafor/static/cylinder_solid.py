@@ -24,28 +24,11 @@ from wrap import *
 
 metafor = None
 
-
-def params(q={}):
-    """ default model parameters
-    """
-    p = {}
-    p['tolNR'] = 1.0e-7        # Newton-Raphson tolerance
-    p['tend'] = 1.            # final time
-    p['dtmax'] = 0.005          # max time step
-    p['bndno'] = 9            # interface boundary number
-    p['exporter'] = None
-
-    p.update(q)
-    return p
-
-
 def getMetafor(p={}):
     global metafor
     if metafor:
         return metafor
     metafor = Metafor()
-
-    p = params(p)
 
     domain = metafor.getDomain()
     geometry = domain.getGeometry()
@@ -58,6 +41,7 @@ def getMetafor(p={}):
     importer.execute2D()
 
     groupset = domain.getGeometry().getGroupSet()
+    p['FSI'] = groupset(9)
 
     # solid elements / material
     interactionset = domain.getInteractionSet()
@@ -90,7 +74,7 @@ def getMetafor(p={}):
 
     mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(4)
-    mim.setResidualTolerance(p['tolNR'])
+    mim.setResidualTolerance(1.0e-7)
 
     ti = AlphaGeneralizedTimeIntegration(metafor)
     metafor.setTimeIntegration(ti)
@@ -106,4 +90,5 @@ def getMetafor(p={}):
     #vmgr.add(1, MiscValueExtractor(metafor, EXT_T), 'time')
     #vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
 
+    p['exporter'] = None
     return metafor

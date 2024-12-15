@@ -44,7 +44,6 @@ Transfinite Line{5} = 1.5*(L/R)*N+1;
 // Physical Boundaries
 
 Physical Surface("Fluid") = {1};
-Physical Line("FSInterface") = {5};
-Physical Line("FreeSurface") = {1,2,3};
+Physical Line("FSI") = {5};
 
 Mesh 2;

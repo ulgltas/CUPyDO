@@ -2,14 +2,6 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 2 = FSInterface
-
-def params(input):
-
-    input['bndno'] = 12
-    input['bctype'] = 'pydeadloads'
-    return input
-
 # Parallel Computing
 
 metafor = None
@@ -47,6 +39,8 @@ def getMetafor(parm):
     importer = gmsh.GmshImport(mshFile, domain)
     groups = importer.groups
     importer.execute()
+
+    parm['FSI'] = groups['FSI']
 
     # Defines the ball domain
 

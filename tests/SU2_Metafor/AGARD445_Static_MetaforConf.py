@@ -25,28 +25,10 @@ from math import *
 
 metafor = None
 
-def params(q={}):
-    """ default model parameters
-    """
-    p={}
-    p['tolNR']      = 1.0e-8        # Newton-Raphson tolerance
-    #p['tolNR']      = 1.0e-6        # Newton-Raphson tolerance
-    p['tend']       = 0.05           # final time
-    p['dtmax']      = 0.05          # max time step
-    p['bndno'] = 111
-    p['extractNode'] = 180
-    p['unsteady'] = False
-    p['exporter'] = Extractor()
-                                       
-    p.update(q)
-    return p
-
 def getMetafor(p={}): 
     global metafor
     if metafor : return metafor
     metafor = Metafor()
-
-    p = params(p)
 
     domain = metafor.getDomain()
     geometry = domain.getGeometry()
@@ -61,6 +43,7 @@ def getMetafor(p={}):
     importer.execute()
 
     groupset = domain.getGeometry().getGroupSet()
+    p['FSI'] = groupset(111)
 
     # -- Define solid elements and material ---
     interactionset = domain.getInteractionSet()
@@ -117,7 +100,7 @@ def getMetafor(p={}):
 
     mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(20)
-    mim.setResidualTolerance(p['tolNR'])
+    mim.setResidualTolerance(1.0e-8)
 
     #ti = AlphaGeneralizedTimeIntegration(metafor)
     #metafor.setTimeIntegration(ti)
@@ -133,6 +116,7 @@ def getMetafor(p={}):
     vmgr.add(3, DbNodalValueExtractor(groupset(183), Field1D(TY,AB)), 'LE_Y')
     vmgr.add(4, DbNodalValueExtractor(groupset(184), Field1D(TY,AB)), 'TE_Y')
     
+    p['exporter'] = Extractor()
     return metafor
 
 class Extractor(object):
@@ -141,7 +125,7 @@ class Extractor(object):
         self.metafor = metafor
         
 
-    def to_ascii(self,extractor):
+    def to_ascii(self, extractor):
 
         file = open(extractor.buildName()+'.ascii', 'a')
         

@@ -36,7 +36,7 @@ Recombine Surface{1};
 // Physical Boundaries
 
 Physical Surface("Solid",11) = {1};
-Physical Line("FSInterface",12) = {3};
+Physical Line("FSI",12) = {3};
 Physical Line("Clamped",13) = {2};
 Physical Line("Axis",14) = {4};
 

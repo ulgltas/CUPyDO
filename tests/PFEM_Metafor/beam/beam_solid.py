@@ -2,21 +2,6 @@ import toolbox.gmshOld as gmshOld
 import wrap as w
 import os
 
-# Physical group 3 = FSInterface
-
-def params(p):
-
-    p['bndno'] = 3
-    domain = metafor.getDomain()
-    groupset = domain.getGeometry().getGroupSet()
-
-    ext = w.GmshExporter(metafor, 'solid')
-    ext.add(w.IFNodalValueExtractor(groupset(1), w.IF_EVMS))
-    ext.add(w.IFNodalValueExtractor(groupset(1), w.IF_P))
-    p['exporter'] = ext
-    
-    return p
-
 # Parallel Computing
 
 metafor = None
@@ -53,6 +38,8 @@ def getMetafor(p):
     mshFile = os.path.join(os.path.dirname(__file__),"beam.msh")
     importer = gmshOld.GmshImport(mshFile,domain)
     importer.execute2D()
+
+    p['FSI'] = groupset(3)
 
     # Defines the ball domain
 
@@ -95,5 +82,12 @@ def getMetafor(p):
     tsm.setTimeStepComputationMethod(tscm)
     tscm.setTimeStepDivisionFactor(2)
     tscm.setNbOptiIte(25)
+
+    # Gmsh results exporter
+
+    ext = w.GmshExporter(metafor, 'solid')
+    ext.add(w.IFNodalValueExtractor(groupset(1), w.IF_EVMS))
+    ext.add(w.IFNodalValueExtractor(groupset(1), w.IF_P))
+    p['exporter'] = ext
 
     return metafor

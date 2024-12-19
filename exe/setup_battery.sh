@@ -7,7 +7,8 @@ export MODALI=v2.0
 export VLM=v2.0
 export PFEM=v1.27
 export NATIVESOLID=v1.1
-export DARTFLO=master
+export DARTFLO=v1.2.2
+export FPM=v1.0.1
 
 # Development code versions
 
@@ -128,6 +129,19 @@ DARTFlo(){
     Clone ${DARTFLO} ${LAB}gitlab.uliege.be/am-dept/dartflo
     
     cd dartflo && mkdir build && cd build
+    cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=bin ..
+    make -j8 install
+}
+
+# Download FPM on GitLab
+
+FPM(){
+
+    cd ${OUTPUT}
+    Clone ${FPM} ${LAB}gitlab.uliege.be/am-dept/fpm
+    
+    cd fpm && mkdir build && cd build
     cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=bin ..
     make -j8 install

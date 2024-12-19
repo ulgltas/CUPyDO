@@ -14,9 +14,6 @@ HS = 0.1
 W = 0.005
 
 d = 2e-3
-N = 40
-M = 9
-P = 4
 
 # Points list
 
@@ -112,23 +109,6 @@ k.append(sh.occ.addCurveLoop([l[2], l[3], l[4], l[5]]))
 
 for a in k: s.append(sh.occ.addPlaneSurface([a]))
 sh.occ.synchronize()
-
-sh.mesh.setTransfiniteCurve(l[18], N)
-sh.mesh.setTransfiniteCurve(l[19], N)
-sh.mesh.setTransfiniteCurve(l[20], N)
-sh.mesh.setTransfiniteCurve(l[21], N)
-
-sh.mesh.setTransfiniteCurve(l[7], M)
-sh.mesh.setTransfiniteCurve(l[9], M)
-sh.mesh.setTransfiniteCurve(l[11], M)
-sh.mesh.setTransfiniteCurve(l[13], M)
-
-sh.mesh.setTransfiniteCurve(l[6], P)
-sh.mesh.setTransfiniteCurve(l[8], P)
-sh.mesh.setTransfiniteCurve(l[10], P)
-sh.mesh.setTransfiniteCurve(l[12], P)
-
-for a in s[6:11]: sh.mesh.setTransfiniteSurface(a)
 
 # Volumes list
 

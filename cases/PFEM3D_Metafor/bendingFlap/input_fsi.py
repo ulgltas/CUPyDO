@@ -17,7 +17,7 @@ def getFsiP():
     
     # FSI objects
 
-    p['interpolator'] = 'matching'
+    p['interpolator'] = 'TPS'
     p['interpType'] = 'consistent'
     p['algorithm'] = 'IQN_MVJ'
     
@@ -39,7 +39,7 @@ def getFsiP():
     # Coupling Type
 
     p['mechanical'] = True
-    p['mechanicalTol'] = 1e-8
+    p['mechanicalTol'] = 1e-6
     p['thermal'] = False
     return p
 

@@ -48,12 +48,12 @@ class Fpm(FluidSolver):
             self.saveFreq = sys.maxsize
 
         # generic init
-        FluidSolver.__init__(self)
+        FluidSolver.__init__(self, p)
 
     def __initFpm(self, p):
         """Initilize fpm classes
         """
-        import fpm
+        import fpmw
         import tbox
         import tbox.gmsh as gmsh
 
@@ -104,6 +104,7 @@ class Fpm(FluidSolver):
         """
         self.solver.run()
         self.__setCurrentState()
+        return True
     
     def __setCurrentState(self):
         """Compute nodal forces from nodal normalized forces
@@ -135,7 +136,7 @@ class Fpm(FluidSolver):
         no = self.boundary.nodes[iVertex].no
         return no
 
-    def applyNodalDisplacements(self, dx, dy, dz, dx_nM1, dy_nM1, dz_nM1, haloNodesDisplacements, time):
+    def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
         """Apply displacements coming from solid solver to f/s interface after saving
         """
         for i in range(self.boundary.nodes.size()):

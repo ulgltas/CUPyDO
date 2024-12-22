@@ -3,7 +3,7 @@
     "Pfem3D": "C:/Devs/Solvers/PFEM3D/build/bin",
     "Modal": "C:/Devs/Solvers/modali",
     "VLM": "C:/Devs/Solvers/VLM",
-    "FPM": ["C:/Devs/Solvers/FPM/build/bin", "C:/Devs/Solvers/FPM/ext/amfe"],
+    "Fpm": ["C:/Devs/Solvers/fpm/build/bin", "C:/Devs/Solvers/fpm/ext/amfe"],
     "Flow": "C:/Devs/Solvers/waves",
     "Pfem": ["C:/Devs/Solvers/PFEM", "C:/Devs/Solvers/waves"],
     "SU2": "C:/Devs/Solvers/SU2/build/bin",

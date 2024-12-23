@@ -59,7 +59,7 @@ def getMetafor(p={}):
 
     # -- Numerical parameters
     mim = metafor.getMechanicalIterationManager()
-    mim.setMaxNbOfIterations(p['maxIt'])
+    mim.setMaxNbOfIterations(20)
     mim.setResidualTolerance(1e-6)
 
     # -- for pure Metafor testing

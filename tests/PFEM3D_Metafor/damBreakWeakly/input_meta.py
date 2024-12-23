@@ -60,6 +60,8 @@ def getMetafor(parm):
     load.push(groups['FSI'])
     load.addProperty(prp2)
     interactionset.add(load)
+
+    parm['interactionM'] = load
     
     # Boundary conditions
     
@@ -84,8 +86,6 @@ def getMetafor(parm):
     tscm.setNbOptiIte(25)
 
     # Parameters for CUPyDO
-
-    parm['interactionM'] = load
 
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))

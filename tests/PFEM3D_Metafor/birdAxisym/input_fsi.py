@@ -19,7 +19,7 @@ def test(meanFSIIt):
     tests = CTests()
     tests.add(CTest('Middle bar coordinate X', coord[0], 0, 1e-9, True))
     tests.add(CTest('Middle bar coordinate Y', coord[1], -0.000894, 0.05, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 5, 1, True))
     tests.run()
 
 # Input Parameters
@@ -58,7 +58,7 @@ def getFsiP():
     # Coupling Type
 
     p['mechanical'] = True
-    p['mechanicalTol'] = 1e-8
+    p['mechanicalTol'] = 1e-6
     p['thermal'] = False
     return p
 

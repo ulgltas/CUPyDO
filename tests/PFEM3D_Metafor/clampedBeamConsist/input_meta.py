@@ -69,6 +69,8 @@ def getMetafor(parm):
     load.addProperty(prp2)
     interactionset.add(load)
 
+    parm['interactionM'] = load
+
     # Boundary conditions
     
     loadingset.define(groups['Clamped'], w.Field1D(w.TX, w.RE))
@@ -92,8 +94,6 @@ def getMetafor(parm):
     tscm.setNbOptiIte(25)
 
     # Parameters for CUPyDO
-
-    parm['interactionM'] = load
 
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))

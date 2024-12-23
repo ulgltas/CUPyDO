@@ -73,6 +73,8 @@ def getMetafor(parm):
     heat.addProperty(prp2)
     interactionset.add(heat)
 
+    parm['interactionT'] = heat
+
     # Elements for surface traction
 
     prp3 = w.ElementProperties(w.NodStress2DElement)
@@ -80,6 +82,8 @@ def getMetafor(parm):
     load.push(groups['FSI'])
     load.addProperty(prp3)
     interactionset.add(load)
+
+    parm['interactionM'] = load
 
     # Initial and boundary conditions
 
@@ -117,11 +121,8 @@ def getMetafor(parm):
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.RE)))
-
-    parm['interactionT'] = heat
-    parm['interactionM'] = load
-    parm['FSI'] = groups['FSI']
     parm['exporter'] = Extractor(ext, node)
+
     return metafor
 
 class Extractor(object):

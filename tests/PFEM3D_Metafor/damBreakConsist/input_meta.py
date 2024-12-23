@@ -68,6 +68,8 @@ def getMetafor(parm):
     load.push(groups['FSI'])
     load.addProperty(prp2)
     interactionset.add(load)
+
+    parm['interactionM'] = load
     
     # Boundary conditions
     
@@ -93,7 +95,6 @@ def getMetafor(parm):
 
     # Parameters for CUPyDO
 
-    parm['interactionM'] = load
     domain.build()
 
     ext = w.GmshExporter(metafor, 'solid')

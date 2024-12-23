@@ -74,6 +74,8 @@ def getMetafor(parm):
     heat.addProperty(prp2)
     interactionset.add(heat)
 
+    parm['interactionT'] = heat
+
     # Top heat flux boundary conditions
 
     fun = lambda x : np.exp(-np.square(x-0.5)/np.square(0.1)/2)
@@ -121,13 +123,9 @@ def getMetafor(parm):
 
     # Parameters for CUPyDO
 
-    parm['interactionT'] = heat
-    parm['FSI'] = groups['FSI']
-
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.RE)))
-
     parm['exporter'] = ext
 
     return metafor

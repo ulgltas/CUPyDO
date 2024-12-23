@@ -28,7 +28,7 @@ def getFsiP():
     p['regime'] = 'unsteady'
     
     p['omega'] = 0.5
-    p['dtSave'] = 1e-3
+    p['dtSave'] = 1e-2
     p['maxIt'] = 25
     p['tTot'] = 2
     p['dt'] = 1e-4

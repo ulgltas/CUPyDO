@@ -49,11 +49,10 @@ def getMetafor(parm):
     # Finite element properties
 
     prp = w.ElementProperties(w.Volume3DElement)
-    prp.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_EAS)
+    prp.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_STD)
     prp.put(w.STIFFMETHOD, w.STIFF_ANALYTIC)
-    prp.put(w.TOTAL_LAGRANGIAN, True)
+    prp.put(w.GRAVITY_Z, -9.81)
     prp.put(w.MATERIAL, 1)
-    prp.put(w.PEAS, 1e-9)
     app.addProperty(prp)
 
     # Elements for surface traction

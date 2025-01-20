@@ -50,10 +50,25 @@ class RBMI(SolidSolver):
         self.nHaloNode = 0
         self.nPhysicalNodes = self.NativeSolid.getNumberOfSolidInterfaceNodes(self.interfaceID)
 
+        if self.regime == "harmonic":
+            self.nInst = 2*self.NativeSolid.getNumberHarmonics()+1
+        else:
+            self.nInst = 1
+
+        self.nDV = self.NativeSolid.getNumberDesignVariables()
+
+        for iAlpha in range(int(self.nDV/2)): # Define location of centres of design variables
+            x = 1-np.cos((iAlpha+1)*np.pi/(2*int(self.nDV/2)+1))
+            self.NativeSolid.setDesignVariableCentre(x, 2*iAlpha)
+            self.NativeSolid.setDesignVariableSide(1, 2*iAlpha)
+            self.NativeSolid.setDesignVariableSide(-1, 2*iAlpha+1)
+            self.NativeSolid.setDesignVariableCentre(x, 2*iAlpha+1)
         SolidSolver.__init__(self)
 
         self.__setCurrentState()
         self.initRealTimeData()
+        if not self.regime == 'harmonic':
+            self.NativeSolid.updateSolution()
 
     def preprocessTimeIter(self, timeIter):
 
@@ -217,6 +232,7 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
         self.nodalAdjLoad_Y = np.zeros((self.nPhysicalNodes, self.nInst))
         self.nodalAdjLoad_Z = np.zeros((self.nPhysicalNodes, self.nInst))
 
+        RBMI._RBMI__setCurrentState(self)  # Using RBMI original __setCurrentState
         self.__setCurrentState()
         self.nodalVel_XNm1 = self.nodalVel_X.copy()
         self.nodalVel_YNm1 = self.nodalVel_Y.copy()
@@ -247,6 +263,7 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
             self.NativeSolid.staticComputation()
 
         self.__setCurrentState()
+        return True
 
     def __setCurrentState(self):
         for jInst in range(self.nInst):

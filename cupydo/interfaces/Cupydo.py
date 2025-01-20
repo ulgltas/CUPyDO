@@ -180,7 +180,7 @@ class CUPyDO(object):
         solidSolver = None
         # IMPORTANT! only master can instantiate the solid solver except SU2Solid.
         if p['computation'] == 'adjoint': # Adjoint calculations only support SU2Solid
-            if p['solidSolver'] == 'SU2':
+            if p['solidSolver'] == 'SU2Solid':
                 from . import SU2Solid as sItf
                 if comm != None:
                     solidSolver = sItf.SU2SolidAdjoint(p, withMPI, comm)
@@ -207,7 +207,7 @@ class CUPyDO(object):
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 solidSolver = sItf.pyBeamSolver(p)
-            elif p['solidSolver'] == 'SU2':
+            elif p['solidSolver'] == 'SU2Solid':
                 from . import SU2Solid as sItf
                 if comm != None:
                     solidSolver = sItf.SU2SolidSolver(p, withMPI, comm)
@@ -225,7 +225,7 @@ class CUPyDO(object):
 
 # Solvers
 # - p['fluidSolver'], fluid solvers available: SU2, Pfem, DART, VLM, Pfem3D
-# - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
+# - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2Solid
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 
 # - p['csdFile'], path to solid cfg file

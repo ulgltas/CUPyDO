@@ -164,11 +164,9 @@ class Algorithm(object):
 
         self.communicationTimer.start()
         if self.interpType == 'conservative':
-            self.interfaceInterpolator.getAdjointForceFromSolidSolver()
             self.interfaceInterpolator.interpolateSolidAdjointLoadsOnFluidMesh()
             self.interfaceInterpolator.setAdjointForceToFluidSolver(self.step.dt)
         elif self.interpType == 'consistent':
-            self.interfaceInterpolator.getAdjointStressFromSolidSolver()
             self.interfaceInterpolator.interpolateSolidAdjointLoadsOnFluidMesh()
             self.interfaceInterpolator.setAdjointStressToFluidSolver(self.step.dt)
         self.communicationTimer.stop()

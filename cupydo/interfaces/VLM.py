@@ -130,9 +130,9 @@ class VLMSolver(FluidSolver):
         vertexForce = np.sum(force, axis=2) # Sum contributions of each panel to each vertex
         # Transform from vertexForce to nodalLoad_*
         for iVertex in range(self.nPhysicalNodes):
-            self.nodalLoad_X[iVertex] = vertexForce[iVertex, 0]
-            self.nodalLoad_Y[iVertex] = vertexForce[iVertex, 1]
-            self.nodalLoad_Z[iVertex] = vertexForce[iVertex, 2]
+            self.nodalLoad_X[iVertex, 0] = vertexForce[iVertex, 0]
+            self.nodalLoad_Y[iVertex, 0] = vertexForce[iVertex, 1]
+            self.nodalLoad_Z[iVertex, 0] = vertexForce[iVertex, 2]
 
     def getNodalInitialPositions(self):
         nodalInitialPos_X = np.zeros(self.nPhysicalNodes)
@@ -160,6 +160,9 @@ class VLMSolver(FluidSolver):
         return index
 
     def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
+        dx = dx[0]
+        dy = dy[0]
+        dz = dz[0]
         for ii in range(self.coreSolver.m): # For each row of panels
             kk = ii*self.coreSolver.n # Starting index of row
             # Current vertex: complete displacement

@@ -198,9 +198,9 @@ class SU2SolidSolver(SolidSolver):
                 vel = self.SU2.GetFEA_Velocity(self.solidInterfaceID, iVertex)
                 vel_n = self.SU2.GetFEA_Velocity_n(self.solidInterfaceID, iVertex)
 
-                self.nodalDisp_X[PhysicalIndex] = disp[0]
-                self.nodalDisp_Y[PhysicalIndex] = disp[1]
-                self.nodalDisp_Z[PhysicalIndex] = disp[2]
+                self.nodalDisp_X[PhysicalIndex][0] = disp[0]
+                self.nodalDisp_Y[PhysicalIndex][0] = disp[1]
+                self.nodalDisp_Z[PhysicalIndex][0] = disp[2]
 
                 self.nodalVel_X[PhysicalIndex] = vel[0]
                 self.nodalVel_Y[PhysicalIndex] = vel[1]
@@ -236,9 +236,9 @@ class SU2SolidSolver(SolidSolver):
             if GlobalIndex in list(self.haloNodeList.keys()):
                 LoadX, LoadY, LoadZ = haloNodesLoads[GlobalIndex]
             else:
-                LoadX = load_X[PhysicalIndex]
-                LoadY = load_Y[PhysicalIndex]
-                LoadZ = load_Z[PhysicalIndex]
+                LoadX = load_X[0][PhysicalIndex]
+                LoadY = load_Y[0][PhysicalIndex]
+                LoadZ = load_Z[0][PhysicalIndex]
                 PhysicalIndex += 1
             self.SU2.SetFEA_Loads(self.solidInterfaceID, iVertex, LoadX, LoadY, LoadZ)
 
@@ -347,9 +347,9 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
             if GlobalIndex in list(self.haloNodeList.keys()):
                 dispX, dispY, dispZ = haloNodesDisplacements[GlobalIndex]
             else:
-                dispX = disp_adj_X[PhysicalIndex]
-                dispY = disp_adj_Y[PhysicalIndex]
-                dispZ = disp_adj_Z[PhysicalIndex]
+                dispX = disp_adj_X[0][PhysicalIndex]
+                dispY = disp_adj_Y[0][PhysicalIndex]
+                dispZ = disp_adj_Z[0][PhysicalIndex]
                 PhysicalIndex += 1
                 self.SU2.SetSourceTerm_DispAdjoint(self.solidInterfaceID, iVertex, dispX, dispY, dispZ)
 
@@ -377,19 +377,19 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
                 vel = self.SU2.GetFEA_Velocity(self.solidInterfaceID, iVertex)
                 vel_n = self.SU2.GetFEA_Velocity_n(self.solidInterfaceID, iVertex)
 
-                self.nodalDisp_X[PhysicalIndex] = disp[0]
-                self.nodalDisp_Y[PhysicalIndex] = disp[1]
-                self.nodalDisp_Z[PhysicalIndex] = disp[2]
+                self.nodalDisp_X[PhysicalIndex][0] = disp[0]
+                self.nodalDisp_Y[PhysicalIndex][0] = disp[1]
+                self.nodalDisp_Z[PhysicalIndex][0] = disp[2]
 
-                self.nodalVel_X[PhysicalIndex] = vel[0]
-                self.nodalVel_Y[PhysicalIndex] = vel[1]
-                self.nodalVel_Z[PhysicalIndex] = vel[2]
+                self.nodalVel_X[PhysicalIndex][0] = vel[0]
+                self.nodalVel_Y[PhysicalIndex][0] = vel[1]
+                self.nodalVel_Z[PhysicalIndex][0] = vel[2]
 
                 load = self.SU2.GetFlowLoad_Sensitivity(self.solidInterfaceID, iVertex)
 
-                self.nodalAdjLoad_X[PhysicalIndex] = load[0]
-                self.nodalAdjLoad_Y[PhysicalIndex] = load[1]
-                self.nodalAdjLoad_Z[PhysicalIndex] = load[2]
+                self.nodalAdjLoad_X[PhysicalIndex][0] = load[0]
+                self.nodalAdjLoad_Y[PhysicalIndex][0] = load[1]
+                self.nodalAdjLoad_Z[PhysicalIndex][0] = load[2]
 
                 PhysicalIndex += 1
 

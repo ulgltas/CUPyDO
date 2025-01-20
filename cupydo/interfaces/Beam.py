@@ -174,9 +174,9 @@ class pyBeamSolver(SolidSolver):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
 
-            LoadX = load_X[PhysicalIndex]
-            LoadY = load_Y[PhysicalIndex]
-            LoadZ = load_Z[PhysicalIndex]
+            LoadX = load_X[0][PhysicalIndex]
+            LoadY = load_Y[0][PhysicalIndex]
+            LoadZ = load_Z[0][PhysicalIndex]
             PhysicalIndex += 1
 
             self.pyBeam.SetLoads(iVertex, LoadX, LoadY, LoadZ)
@@ -209,7 +209,7 @@ class pyBeamSolver(SolidSolver):
         solFile = open('SolidSolution.ascii', "a")
         solFile.write("{:>12.6f}   {:>12d}".format(time, nFSIIter))
         for gidx in self.extractors:
-            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.nodalDisp_X[gidx], self.nodalDisp_Y[gidx], self.nodalDisp_Z[gidx]))
+            solFile.write('   {:>12.10f}   {:>12.10f}   {:>12.10f}'.format(self.nodalDisp_X[gidx][0], self.nodalDisp_Y[gidx][0], self.nodalDisp_Z[gidx][0]))
         solFile.write('\n')
         solFile.close()
 
@@ -261,5 +261,5 @@ class pyBeamAdjointSolver(pyBeamSolver, SolidAdjointSolver):
     def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
-            self.pyBeam.SetDisplacementAdjoint(PhysicalIndex, disp_adj_X[PhysicalIndex], disp_adj_Y[PhysicalIndex], disp_adj_Z[PhysicalIndex])
+            self.pyBeam.SetDisplacementAdjoint(PhysicalIndex, disp_adj_X[0][PhysicalIndex], disp_adj_Y[0][PhysicalIndex], disp_adj_Z[0][PhysicalIndex])
             PhysicalIndex += 1

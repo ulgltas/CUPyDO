@@ -332,8 +332,8 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 self.relax_CHT()
             
             if self.manager.regime == 'harmonic':
-                    self.errValue_HB = self.criterion.updateFrequency(self.deltaOmega)
-                    mpiPrint('\nFrequency error value : {}\n'.format(self.errValue_HB), self.mpiComm)
+                    self.criterion.update_HB(self.deltaOmega, self.omegaHB)
+                    mpiPrint('\nFrequency error value : {}\n'.format(self.criterion.epsilonFrequency), self.mpiComm)
 
             # --- Update the solvers for the next BGS steady iteration --- #
             if self.manager.regime == 'steady' or self.manager.regime == 'harmonic':

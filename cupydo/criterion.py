@@ -40,7 +40,7 @@ class Criterion(object):
 
         self.mechanical = p['mechanical']
         self.thermal = p['thermal']
-        self.harmonic = p['regime'] == 'harmonic'
+        self.harmonic = (p['regime'] == 'harmonic' and not p['computation'] == 'adjoint')
         self.reset()
 
         if self.mechanical:
@@ -68,7 +68,7 @@ class Criterion(object):
         if self.thermal:
             verified.append(self.epsilonCHT < self.tolCHT)
         if self.harmonic:
-            verified.append(self.epsilon < self.tolFrequency)
+            verified.append(self.epsilonFrequency < self.tolFrequency)
 
         return np.all(verified)
 
@@ -92,6 +92,11 @@ class RelativeCriterion(Criterion):
         res = np.array(residual.norm())
         res /= (np.array(prediction.norm())+self.tolCHT)
         self.epsilonCHT = np.linalg.norm(res)
+    
+    # Update the frequency
+    def update_HB(self, deltaOmega, omegaHB):
+        self.epsilonFrequency = abs(deltaOmega)/omegaHB
+
 
 class NormCriterion(Criterion):
     
@@ -111,3 +116,7 @@ class NormCriterion(Criterion):
 
         res = np.array(residual.norm())
         self.epsilonCHT = np.linalg.norm(res)
+    
+    # Update the frequency
+    def update_HB(self, deltaOmega):
+        self.epsilonFrequency = abs(deltaOmega)

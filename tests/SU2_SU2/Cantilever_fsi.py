@@ -52,7 +52,7 @@ def getFsiP():
     # Solvers and config files
 
     p['fluidSolver'] = 'SU2'
-    p['solidSolver'] = 'SU2'
+    p['solidSolver'] = 'SU2Solid'
     p['cfdFile'] = os.path.join(filePath, 'config_channel.cfg')
     p['csdFile'] = os.path.join(filePath, 'config_cantilever.cfg')
     p['computation'] = 'direct'

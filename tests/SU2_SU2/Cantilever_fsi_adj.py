@@ -48,7 +48,7 @@ def getAdjP():
     # Solvers and config files
 
     p['fluidSolver'] = 'SU2'
-    p['solidSolver'] = 'SU2'
+    p['solidSolver'] = 'SU2Solid'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
     p['csdFile'] = os.path.join(filePath, 'config_cantilever_adj.cfg')
     p['computation'] = 'adjoint'

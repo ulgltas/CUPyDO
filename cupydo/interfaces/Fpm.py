@@ -51,7 +51,7 @@ class Fpm(FluidSolver):
         FluidSolver.__init__(self, p)
 
     def __initFpm(self, p):
-        """Initilize fpm classes
+        """Initilize fpmw classes
         """
         import fpmw
         import tbox
@@ -84,20 +84,20 @@ class Fpm(FluidSolver):
         else:
             p['AoS'] = 0.
         self.dynP = p['P_dyn']
-        self.pbl = fpm.Problem(self.msh, p['AoA'], p['AoS'], p['M_inf'], p['S_ref'], p['c_ref'], p['x_ref'], p['y_ref'], p['z_ref'], bool(p['sym']))    
+        self.pbl = fpmw.Problem(self.msh, p['AoA'], p['AoS'], p['M_inf'], p['S_ref'], p['c_ref'], p['x_ref'], p['y_ref'], p['z_ref'], bool(p['sym']))    
         
         # define bodies and identify f/s boundary
         for i in range(len(p['Wings'])):
-            bnd = fpm.Body(self.msh, p['Wings'][i], [p['Tes'][i]], p['LengthWake'][i])
+            bnd = fpmw.Body(self.msh, p['Wings'][i], [p['Tes'][i]], p['LengthWake'][i])
             self.pbl.add(bnd)
             if p['Wings'][i] == p['Fsi']:
                 self.boundary = bnd
         
         # initialize the AIC builder
-        self.aic = fpm.Builder(self.pbl)
+        self.aic = fpmw.Builder(self.pbl)
 
         # initialize the solver
-        self.solver = fpm.Solver(self.aic)    
+        self.solver = fpmw.Solver(self.aic)    
         
     def run(self, t1, t2):
         """Run the solver for one steady (time) iteration

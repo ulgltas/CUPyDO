@@ -142,9 +142,8 @@ FPM(){
     Clone ${FPM} ${LAB}gitlab.uliege.be/am-dept/fpm
     
     cd fpm && mkdir build && cd build
-    cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=bin ..
-    make -j8 install
+    cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release ..
+    make -j8
 }
 
 # Download PFEM on GitLab

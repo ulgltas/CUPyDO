@@ -194,5 +194,5 @@ CUPyDO(){
 # Call the Functions
 
 Modali && VLM && SU2 && DARTFlo
-PFEM && pyBeam && NativeSolid
+PFEM && pyBeam && NativeSolid && FPM
 PFEM3D && Metafor && CUPyDO

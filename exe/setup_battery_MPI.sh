@@ -137,6 +137,18 @@ DARTFlo(){
     make -j8 install
 }
 
+# Download FPM on GitLab
+
+FPM(){
+
+    cd ${OUTPUT}
+    Clone ${FPM} ${LAB}gitlab.uliege.be/am-dept/fpm
+    
+    cd fpm && mkdir build && cd build
+    cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release ..
+    make -j8
+}
+
 # Download PFEM on GitLab
 
 PFEM(){
@@ -184,5 +196,5 @@ CUPyDO(){
 # Call the Functions
 
 Modali && VLM && SU2 && DARTFlo
-PFEM && pyBeam && NativeSolid
+PFEM && pyBeam && NativeSolid && FPM
 PFEM3D && Metafor && CUPyDO

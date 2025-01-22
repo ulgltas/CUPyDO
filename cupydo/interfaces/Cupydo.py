@@ -160,6 +160,9 @@ class CUPyDO(object):
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p)
+            elif p['fluidSolver'] == 'Fpm':
+                from . import Fpm as fItf
+                fluidSolver = fItf.Fpm(p)
             elif p['fluidSolver'] == 'Pfem3D':
                 from . import Pfem3D as fItf
                 fluidSolver = fItf.Pfem3D(p)

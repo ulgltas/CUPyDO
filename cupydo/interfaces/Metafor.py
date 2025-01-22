@@ -104,8 +104,10 @@ class Metafor(SolidSolver):
         # Initialization of domain and output
 
         SolidSolver.__init__(self)
-        self.metafor.getDomain().build()
+
+        domain.build()
         domain.getInitialConditionSet().update(0)
+
         self.__setCurrentState()
         self.save()
 

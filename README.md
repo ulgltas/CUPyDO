@@ -8,7 +8,7 @@ FSI tools for partinioned coupling between generic solid and fluid solvers.
 
 CUPyDO currently features interfaces for the following solvers:
 - **Solid**
-  - Metafor **[v3541]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
+  - Metafor **[v3548]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
   - NativeSolid (a.k.a. RBM) **[v1.2]** (https://github.com/ulgltas/NativeSolid)
@@ -36,13 +36,16 @@ CUPyDO currently features interfaces for the following solvers:
   - Open-source CFD code developed at Stanford University.
   ---
   - DART **[v1.2.2]** (https://gitlab.uliege.be/am-dept/dartflo)
-  - Open-source transonic full potential finite element fluid solver, developed at the University of Liège.
+  - Open-source transonic full potential finite element fluid solver developed at the University of Liège.
   ---
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
   ---
   - PFEM3D **[v2.4.0]** (https://github.com/ImperatorS79/PFEM3D)
   - A 3D Particle Finite Element Method fluid solver developed at the University of Liège.
+  ---
+  - FPM **[v1.0.1]** (https://gitlab.uliege.be/am-dept/fpm)
+  - Open-source field panel method developed at the University of Liège.
 
 ##  Features
 

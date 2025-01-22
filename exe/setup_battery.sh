@@ -7,7 +7,8 @@ export MODALI=v2.0
 export VLM=v2.0
 export PFEM=v1.27
 export NATIVESOLID=v1.1
-export DARTFLO=master
+export DARTFLO=v1.2.2
+export FPM=v1.0.1
 
 # Development code versions
 
@@ -133,6 +134,18 @@ DARTFlo(){
     make -j8 install
 }
 
+# Download FPM on GitLab
+
+FPM(){
+
+    cd ${OUTPUT}
+    Clone ${FPM} ${LAB}gitlab.uliege.be/am-dept/fpm
+    
+    cd fpm && mkdir build && cd build
+    cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release ..
+    make -j8
+}
+
 # Download PFEM on GitLab
 
 PFEM(){
@@ -180,5 +193,5 @@ CUPyDO(){
 # Call the Functions
 
 Modali && VLM && SU2 && DARTFlo
-PFEM && pyBeam && NativeSolid
+PFEM && pyBeam && NativeSolid && FPM
 PFEM3D && Metafor && CUPyDO

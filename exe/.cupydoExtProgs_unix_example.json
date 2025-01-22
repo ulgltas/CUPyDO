@@ -2,6 +2,10 @@
     "Pfem3D": "/home/username/battery_CUPyDO/PFEM3D/build/bin",
     "Modal": "/home/username/battery_CUPyDO/modali",
     "VLM": "/home/username/battery_CUPyDO/VLM",
+    "Fpm": [
+        "/home/username/battery_CUPyDO/fpm/build/bin",
+        "/home/username/battery_CUPyDO/fpm/ext/amfe"],
+
     "Flow": "/home/username/battery_CUPyDO/waves",
     "SU2": "/home/username/battery_CUPyDO/SU2/build/bin",
     "RBMI": "/home/username/battery_CUPyDO/NativeSolid/bin",

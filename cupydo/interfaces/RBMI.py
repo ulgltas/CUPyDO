@@ -65,7 +65,7 @@ class RBMI(SolidSolver):
             self.NativeSolid.setDesignVariableCentre(x, 2*iAlpha+1)
         SolidSolver.__init__(self)
 
-        self.__setCurrentState()
+        self.__setInitialState()
         self.initRealTimeData()
         if not self.regime == 'harmonic':
             self.NativeSolid.updateSolution()
@@ -93,7 +93,8 @@ class RBMI(SolidSolver):
 
     def __setCurrentState(self):
         for jInst in range(self.nInst):
-            self.NativeSolid.computeInterfacePosVel(False, jInst)
+            if self.regime == "harmonic":
+                self.NativeSolid.computeInterfacePosVel(False, jInst)
             for iVertex in range(self.nPhysicalNodes):
                 self.nodalDisp_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
                 self.nodalDisp_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispY(self.interfaceID, iVertex)
@@ -104,8 +105,7 @@ class RBMI(SolidSolver):
     
     def __setInitialState(self):
         for jInst in range(self.nInst):
-            if self.nInst > 1:
-                self.NativeSolid.computeInterfacePosVel(False, jInst)
+            self.NativeSolid.computeInterfacePosVel(False, jInst)
             for iVertex in range(self.nPhysicalNodes):
                 self.nodalDisp_X[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispX(self.interfaceID, iVertex)
                 self.nodalDisp_Y[iVertex, jInst] = self.NativeSolid.getInterfaceNodeDispY(self.interfaceID, iVertex)

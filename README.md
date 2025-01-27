@@ -1,6 +1,6 @@
 # CUPyDO
 
-FSI tools for partinioned coupling between generic solid and fluid solvers.
+FSI tools for partitioned coupling between generic solid and fluid solvers.
 
 [![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 
@@ -14,9 +14,8 @@ CUPyDO currently features interfaces for the following solvers:
   - NativeSolid (a.k.a. RBM) **[v1.2]** (https://github.com/ulgltas/NativeSolid)
   - A dynamic 2dof pitch/plunge solid solver developed at the University of Liège.
   ---
-  - SU2 **[-]** (https://su2code.github.io/)
+  - SU2 **[feature_HB_deform_mesh]** (https://github.com/ulgltas/SU2/tree/feature_HB_deform_mesh)
   - Open-source CFD code developed at Stanford University.
-  - ⚠️ **This interface is currently broken**
   ---
   - Modali **[v2.0]** (https://github.com/ulgltas/modali)
   - A static/dynamic modal solver developed at the University of Liège.
@@ -32,7 +31,7 @@ CUPyDO currently features interfaces for the following solvers:
   - PFEM **[v1.27]** (https://gitlab.uliege.be/am-dept/PFEM)
   - Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
-  - SU2 **[fix_wrap_strong]** (https://github.com/ulgltas/SU2/tree/fix_wrap_strong)
+  - SU2 **[feature_HB_deform_mesh]** (https://github.com/ulgltas/SU2/tree/feature_HB_deform_mesh)
   - Open-source CFD code developed at Stanford University.
   ---
   - DART **[v1.2.2]** (https://gitlab.uliege.be/am-dept/dartflo)
@@ -49,7 +48,7 @@ CUPyDO currently features interfaces for the following solvers:
 
 ##  Features
 
-Furthermore, CUPyDO features two interpolation alogrithms:
+Furthermore, CUPyDO features two interpolation algorithms:
 - Radial Basis Functions (RBF)
 - Thin Plate Spline (TPS)
 

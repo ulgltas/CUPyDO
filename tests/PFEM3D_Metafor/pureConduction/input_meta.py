@@ -31,7 +31,7 @@ def getMetafor(parm):
     solvermanager = metafor.getSolverManager()
     interactionset = domain.getInteractionSet()
     mim = metafor.getMechanicalIterationManager()
-    initcondset = metafor.getInitialConditionSet()
+    initcondset = domain.getInitialConditionSet()
 
     # Dimension and DSS solver
 

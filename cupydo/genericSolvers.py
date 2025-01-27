@@ -159,10 +159,12 @@ class FluidSolver(object):
             self.nodalLoad_XZ = np.zeros((self.nPhysicalNodes, self.nInst))
             self.nodalLoad_YZ = np.zeros((self.nPhysicalNodes, self.nInst))
 
+        self.nodalTemperature = np.zeros((self.nPhysicalNodes))
+        self.nodalNormalHeatFlux = np.zeros(self.nPhysicalNodes)
+
         self.nodalHeatFlux_X = np.zeros((self.nPhysicalNodes))
         self.nodalHeatFlux_Y = np.zeros((self.nPhysicalNodes))
         self.nodalHeatFlux_Z = np.zeros((self.nPhysicalNodes))
-        self.nodalTemperature = np.zeros((self.nPhysicalNodes))
 
     def setInitialMeshDeformation(self):
         return

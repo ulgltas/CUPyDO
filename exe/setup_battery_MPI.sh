@@ -107,6 +107,7 @@ SU2(){
     -Dwith-mpi=enabled \
     -Denable-tests=false \
     -Denable-autodiff=true \
+    -Denable-mixedprec=false \
     --prefix=${OUTPUT}/SU2/build
     ./ninja -C build install
 }

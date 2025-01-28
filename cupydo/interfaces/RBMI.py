@@ -167,7 +167,6 @@ class RBMI(SolidSolver):
     
     def getObjectiveFunction(self):
         ObjFun = self.NativeSolid.getObjectiveFunction()
-        print("RBM OF: {}".format(ObjFun))
         return ObjFun
 
     def update(self):
@@ -210,9 +209,12 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
         
         self.nDV = self.NativeSolid.getNumberDesignVariables()
 
-        for iAlpha in range(1, self.nDV+1): # Symmetric design variables... Closer to the LE. Unfortunately hardcoded
-            x = float(iAlpha)/(self.nDV+1)
-            self.NativeSolid.setDesignVariableCentre(x*x, iAlpha-1)
+        for iAlpha in range(int(self.nDV/2)): # Define location of centres of design variables
+            x = 1-np.cos((iAlpha+1)*np.pi/(2*int(self.nDV/2)+1))
+            self.NativeSolid.setDesignVariableCentre(x, 2*iAlpha)
+            self.NativeSolid.setDesignVariableSide(1, 2*iAlpha)
+            self.NativeSolid.setDesignVariableSide(-1, 2*iAlpha+1)
+            self.NativeSolid.setDesignVariableCentre(x, 2*iAlpha+1)
 
         self.haloNodeList = {}
 

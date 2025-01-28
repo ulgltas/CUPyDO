@@ -26,7 +26,7 @@ omegaHB = 63.0
 haveMPI, comm, myid, numberPart = getMpi()
 
 def test(res, tol):
-    global obj_fun
+    global obj_fun, gradients
     import numpy as np
     from cupydo.testing import CTest, CTests
     # Read results from file
@@ -39,8 +39,9 @@ def test(res, tol):
         print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
         raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Mean drag', obj_fun, 0.0337, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Mean drag', obj_fun, 0.0336, 1e-1, False)) # rel. tol. of 10%
     tests.add(CTest('First instance pitch displacement', resultRBM[0, 3], 0.0792, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Gradient of mean drag wrt first Hicks-Henne bump', gradients[0], 1.10, 1e-1, False)) # rel. tol. of 10%, value from central finite differences
     tests.run()
 
 def getFsiP():
@@ -127,10 +128,6 @@ def runDirect(x):
     global omegaHB
     
     mpiPrint("Running direct simulation with design variable vector: {}".format(x), comm)
-    if myid == 0:
-        f = open("optimisation.txt", "a")
-        print("Running direct simulation with design variable vector: {}".format(np.array2string(x, max_line_width=255)), file=f)
-        f.close()
     
     pDir = getFsiP() # get parameters
     pDir['omegaHB'] = omegaHB # Update frequency
@@ -150,20 +147,16 @@ def runDirect(x):
         mpiBarrier(comm)
         valueOF = mpiAllReduce(mpiComm=comm, value=0.)
         mpiBarrier(comm)
+
     mpiPrint("Objective function value: {}, frequency value: {}".format(valueOF, omegaHB), comm)
-    if myid == 0:
-        f = open("optimisation.txt", "a")
-        print("Objective function value: {}, frequency value: {}".format(valueOF, omegaHB), file=f)
-        f.close()
+
     return valueOF
 
 def runAdjoint(x):
     global omegaHB, resAdj
+
     mpiPrint("Running adjoint simulation with design variable vector: {}".format(x), comm)
-    if myid == 0:
-        f = open("optimisation.txt", "a")
-        print("Running adjoint simulation with design variable vector: {}".format(np.array2string(x, max_line_width=255)), file=f)
-        f.close()
+
     pAdj = getFsiAdjP() # get parameters
     pAdj['omegaHB'] = omegaHB # Update frequency
     cupydoAdj = cupy.CUPyDO(pAdj) # create fsi driver
@@ -184,16 +177,14 @@ def runAdjoint(x):
         mpiBarrier(comm)
     else:
         valueGradients = sendGradients
+
     mpiPrint("Gradients value: {}, frequency value: {}".format(np.array2string(valueGradients, separator=','), omegaHB), comm)
-    if myid == 0:
-        f = open("optimisation.txt", "a")
-        print("Gradients value: {}, frequency value: {}".format(np.array2string(valueGradients, separator=',', max_line_width=255), omegaHB), file=f)
-        f.close()
+
     return valueGradients
 
 
 def main():
-    global resAdj, obj_fun
+    global resAdj, obj_fun, gradients
     resAdj = 0.0
     obj_fun = 0.0
     alpha0 = np.zeros((24,))

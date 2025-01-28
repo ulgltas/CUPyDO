@@ -163,13 +163,13 @@ class Metafor(SolidSolver):
 
             if self.mechanical:
 
-                self.nodalVel_X[i] = node.getValue(w.Field1D(w.TX, w.GV))
-                self.nodalVel_Y[i] = node.getValue(w.Field1D(w.TY, w.GV))
-                self.nodalVel_Z[i] = node.getValue(w.Field1D(w.TZ, w.GV))
+                self.nodalVel_X[i, 0] = node.getValue(w.Field1D(w.TX, w.GV))
+                self.nodalVel_Y[i, 0] = node.getValue(w.Field1D(w.TY, w.GV))
+                self.nodalVel_Z[i, 0] = node.getValue(w.Field1D(w.TZ, w.GV))
 
-                self.nodalDisp_X[i] = node.getValue(w.Field1D(w.TX, w.RE))
-                self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY, w.RE))
-                self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ, w.RE))
+                self.nodalDisp_X[i, 0] = node.getValue(w.Field1D(w.TX, w.RE))
+                self.nodalDisp_Y[i, 0] = node.getValue(w.Field1D(w.TY, w.RE))
+                self.nodalDisp_Z[i, 0] = node.getValue(w.Field1D(w.TZ, w.RE))
 
             if self.thermal:
                 self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO, w.AB)) + node.getValue(w.Field1D(w.TO, w.RE))

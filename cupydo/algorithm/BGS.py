@@ -116,6 +116,9 @@ class AlgorithmBGSStaticRelax(Algorithm):
                 # --- Internal FSI loop --- #
                 self.verified = self.fsiCoupling()
                 self.totNbOfFSIIt = self.FSIIter
+                self.objectiveFunction = self.FluidSolver.getObjectiveFunction()
+                if self.myid in self.manager.getSolidSolverProcessors():
+                    self.objectiveFunction += self.SolidSolver.getObjectiveFunction()
                 if not self.verified: raise Exception('The steady FSI coupling did not converge')
 
                 self.FluidSolver.save(self.step.timeIter)

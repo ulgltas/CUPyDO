@@ -209,9 +209,9 @@ class Metafor(SolidSolver):
 
             node = self.FSI.getMeshPoint(i)
             fx,fy,fz = self.Fnods[node.getNo()]
-            fx.val = result[i][0]
-            fy.val = result[i][1]
-            fz.val = result[i][2]
+            fx.val = result[i][0][0]
+            fy.val = result[i][0][1]
+            fz.val = result[i][0][2]
 
 
     def applyNodalStress(self, load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ, dt, haloNodesLoads):

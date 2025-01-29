@@ -12,5 +12,5 @@ IF(NOT WIN32) # SU2 does not compile on Microsoft Visual Studio
     MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/SU2_Metafor)
     MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/SU2_Modal)
     MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/SU2_pyBeam)
-    # MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/SU2_SU2)
+    MACRO_AddTest(${CMAKE_CURRENT_SOURCE_DIR}/SU2_SU2)
 ENDIF()

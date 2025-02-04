@@ -527,7 +527,7 @@ class SU2Adjoint(SU2, FluidAdjointSolver):
         StopIntegration = self.SU2.Monitor(0)
         self.SU2.Output(0)
     
-    def applyNodalAdjointForce(self, load_adj_X, load_adj_Y, load_adj_Z, haloNodesLoads, time):
+    def applyNodalAdjointForce(self, load_adj_X, load_adj_Y, load_adj_Z, time, haloNodesLoads):
         for jInst in range(self.nInst):
             PhysicalIndex = 0
             for iVertex in range(self.nNodes):

@@ -58,12 +58,14 @@ class ConservativeInterpolator(InterfaceInterpolator):
 
     def checkConservation(self):
 
-        WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)[:3]
-        WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)[:3]
-
         mpiPrint("Checking f/s interface conservation...", self.mpiComm)
-        mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
-        mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
+        for iInst in range(self.nInst):
+            WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
+            WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
+
+            mpiPrint('Instance {}:'.format(iInst), self.mpiComm)
+            mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
+            mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
 
     def generateInterfaceData(self):
 

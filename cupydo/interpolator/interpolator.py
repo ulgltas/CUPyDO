@@ -497,6 +497,8 @@ class InterfaceInterpolator(ccupydo.CInterpolator):
 
     def setDisplacementToFluidSolver(self, dt):
 
+        self.checkConservation()
+
         if self.mpiComm != None:
             (localFluidInterfaceDisplacement, haloNodesDisplacements) = self.redistributeDataToFluidSolver(self.fluidInterfaceDisplacement)
             self.FluidSolver.setOmegaHB(self.omegaHB)

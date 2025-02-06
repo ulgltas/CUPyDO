@@ -258,7 +258,7 @@ class pyBeamAdjointSolver(pyBeamSolver, SolidAdjointSolver):
             self.nodalAdjLoad_X[PhysicalIndex], self.nodalAdjLoad_Y[PhysicalIndex], self.nodalAdjLoad_Z[PhysicalIndex] = self.pyBeam.GetLoadAdjoint(iVertex)
             PhysicalIndex += 1
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, dt, haloNodesDisplacements):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             self.pyBeam.SetDisplacementAdjoint(PhysicalIndex, disp_adj_X[0][PhysicalIndex], disp_adj_Y[0][PhysicalIndex], disp_adj_Z[0][PhysicalIndex])

@@ -242,7 +242,7 @@ class RBMIAdjoint(RBMI, SolidAdjointSolver):
 
         self.initRealTimeData()
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, time):
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, time, haloNodesDisplacements):
         for jInst in range(self.nInst):
             PhysicalIndex = 0
             for iVertex in range(self.nNodes):

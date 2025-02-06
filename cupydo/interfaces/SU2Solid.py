@@ -339,7 +339,7 @@ class SU2SolidAdjoint(SU2SolidSolver, SolidAdjointSolver):
         """
         SolidAdjointSolver.__init__(self)
 
-    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, haloNodesDisplacements, dt):
+    def applyNodalAdjointDisplacement(self, disp_adj_X, disp_adj_Y, disp_adj_Z, dt, haloNodesDisplacements):
         PhysicalIndex = 0
         for iVertex in range(self.nNodes):
             GlobalIndex = self.SU2.GetVertexGlobalIndex(self.solidInterfaceID, iVertex)

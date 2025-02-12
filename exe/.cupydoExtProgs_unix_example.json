@@ -8,6 +8,7 @@
 
     "Flow": "/home/username/battery_CUPyDO/waves",
     "SU2": "/home/username/battery_CUPyDO/SU2/build/bin",
+    "SU2Solid": "/home/username/battery_CUPyDO/SU2/build/bin",
     "RBMI": "/home/username/battery_CUPyDO/NativeSolid/bin",
     "pyBeam": "/home/username/battery_CUPyDO/pyBeam/build/bin",
 

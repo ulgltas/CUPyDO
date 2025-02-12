@@ -60,9 +60,8 @@ def getAdjP():
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
-    p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
+    p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever_AD.pyBeam'
     p['computation'] = 'adjoint'
-
     # FSI objects
 
     p['interpolator'] = 'RBF'

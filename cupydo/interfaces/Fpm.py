@@ -111,9 +111,9 @@ class Fpm(FluidSolver):
         """
         i = 0
         for n in self.boundary.nodes:
-            self.nodalLoad_X[i] = -self.dynP * self.boundary.cLoadX[i]
-            self.nodalLoad_Y[i] = -self.dynP * self.boundary.cLoadY[i]
-            self.nodalLoad_Z[i] = -self.dynP * self.boundary.cLoadZ[i]
+            self.nodalLoad_X[i, 0] = -self.dynP * self.boundary.cLoadX[i]
+            self.nodalLoad_Y[i, 0] = -self.dynP * self.boundary.cLoadY[i]
+            self.nodalLoad_Z[i, 0] = -self.dynP * self.boundary.cLoadZ[i]
             i += 1
 
     def getNodalInitialPositions(self):
@@ -140,9 +140,9 @@ class Fpm(FluidSolver):
         """Apply displacements coming from solid solver to f/s interface after saving
         """
         for i in range(self.boundary.nodes.size()):
-            self.boundary.nodes[i].pos[0] = self.nodalInitPosX[i] + dx[i]
-            self.boundary.nodes[i].pos[1] = self.nodalInitPosY[i] + dy[i]
-            self.boundary.nodes[i].pos[2] = self.nodalInitPosZ[i] + dz[i]
+            self.boundary.nodes[i].pos[0] = self.nodalInitPosX[i] + dx[0][i]
+            self.boundary.nodes[i].pos[1] = self.nodalInitPosY[i] + dy[0][i]
+            self.boundary.nodes[i].pos[2] = self.nodalInitPosZ[i] + dz[0][i]
 
     def meshUpdate(self, nt):
         """Deform the mesh using linear elasticity equations

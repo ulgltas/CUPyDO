@@ -86,15 +86,15 @@ class Modal(SolidSolver):
         """Update displacements
         Adrien Crovato
         """
-        self.nodalDisp_X = self.solver.dispX
-        self.nodalDisp_Y = self.solver.dispY
-        self.nodalDisp_Z = self.solver.dispZ
+        self.nodalDisp_X[:,0] = self.solver.dispX
+        self.nodalDisp_Y[:,0] = self.solver.dispY
+        self.nodalDisp_Z[:,0] = self.solver.dispZ
            
     def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         """Update the loads
         Adrien Crovato
         """
-        self.solver.updateLoads(load_X[0:self.nPhysicalNodes], load_Y[0:self.nPhysicalNodes], load_Z[0:self.nPhysicalNodes])            
+        self.solver.updateLoads(load_X[0][0:self.nPhysicalNodes], load_Y[0][0:self.nPhysicalNodes], load_Z[0][0:self.nPhysicalNodes])            
             
     def getNodalInitialPositions(self):
         """Return initial nodal positions
@@ -150,7 +150,7 @@ class Modal(SolidSolver):
         solFile = open('NodalDisplacement.dat', "a")
         solFile.write("{0:12.6f}   {1:12d}".format(time, nFSIIter))
         for lidx in list(self.solver.extractor.values()):
-            solFile.write('   {0:12.6f}   {1:12.6f}   {2:12.6f}'.format(self.nodalDisp_X[lidx], self.nodalDisp_Y[lidx], self.nodalDisp_Z[lidx]))
+            solFile.write('   {0:12.6f}   {1:12.6f}   {2:12.6f}'.format(self.nodalDisp_X[lidx, 0], self.nodalDisp_Y[lidx, 0], self.nodalDisp_Z[lidx, 0]))
         solFile.write('\n')
         solFile.close()
 

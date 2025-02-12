@@ -65,7 +65,6 @@ class Metafor(SolidSolver):
         # Defines some internal variables
 
         self.reload = True
-        self.neverRun = True
         self.__dict__.update(parm)
 
         self.regime = p['regime']
@@ -105,9 +104,8 @@ class Metafor(SolidSolver):
 
         SolidSolver.__init__(self)
 
-        domain.build()
-        domain.getInitialConditionSet().update(0)
-
+        self.metafor.getTimeStepManager().setInitialTime(0, np.inf)
+        self.metafor.getTimeIntegration().initialise()
         self.__setCurrentState()
         self.save()
 
@@ -119,31 +117,26 @@ class Metafor(SolidSolver):
         self.metaFac.save(self.mfac)
         self.tsm.setVerbose(False)
 
-# Calculates One Time Step
-
     def run(self, t1, t2):
         """
         Computes a time increment and/or load previous state
         """
+        print('OK 0')
 
-        if(self.neverRun):
+        if self.reload: self._wayBack()
 
-            self.tsm.setInitialTime(t1, t2-t1)
-            self.tsm.setNextTime(t2, 0, t2-t1)
-            ok = self.metafor.getTimeIntegration().integration()
-            self.neverRun = False
+        print('OK 1')
 
-        else:
+        self.tsm.setNextTime(t2, 0, t2-t1)
 
-            if self.reload: self.tsm.removeLastStage()
-            self.tsm.setNextTime(t2, 0, t2-t1)
-            ok = self.metafor.getTimeIntegration().restart(self.mfac)
+        print('OK 2')
+        ok = self.metafor.getTimeIntegration().restart(self.mfac)
+
+        print('OK 3')
 
         if ok: self.__setCurrentState()
         self.reload = True
         return ok
-
-# Gets Nodal Values
 
     def __setCurrentState(self):
         """
@@ -189,8 +182,6 @@ class Metafor(SolidSolver):
         node = self.FSI.getMeshPoint(index)
         return node.getNo()
 
-# Mechanical Boundary Conditions
-
     def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         """
         Apply the conservative load boundary conditions
@@ -217,8 +208,6 @@ class Metafor(SolidSolver):
             node = self.FSI.getMeshPoint(i)
             self.interactionM.setNodTensor3D(node, *result[i])
 
-# Thermal Boundary Conditions
-
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
         """
         Apply the consistent heat flux boundary conditions
@@ -230,8 +219,6 @@ class Metafor(SolidSolver):
             node = self.FSI.getMeshPoint(i)
             self.interactionT.setNodVector(node, *result[i])
 
-# Other Functions
-
     def update(self):
         """
         Save the current state in the RAM and update the load
@@ -240,6 +227,25 @@ class Metafor(SolidSolver):
         self.metaFac.save(self.mfac)
         SolidSolver.update(self)
         self.reload = False
+
+    def _wayBack(self):
+        '''
+        Revert back the solver to its last converged FSI state
+        '''
+
+        # Restart if either the step or the time has advanced
+
+        if (self.metafor.getCurrentStepNo() > self.mfac.getStepNo()) or \
+           (self.metafor.getLastTime() >= self.metafor.getCurrentTime()):
+
+            self.metafor.load(self.mfac)
+
+        # Remove the last stage if more than one stage has been stored
+
+        if not (self.metafor.getStageManager().getCurNumStage() < 0) \
+           and (self.metafor.getStageManager().getNumbOfStage() > 1):
+
+            self.metafor.getTimeStepManager().removeLastStage()
 
     def steadyUpdate(self):
         """

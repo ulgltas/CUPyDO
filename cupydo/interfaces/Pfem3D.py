@@ -180,7 +180,7 @@ class Pfem3D(FluidSolver):
                     self.nodalLoad_XZ[i] = result[i][4]
                     self.nodalLoad_YZ[i] = result[i][5]
 
-            elif self.mesh.isAxiSym():
+            elif self.problem.isAxiSymmetric():
 
                 self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
@@ -225,14 +225,11 @@ class Pfem3D(FluidSolver):
 
     def update(self, dt):
 
-        self.mesh.remesh(verboseOutput = False)
-        self._resetInterfaceBC()
+        self.solver.remesh(verboseOutput = False)
 
         # Update the backup and precompute matrices
 
-        if self.solverType ==  w.SolverType_Implicit:
-            self.solver.precomputeMatrix()
-
+        self._resetInterfaceBC()
         self.problem.copySolution(self.prevSolution)
 
         self.disp = self.__getPosition()-self.initPos

@@ -131,12 +131,13 @@ class Pfem3D(FluidSolver):
 # Return Nodal Values
 
     def __getPosition(self):
-
+        
+        nodes_list = self.problem.getMesh().getNodesList()
         result = np.zeros((self.nPhysicalNodes,3))
 
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                result[j,i] = self.mesh.getNode(k).getCoordinate(i)
+                result[j,i] = nodes_list.getCoordinate(k, i)
 
         return result
 
@@ -144,11 +145,12 @@ class Pfem3D(FluidSolver):
 
     def __getVelocity(self):
 
+        nodes_list = self.problem.getMesh().getNodesList()
         result = np.zeros((self.nPhysicalNodes,3))
         
         for i in range(self.dim):
             for j,k in enumerate(self.FSI):
-                result[j,i] = self.mesh.getNode(k).getState(i)
+                result[j,i] = nodes_list.getState(k, i)
 
         return result
 
@@ -213,19 +215,20 @@ class Pfem3D(FluidSolver):
     def _resetInterfaceBC(self):
 
         self.BC = list()
+        nodes_list = self.problem.getMesh().getNodesList()
         self.mesh.getNodesIndex('FSI', self.FSI)
 
         for i in self.FSI:
 
             vector = w.VectorDouble(4)
-            self.mesh.getNode(i).setExtState(vector)
+            nodes_list.setExtState(i, vector)
             self.BC.append(vector)
 
 # Other Functions
 
     def update(self, dt):
 
-        self.solver.remesh(verboseOutput = False)
+        self.problem.getSolver().updateMesh(True, False)
 
         # Update the backup and precompute matrices
 

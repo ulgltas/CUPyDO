@@ -48,9 +48,8 @@ Problem.Extractors[1] = {
     -- Export the mesh in a GMSH file
 
     kind = 'GMSH',
-    writeAs = 'NodesElements',
     outputFile = 'pfem/fluid.msh',
-    whatToWrite = {'T', 'velocity'},
+    whatToWriteNode = {'T', 'velocity'},
     timeBetweenWriting = math.huge
 }
 

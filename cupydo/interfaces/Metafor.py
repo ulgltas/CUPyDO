@@ -104,7 +104,7 @@ class Metafor(SolidSolver):
 
         SolidSolver.__init__(self)
 
-        self.metafor.getTimeStepManager().setInitialTime(0, np.inf)
+        self.metafor.getTimeStepManager().setInitialTime(0, 1)
         self.metafor.getTimeIntegration().initialise()
         self.__setCurrentState()
         self.save()
@@ -121,18 +121,11 @@ class Metafor(SolidSolver):
         """
         Computes a time increment and/or load previous state
         """
-        print('OK 0')
 
         if self.reload: self._wayBack()
-
-        print('OK 1')
-
         self.tsm.setNextTime(t2, 0, t2-t1)
 
-        print('OK 2')
         ok = self.metafor.getTimeIntegration().restart(self.mfac)
-
-        print('OK 3')
 
         if ok: self.__setCurrentState()
         self.reload = True

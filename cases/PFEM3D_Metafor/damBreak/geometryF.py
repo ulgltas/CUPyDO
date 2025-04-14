@@ -49,8 +49,8 @@ k = sh.occ.addCurveLoop(l[1:5])
 s = sh.occ.addPlaneSurface([k])
 sh.occ.synchronize()
 
-A = 9
-B = 57
+A = 5
+B = 32
 
 sh.mesh.setTransfiniteCurve(h[0], B)
 sh.mesh.setTransfiniteCurve(h[1], A)
@@ -59,21 +59,8 @@ sh.mesh.setTransfiniteCurve(h[2], B)
 # Physical boundary
 
 sh.addPhysicalGroup(2, [s], name='Fluid')
-sh.addPhysicalGroup(1, h, name='FSI')
 sh.addPhysicalGroup(1, l[0:3]+l[5:], name='Reservoir')
-
-# Mesh characteristic size
-
-sh.mesh.field.add('Distance', 1)
-sh.mesh.field.setNumber(1, 'Sampling', 1e4)
-sh.mesh.field.setNumbers(1, 'CurvesList', l+h)
-
-sh.mesh.field.add('MathEval', 2)
-sh.mesh.field.setString(2, 'F', f'Min({d}+3*F1^2, 1e-2)')
-
-sh.mesh.field.setAsBackgroundMesh(2)
-gmsh.option.setNumber('Mesh.MeshSizeFromPoints', 0)
-gmsh.option.setNumber('Mesh.MeshSizeExtendFromBoundary', 0)
+sh.addPhysicalGroup(1, h, name='FSI')
 
 # Write the mesh
 

@@ -55,9 +55,8 @@ def getMetafor(parm):
     # Finite element properties
 
     prp1 = w.ElementProperties(w.Volume2DElement)
-    prp1.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_STD)
+    prp1.put(w.CAUCHYMECHVOLINTMETH, w.VES_CMVIM_SRIPR)
     prp1.put(w.STIFFMETHOD, w.STIFF_ANALYTIC)
-    # prp1.put(w.GRAVITY_Y, -9.81)
     prp1.put(w.MATERIAL, 1)
     app.addProperty(prp1)
 

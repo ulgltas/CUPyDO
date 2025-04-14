@@ -15,19 +15,19 @@ Problem.Mesh = {
     remeshAlgo = 'CGAL_Edge',
     mshFile = 'geometryF.msh',
     deleteBoundElements = {'FSI'},
-    localHcharGroups = {'FSI', 'Reservoir', 'FreeSurface'},
     boundingBox = {0, 0, 0.584, 0.584},
     exclusionZones = {},
 
     -- Remeshing internal parameters
 
     alpha = 1.2,
-    omega = 1.0,
-    gamma = 0.4,
+    omega = 0.6,
+    gamma = 0.6,
     hchar = 0.003,
-    gammaFS = 0.4,
-    epsilonLS = 0.03,
+    gammaFS = 0.6,
+    epsilonLS = 0.0,
     gammaEdge = 0.2,
+    omegaEdge = 1.2,
     minHeightFactor = 1e-3,
 
     -- Enable or disable algorithms
@@ -35,7 +35,7 @@ Problem.Mesh = {
     addOnFS = true,
     useLevelSet = true,
     keepFluidElements = true,
-    deleteFlyingNodes = true
+    deleteFlyingNodes = false
 }
 
 Problem.Extractors = {}
@@ -47,9 +47,8 @@ Problem.Extractors[1] = {
     -- Export the mesh in a GMSH file
 
     kind = 'GMSH',
-    writeAs = 'NodesElements',
     outputFile = 'pfem/output.msh',
-    whatToWrite = {'p', 'velocity'},
+    whatToWriteNode = {'p', 'velocity'},
     timeBetweenWriting = math.huge
 }
 
@@ -142,11 +141,4 @@ end
 
 function Problem.Solver.MomContEq.BC.ReservoirV(x, y, z, t)
 	return 0, 0
-end
-
--- Characteristic Size
-
-function Problem.Mesh.computeHcharFromDistance(x, y, z, t, dist)
-	local d = Problem.Mesh.hchar+3*dist^2
-    return math.min(d, 1e-2)
 end

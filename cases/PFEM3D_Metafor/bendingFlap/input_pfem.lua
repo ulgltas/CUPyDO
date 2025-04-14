@@ -22,11 +22,12 @@ Problem.Mesh = {
     -- Remeshing internal parameters
 
     alpha = 1e3,
-    omega = 1.0,
-    gamma = 0.4,
+    omega = 0.4,
+    gamma = 0.8,
     hchar = 2e-3,
-    gammaFS = 0.4,
+    gammaFS = 0.8,
     gammaEdge = 0.2,
+    omegaEdge = 1.6,
     minHeightFactor = 1e-3,
 
     -- Enable or disable algorithms

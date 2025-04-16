@@ -26,7 +26,6 @@ Problem.Mesh = {
     hchar = 0.003,
     gammaFS = 0.6,
     epsilonLS = 0.0,
-    gammaEdge = 0.2,
     omegaEdge = 1.2,
     minHeightFactor = 1e-3,
 

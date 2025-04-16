@@ -25,7 +25,6 @@ Problem.Mesh = {
     gamma = 0.3,
     hchar = 0.015,
     gammaFS = 0.2,
-    gammaEdge = 0.2,
     minHeightFactor = 1e-3,
 
     -- Enable or disable algorithms

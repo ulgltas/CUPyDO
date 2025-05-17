@@ -57,14 +57,18 @@ class MatchingMeshesInterpolator(InterfaceInterpolator):
 
     def checkConservation(self):
 
-        mpiPrint("Checking f/s interface conservation...", self.mpiComm)
-        for iInst in range(self.nInst):
-            WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
-            WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
+        if self.interpType == 'conservative':
+            mpiPrint("Checking f/s interface conservation...", self.mpiComm)
+            for iInst in range(self.nInst):
+                WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
+                WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
 
-            mpiPrint('Instance {}:'.format(iInst), self.mpiComm)
-            mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
-            mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
+                mpiPrint('Instance {}:'.format(iInst), self.mpiComm)
+                mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
+                mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
+
+        else:
+            mpiPrint('No conservation check for consistent interpolation.', self.mpiComm)
 
     def generateInterfaceData(self):
 

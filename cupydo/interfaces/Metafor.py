@@ -138,7 +138,7 @@ class Metafor(SolidSolver):
 
             self.tsm.setInitialTime(t1, t2-t1)
             self.tsm.setNextTime(t2, 0, t2-t1)
-            ok = self.metafor.getTimeIntegration().integration()
+            ok = self.metafor.getTimeIntegration().start()
             self.neverRun = False
 
         else:

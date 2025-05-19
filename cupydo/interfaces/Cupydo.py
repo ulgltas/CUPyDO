@@ -161,8 +161,8 @@ class CUPyDO(object):
                 from . import Pfem as fItf
                 fluidSolver = fItf.Pfem(p, args.k)
             elif p['fluidSolver'] == 'DART':
-                from dart.api.cupydo import Dart
-                fluidSolver = Dart(p, args.k)
+                from . import Dartflo as fItf
+                fluidSolver = fItf.Dart(p, args.k)
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p)

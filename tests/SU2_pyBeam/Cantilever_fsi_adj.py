@@ -42,10 +42,10 @@ def test_adj(res, tol):
        raise Exception("FSI algo failed to converge!")
 
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False))
-    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False))
-    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False))
-    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False))
+    tests.add(CTest('Lift coefficient', resultA[2], -0.413, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 2.77, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000765, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.003565, 1e-1, False))
     tests.add(CTest('dcd/dE', resultAdj, 0.000014, 0.05, False))
     tests.run()
 

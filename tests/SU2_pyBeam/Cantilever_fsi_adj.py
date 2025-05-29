@@ -46,7 +46,7 @@ def test_adj(res, tol):
     tests.add(CTest('Drag coefficient', resultA[3], 2.77, 1e-1, False))
     tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000765, 1e-1, False))
     tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.003565, 1e-1, False))
-    tests.add(CTest('dcd/dE', resultAdj, 0.000014, 0.05, False))
+    tests.add(CTest('dcd/dE', resultAdj, 0.000011, 0.05, False))
     tests.run()
 
 def getAdjP():

@@ -1,12 +1,12 @@
 # Other code versions
 
-export SU2=fix_wrap_strong
+export SU2=feature_HB_deform_mesh
 export PYBEAM=master
 export GEOGEN=v2.0.0
 export MODALI=v2.0
 export VLM=v2.0
 export PFEM=v1.27
-export NATIVESOLID=v1.1
+export NATIVESOLID=mariano
 export DARTFLO=v1.2.2
 export FPM=v1.0.1
 
@@ -104,6 +104,7 @@ SU2(){
     -Dwith-mpi=disabled \
     -Denable-tests=false \
     -Denable-autodiff=true \
+    -Denable-mixedprec=false \
     --prefix=${OUTPUT}/SU2/build
     ./ninja -C build install
 }

@@ -37,10 +37,10 @@ def test(res, tol):
     #    print "\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol)
     #    raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], -0.425, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 3.124, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (110, Y)', resultS[6], -0.000581, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (100, Y)', resultS[3], -0.000810, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Lift coefficient', resultA[2], -0.337496, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 2.857317, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (110, Y)', resultS[6], -0.000496, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (100, Y)', resultS[3], -0.000710, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getFsiP():
@@ -52,7 +52,7 @@ def getFsiP():
     # Solvers and config files
 
     p['fluidSolver'] = 'SU2'
-    p['solidSolver'] = 'SU2'
+    p['solidSolver'] = 'SU2Solid'
     p['cfdFile'] = os.path.join(filePath, 'config_channel.cfg')
     p['csdFile'] = os.path.join(filePath, 'config_cantilever.cfg')
     p['computation'] = 'direct'

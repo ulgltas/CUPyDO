@@ -138,7 +138,7 @@ class Metafor(SolidSolver):
 
             self.tsm.setInitialTime(t1, t2-t1)
             self.tsm.setNextTime(t2, 0, t2-t1)
-            ok = self.metafor.getTimeIntegration().integration()
+            ok = self.metafor.getTimeIntegration().start()
             self.neverRun = False
 
         else:
@@ -163,13 +163,13 @@ class Metafor(SolidSolver):
 
             if self.mechanical:
 
-                self.nodalVel_X[i] = node.getValue(w.Field1D(w.TX, w.GV))
-                self.nodalVel_Y[i] = node.getValue(w.Field1D(w.TY, w.GV))
-                self.nodalVel_Z[i] = node.getValue(w.Field1D(w.TZ, w.GV))
+                self.nodalVel_X[i, 0] = node.getValue(w.Field1D(w.TX, w.GV))
+                self.nodalVel_Y[i, 0] = node.getValue(w.Field1D(w.TY, w.GV))
+                self.nodalVel_Z[i, 0] = node.getValue(w.Field1D(w.TZ, w.GV))
 
-                self.nodalDisp_X[i] = node.getValue(w.Field1D(w.TX, w.RE))
-                self.nodalDisp_Y[i] = node.getValue(w.Field1D(w.TY, w.RE))
-                self.nodalDisp_Z[i] = node.getValue(w.Field1D(w.TZ, w.RE))
+                self.nodalDisp_X[i, 0] = node.getValue(w.Field1D(w.TX, w.RE))
+                self.nodalDisp_Y[i, 0] = node.getValue(w.Field1D(w.TY, w.RE))
+                self.nodalDisp_Z[i, 0] = node.getValue(w.Field1D(w.TZ, w.RE))
 
             if self.thermal:
                 self.nodalTemperature[i] = node.getValue(w.Field1D(w.TO, w.AB)) + node.getValue(w.Field1D(w.TO, w.RE))
@@ -209,9 +209,9 @@ class Metafor(SolidSolver):
 
             node = self.FSI.getMeshPoint(i)
             fx,fy,fz = self.Fnods[node.getNo()]
-            fx.val = result[i][0]
-            fy.val = result[i][1]
-            fz.val = result[i][2]
+            fx.val = result[i][0][0]
+            fy.val = result[i][0][1]
+            fz.val = result[i][0][2]
 
 
     def applyNodalStress(self, load_XX, load_YY, load_ZZ, load_XY, load_XZ, load_YZ, dt, haloNodesLoads):

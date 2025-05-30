@@ -112,15 +112,15 @@ class Pfem(FluidSolver):
 
     def __setCurrentState(self):
         
-        fx = np.zeros(len(self.vnods))
-        fy = np.zeros(len(self.vnods))
-        fz = np.zeros(len(self.vnods))
+        fx = np.zeros((len(self.vnods), 1))
+        fy = np.zeros((len(self.vnods), 1))
+        fz = np.zeros((len(self.vnods), 1))
 
         for i in range(len(self.vnods)):
             node = self.vnods[i]
-            fx[i] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
-            fy[i] = -(node.fIne.x[1] + node.fInt.x[1] - node.fExt.x[1])
-            fz[i] = 0.
+            fx[i, 0] = -(node.fIne.x[0] + node.fInt.x[0] - node.fExt.x[0])
+            fy[i, 0] = -(node.fIne.x[1] + node.fInt.x[1] - node.fExt.x[1])
+            fz[i, 0] = 0.
 
         self.nodalLoad_X = fx
         self.nodalLoad_Y = fy
@@ -165,8 +165,8 @@ class Pfem(FluidSolver):
         
         for i in range(len(self.vnods)):
             node = self.vnods[i]                 
-            node.imposedU = (dx[i] - self.displ_x_prev[i])/dt
-            node.imposedV = (dy[i] - self.displ_y_prev[i])/dt
+            node.imposedU = (dx[0][i] - self.displ_x_prev[i])/dt
+            node.imposedV = (dy[0][i] - self.displ_y_prev[i])/dt
         
     def update(self, dt):
         self.pfem.scheme.t += dt

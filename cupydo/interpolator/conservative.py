@@ -58,26 +58,28 @@ class ConservativeInterpolator(InterfaceInterpolator):
 
     def checkConservation(self):
 
-        WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)
-        WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)
-
         mpiPrint("Checking f/s interface conservation...", self.mpiComm)
-        mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
-        mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
+        for iInst in range(self.nInst):
+            WSX, WSY, WSZ = self.solidInterfaceLoads.dot(self.solidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
+            WFX, WFY, WFZ = self.fluidInterfaceLoads.dot(self.fluidInterfaceDisplacement)[3*iInst:3*(iInst+1)]
+
+            mpiPrint('Instance {}:'.format(iInst), self.mpiComm)
+            mpiPrint('Solid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WSX, WSY, WSZ), self.mpiComm)
+            mpiPrint('Fluid side (Wx, Wy, Wz) = ({}, {}, {})'.format(WFX, WFY, WFZ), self.mpiComm)
 
     def generateInterfaceData(self):
 
         if self.manager.mechanical:
-            self.prevSolidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-            self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+            self.prevSolidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+            self.solidInterfaceDisplacement = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+            self.fluidInterfaceDisplacement = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
+            self.solidInterfaceLoads = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+            self.fluidInterfaceLoads = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
             if self.manager.computation == 'adjoint':
-                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3, self.mpiComm)
-                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns + self.d, 3, self.mpiComm)
-                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3, self.mpiComm)
+                self.solidInterfaceAdjointDisplacement = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointDisplacement = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
+                self.solidInterfaceAdjointLoads = FlexInterfaceData(self.ns + self.d, 3*self.manager.nInst, self.mpiComm)
+                self.fluidInterfaceAdjointLoads = FlexInterfaceData(self.nf, 3*self.manager.nInst, self.mpiComm)
 
         if self.manager.thermal :
             if self.chtTransferMethod == 'TFFB':

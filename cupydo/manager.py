@@ -65,6 +65,10 @@ class Manager(ccupydo.CManager):
         # --- Initialize all the parameters --- #
         self.nDim = p['nDim']
         self.regime = p['regime']
+        if self.regime == 'harmonic':
+            self.nInst = p['nInst']
+        else:
+            self.nInst = 1
         self.computation = p['computation']
         self.mechanical = p['mechanical']
         self.thermal = p['thermal']
@@ -301,6 +305,9 @@ class Manager(ccupydo.CManager):
 
     def getnDim(self):
         return self.nDim
+
+    def getnInst(self):
+        return self.nInst
 
     def getComputationType(self):
         return self.regime

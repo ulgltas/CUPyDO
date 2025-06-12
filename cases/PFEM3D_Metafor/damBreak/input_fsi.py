@@ -52,11 +52,6 @@ def main():
     cupydo = cupy.CUPyDO(param)
     cupydo.run()
 
-    # Compare the results with a reference solution
-
-    base = os.path.dirname(__file__)
-    os.system(f'python3 {base}/battery.py')
-
     # Count the number of iterations
 
     n_iter = cupydo.algorithm.totNbOfFSIIt

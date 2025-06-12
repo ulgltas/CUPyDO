@@ -81,7 +81,9 @@ class Pfem3D(FluidSolver):
 
         if self.mechanical:
             self.disp = np.zeros((self.nPhysicalNodes,3))
-            self.vel = self.__getVelocity()
+
+            if self.solverType == w.SolverType_Explicit:
+                self.vel = self.__getVelocity()
         
         FluidSolver.__init__(self,p)
         self.initPos = self.__getPosition()
@@ -115,7 +117,7 @@ class Pfem3D(FluidSolver):
 
         BC = (np.transpose([dx[0],dy[0],dz[0]])-self.disp)/dt
 
-        if self.solverType ==  w.SolverType_Explicit:
+        if self.solverType == w.SolverType_Explicit:
             BC = 2*(BC-self.vel)/dt
 
         for i,vector in enumerate(BC):
@@ -235,8 +237,11 @@ class Pfem3D(FluidSolver):
         self._resetInterfaceBC()
         self.problem.copySolution(self.prevSolution)
 
-        self.disp = self.__getPosition()-self.initPos
-        self.vel = self.__getVelocity()
+        if self.mechanical:
+            self.disp = self.__getPosition()-self.initPos
+
+            if self.solverType == w.SolverType_Explicit:
+                self.vel = self.__getVelocity()
 
     def getNodalInitialPositions(self):
         return np.transpose(self.initPos).copy()

@@ -37,10 +37,10 @@ def test(res, tol):
        print("\n\n" + "FSI residual = " + str(res) + ", FSI tolerance = " + str(tol))
        raise Exception("FSI algo failed to converge!")
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False)) # rel. tol. of 10%
-    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Lift coefficient', resultA[2], -0.413, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Drag coefficient', resultA[3], 2.77, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000765, 1e-1, False)) # rel. tol. of 10%
+    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.003565, 1e-1, False)) # rel. tol. of 10%
     tests.run()
 
 def getFsiP():

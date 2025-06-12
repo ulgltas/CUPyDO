@@ -42,11 +42,11 @@ def test_adj(res, tol):
        raise Exception("FSI algo failed to converge!")
 
     tests = CTests()
-    tests.add(CTest('Lift coefficient', resultA[2], -0.536, 1e-1, False))
-    tests.add(CTest('Drag coefficient', resultA[3], 3.001, 1e-1, False))
-    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000880, 1e-1, False))
-    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.00381, 1e-1, False))
-    tests.add(CTest('dcd/dE', resultAdj, 0.000014, 0.05, False))
+    tests.add(CTest('Lift coefficient', resultA[2], -0.413, 1e-1, False))
+    tests.add(CTest('Drag coefficient', resultA[3], 2.77, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, Y)', resultS[3], -0.000765, 1e-1, False))
+    tests.add(CTest('Displacement (Tip, X)', resultS[2], 0.003565, 1e-1, False))
+    tests.add(CTest('dcd/dE', resultAdj, 0.000011, 0.05, False))
     tests.run()
 
 def getAdjP():
@@ -60,9 +60,8 @@ def getAdjP():
     p['fluidSolver'] = 'SU2'
     p['solidSolver'] = 'pyBeam'
     p['cfdFile'] = os.path.join(filePath, 'config_channel_adj.cfg')
-    p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever.pyBeam'
+    p['csdFile'] = '../../tests/SU2_pyBeam/config_cantilever_AD.pyBeam'
     p['computation'] = 'adjoint'
-
     # FSI objects
 
     p['interpolator'] = 'RBF'

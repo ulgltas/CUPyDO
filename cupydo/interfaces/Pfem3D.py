@@ -113,8 +113,8 @@ class Pfem3D(FluidSolver):
 
     def applyNodalDisplacements(self, dx, dy, dz, dt, haloNodesDisplacements):
 
-        BC = (np.transpose([dx,dy,dz])-self.disp)/dt
-        
+        BC = (np.transpose([dx[0],dy[0],dz[0]])-self.disp)/dt
+
         if self.solverType ==  w.SolverType_Explicit:
             BC = 2*(BC-self.vel)/dt
 
@@ -166,8 +166,8 @@ class Pfem3D(FluidSolver):
                 self.solver.computeLoads('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
-                    self.nodalLoad_X[i] = -result[i][0]
-                    self.nodalLoad_Y[i] = -result[i][1]
+                    self.nodalLoad_X[i, 0] = -result[i][0]
+                    self.nodalLoad_Y[i, 0] = -result[i][1]
                     if self.dim == 3: self.nodalLoad_Z[i] = -result[i][2]
 
             elif self.dim == 3:
@@ -175,31 +175,31 @@ class Pfem3D(FluidSolver):
                 self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
-                    self.nodalLoad_XX[i] = result[i][0]
-                    self.nodalLoad_YY[i] = result[i][1]
-                    self.nodalLoad_ZZ[i] = result[i][2]
-                    self.nodalLoad_XY[i] = result[i][3]
-                    self.nodalLoad_XZ[i] = result[i][4]
-                    self.nodalLoad_YZ[i] = result[i][5]
+                    self.nodalLoad_XX[i, 0] = result[i][0]
+                    self.nodalLoad_YY[i, 0] = result[i][1]
+                    self.nodalLoad_ZZ[i, 0] = result[i][2]
+                    self.nodalLoad_XY[i, 0] = result[i][3]
+                    self.nodalLoad_XZ[i, 0] = result[i][4]
+                    self.nodalLoad_YZ[i, 0] = result[i][5]
 
             elif self.problem.isAxiSymmetric():
 
                 self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
-                    self.nodalLoad_XX[i] = result[i][0]
-                    self.nodalLoad_YY[i] = result[i][1]
-                    self.nodalLoad_ZZ[i] = result[i][2]
-                    self.nodalLoad_XY[i] = result[i][3]
+                    self.nodalLoad_XX[i, 0] = result[i][0]
+                    self.nodalLoad_YY[i, 0] = result[i][1]
+                    self.nodalLoad_ZZ[i, 0] = result[i][2]
+                    self.nodalLoad_XY[i, 0] = result[i][3]
 
             else:
 
                 self.solver.computeStress('FSI', self.FSI,result)
                 for i in range(self.nNodes):
 
-                    self.nodalLoad_XX[i] = result[i][0]
-                    self.nodalLoad_YY[i] = result[i][1]
-                    self.nodalLoad_XY[i] = result[i][2]
+                    self.nodalLoad_XX[i, 0] = result[i][0]
+                    self.nodalLoad_YY[i, 0] = result[i][1]
+                    self.nodalLoad_XY[i, 0] = result[i][2]
 
         if self.thermal:
             self.solver.computeHeatFlux('FSI', self.FSI,result)

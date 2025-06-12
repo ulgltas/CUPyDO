@@ -147,16 +147,22 @@ class CUPyDO(object):
         else:
             if p['fluidSolver'] == 'SU2':
                 from . import SU2 as fItf
-                if comm != None:
-                    fluidSolver = fItf.SU2(p, withMPI, comm)
+                if p['regime'] == "harmonic":
+                    if comm != None:
+                        fluidSolver = fItf.SU2HarmonicBalance(p, withMPI, comm)
+                    else:
+                        fluidSolver = fItf.SU2HarmonicBalance(p, withMPI, 0)
                 else:
-                    fluidSolver = fItf.SU2(p, withMPI, 0)
+                    if comm != None:
+                        fluidSolver = fItf.SU2(p, withMPI, comm)
+                    else:
+                        fluidSolver = fItf.SU2(p, withMPI, 0)
             elif p['fluidSolver'] == 'Pfem':
                 from . import Pfem as fItf
                 fluidSolver = fItf.Pfem(p, args.k)
             elif p['fluidSolver'] == 'DART':
-                from dart.api.cupydo import Dart
-                fluidSolver = Dart(p, args.k)
+                from . import Dartflo as fItf
+                fluidSolver = fItf.Dart(p, args.k)
             elif p['fluidSolver'] == 'VLM':
                 from . import VLM as fItf
                 fluidSolver = fItf.VLMSolver(p)
@@ -177,7 +183,7 @@ class CUPyDO(object):
         solidSolver = None
         # IMPORTANT! only master can instantiate the solid solver except SU2Solid.
         if p['computation'] == 'adjoint': # Adjoint calculations only support SU2Solid
-            if p['solidSolver'] == 'SU2':
+            if p['solidSolver'] == 'SU2Solid':
                 from . import SU2Solid as sItf
                 if comm != None:
                     solidSolver = sItf.SU2SolidAdjoint(p, withMPI, comm)
@@ -186,6 +192,9 @@ class CUPyDO(object):
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 solidSolver = sItf.pyBeamAdjointSolver(p)
+            elif myId == 0 and p['solidSolver'] == 'RBMI':
+                from . import RBMI as sItf
+                solidSolver = sItf.RBMIAdjoint(p)
             elif myId == 0:
                 raise RuntimeError('Adjoint interface for', p['solidSolver'], 'not found!\n')
         else:
@@ -201,7 +210,7 @@ class CUPyDO(object):
             elif myId == 0 and p['solidSolver'] == 'pyBeam':
                 from . import Beam as sItf
                 solidSolver = sItf.pyBeamSolver(p)
-            elif p['solidSolver'] == 'SU2':
+            elif p['solidSolver'] == 'SU2Solid':
                 from . import SU2Solid as sItf
                 if comm != None:
                     solidSolver = sItf.SU2SolidSolver(p, withMPI, comm)
@@ -219,7 +228,7 @@ class CUPyDO(object):
 
 # Solvers
 # - p['fluidSolver'], fluid solvers available: SU2, Pfem, DART, VLM, Pfem3D
-# - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2
+# - p['solidSolver'], solid solvers available: Metafor, RBMI, Modal, GetDP, SU2Solid
 # Configuration files
 # - p['cfdFile'], path to fluid cfg file 
 # - p['csdFile'], path to solid cfg file
@@ -234,7 +243,7 @@ class CUPyDO(object):
 
 # FSI parameters
 # needed by all algos
-# - p['regime'], steady or unsteady
+# - p['regime'], steady, unsteady or harmonic
 # - p['computation'], direct or adjoint
 # - p['nDim'], dimension, 2 or 3
 # - p['dt'], time steps
@@ -252,8 +261,13 @@ class CUPyDO(object):
 # - p['rbfRadius'], radius of interpolation for RBF
 # optional for RBF/TPS interpolators
 # - p['interpMaxIt'], maximum number of iterations
-# - p['interpPrecond'], preconditionner
+# - p['interpPrecond'], preconditioner
 # - p['interpTol'], solver tolerance
+
+# needed for Harmonic Balance
+# - p['HBomega'], initial base frequency for HB
+# - p['HBupdateIt'], number of FSI iterations between each update to HB frequency
+# Maybe add one for updating HB frequency after n initial iterations
 
 # Solver parameters that should be moved to solver cfg files and handled by the solver interface
 # - p['extractors'], SU2Solid, pyBeam

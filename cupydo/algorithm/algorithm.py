@@ -74,6 +74,12 @@ class Algorithm(object):
 
         self.solidHasRun = False
         self.verified = True
+        self.objectiveFunction = 0.
+        if self.myid in self.manager.getSolidSolverProcessors():
+            self.gradients = np.zeros((self.SolidSolver.getNumberDesignVariables(),))
+        else:
+            self.gradients = None
+        self.deltaOmega = 0.
 
     # --- Function called when the FSI coupling failed --- #
     def resetInternalVars(self): return
@@ -158,11 +164,9 @@ class Algorithm(object):
 
         self.communicationTimer.start()
         if self.interpType == 'conservative':
-            self.interfaceInterpolator.getAdjointForceFromSolidSolver()
             self.interfaceInterpolator.interpolateSolidAdjointLoadsOnFluidMesh()
             self.interfaceInterpolator.setAdjointForceToFluidSolver(self.step.dt)
         elif self.interpType == 'consistent':
-            self.interfaceInterpolator.getAdjointStressFromSolidSolver()
             self.interfaceInterpolator.interpolateSolidAdjointLoadsOnFluidMesh()
             self.interfaceInterpolator.setAdjointStressToFluidSolver(self.step.dt)
         self.communicationTimer.stop()

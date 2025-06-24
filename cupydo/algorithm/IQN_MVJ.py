@@ -29,7 +29,7 @@ Authors : David THOMAS, Marco Lucio CERQUAGLIA, Romain BOMAN
 
 from math import *
 import numpy as np
-import sys
+from scipy import linalg
 import sys
 
 from ..utilities import *
@@ -80,10 +80,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
 
         # --- Global V and W matrices for IQN-MVJ algorithm --- #
         if self.manager.mechanical:
-            self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
         if self.manager.thermal:
-            self.invJprevCHT = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.invJCHT = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
 
         # --- Indicate if a BGS iteration must be performed --- #
@@ -91,6 +89,26 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             self.makeBGS = True
         if self.manager.thermal:
             self.makeBGS_CHT = True
+
+    def computeJacobian(self):
+
+        if len(self.Vk) > 0:
+
+            V = np.vstack(self.Vk).T
+            W = np.vstack(self.Wk).T
+
+            delta = np.dot(W-self.invJ.dot(V), linalg.pinv(V))
+            self.invJ += delta
+
+    def computeJacobianCHT(self):
+
+        if len(self.VkCHT) > 0:
+
+            V = np.vstack(self.VkCHT).T
+            W = np.vstack(self.WkCHT).T
+
+            delta = np.dot(W-self.invJCHT.dot(V), linalg.pinv(V))
+            self.invJCHT += delta
 
     def fsiCoupling(self):
         """
@@ -203,9 +221,9 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
             if self.criterion.isVerified():
                 mpiPrint("IQN-MVJ is Converged",self.mpiComm,titlePrint)
                 if self.manager.mechanical:
-                    self.invJprev = np.copy(self.invJ)
+                    self.computeJacobian()
                 if self.manager.thermal:
-                    self.invJprevCHT = np.copy(self.invJCHT)
+                    self.computeJacobianCHT()
                 return True
         
         # --- Reset the Jacobians because the coupling did not converge --- #
@@ -230,7 +248,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         
         # --- Relax the solid position --- #
         if self.makeBGS:
-            self.invJprev = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.invJ = np.zeros((self.manager.nDim*ns,self.manager.nDim*ns))
             self.relaxSolidPosition()
             self.makeBGS = False
@@ -254,13 +271,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 solidInterfaceResidual0_Y_Gat_C = solidInterfaceResidual0_Y_Gat[:ns]
                 solidInterfaceResidual0_Z_Gat_C = solidInterfaceResidual0_Z_Gat[:ns]
 
-
-                # --- Use J from the previous time step because Vk and Wk are empty --- #
-                if self.FSIIter == 0:
-                    self.invJ = self.invJprev.copy()
-
                 # -- Vk and Wk matrices are enriched only starting from the second iteration --- #
-                else:
+                if self.FSIIter > 0:
                     if self.manager.nDim == 3:
                         delta_res = np.concatenate([res_X_Gat_C - solidInterfaceResidual0_X_Gat_C, res_Y_Gat_C - solidInterfaceResidual0_Y_Gat_C, res_Z_Gat_C - solidInterfaceResidual0_Z_Gat_C], axis=0)
                         delta_d = np.concatenate([solidInterfaceDisplacement_tilde_X_Gat - solidInterfaceDisplacement_tilde1_X_Gat, solidInterfaceDisplacement_tilde_Y_Gat - solidInterfaceDisplacement_tilde1_Y_Gat, solidInterfaceDisplacement_tilde_Z_Gat - solidInterfaceDisplacement_tilde1_Z_Gat], axis = 0)
@@ -274,23 +286,26 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                     V = np.vstack(self.Vk).T
                     W = np.vstack(self.Wk).T
 
-                    V, W = self.filter(V, W)
-                    U = np.transpose(W - np.dot(self.invJprev, V))
-                    self.invJ = self.invJprev + np.linalg.lstsq(V.T, U, rcond=-1)[0].T
-
                 if self.manager.nDim == 3:
                     Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C, res_Z_Gat_C], axis=0)
                 else:
                     Res = np.concatenate([res_X_Gat_C, res_Y_Gat_C], axis=0)
 
+                if self.FSIIter == 0:
+                    delta = self.invJ.dot(-Res)+Res
+
+                else:
+                    delta = np.dot(W-self.invJ.dot(V), np.linalg.lstsq(V, -Res, rcond=-1)[0])
+                    delta = self.invJ.dot(-Res)+delta+Res
+
                 if self.manager.nDim == 3:
-                    delta_ds_loc = np.split(np.dot(self.invJ, -Res) + Res,3,axis=0)
+                    delta_ds_loc = np.split(delta, 3, axis=0)
                     
                     delta_ds_loc_X = delta_ds_loc[0]
                     delta_ds_loc_Y = delta_ds_loc[1]
                     delta_ds_loc_Z = delta_ds_loc[2]
                 else:
-                    delta_ds_loc = np.split(np.dot(self.invJ, -Res) + Res,2,axis=0)
+                    delta_ds_loc = np.split(delta, 2, axis=0)
                     
                     delta_ds_loc_X = delta_ds_loc[0]
                     delta_ds_loc_Y = delta_ds_loc[1]
@@ -333,7 +348,6 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
         
         # --- Relax the solid position --- #
         if self.makeBGS_CHT:
-            self.invJprevCHT = np.zeros((ns,ns))
             self.invJCHT = np.zeros((ns,ns))
             self.makeBGS_CHT = False
             self.relax_CHT()
@@ -353,12 +367,8 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                 res_Gat_C = res_Gat[:ns]
                 solidInterfaceResidual0_Gat_C = solidInterfaceResidual0_Gat[:ns]
 
-                # --- Use J from the previous time step because VkCHT and WkCHT are empty --- #
-                if self.FSIIter == 0:
-                    self.invJCHT = self.invJprevCHT.copy()
-
                 # -- VkCHT and WkCHT matrices are enriched only starting from the second iteration --- #
-                else:
+                if self.FSIIter > 0:
                     delta_res = res_Gat_C - solidInterfaceResidual0_Gat_C
                     delta_d = solidInterfaceTemperature_tilde_Gat - solidInterfaceTemperature_tilde1_Gat
                     
@@ -368,11 +378,11 @@ class AlgorithmIQN_MVJ(AlgorithmBGSStaticRelax):
                     V = np.vstack(self.VkCHT).T
                     W = np.vstack(self.WkCHT).T
 
-                    V, W = self.filter(V, W)
-                    U = np.transpose(W - np.dot(self.invJprevCHT, V))
-                    self.invJCHT = self.invJprevCHT + np.linalg.lstsq(V.T, U, rcond=-1)[0].T
+                    delta = np.dot(W-self.invJCHT.dot(V), np.linalg.lstsq(V, -res_Gat_C, rcond=-1)[0])
+                    delta_ds_loc = self.invJCHT.dot(-res_Gat_C)+delta+res_Gat_C
 
-                delta_ds_loc = np.dot(self.invJCHT, -res_Gat_C) + res_Gat_C
+                else:
+                    delta_ds_loc = self.invJCHT.dot(-res_Gat_C)+res_Gat_C
 
                 for iVertex in range(delta_ds_loc.shape[0]):
                     iGlobalVertex = self.manager.getGlobalIndex('solid', self.myid, iVertex)

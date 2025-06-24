@@ -22,8 +22,8 @@ def test(meanFSIIt):
 
     tests = CTests()
     tests.add(CTest('Center ball coordinate X', coord[0], 0.15, 0.1, False))
-    tests.add(CTest('Center ball coordinate Y', coord[1], 0.16, 0.1, False))
-    tests.add(CTest('Center ball temperature', temperature, 170, 0.01, False))
+    tests.add(CTest('Center ball coordinate Y', coord[1], 0.18, 0.1, False))
+    tests.add(CTest('Center ball temperature', temperature, 162, 0.01, False))
     tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 5, 1, True))
     tests.run()
 

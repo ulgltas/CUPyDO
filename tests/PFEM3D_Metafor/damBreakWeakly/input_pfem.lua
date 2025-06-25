@@ -94,12 +94,12 @@ Problem.Solver = {
     -- Initial conditions and type
 
     IC = {},
-    type = 'Explicit',
-    timeIntegration = 'CDS',
+    type = 'Implicit',
 
     -- Factors of time step changes
 
-    securityCoeff = 0.1,
+    coeffDTDecrease = 2,
+    coeffDTincrease = 1,
 
     -- Enable or disable algorithms
 
@@ -108,39 +108,35 @@ Problem.Solver = {
     initialDT = math.huge
 }
 
-Problem.Solver.MomEq = {
+Problem.Solver.MomContEq = {
 
     -- Enable the fluid-structure interface
 
     BC = {FSIVExt = true},
 
+    -- Define the solver algorithms
+
+    nlAlgo = 'Picard',
+    systemForm = 'Monolithic',
+    timeIntegration = 'BackwardEuler',
+    residual = 'Ax_f',
+
     -- Other simulation parameters
 
     pExt = 0,
+    maxIter = 25,
+    minRes = 1e-8,
     bodyForce = {0, -9.81}
-}
-
-Problem.Solver.ContEq = {
-
-    -- Enable the boundary conditions
-
-    BC = {},
-
-    -- Define the solver algorithms
-
-    version = 'DpDt',
-    stabilization = 'CLS'
 }
 
 -- Initial Conditions
 
 function Problem.Solver.IC.initStates(x, y, z)
-	return {0, 0, 0, Problem.Material[1].StateEquation.rho0, 0, 0}
+	return {0, 0, 0}
 end
+-- Momentum Continuity Equation BC
 
--- Momentum Equation BC
-
-function Problem.Solver.MomEq.BC.ReservoirV(x, y, z, t)
+function Problem.Solver.MomContEq.BC.ReservoirV(x, y, z, t)
 	return 0, 0
 end
 

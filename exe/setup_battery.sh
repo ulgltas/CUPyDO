@@ -17,7 +17,7 @@ export OONDA=master
 export PARASOLID=master
 export LINUXBIN=master
 
-export PFEM3D=v2.4.0
+export PFEM3D=v2.5.1
 export CUPYDO=master
 
 # Gitlab and GitHub access token

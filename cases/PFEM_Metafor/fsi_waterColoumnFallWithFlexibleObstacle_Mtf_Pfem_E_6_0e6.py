@@ -25,7 +25,7 @@ def getParameters(_p):
     p['timeIterTreshold'] = 0
     p['omegaMax'] = 0.5
     p['regime'] = 'unsteady'
-    p['extractor'] = None
+    p['exporter'] = None
     p.update(_p)
     return p
 

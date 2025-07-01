@@ -1,121 +1,204 @@
--- Problem Parameters
+Problem = {
 
-Problem = {}
-Problem.verboseOutput = false
-Problem.autoRemeshing = false
-Problem.simulationTime = math.huge
-Problem.id = 'Boussinesq'
+    -- Main simulation parameters
 
--- Mesh Parameters
+    thermal = true,
+    mechanical = true,
+    boussinesq = true,
+    verboseOutput = true,
+    autoRemeshing = false,
+    simulationTime = math.huge
+}
 
-Problem.Mesh = {}
-Problem.Mesh.alpha = 1.2
-Problem.Mesh.omega = 0.5
-Problem.Mesh.gamma = 0.6
-Problem.Mesh.hchar = 0.25/33
-Problem.Mesh.gammaFS = 0.2
-Problem.Mesh.alphaOut = 0.6
-Problem.Mesh.gammaBound = 0.3
-Problem.Mesh.minHeightFactor = 1e-2
+Problem.Mesh = {
 
-Problem.Mesh.addOnFS = true
-Problem.Mesh.keepFluidElements = true
-Problem.Mesh.deleteFlyingNodes = true
-Problem.Mesh.deleteBoundElements = {'FSInterface'}
-Problem.Mesh.boundingBox = {0, 0, 0.9, 1}
-Problem.Mesh.exclusionZones = {}
+    -- Input mesh and bounding box
 
-Problem.Mesh.remeshAlgo = 'CGAL'
-Problem.Mesh.mshFile = 'geometryF.msh'
+    remeshAlgo = 'CGAL',
+    mshFile = 'geometryF.msh',
+    deleteBoundElements = {'FSI'},
+    boundingBox = {0, 0, 0.9, 1},
+    exclusionZones = {},
 
--- Extractor Parameters
+    -- Remeshing internal parameters
+
+    alpha = 1.2,
+    omega = 0.5,
+    gamma = 0.6,
+    hchar = 0.25/33,
+    gammaFS = 0.2,
+    epsilonLS = 0.1,
+    minHeightFactor = 1e-3,
+
+    -- Enable or disable algorithms
+
+    addOnFS = false,
+    useLevelSet = true,
+    keepFluidElements = true,
+    deleteFlyingNodes = true
+}
 
 Problem.Extractors = {}
 
-Problem.Extractors[0] = {}
-Problem.Extractors[0].kind = 'GMSH'
-Problem.Extractors[0].writeAs = 'NodesElements'
-Problem.Extractors[0].outputFile = 'pfem/fluid.msh'
-Problem.Extractors[0].whatToWrite = {'T', 'velocity'}
-Problem.Extractors[0].timeBetweenWriting = math.huge
+-- Add an extractor for each output kind
 
-Problem.Extractors[1] = {}
-Problem.Extractors[1].kind = 'Global'
-Problem.Extractors[1].whatToWrite = 'mass'
-Problem.Extractors[1].outputFile = 'mass.txt'
-Problem.Extractors[1].timeBetweenWriting = math.huge
+Problem.Extractors[1] = {
 
--- Material Parameters
+    -- Export the mesh in a GMSH file
+
+    kind = 'GMSH',
+    outputFile = 'pfem/fluid.msh',
+    whatToWriteNode = {'T', 'velocity'},
+    timeBetweenWriting = math.huge
+}
+
+Problem.Extractors[2] = {
+
+    -- Export the total fluid mass
+
+    kind = 'Global',
+    whatToWrite = 'mass',
+    outputFile = 'mass.txt',
+    timeBetweenWriting = math.huge
+}
 
 Problem.Material = {}
-Problem.Material.mu = 5e-3
-Problem.Material.gamma = 0
-Problem.Material.rho = 1000
-Problem.Material.epsRad = 0
-Problem.Material.sigmaRad = 0
-Problem.Material.R = 8.31446261815324
-Problem.Material.alphaLin = 0
-Problem.Material.DgammaDT = 0
-Problem.Material.Tinf = 340
-Problem.Material.DmuDT = 0
-Problem.Material.DcpDT = 0
-Problem.Material.DkDT = 0
-Problem.Material.cp = 1e3
-Problem.Material.Tr = 340
-Problem.Material.k = 20
-Problem.Material.h = 1
 
--- Solver Parameters
+-- First material is the fluid
 
-Problem.Solver = {}
-Problem.Solver.id = 'PSPG'
+Problem.Material[1] = {
 
-Problem.Solver.adaptDT = true
-Problem.Solver.solveHeatFirst = true
+    -- Parameters for the viscosity
 
-Problem.Solver.maxDT = math.huge
-Problem.Solver.initialDT = math.huge
-Problem.Solver.coeffDTDecrease = 2
-Problem.Solver.coeffDTincrease = 1
+    Stress = {
+        type = 'NewtonianFluid',
+        mu = 5e-3
+    },
+    
+    -- Parameters for the fluid bulk
 
--- Momentum Continuity Equation
+    StateEquation = {
+        type = 'Incompressible',
+        rho = 1000
+    },
 
-Problem.Solver.MomContEq = {}
-Problem.Solver.MomContEq.residual = 'Ax_f'
-Problem.Solver.MomContEq.nlAlgo = 'Picard'
-Problem.Solver.MomContEq.sparseSolverLib = 'Eigen'
+    -- Parameters for surface tension
 
-Problem.Solver.MomContEq.pExt = 0
-Problem.Solver.MomContEq.maxIter = 25
-Problem.Solver.MomContEq.minRes = 1e-8
-Problem.Solver.MomContEq.bodyForce = {0, -9.81}
+    SurfaceStress = {
+        type = 'SurfaceTension',
+        gamma = 0
+    },
 
--- Heat Equation
+    -- Parameters for heat capacity
 
-Problem.Solver.HeatEq = {}
-Problem.Solver.HeatEq.residual = 'Ax_f'
-Problem.Solver.HeatEq.nlAlgo = 'Picard'
-Problem.Solver.HeatEq.sparseSolver = 'CG'
+    CaloricStateEq = {
+        type = 'LinearHeatCapacity',
+        DcpDT = 0,
+        Tr = 340,
+        cp = 1e3
+    },
 
-Problem.Solver.HeatEq.maxIter = 25
-Problem.Solver.HeatEq.minRes = 1e-6
-Problem.Solver.HeatEq.tolerance = 1e-16
+    -- Parameters for Fourier flux
 
--- Heat Momentum Continuity BC
+    HeatFlux = {
+        type = 'LinearFourierFlux',
+        DkDT = 0,
+        Tr = 340,
+        k = 20
+    },
 
-Problem.IC = {}
-Problem.Solver.HeatEq.BC = {}
-Problem.Solver.MomContEq.BC = {}
-Problem.Solver.HeatEq.BC['FSInterfaceTExt'] = true
-Problem.Solver.MomContEq.BC['FSInterfaceVExt'] = true
+    -- Parameters for cooling law
+    
+    CoolingLaw = {
+        type = 'LinearCoolingLaw',
+        Tinf = 340,
+        h = 0
+    },
 
-function Problem.IC.initStates(x, y, z)
+    -- Parameters for optical material
+    
+    OpticalProperties = {
+        type = 'ConstantOpticalProperties',
+        absorptivity = 0,
+        emissivity = 0,
+        sigmaSB = 0,
+        Tinf = 340
+    }
+}
+
+Problem.Solver = {
+
+    -- Initial conditions and type
+
+    IC = {},
+    type = 'Implicit',
+
+    -- Factors of time step changes
+
+    coeffDTDecrease = 2,
+    coeffDTincrease = 1,
+
+    -- Enable or disable algorithms
+
+    adaptDT = true,
+    maxDT = math.huge,
+    initialDT = math.huge,
+    solveHeatFirst = false
+}
+
+Problem.Solver.MomContEq = {
+
+    -- Enable the fluid-structure interface
+
+    BC = {FSIVExt = true},
+
+    -- Define the solver algorithms
+
+    nlAlgo = 'Picard',
+    systemForm = 'Monolithic',
+    timeIntegration = 'BackwardEuler',
+    residual = 'Ax_f',
+
+    -- Other simulation parameters
+
+    pExt = 0,
+    maxIter = 25,
+    minRes = 1e-8,
+    bodyForce = {0, -9.81}
+}
+
+Problem.Solver.HeatEq = {
+
+    -- Enable the fluid-structure interface
+
+    BC = {FSITExt = true},
+
+    -- Define the solver algorithms
+
+    nlAlgo = 'Picard',
+    timeIntegration = 'BackwardEuler',
+    residual = 'Ax_f',
+
+    -- Other simulation parameters
+
+    maxIter = 25,
+    minRes = 1e-6,
+    tolerance = 1e-16,
+}
+
+-- Initial Conditions
+
+function Problem.Solver.IC.initStates(x, y, z)
 	return {0, 0, 0, 340}
 end
+
+-- Momentum Continuity Equation BC
 
 function Problem.Solver.MomContEq.BC.WallV(x, y, z, t)
 	return 0, 0
 end
+
+-- Heat Equation BC
 
 function Problem.Solver.HeatEq.BC.WallQ(x, y, z, t)
     return 0, 0

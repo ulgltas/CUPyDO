@@ -26,7 +26,7 @@ def getParameters(_p):
     p['omegaMax'] = 0.5
     p['regime'] = 'unsteady'
     p['rbfRadius'] = 1
-    p['extractor'] = None
+    p['exporter'] = None
     p.update(_p)
     return p
 

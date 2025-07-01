@@ -23,23 +23,10 @@ from wrap import *
 
 metafor = None
 
-def params(q={}):
-    """ default model parameters
-    """
-    p={}
-    p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
-    p['bndno'] = 102
-    p['exporter'] = Extractor()
-                                       
-    p.update(q)
-    return p
-
 def getMetafor(p={}):
     global metafor
     if metafor: return metafor
     metafor = Metafor()
-
-    p = params(p)
 
     domain = metafor.getDomain()
     geometry = domain.getGeometry()
@@ -51,7 +38,8 @@ def getMetafor(p={}):
     importer = GmshImport(f, domain)
     importer.execute2D()
 
-    groupset = domain.getGeometry().getGroupSet()    
+    groupset = domain.getGeometry().getGroupSet()
+    p['FSI'] = groupset(102) 
 
     # solid elements / material
     interactionset = domain.getInteractionSet()
@@ -83,11 +71,12 @@ def getMetafor(p={}):
 
     mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(10)
-    mim.setResidualTolerance(p['tolNR'])
+    mim.setResidualTolerance(1.0e-7)
 
     ti = AlphaGeneralizedTimeIntegration(metafor)
     metafor.setTimeIntegration(ti)
 
+    p['exporter'] = Extractor()
     return metafor
 
 class Extractor(object):

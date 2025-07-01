@@ -17,7 +17,7 @@ def getParameters(_p):
     # --- Input parameters --- #
     p = {}
     p['nthreads'] = 1
-    p['extractor'] = None
+    p['exporter'] = None
     p.update(_p)
     return p
 

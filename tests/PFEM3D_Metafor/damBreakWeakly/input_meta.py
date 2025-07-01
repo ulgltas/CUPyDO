@@ -2,13 +2,6 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 1 = FSInterface
-
-def params(parm):
-
-    parm['bndno'] = 1
-    return parm
-
 metafor = None
 def getMetafor(parm):
 
@@ -38,6 +31,8 @@ def getMetafor(parm):
     groups = importer.groups
     importer.execute()
 
+    parm['FSI'] = groups['FSI']
+
     # Defines the solid domain
 
     app = w.FieldApplicator(1)
@@ -62,9 +57,11 @@ def getMetafor(parm):
 
     prp2 = w.ElementProperties(w.NodStress2DElement)
     load = w.NodInteraction(2)
-    load.push(groups['FSInterface'])
+    load.push(groups['FSI'])
     load.addProperty(prp2)
     interactionset.add(load)
+
+    parm['interactionM'] = load
     
     # Boundary conditions
     
@@ -89,8 +86,6 @@ def getMetafor(parm):
     tscm.setNbOptiIte(25)
 
     # Parameters for CUPyDO
-
-    parm['interactionM'] = load
 
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.IFNodalValueExtractor(groups['Solid'], w.IF_EVMS))

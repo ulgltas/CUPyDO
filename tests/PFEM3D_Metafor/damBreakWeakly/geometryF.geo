@@ -3,6 +3,9 @@ s = 0.012;
 h = 0.08;
 d = 0.01;
 
+N = 12;
+M = 3;
+
 // Points List
 
 Point(1) = {0,0,0,d};
@@ -33,14 +36,17 @@ Line(11) = {2,3};
 
 // Fluid Surface
 
+Transfinite Line{7} = N;
+Transfinite Line{8} = M;
+Transfinite Line{9} = N;
+
 Curve Loop(1) = {2,3,4,5};
 Plane Surface(1) = {1};
 
 // Physical Boundaries
 
-Physical Curve("FSInterface") = {7,8,9};
+Physical Curve("FSI") = {7,8,9};
 Physical Curve("Reservoir") = {1,2,3,6,10,11};
-Physical Curve("FreeSurface") = {5,4};
 Physical Surface("Fluid") = {1};
 
 Mesh 2;

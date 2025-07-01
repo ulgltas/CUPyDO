@@ -1,110 +1,172 @@
--- Problem Parameters
+Problem = {
 
-Problem = {}
-Problem.verboseOutput = true
-Problem.autoRemeshing = false
-Problem.simulationTime = math.huge
-Problem.id = 'Conduction'
+    -- Main simulation parameters
 
--- Mesh Parameters
+    thermal = true,
+    verboseOutput = true,
+    autoRemeshing = false,
+    simulationTime = math.huge
+}
 
-Problem.Mesh = {}
-Problem.Mesh.alpha = 1.2
-Problem.Mesh.omega = 0.5
-Problem.Mesh.gamma = 0.6
-Problem.Mesh.hchar = 0.01
-Problem.Mesh.gammaFS = 0.2
-Problem.Mesh.gammaBound = 0.2
-Problem.Mesh.minHeightFactor = 1e-2
+Problem.Mesh = {
 
-Problem.Mesh.addOnFS = false
-Problem.Mesh.keepFluidElements = true
-Problem.Mesh.deleteFlyingNodes = false
-Problem.Mesh.deleteBoundElements = {'FSInterface'}
-Problem.Mesh.boundingBox = {0, -10, 1, 1}
-Problem.Mesh.exclusionZones = {}
+    -- Input mesh and bounding box
 
-Problem.Mesh.remeshAlgo = 'CGAL'
-Problem.Mesh.mshFile = 'geometryF.msh'
+    remeshAlgo = 'CGAL',
+    mshFile = 'geometryF.msh',
+    deleteBoundElements = {'FSI'},
+    boundingBox = {0, -10, 1, 1},
+    exclusionZones = {},
 
--- Extractor Parameters
+    -- Remeshing internal parameters
+
+    alpha = 1.2,
+    omega = 0.5,
+    gamma = 0.6,
+    hchar = 0.01,
+    gammaFS = 0.2,
+    minHeightFactor = 1e-3,
+
+    -- Enable or disable algorithms
+
+    addOnFS = false,
+    keepFluidElements = true,
+    deleteFlyingNodes = false
+}
 
 Problem.Extractors = {}
 
-Problem.Extractors[0] = {}
-Problem.Extractors[0].kind = 'GMSH'
-Problem.Extractors[0].writeAs = 'NodesElements'
-Problem.Extractors[0].outputFile = 'fluid.msh'
-Problem.Extractors[0].whatToWrite = {'T'}
-Problem.Extractors[0].timeBetweenWriting = math.huge
+-- Add an extractor for each output kind
 
-Problem.Extractors[1] = {}
-Problem.Extractors[1].kind = 'Global'
-Problem.Extractors[1].whatToWrite = 'mass'
-Problem.Extractors[1].outputFile = 'mass.txt'
-Problem.Extractors[1].timeBetweenWriting = math.huge
+Problem.Extractors[1] = {
 
-Problem.Extractors[2] = {}
-Problem.Extractors[2].kind = 'Point'
-Problem.Extractors[2].whatToWrite = 'T'
-Problem.Extractors[2].outputFile = 'output.txt'
-Problem.Extractors[2].points = {{0.5, 0.2}}
-Problem.Extractors[2].timeBetweenWriting = math.huge
+    -- Export the mesh in a GMSH file
 
--- Material Parameters
+    kind = 'GMSH',
+    outputFile = 'pfem/fluid.msh',
+    timeBetweenWriting = math.huge,
+    whatToWriteNode = {'T'}
+}
+
+Problem.Extractors[3] = {
+
+    -- Export the total fluid mass
+
+    kind = 'Point',
+    whatToWrite = 'T',
+    outputFile = 'output.txt',
+    timeBetweenWriting = math.huge,
+    points = {{0.5, 0.2}}
+}
 
 Problem.Material = {}
-Problem.Material.mu = 1e-3
-Problem.Material.gamma = 0
-Problem.Material.rho = 1000
-Problem.Material.epsRad = 0
-Problem.Material.sigmaRad = 5.670374419e-8
-Problem.Material.R = 8.31446261815324
-Problem.Material.alphaLin = 69e-6
-Problem.Material.DgammaDT = 0
-Problem.Material.Tinf = 300
-Problem.Material.DmuDT = 0
-Problem.Material.DcpDT = 0
-Problem.Material.DkDT = 0
-Problem.Material.Tr = 650
-Problem.Material.k = 0.6
-Problem.Material.cp = 1
-Problem.Material.h = 5
 
--- Solver Parameters
+-- First material is the fluid
 
-Problem.Solver = {}
-Problem.Solver.id = 'PSPG'
+Problem.Material[1] = {
 
-Problem.Solver.adaptDT = true
-Problem.Solver.solveHeatFirst = true
+    -- Parameters for the fluid bulk
 
-Problem.Solver.maxDT = math.huge
-Problem.Solver.initialDT = math.huge
-Problem.Solver.coeffDTDecrease = 2
-Problem.Solver.coeffDTincrease = 1
+    StateEquation = {
+        type = 'Incompressible',
+        rho = 1000
+    },
 
--- Heat Equation
+    -- Parameters for surface tension
 
-Problem.Solver.HeatEq = {}
-Problem.Solver.HeatEq.residual = 'Ax_f'
-Problem.Solver.HeatEq.nlAlgo = 'Picard'
-Problem.Solver.HeatEq.sparseSolver = 'CG'
+    SurfaceStress = {
+        type = 'SurfaceTension',
+        gamma = 0
+    },
 
-Problem.Solver.HeatEq.maxIter = 25
-Problem.Solver.HeatEq.minRes = 1e-8
-Problem.Solver.HeatEq.tolerance = 1e-16
+    -- Parameters for heat capacity
 
--- Heat Momentum Continuity BC
+    CaloricStateEq = {
+        type = 'LinearHeatCapacity',
+        DcpDT = 0,
+        Tr = 300,
+        cp = 1
+    },
 
-Problem.IC = {}
-Problem.Solver.HeatEq.BC = {}
-Problem.Solver.HeatEq.BC['FSInterfaceTExt'] = true
+    -- Parameters for Fourier flux
 
-function Problem.IC.initStates(x, y, z)
+    HeatFlux = {
+        type = 'LinearFourierFlux',
+        DkDT = 0,
+        Tr = 300,
+        k = 0.6
+    },
+
+    -- Parameters for cooling law
+    
+    CoolingLaw = {
+        type = 'LinearCoolingLaw',
+        Tinf = 300,
+        h = 5
+    },
+
+    -- Parameters for optical material
+    
+    OpticalProperties = {
+        type = 'ConstantOpticalProperties',
+        absorptivity = 0,
+        emissivity = 0,
+        sigmaSB = 0,
+        Tinf = 300
+    }
+}
+
+Problem.Solver = {
+
+    -- Initial conditions and type
+
+    IC = {},
+    type = 'Implicit',
+
+    -- Factors of time step changes
+
+    coeffDTDecrease = 2,
+    coeffDTincrease = 1,
+
+    -- Enable or disable algorithms
+
+    adaptDT = true,
+    maxDT = math.huge,
+    initialDT = math.huge,
+    solveHeatFirst = false
+}
+
+Problem.Solver.HeatEq = {
+
+    -- Enable the fluid-structure interface
+
+    BC = {FSITExt = true},
+
+    -- Define the solver algorithms
+
+    nlAlgo = 'Picard',
+    timeIntegration = 'BackwardEuler',
+    residual = 'Ax_f',
+
+    -- Other simulation parameters
+
+    maxIter = 25,
+    minRes = 1e-6,
+    tolerance = 1e-16
+}
+
+-- Initial Conditions
+
+function Problem.Solver.IC.initStates(x, y, z)
 	return {300}
 end
 
+-- Heat Equation BC
+
 function Problem.Solver.HeatEq.BC.WallQ(x, y, z, t) 
+    return 0, 0
+end
+
+function Problem.Solver.HeatEq.BC.FreeSurfaceQ(x, y, z, t) 
     return 0, 0
 end

@@ -61,16 +61,14 @@ class Metafor(SolidSolver):
         module = importlib.import_module(p['csdFile'])
         self.metafor = module.getMetafor(parm)
         domain = self.metafor.getDomain()
-        parm = module.params(parm)
 
         # Defines some internal variables
 
         self.reload = True
-        self.neverRun = True
+        self.__dict__.update(parm)
 
-        self.exporter = parm['exporter']
-        self.interpType = p['interpType']
         self.regime = p['regime']
+        self.interpType = p['interpType']
 
         self.thermal = p['thermal']
         self.mechanical = p['mechanical']
@@ -80,7 +78,6 @@ class Metafor(SolidSolver):
         geometry = domain.getGeometry()
         loadingset = domain.getLoadingSet()
         self.tsm = self.metafor.getTimeStepManager()
-        self.FSI = geometry.getGroupSet()(parm['bndno'])
 
         self.dim = geometry.getDimension().getNdim()
         self.nNodes = self.FSI.getNumberOfMeshPoints()
@@ -103,19 +100,12 @@ class Metafor(SolidSolver):
                     fct = w.PythonOneParameterFunction(load[-1])
                     loadingset.define(node,w.Field1D(F, w.GF1), 1, fct)
 
-        # Create the consistent nodal stress/heat containers
-
-        if 'interactionM' in parm:
-            self.interactionM = parm['interactionM']
-
-        if 'interactionT' in parm:
-            self.interactionT = parm['interactionT']
-
         # Initialization of domain and output
 
         SolidSolver.__init__(self)
-        self.metafor.getDomain().build()
-        self.metafor.getDomain().getInitialConditionSet().update(0)
+
+        self.metafor.getTimeStepManager().setInitialTime(0, 1)
+        self.metafor.getTimeIntegration().initialise()
         self.__setCurrentState()
         self.save()
 
@@ -127,31 +117,19 @@ class Metafor(SolidSolver):
         self.metaFac.save(self.mfac)
         self.tsm.setVerbose(False)
 
-# Calculates One Time Step
-
     def run(self, t1, t2):
         """
         Computes a time increment and/or load previous state
         """
 
-        if(self.neverRun):
+        if self.reload: self._wayBack()
+        self.tsm.setNextTime(t2, 0, t2-t1)
 
-            self.tsm.setInitialTime(t1, t2-t1)
-            self.tsm.setNextTime(t2, 0, t2-t1)
-            ok = self.metafor.getTimeIntegration().start()
-            self.neverRun = False
-
-        else:
-
-            if self.reload: self.tsm.removeLastStage()
-            self.tsm.setNextTime(t2, 0, t2-t1)
-            ok = self.metafor.getTimeIntegration().restart(self.mfac)
+        ok = self.metafor.getTimeIntegration().restart(self.mfac)
 
         if ok: self.__setCurrentState()
         self.reload = True
         return ok
-
-# Gets Nodal Values
 
     def __setCurrentState(self):
         """
@@ -197,8 +175,6 @@ class Metafor(SolidSolver):
         node = self.FSI.getMeshPoint(index)
         return node.getNo()
 
-# Mechanical Boundary Conditions
-
     def applyNodalForce(self, load_X, load_Y, load_Z, dt, haloNodesLoads):
         """
         Apply the conservative load boundary conditions
@@ -225,8 +201,6 @@ class Metafor(SolidSolver):
             node = self.FSI.getMeshPoint(i)
             self.interactionM.setNodTensor3D(node, *result[i])
 
-# Thermal Boundary Conditions
-
     def applyNodalHeatFluxes(self, HF_X, HF_Y, HF_Z, dt, haloNodesHeatFlux):
         """
         Apply the consistent heat flux boundary conditions
@@ -238,8 +212,6 @@ class Metafor(SolidSolver):
             node = self.FSI.getMeshPoint(i)
             self.interactionT.setNodVector(node, *result[i])
 
-# Other Functions
-
     def update(self):
         """
         Save the current state in the RAM and update the load
@@ -248,6 +220,25 @@ class Metafor(SolidSolver):
         self.metaFac.save(self.mfac)
         SolidSolver.update(self)
         self.reload = False
+
+    def _wayBack(self):
+        '''
+        Revert back the solver to its last converged FSI state
+        '''
+
+        # Restart if either the step or the time has advanced
+
+        if (self.metafor.getCurrentStepNo() > self.mfac.getStepNo()) or \
+           (self.metafor.getLastTime() >= self.metafor.getCurrentTime()):
+
+            self.metafor.load(self.mfac)
+
+        # Remove the last stage if more than one stage has been stored
+
+        if not (self.metafor.getStageManager().getCurNumStage() < 0) \
+           and (self.metafor.getStageManager().getNumbOfStage() > 1):
+
+            self.metafor.getTimeStepManager().removeLastStage()
 
     def steadyUpdate(self):
         """

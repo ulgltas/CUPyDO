@@ -8,7 +8,7 @@ FSI tools for partitioned coupling between generic solid and fluid solvers.
 
 CUPyDO currently features interfaces for the following solvers:
 - **Solid**
-  - Metafor **[v3548]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
+  - Metafor **[v3561]** (http://metafor.ltas.ulg.ac.be/dokuwiki/start)
   - A Nonlinear Finite Element solid solver developed at the University of Liège.
   ---
   - NativeSolid (a.k.a. RBM) **[v1.2 + HB]** (https://github.com/ulgltas/NativeSolid/tree/mariano)
@@ -40,7 +40,7 @@ CUPyDO currently features interfaces for the following solvers:
   - VLM **[v2.0]** (https://github.com/ulgltas/VLM)
   - A Vortex Lattice Method, developed at the University of Liège.
   ---
-  - PFEM3D **[v2.4.0]** (https://github.com/ImperatorS79/PFEM3D)
+  - PFEM3D **[v2.5.1]** (https://github.com/ImperatorS79/PFEM3D)
   - A 3D Particle Finite Element Method fluid solver developed at the University of Liège.
   ---
   - FPM **[v1.0.1]** (https://gitlab.uliege.be/am-dept/fpm)

@@ -24,33 +24,10 @@ from wrap import *
 
 metafor = None
 
-def params(q={}):
-    """ default model parameters
-    """
-    p={}
-    p['tolNR']      = 1.0e-7        # Newton-Raphson tolerance
-    p['tend']       = 1.            # final time
-    p['dtmax']      = 0.005          # max time step
-    p['bndno']      = 9            # interface boundary number
-    
-    # BC type
-    #p['bctype']     = 'pressure'     # uniform pressure
-    #p['bctype']     = 'deadload'     # uniform nodal load
-    #p['bctype']     = 'pydeadload1'  # uniform nodal load (python)  
-    p['bctype']     = 'pydeadloads'  # variable loads
-    #p['bctype']     = 'slave'     # variable loads (mpi)
-    
-    p['extractor'] = None
-                                       
-    p.update(q)
-    return p
-
 def getMetafor(p={}):
     global metafor
     if metafor: return metafor
     metafor = Metafor()
-    
-    p = params(p)
 
     domain = metafor.getDomain()
     geometry = domain.getGeometry()
@@ -62,7 +39,8 @@ def getMetafor(p={}):
     importer = GmshImport(f, domain)
     importer.execute2D()
 
-    groupset = domain.getGeometry().getGroupSet()    
+    groupset = domain.getGeometry().getGroupSet()
+    p['FSI'] = groupset(9)
 
     # solid elements / material
     interactionset = domain.getInteractionSet()
@@ -96,7 +74,7 @@ def getMetafor(p={}):
 
     mim = metafor.getMechanicalIterationManager()
     mim.setMaxNbOfIterations(4)
-    mim.setResidualTolerance(p['tolNR'])
+    mim.setResidualTolerance(1.0e-7)
 
     ti = AlphaGeneralizedTimeIntegration(metafor)
     metafor.setTimeIntegration(ti)
@@ -107,11 +85,7 @@ def getMetafor(p={}):
         tsm.setInitialTime(0.0, 1.0)
         tsm.setNextTime(1.0, 1, 1.0)
 
-    # results
-    #vmgr = metafor.getValuesManager()
-    #vmgr.add(1, MiscValueExtractor(metafor, EXT_T), 'time')
-    #vmgr.add(2, DbNodalValueExtractor(groupset(104), Field1D(TY,RE)), 'dy')
-    
+    p['exporter'] = None
     return metafor
 
 

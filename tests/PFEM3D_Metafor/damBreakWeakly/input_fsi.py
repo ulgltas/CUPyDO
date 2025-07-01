@@ -20,7 +20,7 @@ def test(meanFSIIt):
     tests = CTests()
     tests.add(CTest('Solid tip coordinate X', coord[0], 0.304510, 0.05, False))
     tests.add(CTest('Solid tip coordinate Y', coord[1], 0.080027, 0.05, False))
-    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 4, 1, True))
+    tests.add(CTest('Mean number of ISI iterations', meanFSIIt, 3, 1, True))
     tests.run()
 
 # Input Parameters
@@ -53,7 +53,7 @@ def getFsiP():
     p['dtSave'] = 0.01
     p['maxIt'] = 20
     p['tTot'] = 0.35
-    p['dt'] = 0.001
+    p['dt'] = 1e-3
     p['criterion'] = 'relative'
     p['nDim'] = 2
     p['qrFilter'] = None

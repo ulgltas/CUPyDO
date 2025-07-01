@@ -33,8 +33,7 @@ Physical Surface("Fluid") = {1};
 
 // Boundaries
 
-Physical Curve("FSInterface") = {1};
-Physical Curve("FreeSurface") = {3};
+Physical Curve("FSI") = {1};
 Physical Curve("Wall") = {2,4};
 
 Mesh 2;

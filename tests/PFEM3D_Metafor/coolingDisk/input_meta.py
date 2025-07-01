@@ -2,13 +2,6 @@ import toolbox.gmsh as gmsh
 import wrap as w
 import os
 
-# Physical group 4 = FSInterface
-
-def params(parm):
-
-    parm['bndno'] = 2
-    return parm
-
 metafor = None
 def getMetafor(parm):
 
@@ -43,6 +36,8 @@ def getMetafor(parm):
     groups = importer.groups
     importer.execute()
 
+    parm['FSI'] = groups['FSI']
+
     # Defines the solid domain
 
     app = w.FieldApplicator(1)
@@ -74,17 +69,21 @@ def getMetafor(parm):
 
     prp2 = w.ElementProperties(w.NodHeatFlux2DElement)
     heat = w.NodInteraction(2)
-    heat.push(groups['FSInterface'])
+    heat.push(groups['FSI'])
     heat.addProperty(prp2)
     interactionset.add(heat)
+
+    parm['interactionT'] = heat
 
     # Elements for surface traction
 
     prp3 = w.ElementProperties(w.NodStress2DElement)
     load = w.NodInteraction(3)
-    load.push(groups['FSInterface'])
+    load.push(groups['FSI'])
     load.addProperty(prp3)
     interactionset.add(load)
+
+    parm['interactionM'] = load
 
     # Initial and boundary conditions
 
@@ -122,11 +121,8 @@ def getMetafor(parm):
     ext = w.GmshExporter(metafor, 'solid')
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.AB)))
     ext.add(w.DbNodalValueExtractor(groups['Solid'], w.Field1D(w.TO, w.RE)))
-
-    parm['interactionT'] = heat
-    parm['interactionM'] = load
-    parm['FSInterface'] = groups['FSInterface']
     parm['exporter'] = Extractor(ext, node)
+
     return metafor
 
 class Extractor(object):

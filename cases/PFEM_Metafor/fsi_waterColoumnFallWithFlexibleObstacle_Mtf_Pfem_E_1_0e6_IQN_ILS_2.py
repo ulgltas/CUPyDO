@@ -27,7 +27,7 @@ def getParameters(_p):
     p['regime'] = 'unsteady'
     p['nbTimeToKeep'] = 2
     p['computeTangentMatrixBasedOnFirstIt'] = False
-    p['extractor'] = None
+    p['exporter'] = None
     p.update(_p)
     return p
 

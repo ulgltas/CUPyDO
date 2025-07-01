@@ -82,7 +82,7 @@ def Quad_Circle(x):
 s,l = Quad_Circle(L/2)
 
 sh.addPhysicalGroup(2,s,name='Solid')
-sh.addPhysicalGroup(1,l,name='FSInterface')
+sh.addPhysicalGroup(1,l,name='FSI')
 
 # |--------------------------|
 # |   Write the Mesh File    |
